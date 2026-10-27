@@ -1,0 +1,2430 @@
+/* Escrito a mano (no generado): la Inmobiliaria. El tablero es una rejilla de 11 × 11 (esquinas más grandes) medida en
+   unidades del propio tablero (cqw), así se ve igual de grande o de pequeño; en el centro, la ciudad. */
+
+.juegos-root .im-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(12px, 1.6vw, 22px);
+  min-height: 0;
+}
+
+/* ============================== Tablero ============================== */
+.juegos-root .im-board {
+  --paper: #e9f1e4;
+  --ink: #18231c;
+  flex: none;
+  width: min(62vw, calc(100svh - 190px));
+  min-width: 320px;
+  aspect-ratio: 1;
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: 1.6fr repeat(9, 1fr) 1.6fr;
+  grid-template-rows: 1.6fr repeat(9, 1fr) 1.6fr;
+  gap: 0.25cqw;
+  padding: 0.6cqw;
+  border-radius: 1.6cqw;
+  background: #10301f;
+  box-shadow:
+    0 0 0 0.5cqw #1d4a31,
+    0 2cqw 5cqw rgba(0, 0, 0, 0.55);
+}
+.juegos-root .im-cell {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 0.5cqw;
+  background: var(--paper);
+  font: inherit;
+  color: var(--ink);
+  text-align: center;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.juegos-root button.im-cell {
+  cursor: pointer;
+}
+.juegos-root button.im-cell:hover {
+  z-index: 2;
+  transform: scale(1.08);
+  box-shadow: 0 1cqw 2.5cqw rgba(0, 0, 0, 0.5);
+}
+.juegos-root .im-cell:focus-visible {
+  z-index: 3;
+  outline: 0.5cqw solid #ffd25e;
+}
+/* Franja de color hacia dentro del tablero, según el lado. */
+.juegos-root .im-cell--bottom {
+  flex-direction: column;
+}
+.juegos-root .im-cell--top {
+  flex-direction: column-reverse;
+}
+/* En los lados el hueco es ancho y bajo: la franja a un lado y el nombre encima del precio. */
+.juegos-root .im-cell--left,
+.juegos-root .im-cell--right {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+.juegos-root .im-cell--left {
+  grid-template-columns: minmax(0, 1fr) 22%;
+}
+.juegos-root .im-cell--right {
+  grid-template-columns: 22% minmax(0, 1fr);
+}
+.juegos-root .im-cell--left > :not(.im-cell__band, .im-cell__icon) {
+  grid-column: 1;
+}
+.juegos-root .im-cell--right > :not(.im-cell__band, .im-cell__icon) {
+  grid-column: 2;
+}
+.juegos-root .im-cell--left > .im-cell__band,
+.juegos-root .im-cell--left > .im-cell__icon {
+  grid-column: 2;
+  grid-row: 1 / 3;
+}
+.juegos-root .im-cell--right > .im-cell__band,
+.juegos-root .im-cell--right > .im-cell__icon {
+  grid-column: 1;
+  grid-row: 1 / 3;
+}
+.juegos-root .im-cell--left .im-cell__price,
+.juegos-root .im-cell--right .im-cell__price,
+.juegos-root .im-cell--left .im-cell__owner,
+.juegos-root .im-cell--right .im-cell__owner {
+  padding-top: 0;
+}
+/* Las casillas de decoración de los lados, en columna como las demás. */
+.juegos-root .im-cell--deco.im-cell--left,
+.juegos-root .im-cell--deco.im-cell--right {
+  display: flex;
+}
+.juegos-root .im-cell__band {
+  flex: none;
+  display: grid;
+  place-items: center;
+  background: var(--band);
+}
+.juegos-root .im-cell--bottom .im-cell__band,
+.juegos-root .im-cell--top .im-cell__band {
+  height: 24%;
+}
+
+.juegos-root .im-cell__name {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  padding: 0.3cqw;
+  overflow: hidden;
+  font-size: 1.15cqw;
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+.juegos-root .im-cell__price,
+.juegos-root .im-cell__owner {
+  flex: none;
+  display: grid;
+  place-items: center;
+  padding: 0.3cqw;
+  font-size: 1.15cqw;
+  font-weight: 700;
+}
+.juegos-root .im-cell__owner .avatar {
+  --size: 3.2cqw !important;
+  box-shadow: 0 0 0 0.25cqw hsl(var(--oh) 70% 45%);
+}
+.juegos-root .im-cell__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  padding-top: 0.4cqw;
+  font-size: 2.6cqw;
+  line-height: 1;
+}
+/* Propiedad con dueño: un tinte del color de quien la tiene; la tuya, con brillo dorado. */
+.juegos-root .im-cell.is-owned {
+  background: linear-gradient(0deg, hsl(var(--oh) 60% 50% / 0.22), hsl(var(--oh) 60% 50% / 0.22)), var(--paper);
+}
+.juegos-root .im-cell.is-mine {
+  box-shadow:
+    inset 0 0 0 0.35cqw #ffd25e,
+    0 0 1.6cqw rgba(255, 210, 94, 0.55);
+}
+.juegos-root .im-cell.is-selected {
+  z-index: 2;
+  transform: scale(1.1);
+  box-shadow:
+    0 0 0 0.45cqw #fff,
+    0 1.2cqw 3cqw rgba(0, 0, 0, 0.6);
+}
+/* Casillas que no son propiedades y esquinas. */
+.juegos-root .im-cell--deco {
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.3cqw;
+  background: #dfe9d9;
+}
+.juegos-root .im-cell--deco .im-cell__name {
+  flex: none;
+  font-size: 1cqw;
+}
+.juegos-root .im-cell.is-corner .im-cell__icon {
+  font-size: 4.4cqw;
+}
+.juegos-root .im-cell.is-corner .im-cell__name {
+  font-size: 1.3cqw;
+}
+.juegos-root .im-cell--salida {
+  background: linear-gradient(135deg, #ffe7a3, #f2c14e);
+}
+.juegos-root .im-cell--a-carcel,
+.juegos-root .im-cell--carcel {
+  background: linear-gradient(135deg, #f3d0c6, #e7a08f);
+}
+.juegos-root .im-cell--parking {
+  background: linear-gradient(135deg, #cfe6ff, #9cc6f0);
+}
+/* Casas y hotel sobre la franja. */
+.juegos-root .im-houses {
+  display: flex;
+  gap: 0.25cqw;
+}
+.juegos-root .im-cell--left .im-houses,
+.juegos-root .im-cell--right .im-houses {
+  flex-direction: column;
+}
+.juegos-root .im-houses i,
+.juegos-root .im-hotel {
+  display: block;
+  width: 1.3cqw;
+  height: 1.3cqw;
+  background: #1fa64f;
+  clip-path: polygon(50% 0, 100% 40%, 100% 100%, 0 100%, 0 40%);
+  box-shadow: inset 0 -0.3cqw 0 rgba(0, 0, 0, 0.25);
+}
+.juegos-root .im-hotel {
+  width: 2.6cqw;
+  height: 1.6cqw;
+  background: #d8261e;
+}
+
+/* ============================== La ciudad del centro ==============================
+   Un SVG isométrico (InmoCity.jsx). Las caras se pintan con su color (--c) mezclado con el de la hora (--tint en
+   --dark): así el mismo dibujo vale de día, al atardecer y de noche, cuando se encienden las ventanas y las farolas. */
+.juegos-root .im-city {
+  --tint: #0b1640;
+  --dark: 0%;
+  --win: #a7c5dc;
+  --win-r: #8aa9c2;
+  --lamp: rgba(255, 220, 140, 0);
+  --sea: #2f8fc0;
+  --sea2: #1d6a9a;
+  --mount: #7d8fa8;
+  --cloud: rgba(255, 255, 255, 0.9);
+  --stars: 0;
+  --sky: linear-gradient(180deg, #4d8fd6 0%, #8cc2ec 38%, #cfe8f7 48%);
+  grid-row: 2 / 11;
+  grid-column: 2 / 11;
+  position: relative;
+  overflow: hidden;
+  border-radius: 1cqw;
+  background: var(--sky);
+  box-shadow: inset 0 0 0 0.3cqw rgba(0, 0, 0, 0.25);
+  transition: background 2s;
+}
+.juegos-root .im-city.is-dawn {
+  --tint: #3a1d4a;
+  --dark: 14%;
+  --win: #ffd98a;
+  --win-r: #e8b96a;
+  --lamp: rgba(255, 220, 140, 0.25);
+  --sea: #4a7fae;
+  --sea2: #2c5784;
+  --mount: #6c6a8c;
+  --cloud: rgba(255, 214, 200, 0.9);
+  --stars: 0.15;
+  --sky: linear-gradient(180deg, #3c4f8f 0%, #c78bab 30%, #ffc490 48%);
+}
+.juegos-root .im-city.is-dusk {
+  --tint: #3d1640;
+  --dark: 22%;
+  --win: #ffd27a;
+  --win-r: #e8b45c;
+  --lamp: rgba(255, 210, 120, 0.4);
+  --sea: #3f6c9c;
+  --sea2: #24466f;
+  --mount: #4b3f68;
+  --cloud: rgba(255, 180, 150, 0.85);
+  --stars: 0.3;
+  --sky: linear-gradient(180deg, #23285c 0%, #8a4a7c 26%, #f08a5a 44%, #ffcf7a 49%);
+}
+.juegos-root .im-city.is-night {
+  --tint: #070d26;
+  --dark: 52%;
+  --win: #ffd76e;
+  --win-r: #f2c24f;
+  --lamp: rgba(255, 214, 120, 0.55);
+  --sea: #142a4f;
+  --sea2: #0b1a36;
+  --mount: #1b2440;
+  --cloud: rgba(120, 135, 170, 0.45);
+  --stars: 1;
+  --sky: linear-gradient(180deg, #050a1f 0%, #0d1940 35%, #1d2c5c 49%);
+}
+.juegos-root .im-city__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.juegos-root .im-city__svg text {
+  font-family: inherit;
+}
+
+/* Caras: izquierda con su color, derecha a la sombra y techo con luz. */
+.juegos-root .im-f--l {
+  fill: color-mix(in srgb, var(--c) calc(100% - var(--dark)), var(--tint));
+}
+.juegos-root .im-f--r {
+  fill: color-mix(in srgb, color-mix(in srgb, var(--c) 74%, #000) calc(100% - var(--dark)), var(--tint));
+}
+.juegos-root .im-f--t {
+  fill: color-mix(in srgb, color-mix(in srgb, var(--c) 84%, #fff) calc(100% - var(--dark)), var(--tint));
+}
+.juegos-root .im-win {
+  fill: var(--win);
+}
+.juegos-root .im-wins--r {
+  opacity: 0.8;
+}
+.juegos-root .is-night .im-wins,
+.juegos-root .is-dusk .im-wins {
+  filter: drop-shadow(0 0 1.5px var(--win));
+}
+.juegos-root .is-night .im-lot:nth-of-type(3n) .im-wins--r {
+  animation: im-flicker 7s steps(1) infinite;
+}
+@keyframes im-flicker {
+  40% {
+    opacity: 0.35;
+  }
+  55% {
+    opacity: 0.8;
+  }
+}
+
+/* Suelo. */
+.juegos-root .im-g--grass {
+  --c: #5c9c47;
+}
+.juegos-root .im-g--grass.is-alt {
+  --c: #62a34c;
+}
+.juegos-root .im-g--road,
+.juegos-root .im-g--cross {
+  --c: #3d4149;
+}
+.juegos-root .im-g--lot {
+  --c: #cfc9bc;
+}
+.juegos-root .im-g--paseo {
+  --c: #e2d3b0;
+}
+.juegos-root .im-g--paseo.is-alt {
+  --c: #d9c8a2;
+}
+.juegos-root .im-g--sand {
+  --c: #f0d99a;
+}
+.juegos-root .im-pad {
+  stroke: var(--band);
+  stroke-width: 1.3;
+}
+.juegos-root .im-pad--dirt {
+  --c: #b8946a;
+}
+.juegos-root .im-pad--garden {
+  --c: #7bbd5c;
+}
+.juegos-root .im-pad--plaza {
+  --c: #e3ddd0;
+}
+.juegos-root .im-edge {
+  --c: #6b4a2e;
+}
+.juegos-root .im-edge--sand {
+  --c: #d8b670;
+}
+.juegos-root .im-dash {
+  stroke: rgba(255, 255, 255, 0.75);
+  stroke-dasharray: 5 6;
+}
+.juegos-root .im-zebra {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 2.5;
+  stroke-dasharray: 2 2;
+}
+.juegos-root .im-runway {
+  fill: color-mix(in srgb, #3a3d44 calc(100% - var(--dark)), var(--tint));
+}
+.juegos-root .im-runway-line {
+  stroke: #fff;
+  stroke-dasharray: 6 5;
+}
+.juegos-root .im-shadow {
+  fill: rgba(0, 0, 0, 0.18);
+}
+.juegos-root .im-pole {
+  stroke: #4a4f57;
+}
+.juegos-root .im-leaf {
+  fill: none;
+  stroke: color-mix(in srgb, #3f9a3c calc(100% - var(--dark)), var(--tint));
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.juegos-root .im-sign {
+  font-size: 4.6px;
+  font-weight: 800;
+  fill: #d8261e;
+}
+.juegos-root .im-fence {
+  fill: none;
+  stroke: #f08a24;
+  stroke-width: 1.4;
+  stroke-dasharray: 3 2;
+}
+.juegos-root .im-flag {
+  animation: im-flag 1.4s ease-in-out infinite alternate;
+  transform-box: fill-box;
+  transform-origin: 0 50%;
+}
+@keyframes im-flag {
+  to {
+    transform: scaleX(0.75) skewY(4deg);
+  }
+}
+.juegos-root .im-lamp {
+  fill: #fff2c4;
+}
+.juegos-root .im-lamp-glow {
+  fill: var(--lamp);
+  filter: blur(3px);
+}
+.juegos-root .im-beacon {
+  fill: #ff3b30;
+  animation: im-blink 1.6s steps(1) infinite;
+}
+@keyframes im-blink {
+  50% {
+    opacity: 0.15;
+  }
+}
+.juegos-root .im-turbine {
+  stroke: #f4f6f8;
+  stroke-linecap: round;
+}
+.juegos-root .im-blades {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: im-spin var(--sp, 3s) linear infinite;
+}
+@keyframes im-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.juegos-root .im-water {
+  fill: #4fb3d9;
+  animation: im-shine 2.4s ease-in-out infinite alternate;
+}
+@keyframes im-shine {
+  to {
+    fill: #8fd6f0;
+  }
+}
+.juegos-root .im-jet {
+  fill: rgba(220, 245, 255, 0.85);
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: im-jet 0.9s ease-in-out infinite alternate;
+}
+@keyframes im-jet {
+  to {
+    transform: scaleY(1.35) scaleX(0.8);
+  }
+}
+.juegos-root .im-drop {
+  fill: #8fd6f0;
+  animation: im-drop 1.2s ease-in infinite;
+}
+@keyframes im-drop {
+  to {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+}
+.juegos-root .im-crane-steel {
+  stroke: #d8452b;
+}
+.juegos-root .im-crane-yellow {
+  stroke: #f5c518;
+}
+.juegos-root .im-hook {
+  animation: im-hook 1.6s ease-in-out infinite alternate;
+}
+@keyframes im-hook {
+  to {
+    transform: translateY(-6px);
+  }
+}
+.juegos-root .im-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: im-sway 3.2s ease-in-out infinite alternate;
+  animation-delay: calc(var(--sw, 0) * -0.7s);
+}
+@keyframes im-sway {
+  from {
+    transform: rotate(-3deg);
+  }
+  to {
+    transform: rotate(3deg);
+  }
+}
+
+/* Cielo y mar. */
+.juegos-root .im-stars circle {
+  fill: #fff;
+  opacity: var(--stars);
+  animation: im-twinkle 2.8s ease-in-out infinite alternate;
+}
+@keyframes im-twinkle {
+  to {
+    opacity: calc(var(--stars) * 0.3);
+  }
+}
+.juegos-root .im-sun {
+  fill: #fff3c2;
+}
+.juegos-root .im-sun-glow {
+  fill: rgba(255, 220, 120, 0.35);
+  filter: blur(8px);
+  animation: im-pulse 4s ease-in-out infinite alternate;
+}
+.juegos-root .im-moon {
+  fill: #f1f0e6;
+}
+.juegos-root .im-moon-glow {
+  fill: rgba(200, 215, 255, 0.2);
+  filter: blur(8px);
+}
+@keyframes im-pulse {
+  to {
+    transform: scale(1.15);
+  }
+}
+.juegos-root .im-cloud {
+  fill: var(--cloud);
+  animation: im-drift var(--t, 80s) linear infinite;
+}
+@keyframes im-drift {
+  from {
+    transform: translateX(-480px);
+  }
+  to {
+    transform: translateX(480px);
+  }
+}
+.juegos-root .im-mount {
+  fill: var(--mount);
+}
+.juegos-root .im-mount--far {
+  opacity: 0.7;
+}
+.juegos-root .im-snow {
+  fill: #fff;
+  opacity: 0.85;
+}
+.juegos-root .im-sea {
+  fill: url(#im-sea);
+}
+.juegos-root .im-sea-a {
+  stop-color: var(--sea2);
+}
+.juegos-root .im-sea-b {
+  stop-color: var(--sea);
+}
+.juegos-root .im-shallow {
+  fill: color-mix(in srgb, var(--sea) 55%, #7fe0d8);
+  opacity: 0.85;
+}
+.juegos-root .im-foam {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.7);
+  stroke-width: 2;
+  stroke-dasharray: 10 6;
+  animation: im-foam 6s linear infinite;
+}
+@keyframes im-foam {
+  to {
+    stroke-dashoffset: -64;
+  }
+}
+.juegos-root .im-waves path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 1.2;
+  animation: im-wave 3.5s ease-in-out infinite;
+}
+@keyframes im-wave {
+  50% {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+}
+.juegos-root .im-bob {
+  animation: im-bob 2.6s ease-in-out infinite alternate;
+}
+@keyframes im-bob {
+  to {
+    transform: translateY(2px) rotate(1deg);
+  }
+}
+.juegos-root .im-plane path {
+  filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.25));
+}
+
+/* Los solares: se pueden tocar; el elegido brilla y lo que se construye sube desde el suelo. */
+.juegos-root .im-lot {
+  cursor: pointer;
+  outline: none;
+}
+.juegos-root .im-hit {
+  fill: transparent;
+}
+.juegos-root .im-lift {
+  transition: transform 0.2s ease;
+}
+.juegos-root .im-lot:hover .im-lift,
+.juegos-root .im-lot:focus-visible .im-lift,
+.juegos-root .im-lot.is-selected .im-lift {
+  transform: translateY(-4px);
+}
+.juegos-root .im-lot:hover .im-s,
+.juegos-root .im-lot:focus-visible .im-s {
+  filter: brightness(1.15) drop-shadow(0 0 2px #fff);
+}
+.juegos-root .im-lot.is-selected .im-s {
+  filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px #ffd25e);
+}
+.juegos-root .im-ring {
+  fill: rgba(255, 210, 94, 0.35);
+  stroke: #ffd25e;
+  stroke-width: 2;
+  animation: im-ring 1.2s ease-in-out infinite alternate;
+}
+@keyframes im-ring {
+  to {
+    fill: rgba(255, 210, 94, 0.1);
+    stroke: #fff;
+  }
+}
+.juegos-root .im-grow {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: im-grow 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+  animation-delay: var(--d, 0ms);
+}
+.juegos-root .im-grow.is-late {
+  animation-delay: 0.7s;
+}
+@keyframes im-grow {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+.juegos-root .im-ghost {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: im-fall 0.8s ease-in both;
+}
+@keyframes im-fall {
+  to {
+    transform: scaleY(0) skewX(6deg);
+    opacity: 0;
+  }
+}
+.juegos-root .im-dust circle {
+  fill: rgba(225, 205, 170, 0.85);
+  animation: im-dust 1.3s ease-out both;
+}
+/* Se anima el radio y no la escala: escalar un círculo suelto en SVG lo mueve de sitio en algunos navegadores. */
+@keyframes im-dust {
+  from {
+    r: 1.5px;
+  }
+  to {
+    r: 13px;
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+.juegos-root .im-crane {
+  animation: im-crane 2.6s ease both;
+}
+@keyframes im-crane {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  15%,
+  80% {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Encima del SVG: el título, las cifras y la foto de cada dueño. */
+.juegos-root .im-city__title {
+  position: absolute;
+  top: 3.5%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  padding: 0.8cqw 2.6cqw;
+  border: 0.4cqw solid #fff;
+  border-radius: 0.9cqw;
+  background: #d8261e;
+  box-shadow: 0 0.8cqw 2cqw rgba(0, 0, 0, 0.35);
+  translate: -50% 0;
+  rotate: -4deg;
+  color: #fff;
+  pointer-events: none;
+  animation: im-sway-sign 5s ease-in-out infinite alternate;
+}
+@keyframes im-sway-sign {
+  to {
+    rotate: -2deg;
+  }
+}
+.juegos-root .im-city__title span {
+  font-family: var(--display);
+  font-size: 4.2cqw;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.juegos-root .im-city__title small {
+  font-size: 1.3cqw;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.juegos-root .im-city__stats {
+  position: absolute;
+  bottom: 2.5%;
+  left: 50%;
+  margin: 0;
+  padding: 0.5cqw 1.4cqw;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.45);
+  translate: -50% 0;
+  white-space: nowrap;
+  font-size: 1.4cqw;
+  color: #fff;
+  pointer-events: none;
+}
+.juegos-root .im-city__stats b {
+  color: #ffd25e;
+}
+.juegos-root .im-city__empty {
+  position: absolute;
+  top: 24%;
+  left: 50%;
+  width: 60%;
+  margin: 0;
+  translate: -50% 0;
+  font-size: 1.7cqw;
+  font-weight: 700;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 0.2cqw 0.6cqw rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+.juegos-root .im-pin {
+  position: absolute;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+  translate: -50% -100%;
+  cursor: pointer;
+  animation: im-pin-bob 2.2s ease-in-out infinite alternate;
+  animation-delay: calc(var(--d) * -1);
+}
+.juegos-root .im-pin::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  border: 0.5cqw solid transparent;
+  border-top-color: hsl(var(--oh) 70% 45%);
+  translate: -50% -0.1cqw;
+}
+.juegos-root .im-pin .avatar {
+  --size: 2.2cqw !important;
+  display: block;
+  box-shadow: 0 0 0 0.25cqw hsl(var(--oh) 70% 45%);
+  font-size: 0.9cqw;
+}
+.juegos-root .im-pin.is-mine .avatar {
+  box-shadow:
+    0 0 0 0.3cqw #ffd25e,
+    0 0 1cqw #ffd25e;
+}
+.juegos-root .im-pin.is-mine::after {
+  border-top-color: #ffd25e;
+}
+.juegos-root .im-pin.is-selected {
+  z-index: 2;
+  scale: 1.35;
+}
+@keyframes im-pin-bob {
+  to {
+    transform: translateY(-0.5cqw);
+  }
+}
+.juegos-root .im-pin__coin,
+.juegos-root .im-coins i {
+  position: absolute;
+  left: 50%;
+  width: 1.5cqw;
+  height: 1.5cqw;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff6c2, #ffcf3a 45%, #c98a0c);
+  box-shadow: 0 0 0.6cqw rgba(255, 207, 58, 0.8);
+}
+.juegos-root .im-pin__coin {
+  bottom: 100%;
+  margin-bottom: 0.3cqw;
+  translate: -50% 0;
+  animation: im-coin-spin 1.4s ease-in-out infinite;
+}
+@keyframes im-coin-spin {
+  50% {
+    transform: scaleX(0.2) translateY(-0.4cqw);
+  }
+}
+.juegos-root .im-coins i {
+  top: 0;
+  translate: -50% 0;
+  opacity: 0;
+  animation: im-coin-up 1.2s ease-out both;
+}
+.juegos-root .im-coins i:nth-child(2) {
+  animation-delay: 0.15s;
+  margin-left: -1.2cqw;
+}
+.juegos-root .im-coins i:nth-child(3) {
+  animation-delay: 0.3s;
+  margin-left: 1.2cqw;
+}
+@keyframes im-coin-up {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-7cqw) scale(1.1);
+  }
+}
+.juegos-root .im-float {
+  position: absolute;
+  z-index: 3;
+  padding: 0.3cqw 1cqw;
+  border-radius: 99px;
+  background: #1fa64f;
+  translate: -50% -100%;
+  white-space: nowrap;
+  font-size: 1.4cqw;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 0.4cqw 1cqw rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  animation: im-float 2.6s ease-out both;
+}
+.juegos-root .im-float.is-fall {
+  background: #c2332c;
+}
+@keyframes im-float {
+  from {
+    opacity: 0;
+    transform: translateY(2cqw) scale(0.6);
+  }
+  15% {
+    opacity: 1;
+    transform: none;
+  }
+  75% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4cqw);
+  }
+}
+
+/* ============================== Panel lateral ============================== */
+.juegos-root .im-side {
+  flex: 1;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-width: 280px;
+  max-height: 100%;
+  overflow: auto;
+  padding-right: 4px;
+}
+.juegos-root .im-wallet {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 210, 94, 0.35);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 210, 94, 0.16), rgba(0, 0, 0, 0.25));
+}
+.juegos-root .im-wallet > div {
+  display: grid;
+}
+.juegos-root .im-wallet small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.juegos-root .im-wallet b {
+  font-family: var(--display);
+  font-size: 30px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: #8ff0b4;
+}
+.juegos-root .im-msg {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(95, 211, 141, 0.15);
+  color: #b9f5cf;
+}
+.juegos-root .im-msg.is-bad {
+  background: rgba(255, 90, 80, 0.15);
+  color: #ffb4aa;
+}
+.juegos-root .im-hint {
+  margin: 0;
+  padding: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* La ficha: papel blanco con la franja de color arriba, como las del juego de mesa. */
+.juegos-root .im-deed {
+  display: grid;
+  gap: 10px;
+  padding: 0 0 14px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #f7f3e8;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+  color: #1d1d1d;
+}
+.juegos-root .im-deed__head {
+  display: grid;
+  justify-items: center;
+  padding: 12px 14px;
+  border: 3px solid #f7f3e8;
+  border-bottom: 0;
+  background: var(--band);
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.juegos-root .im-deed__head small {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.juegos-root .im-deed__head h2 {
+  margin: 2px 0 0;
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+.juegos-root .im-deed__rows {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0 16px;
+}
+.juegos-root .im-deed__rows > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.juegos-root .im-deed__rows dt {
+  color: #4a4a4a;
+}
+.juegos-root .im-deed__rows dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .im-deed__rows .is-now {
+  background: rgba(255, 196, 60, 0.35);
+}
+.juegos-root .im-deed__note {
+  margin: 0 16px;
+  font-size: 12px;
+  font-style: italic;
+  color: #5a5a5a;
+}
+.juegos-root .im-deed__owner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 16px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.06);
+  font-weight: 700;
+}
+.juegos-root .im-deed__owner > span {
+  display: grid;
+}
+.juegos-root .im-deed__owner small {
+  font-weight: 400;
+  color: #555;
+}
+.juegos-root .im-deed__actions {
+  display: grid;
+  gap: 8px;
+  margin: 0 16px;
+}
+.juegos-root .im-deed .hub-btn:not(.hub-btn--primary) {
+  border-color: rgba(0, 0, 0, 0.25);
+  color: #1d1d1d;
+}
+.juegos-root .im-deed .im-sell-confirm {
+  border-color: #c2332c !important;
+  background: #c2332c;
+  color: #fff !important;
+}
+
+.juegos-root .im-rank,
+.juegos-root .im-log {
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.25);
+}
+.juegos-root .im-rank h2,
+.juegos-root .im-log h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .im-rank ol,
+.juegos-root .im-log ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .im-rank li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+.juegos-root .im-rank li span {
+  display: grid;
+}
+.juegos-root .im-rank small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.juegos-root .im-rank li.is-me b {
+  color: #ffd25e;
+}
+.juegos-root .im-log li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.juegos-root .im-log li i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.juegos-root .im-log li button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--ivory);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+}
+.juegos-root .im-log small {
+  color: var(--muted);
+}
+
+/* Móvil y tablet: el tablero ocupa el ancho y el panel va debajo; la página hace scroll. */
+@media (max-width: 900px) {
+  .juegos-root .app.im-app {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+  .juegos-root .im-layout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .juegos-root .im-board {
+    width: 100%;
+    min-width: 0;
+  }
+  .juegos-root .im-side {
+    max-height: none;
+    overflow: visible;
+  }
+  /* En pequeño los nombres no caben: la ficha los dice al tocar la casilla. */
+  .juegos-root .im-cell:not(.is-corner) .im-cell__name {
+    font-size: 0;
+  }
+  .juegos-root .im-cell__price {
+    font-size: 1.6cqw;
+  }
+  .juegos-root .im-cell__owner .avatar {
+    --size: 4.4cqw !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .im-city *,
+  .juegos-root .im-city {
+    animation: none !important;
+  }
+  .juegos-root .im-cell {
+    transition: none;
+  }
+}
+
+/* ============================== Banner del selector de juegos ============================== */
+.juegos-root .im-banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  overflow: hidden;
+  padding: clamp(16px, 2.4vw, 28px);
+  border: 1px solid rgba(255, 210, 94, 0.45);
+  border-radius: 22px;
+  background:
+    radial-gradient(70% 120% at 100% 50%, rgba(216, 38, 30, 0.35), transparent 70%),
+    linear-gradient(135deg, #123826, #0b2318);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 14px 34px rgba(0, 0, 0, 0.4);
+  font: inherit;
+  color: var(--ivory);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.juegos-root .im-banner:hover {
+  transform: translateY(-2px);
+}
+.juegos-root .im-banner h3 {
+  margin: 6px 0 4px;
+  font-family: var(--display);
+  font-size: clamp(28px, 3.4vw, 46px);
+  font-weight: 400;
+  line-height: 1;
+}
+.juegos-root .im-banner p {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--muted);
+}
+.juegos-root .im-banner__new {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: #d8261e;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.juegos-root .im-banner__cta {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 16px;
+  border-radius: 99px;
+  background: #ffd25e;
+  font-weight: 700;
+  color: #1b1405;
+}
+.juegos-root .im-banner svg {
+  width: 100%;
+  max-height: 160px;
+}
+@media (max-width: 640px) {
+  .juegos-root .im-banner {
+    grid-template-columns: 1fr;
+  }
+  .juegos-root .im-banner svg {
+    max-height: 110px;
+  }
+}
+
+/* Arriba y abajo los huecos son estrechos: letra algo menor y cortes con guion. */
+.juegos-root .im-cell--top .im-cell__name,
+.juegos-root .im-cell--bottom .im-cell__name {
+  font-size: 1cqw;
+  hyphens: auto;
+}
+
+/* ============================== La ciudad o el espacio ============================== */
+.juegos-root .im-stage {
+  flex: none;
+  display: grid;
+  gap: 10px;
+}
+.juegos-root .im-views {
+  display: flex;
+  gap: 6px;
+  width: fit-content;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.3);
+}
+.juegos-root .im-views button {
+  padding: 7px 16px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.juegos-root .im-views button.is-on {
+  background: #ffd25e;
+  color: #1b1405;
+}
+.juegos-root .im-views button:not(.is-on):hover {
+  color: var(--ivory);
+}
+.juegos-root .im-stage .im-board,
+.juegos-root .sp-space {
+  width: min(62vw, calc(100svh - 240px));
+}
+
+/* ============================== El espacio ============================== */
+.juegos-root .sp-space {
+  position: relative;
+  min-width: 320px;
+  aspect-ratio: 1;
+  overflow: hidden;
+  container-type: inline-size;
+  border-radius: 1.6cqw;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 170, 60, 0.18), transparent 30%),
+    radial-gradient(ellipse at 20% 80%, #1a0f3a, transparent 55%),
+    radial-gradient(ellipse at 85% 20%, #0f2346, transparent 55%),
+    #04050d;
+  box-shadow:
+    0 0 0 0.5cqw #1c2140,
+    0 2cqw 5cqw rgba(0, 0, 0, 0.55);
+  animation: sp-in 0.6s ease both;
+}
+@keyframes sp-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+.juegos-root .sp-stars i {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  animation: sp-twinkle 3s ease-in-out infinite alternate;
+}
+@keyframes sp-twinkle {
+  from {
+    opacity: 0.25;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.juegos-root .sp-nebula {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(4cqw);
+  opacity: 0.45;
+  animation: sp-drift 30s ease-in-out infinite alternate;
+}
+.juegos-root .sp-nebula--a {
+  left: 5%;
+  top: 55%;
+  width: 40%;
+  height: 30%;
+  background: #7a2bb8;
+}
+.juegos-root .sp-nebula--b {
+  right: 2%;
+  top: 8%;
+  width: 36%;
+  height: 26%;
+  background: #1b6fb0;
+  animation-delay: -12s;
+}
+@keyframes sp-drift {
+  to {
+    transform: translate(4cqw, -3cqw) scale(1.15);
+  }
+}
+.juegos-root .sp-shooting {
+  position: absolute;
+  left: 70%;
+  top: 6%;
+  width: 14cqw;
+  height: 0.25cqw;
+  border-radius: 99px;
+  background: linear-gradient(90deg, transparent, #fff);
+  opacity: 0;
+  transform: rotate(155deg);
+  animation: sp-shoot 9s ease-in infinite 3s;
+}
+@keyframes sp-shoot {
+  0%,
+  88% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: -40cqw 18cqw;
+  }
+}
+.juegos-root .sp-rocket {
+  position: absolute;
+  left: -8%;
+  top: 70%;
+  font-size: 3cqw;
+  font-style: normal;
+  animation: sp-rocket 26s linear infinite 5s;
+  opacity: 0;
+}
+@keyframes sp-rocket {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(45deg);
+  }
+  35% {
+    opacity: 1;
+    transform: translate(120cqw, -60cqw) rotate(45deg);
+  }
+  36%,
+  100% {
+    opacity: 0;
+    transform: translate(120cqw, -60cqw) rotate(45deg);
+  }
+}
+
+/* Las órbitas giran; el planeta va en lo alto de su órbita y gira al revés para quedarse derecho. */
+.juegos-root .sp-system {
+  position: absolute;
+  inset: 0;
+}
+.juegos-root .sp-orbit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--r) * 2);
+  aspect-ratio: 1;
+  border: 1px dashed rgba(160, 180, 255, 0.18);
+  border-radius: 50%;
+  translate: -50% -50%;
+  animation: sp-spin var(--t) linear infinite;
+}
+.juegos-root .sp-carrier {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  translate: -50% -50%;
+  animation: sp-spin var(--t) linear infinite reverse;
+}
+@keyframes sp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Al pasar el ratón se para todo, para poder tocar los planetas. */
+.juegos-root .sp-space:hover .sp-orbit,
+.juegos-root .sp-space:hover .sp-carrier,
+.juegos-root .sp-space:focus-within .sp-orbit,
+.juegos-root .sp-space:focus-within .sp-carrier {
+  animation-play-state: paused;
+}
+
+.juegos-root .sp-spot {
+  position: absolute;
+  translate: -50% -50%;
+}
+.juegos-root .sp-body {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.3cqw;
+  padding: 0.4cqw;
+  border: 0;
+  border-radius: 1cqw;
+  background: none;
+  font: inherit;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+.juegos-root .sp-body:hover,
+.juegos-root .sp-body:focus-visible {
+  z-index: 3;
+  transform: scale(1.18);
+  outline: none;
+}
+.juegos-root .sp-name {
+  padding: 0.1cqw 0.6cqw;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.55);
+  white-space: nowrap;
+  font-size: 1.15cqw;
+  font-weight: 700;
+  line-height: 1.4;
+  opacity: 0.8;
+}
+.juegos-root .sp-body:hover .sp-name,
+.juegos-root .sp-body.is-selected .sp-name {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.8);
+}
+.juegos-root .sp-owner {
+  position: absolute;
+  right: -0.4cqw;
+  top: -0.4cqw;
+}
+.juegos-root .sp-owner .avatar {
+  --size: 2.2cqw !important;
+  display: block;
+  font-size: 0.9cqw;
+  box-shadow: 0 0 0 0.25cqw hsl(var(--oh) 70% 50%);
+}
+.juegos-root .sp-owner.is-mine .avatar {
+  box-shadow:
+    0 0 0 0.3cqw #ffd25e,
+    0 0 1cqw #ffd25e;
+}
+/* Con dueño: un halo de su color; lo tuyo, dorado; lo elegido, un anillo blanco que late. */
+.juegos-root .sp-body.is-owned > i:first-child {
+  box-shadow:
+    0 0 0 0.35cqw hsl(var(--oh) 80% 60% / 0.8),
+    0 0 2.4cqw hsl(var(--oh) 80% 60% / 0.6);
+}
+.juegos-root .sp-body.is-mine > i:first-child {
+  box-shadow:
+    0 0 0 0.4cqw #ffd25e,
+    0 0 3cqw rgba(255, 210, 94, 0.8);
+}
+.juegos-root .sp-body.is-selected > i:first-child {
+  animation: sp-selected 1.1s ease-in-out infinite alternate;
+}
+@keyframes sp-selected {
+  to {
+    box-shadow:
+      0 0 0 0.6cqw #fff,
+      0 0 4cqw rgba(255, 255, 255, 0.8);
+  }
+}
+.juegos-root .sp-body.is-locked {
+  filter: grayscale(0.85) brightness(0.65);
+}
+.juegos-root .sp-body.is-locked .sp-name::before {
+  content: '🔒 ';
+}
+.juegos-root .sp-body.is-fresh {
+  animation: sp-fresh 2.2s ease;
+}
+@keyframes sp-fresh {
+  15% {
+    transform: scale(1.6);
+    filter: brightness(2) drop-shadow(0 0 3cqw #ffd25e);
+  }
+}
+
+/* Planetas. */
+.juegos-root .sp-planet {
+  position: relative;
+  display: block;
+  width: var(--size);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: inset -0.25em -0.2em 0.5em rgba(0, 0, 0, 0.55);
+  font-size: var(--size);
+}
+.juegos-root .sp-planet--mercurio {
+  background: radial-gradient(circle at 35% 30%, #d6cfc7, #8f8579 60%, #5d554c);
+}
+.juegos-root .sp-planet--venus {
+  background: radial-gradient(circle at 35% 30%, #fff1c9, #e3b45e 60%, #a8742d);
+}
+.juegos-root .sp-planet--tierra {
+  background:
+    radial-gradient(circle at 30% 35%, #4fb55a 0 18%, transparent 19%),
+    radial-gradient(circle at 65% 65%, #4fb55a 0 14%, transparent 15%),
+    radial-gradient(circle at 35% 30%, #8fd0ff, #2a6fd0 60%, #163f86);
+}
+.juegos-root .sp-planet--marte {
+  background: radial-gradient(circle at 35% 30%, #ff9a6a, #c1440e 60%, #6e2105);
+}
+.juegos-root .sp-planet--jupiter {
+  background:
+    radial-gradient(ellipse 18% 12% at 65% 62%, #b5532f 0 70%, transparent 75%),
+    repeating-linear-gradient(180deg, #e9cfa4 0 9%, #c48b5a 9% 16%, #f1dfbd 16% 24%, #a86f45 24% 28%);
+  box-shadow: inset -0.25em -0.2em 0.5em rgba(0, 0, 0, 0.55);
+}
+.juegos-root .sp-planet--saturno {
+  background: radial-gradient(circle at 35% 30%, #fff0c4, #e0be7a 60%, #9b7a3c);
+}
+.juegos-root .sp-planet--saturno::before {
+  content: '';
+  position: absolute;
+  left: -45%;
+  top: 38%;
+  width: 190%;
+  height: 26%;
+  border: 0.09em solid rgba(232, 214, 170, 0.85);
+  border-radius: 50%;
+  transform: rotate(-18deg);
+}
+.juegos-root .sp-planet--urano {
+  background: radial-gradient(circle at 35% 30%, #e4fdff, #8ddde4 60%, #4b9ea6);
+}
+.juegos-root .sp-planet--neptuno {
+  background: radial-gradient(circle at 35% 30%, #a9c3ff, #3d6be0 60%, #1d327a);
+}
+.juegos-root .sp-planet--pluton {
+  background: radial-gradient(circle at 35% 30%, #f1e2cf, #c9a985 60%, #7a6149);
+}
+
+/* Estrellas: un núcleo brillante con rayos que giran despacio. */
+.juegos-root .sp-star {
+  --c: #fff;
+  --size: 4cqw;
+  position: relative;
+  display: block;
+  width: var(--size);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 18%, var(--c) 30%, transparent 70%);
+  animation: sp-pulse 2.4s ease-in-out infinite alternate;
+}
+.juegos-root .sp-star::before,
+.juegos-root .sp-star::after {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background:
+    linear-gradient(90deg, transparent 47%, var(--c) 50%, transparent 53%),
+    linear-gradient(0deg, transparent 47%, var(--c) 50%, transparent 53%);
+  opacity: 0.8;
+  mask: radial-gradient(circle, #000 20%, transparent 70%);
+  animation: sp-spin 20s linear infinite;
+}
+.juegos-root .sp-star::after {
+  inset: -20%;
+  transform: rotate(45deg);
+  opacity: 0.5;
+  animation-duration: 30s;
+  animation-direction: reverse;
+}
+@keyframes sp-pulse {
+  to {
+    filter: brightness(1.35);
+    scale: 1.08;
+  }
+}
+.juegos-root .sp-star--sirio {
+  --c: #bfe0ff;
+}
+.juegos-root .sp-star--vega {
+  --c: #9fc2ff;
+}
+.juegos-root .sp-star--betelgeuse {
+  --c: #ff6a3a;
+  --size: 5.4cqw;
+}
+.juegos-root .sp-star--polar {
+  --c: #fff4b8;
+}
+/* El Sol, en el centro del Sistema Solar: grande y con su corona. */
+.juegos-root .sp-star--sol {
+  --c: #ffb53d;
+  --size: 9cqw;
+  background: radial-gradient(circle, #fffbe0 0 25%, #ffd23d 45%, #ff8a1f 62%, rgba(255, 120, 20, 0.35) 70%, transparent 74%);
+  box-shadow: 0 0 6cqw rgba(255, 170, 60, 0.6);
+}
+.juegos-root .sp-spot--sun {
+  z-index: 1;
+}
+
+/* Galaxias: una espiral que gira muy despacio. */
+.juegos-root .sp-galaxy {
+  --c1: #c9b6ff;
+  --c2: #6f4bd8;
+  --size: 11cqw;
+  display: block;
+  width: var(--size);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #fff 0 6%, var(--c1) 12%, transparent 40%),
+    conic-gradient(from 0deg, transparent, var(--c2) 10%, transparent 25%, var(--c1) 35%, transparent 50%, var(--c2) 60%, transparent 75%, var(--c1) 85%, transparent);
+  mask: radial-gradient(circle, #000 25%, transparent 68%);
+  animation: sp-spin 80s linear infinite;
+}
+.juegos-root .sp-galaxy--triangulo {
+  --c1: #a8d8ff;
+  --c2: #3a7bd5;
+  --size: 9cqw;
+}
+.juegos-root .sp-galaxy--sombrero {
+  --c1: #fff0c9;
+  --c2: #c99a4a;
+  border-radius: 50%;
+  transform: scaleY(0.38);
+  animation: none;
+  background:
+    linear-gradient(0deg, transparent 46%, #1a1205 48% 54%, transparent 56%),
+    radial-gradient(ellipse, #fff 0 10%, var(--c1) 22%, var(--c2) 40%, transparent 66%);
+}
+.juegos-root .sp-galaxy--remolino {
+  --c1: #ffc7ef;
+  --c2: #c03fa0;
+  --size: 10cqw;
+  animation-duration: 60s;
+}
+.juegos-root .sp-galaxy--andromeda {
+  --c1: #e6dcff;
+  --c2: #8e44ec;
+  --size: 14cqw;
+  animation-direction: reverse;
+}
+
+.juegos-root .sp-title {
+  position: absolute;
+  left: 2.5%;
+  top: 19%;
+  display: grid;
+  max-width: 24%;
+  pointer-events: none;
+  color: #fff;
+}
+.juegos-root .sp-title span {
+  font-family: var(--display);
+  font-size: 3.4cqw;
+  line-height: 1;
+}
+.juegos-root .sp-title small {
+  font-size: 1.2cqw;
+  color: rgba(255, 255, 255, 0.6);
+}
+.juegos-root .sp-stats {
+  position: absolute;
+  right: 2.5%;
+  top: 21%;
+  max-width: 24%;
+  margin: 0;
+  font-size: 1.3cqw;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.75);
+  pointer-events: none;
+}
+.juegos-root .sp-stats b {
+  color: #ffd25e;
+}
+
+/* La ficha de algo del espacio: fondo de noche estrellada. */
+.juegos-root .im-deed--space {
+  background:
+    radial-gradient(circle at 80% 0%, rgba(140, 120, 255, 0.25), transparent 50%),
+    #0d1022;
+  color: #eef0ff;
+}
+.juegos-root .im-deed--space .im-deed__head {
+  border-color: #0d1022;
+}
+.juegos-root .im-deed--space .im-deed__rows dt,
+.juegos-root .im-deed--space .im-deed__note,
+.juegos-root .im-deed--space .im-deed__owner small {
+  color: rgba(238, 240, 255, 0.7);
+}
+.juegos-root .im-deed--space .im-deed__owner {
+  background: rgba(255, 255, 255, 0.08);
+}
+.juegos-root .im-deed--space .hub-btn:not(.hub-btn--primary) {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #eef0ff;
+}
+.juegos-root .im-deed__fact {
+  margin: 0 16px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--band);
+  font-size: 13px;
+}
+.juegos-root .im-deed__lock {
+  margin: 0 16px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 90, 80, 0.15);
+  font-size: 13px;
+  color: #ffb4aa;
+}
+
+@media (max-width: 900px) {
+  .juegos-root .im-stage {
+    flex: auto;
+  }
+  .juegos-root .im-stage .im-board,
+  .juegos-root .sp-space {
+    width: 100%;
+    min-width: 0;
+  }
+  .juegos-root .sp-name {
+    font-size: 1.6cqw;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .sp-space *,
+  .juegos-root .sp-space {
+    animation: none !important;
+  }
+}
+
+/* ============================== El mundo ============================== */
+.juegos-root .im-stage .wd-world {
+  width: min(62vw, calc(100svh - 240px));
+}
+.juegos-root .wd-world {
+  position: relative;
+  min-width: 320px;
+  aspect-ratio: 1;
+  overflow: hidden;
+  container-type: inline-size;
+  border-radius: 1.6cqw;
+  background: #0a2f55;
+  box-shadow:
+    0 0 0 0.5cqw #c9a45a,
+    0 0 0 0.9cqw #3b2a12,
+    0 2cqw 5cqw rgba(0, 0, 0, 0.55);
+  animation: sp-in 0.6s ease both;
+}
+/* Un marco de mapa antiguo por dentro. */
+.juegos-root .wd-world::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 0.35cqw rgba(233, 214, 160, 0.55),
+    inset 0 0 6cqw rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+.juegos-root .wd-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .wd-waves {
+  animation: wd-waves 14s linear infinite;
+}
+@keyframes wd-waves {
+  to {
+    transform: translateX(14px);
+  }
+}
+.juegos-root .wd-grid line {
+  stroke: rgba(255, 255, 255, 0.07);
+  stroke-width: 0.3;
+}
+.juegos-root .wd-grid line.is-eq {
+  stroke: rgba(255, 220, 140, 0.3);
+  stroke-dasharray: 2 2;
+}
+.juegos-root .wd-antarctica {
+  fill: #e8f1f8;
+  opacity: 0.9;
+}
+.juegos-root .wd-shallow {
+  fill: none;
+  stroke: #7fd8e8;
+  stroke-width: 4;
+  opacity: 0.45;
+}
+.juegos-root .wd-land {
+  fill: url(#wd-landfill);
+}
+.juegos-root .wd-coast {
+  fill: none;
+  stroke: #f3ecc8;
+  stroke-width: 0.45;
+  stroke-linejoin: round;
+}
+.juegos-root .wd-forest {
+  fill: #3f8a3c;
+  opacity: 0.75;
+}
+.juegos-root .wd-desert {
+  fill: #e6cf8f;
+  opacity: 0.9;
+}
+.juegos-root .wd-ice {
+  fill: #f4f8fb;
+}
+.juegos-root .wd-ridge {
+  fill: none;
+  stroke: #8a6a45;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-dasharray: 0.1 2.2;
+  opacity: 0.9;
+}
+.juegos-root .wd-home {
+  fill: #ffd25e;
+  animation: wd-blink 1.4s ease-in-out infinite alternate;
+}
+@keyframes wd-blink {
+  to {
+    opacity: 0.3;
+  }
+}
+.juegos-root .wd-lights circle {
+  fill: #ffe08a;
+  filter: drop-shadow(0 0 1.5px #ffd25e);
+  animation: wd-blink 2.4s ease-in-out infinite alternate;
+}
+.juegos-root .wd-route {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 0.4;
+  stroke-dasharray: 1.5 1.5;
+  animation: wd-route 3s linear infinite;
+}
+@keyframes wd-route {
+  to {
+    stroke-dashoffset: -6;
+  }
+}
+.juegos-root .wd-plane path {
+  fill: #fff;
+  filter: drop-shadow(0 1px 0.6px rgba(0, 0, 0, 0.4));
+}
+.juegos-root .wd-ship path {
+  fill: #f4f4f4;
+}
+.juegos-root .wd-ship .wd-wake {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 0.4;
+}
+.juegos-root .wd-cloud {
+  fill: rgba(255, 255, 255, 0.55);
+  animation: wd-cloud var(--t) linear infinite;
+}
+@keyframes wd-cloud {
+  from {
+    transform: translateX(-200px);
+  }
+  to {
+    transform: translateX(200px);
+  }
+}
+.juegos-root .wd-lens-mark {
+  fill: rgba(255, 210, 94, 0.08);
+  stroke: #ffd25e;
+  stroke-width: 0.6;
+  stroke-dasharray: 2 1.5;
+}
+.juegos-root .wd-lens-line {
+  stroke: #ffd25e;
+  stroke-width: 0.5;
+  stroke-dasharray: 2 1.5;
+}
+.juegos-root .wd-lens-handle {
+  stroke: #5a3d1c;
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+.juegos-root .wd-lens-bg {
+  fill: #1c6aa6;
+}
+.juegos-root .wd-lens-glare {
+  fill: rgba(255, 255, 255, 0.12);
+}
+.juegos-root .wd-lens-ring {
+  fill: none;
+  stroke: #c9a45a;
+  stroke-width: 2.6;
+  filter: drop-shadow(0 1.5px 2px rgba(0, 0, 0, 0.5));
+}
+.juegos-root .wd-lens-label {
+  position: absolute;
+  translate: -50% -50%;
+  padding: 0.2cqw 1cqw;
+  border-radius: 99px;
+  background: #ffd25e;
+  font-size: 1.3cqw;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #1b1405;
+  pointer-events: none;
+}
+.juegos-root .wd-compass circle {
+  fill: rgba(233, 214, 160, 0.15);
+  stroke: rgba(233, 214, 160, 0.6);
+  stroke-width: 0.4;
+}
+.juegos-root .wd-compass polygon {
+  fill: #f1e6c4;
+}
+.juegos-root .wd-compass polygon.is-dark {
+  fill: #8a6a45;
+}
+.juegos-root .wd-compass polygon.is-gold {
+  fill: #ffd25e;
+}
+.juegos-root .wd-compass text {
+  font-size: 5px;
+  font-weight: 800;
+  fill: #f1e6c4;
+}
+
+/* Cada país: una chincheta con su bandera; con dueño, un halo de su color sobre el mapa. */
+.juegos-root .wd-country,
+.juegos-root .wd-canarias {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 0.25cqw;
+  padding: 0;
+  border: 0;
+  background: none;
+  translate: -50% -100%;
+  font: inherit;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  transform-origin: 50% 100%;
+}
+.juegos-root .wd-country:hover,
+.juegos-root .wd-country:focus-visible,
+.juegos-root .wd-canarias:hover {
+  z-index: 3;
+  transform: scale(1.25);
+  outline: none;
+}
+.juegos-root .wd-pin {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3.8cqw;
+  aspect-ratio: 1;
+  border-radius: 50% 50% 50% 0;
+  background: var(--band);
+  box-shadow: 0 0.5cqw 1cqw rgba(0, 0, 0, 0.5);
+  rotate: -45deg;
+}
+.juegos-root .wd-flag {
+  display: grid;
+  place-items: center;
+  width: 80%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #fff;
+  rotate: 45deg;
+  font-size: 2cqw;
+  line-height: 1;
+}
+/* El halo del dueño, en el suelo bajo la chincheta. */
+.juegos-root .wd-country.is-owned::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -2.4cqw;
+  z-index: -1;
+  width: 9cqw;
+  aspect-ratio: 2.2;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, hsl(var(--oh) 85% 60% / 0.65), transparent);
+  translate: -50% 0;
+  animation: wd-claim 2.6s ease-in-out infinite alternate;
+}
+.juegos-root .wd-country.is-mine::before {
+  background: radial-gradient(closest-side, rgba(255, 210, 94, 0.8), transparent);
+}
+@keyframes wd-claim {
+  to {
+    scale: 1.25;
+    opacity: 0.7;
+  }
+}
+.juegos-root .wd-name {
+  order: 2;
+  display: grid;
+  justify-items: center;
+  padding: 0 0.6cqw;
+  border-radius: 0.6cqw;
+  background: rgba(10, 20, 35, 0.75);
+  white-space: nowrap;
+  font-size: 1.1cqw;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.juegos-root .wd-name small {
+  font-size: 0.95cqw;
+  font-weight: 600;
+  color: #ffd25e;
+}
+.juegos-root .wd-country {
+  grid-template-rows: auto auto;
+  translate: -50% -4.2cqw;
+}
+.juegos-root .wd-owner {
+  position: absolute;
+  right: -1.3cqw;
+  top: -1cqw;
+}
+.juegos-root .wd-owner .avatar {
+  --size: 2.1cqw !important;
+  display: block;
+  font-size: 0.8cqw;
+  box-shadow: 0 0 0 0.25cqw hsl(var(--oh) 70% 50%);
+}
+.juegos-root .wd-owner.is-mine .avatar {
+  box-shadow:
+    0 0 0 0.3cqw #ffd25e,
+    0 0 1cqw #ffd25e;
+}
+.juegos-root .wd-country.is-mine .wd-pin {
+  background: #ffd25e;
+}
+.juegos-root .wd-country.is-selected .wd-pin {
+  animation: wd-bounce 0.9s ease-in-out infinite alternate;
+}
+@keyframes wd-bounce {
+  to {
+    translate: 0 -0.8cqw;
+  }
+}
+.juegos-root .wd-country.is-selected .wd-name {
+  background: #fff;
+  color: #111;
+}
+.juegos-root .wd-country.is-fresh {
+  animation: sp-fresh 2.2s ease;
+}
+.juegos-root .wd-canarias {
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 0.4cqw;
+  padding: 0.2cqw 0.8cqw;
+  border-radius: 99px;
+  background: rgba(255, 210, 94, 0.92);
+  translate: -105% -50%;
+  font-size: 1.3cqw;
+  color: #1b1405;
+  transform-origin: 100% 50%;
+}
+.juegos-root .wd-canarias span {
+  font-weight: 800;
+}
+/* La cartela del mapa, como en los atlas. */
+.juegos-root .wd-cartouche {
+  position: absolute;
+  right: 3%;
+  bottom: 3.5%;
+  display: grid;
+  justify-items: center;
+  padding: 1cqw 2.2cqw;
+  border: 0.3cqw solid #c9a45a;
+  border-radius: 1cqw;
+  background: linear-gradient(180deg, #f6ecd0, #e3d1a3);
+  box-shadow: 0 0.8cqw 2cqw rgba(0, 0, 0, 0.45);
+  color: #3b2a12;
+  text-align: center;
+  pointer-events: none;
+}
+.juegos-root .wd-cartouche span {
+  font-family: var(--display);
+  font-size: 3.6cqw;
+  line-height: 1;
+}
+.juegos-root .wd-cartouche small {
+  font-size: 1.15cqw;
+  font-style: italic;
+}
+.juegos-root .wd-cartouche p {
+  margin: 0.5cqw 0 0;
+  font-size: 1.2cqw;
+}
+.juegos-root .wd-cartouche b {
+  color: #9a5a00;
+}
+@media (max-width: 900px) {
+  .juegos-root .im-stage .wd-world {
+    width: 100%;
+    min-width: 0;
+  }
+}
+/* En el móvil los nombres no caben: solo el del país elegido (y el de debajo del dedo). */
+@media (max-width: 600px) {
+  .juegos-root .wd-country:not(.is-selected):not(:hover) .wd-name {
+    display: none;
+  }
+  .juegos-root .wd-pin {
+    width: 4.6cqw;
+  }
+  .juegos-root .wd-flag {
+    font-size: 2.6cqw;
+  }
+  .juegos-root .wd-name {
+    font-size: 2cqw;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .wd-world * {
+    animation: none !important;
+  }
+}
+
+/* ============================== Las casillas especiales ============================== */
+.juegos-root button.im-cell--deco {
+  border: 0;
+  font: inherit;
+}
+/* Las que aún se pueden usar hoy brillan. */
+.juegos-root .im-cell--deco.is-ready {
+  z-index: 1;
+  animation: sq-ready 1.6s ease-in-out infinite alternate;
+}
+@keyframes sq-ready {
+  from {
+    box-shadow: 0 0 0 0.2cqw rgba(255, 210, 94, 0.5);
+  }
+  to {
+    box-shadow:
+      0 0 0 0.4cqw #ffd25e,
+      0 0 2cqw rgba(255, 210, 94, 0.8);
+  }
+}
+.juegos-root .im-cell--deco.is-ready .im-cell__icon {
+  animation: sq-wiggle 2.4s ease-in-out infinite;
+}
+@keyframes sq-wiggle {
+  0%,
+  80%,
+  100% {
+    transform: none;
+  }
+  85% {
+    transform: rotate(-12deg) scale(1.15);
+  }
+  90% {
+    transform: rotate(10deg) scale(1.15);
+  }
+}
+.juegos-root .im-cell__badge {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  padding: 0.1cqw 0.6cqw;
+  border-radius: 99px;
+  background: #1b1405;
+  translate: -50% 0;
+  white-space: nowrap;
+  font-size: 1.1cqw;
+  font-weight: 800;
+  color: #ffd25e;
+}
+.juegos-root .im-wallet__jail {
+  color: #ffb4aa !important;
+}
+
+/* El panel de cada casilla, con su color. */
+.juegos-root .sq {
+  --sq: #3b4a5c;
+}
+.juegos-root .sq--salida {
+  --sq: #d89a1a;
+}
+.juegos-root .sq--suerte {
+  --sq: #f08a24;
+}
+.juegos-root .sq--caja {
+  --sq: #2f7ad8;
+}
+.juegos-root .sq--parking {
+  --sq: #2aa0c9;
+}
+.juegos-root .sq--a-carcel,
+.juegos-root .sq--carcel {
+  --sq: #b8433a;
+}
+.juegos-root .sq--impuesto {
+  --sq: #6b5bd6;
+}
+.juegos-root .sq-head {
+  display: grid;
+  justify-items: center;
+  padding: 12px 14px;
+  background: var(--sq);
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.juegos-root .sq-head small {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.juegos-root .sq-head h2 {
+  margin: 2px 0 0;
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 400;
+}
+.juegos-root .sq-body {
+  display: grid;
+  gap: 12px;
+  padding: 0 16px;
+}
+.juegos-root .sq-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.juegos-root .sq-alert {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(194, 51, 44, 0.12);
+  color: #a52a22;
+  font-weight: 700;
+}
+.juegos-root .sq-empty {
+  color: #666;
+  font-style: italic;
+}
+.juegos-root .sq-danger:not(:disabled) {
+  background: linear-gradient(180deg, #e25b4f, #b8433a) !important;
+  color: #fff !important;
+}
+.juegos-root .sq-pot,
+.juegos-root .sq-tax {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.06);
+}
+.juegos-root .sq-pot small,
+.juegos-root .sq-tax small {
+  font-size: 12px;
+  color: #555;
+}
+.juegos-root .sq-pot b {
+  font-family: var(--display);
+  font-size: 32px;
+  font-weight: 400;
+  color: #1d7a9a;
+}
+.juegos-root .sq-tax b {
+  font-size: 18px;
+}
+.juegos-root .sq-tax span {
+  font-size: 13px;
+  color: #555;
+}
+.juegos-root .sq-pot i,
+.juegos-root .sq-tax i {
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--sq) var(--fill), rgba(0, 0, 0, 0.1) var(--fill));
+  transition: background 0.6s;
+}
+.juegos-root .sq-jail {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .sq-jail li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0 6px, transparent 6px 18px);
+}
+.juegos-root .sq-jail li .avatar {
+  filter: grayscale(0.6);
+}
+.juegos-root .sq-jail span {
+  display: grid;
+  font-weight: 700;
+}
+.juegos-root .sq-jail small {
+  font-weight: 400;
+  font-size: 12px;
+  color: #666;
+}
+
+/* La carta de Suerte o de Caja: sale boca abajo y se da la vuelta. */
+.juegos-root .sq-card {
+  perspective: 900px;
+}
+.juegos-root .sq-card__inner {
+  position: relative;
+  min-height: 150px;
+  transform-style: preserve-3d;
+  animation: sq-flip 0.9s cubic-bezier(0.3, 0.7, 0.3, 1.2) both;
+}
+@keyframes sq-flip {
+  from {
+    transform: translateY(-30px) rotateY(0deg) scale(0.8);
+  }
+  40% {
+    transform: translateY(0) rotateY(0deg) scale(1);
+  }
+  to {
+    transform: rotateY(180deg);
+  }
+}
+.juegos-root .sq-card__back,
+.juegos-root .sq-card__front {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 14px;
+  backface-visibility: hidden;
+  text-align: center;
+}
+.juegos-root .sq-card__back {
+  background: repeating-linear-gradient(45deg, var(--sq) 0 10px, color-mix(in srgb, var(--sq), #000 15%) 10px 20px);
+  font-family: var(--display);
+  font-size: 64px;
+  color: #fff;
+}
+.juegos-root .sq-card__front {
+  border: 3px solid var(--sq);
+  background: #fffaf0;
+  transform: rotateY(180deg);
+}
+.juegos-root .sq-card__front small {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sq);
+}
+.juegos-root .sq-card__front p {
+  font-size: 15px;
+  font-weight: 600;
+}
+.juegos-root .sq-card__front b {
+  font-family: var(--display);
+  font-size: 26px;
+  font-weight: 400;
+}
+.juegos-root .sq-card__front b.is-plus {
+  color: #1a8a4a;
+}
+.juegos-root .sq-card__front b.is-minus {
+  font-size: 18px;
+  color: #b8433a;
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .sq-card__inner {
+    animation: none;
+    transform: rotateY(180deg);
+  }
+  .juegos-root .im-cell--deco.is-ready,
+  .juegos-root .im-cell--deco.is-ready .im-cell__icon {
+    animation: none;
+  }
+}

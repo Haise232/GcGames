@@ -1,0 +1,32 @@
+/* Generado desde el proyecto de juegos con scripts/scope-css.cjs: no editar aquí. */
+.juegos-root {
+  --baize: #14394f;
+  --baize-deep: #0c2737;
+  --ivory: #f1e9d6;
+  --muted: #9db6c4;
+  --brass: #c8a24b;
+  --red: #c2332c;
+  --black: #16161b;
+  --green: #1e8a5a;
+  --wood: #4b2517;
+  --bolt: #ffe27a;
+  --line: rgba(241, 233, 214, 0.7);
+
+  --sans: 'Instrument Sans Variable', 'Instrument Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --display: 'Abril Fatface', Georgia, 'Times New Roman', serif;
+
+  font-family: var(--sans);
+  color: var(--ivory);
+  color-scheme: dark;
+}
+
+.juegos-root *, .juegos-root *::before, .juegos-root *::after {
+  box-sizing: border-box;
+}
+
+.juegos-root {
+  margin: 0;
+  min-height: 100svh;
+  background: radial-gradient(ellipse at 50% 0%, var(--baize), var(--baize-deep) 80%) fixed
+    var(--baize-deep);
+}

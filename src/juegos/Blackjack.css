@@ -1,0 +1,230 @@
+/* Generado desde el proyecto de juegos con scripts/scope-css.cjs: no editar aquí. */
+/* Mesa en media luna: borde de madera con filo dorado. */
+.juegos-root .table {
+  /* Las cartas crecen con el ancho, pero nunca tanto que la mesa no quepa en la ventana. */
+  --bj-card: clamp(42px, min(7.5vw, 10.5vh), 104px);
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: space-evenly;
+  gap: clamp(8px, 1.6vh, 24px);
+  padding: clamp(12px, 2.6vh, 36px) clamp(16px, 4vw, 56px) clamp(16px, 4vh, 48px);
+  border: clamp(10px, 1.4vw, 18px) solid var(--wood);
+  border-radius: 24px 24px 50% 50% / 24px 24px 22% 22%;
+  outline: 2px solid var(--brass);
+  outline-offset: -2px;
+  background: radial-gradient(ellipse at 50% 30%, #1d7350, #0f4a33 75%);
+  box-shadow:
+    inset 0 0 60px rgba(0, 0, 0, 0.45),
+    0 18px 40px rgba(4, 16, 24, 0.55);
+}
+
+.juegos-root .table__rules {
+  margin: 0;
+  padding: 6px 18px;
+  border-block: 1px solid rgba(200, 162, 75, 0.6);
+  font-family: var(--display);
+  font-size: clamp(15px, 1.6vw, 21px);
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: var(--brass);
+}
+
+.juegos-root .seat {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.juegos-root .seat h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+.juegos-root .total {
+  min-width: 2.2em;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-align: center;
+  color: var(--ivory);
+  font-variant-numeric: tabular-nums;
+}
+
+.juegos-root .table .card {
+  --card-w: var(--bj-card);
+}
+
+/* Las cartas de una mano se solapan un poco. */
+.juegos-root .hand, .juegos-root .hand__cards {
+  display: flex;
+  justify-content: center;
+  min-height: calc(var(--bj-card) * 1.4);
+}
+.juegos-root .hand .card + .card, .juegos-root .hand__cards .card + .card {
+    margin-left: calc(var(--bj-card) * -0.42);
+  }
+
+.juegos-root .hands {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(20px, 4vw, 56px);
+}
+
+.juegos-root .hands .hand {
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  transition:
+    border-color 0.2s,
+    opacity 0.2s;
+}
+.juegos-root .hand--active {
+  border-color: var(--bolt) !important;
+  box-shadow: 0 0 24px rgba(255, 226, 122, 0.35);
+}
+.juegos-root .hand--lose, .juegos-root .hand--bust {
+  opacity: 0.55;
+}
+
+.juegos-root .hand__info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 600;
+}
+.juegos-root .hand__bet {
+  color: var(--brass);
+}
+.juegos-root .hand__outcome {
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: var(--ivory);
+  color: #1b1405;
+  animation: juegos-outcome-pop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+.juegos-root .hand--win .hand__outcome, .juegos-root .hand--blackjack .hand__outcome {
+  background: var(--bolt);
+}
+.juegos-root .hand--lose .hand__outcome, .juegos-root .hand--bust .hand__outcome {
+  background: var(--red);
+  color: var(--ivory);
+}
+
+@keyframes juegos-outcome-pop {
+  from {
+    scale: 0.4;
+    opacity: 0;
+  }
+}
+
+/* Círculo de apuesta antes de repartir */
+.juegos-root .hand--empty {
+  align-items: center;
+}
+.juegos-root .spot {
+  display: grid;
+  place-items: center;
+  width: clamp(72px, min(10vw, 14vh), 128px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px dashed rgba(241, 233, 214, 0.6);
+  font-family: var(--display);
+  font-size: clamp(20px, 2.2vw, 28px);
+  color: var(--ivory);
+}
+
+/* Zapato de cartas */
+.juegos-root .shoe {
+  position: absolute;
+  top: clamp(14px, 2vw, 24px);
+  right: clamp(14px, 2vw, 28px);
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+.juegos-root .shoe__stack {
+  width: 46px;
+  height: 64px;
+  border-radius: 5px;
+  border: 3px solid #f6efdd;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 4px, rgba(200, 162, 75, 0.45) 4px 5px),
+    #7a1d1a;
+  /* El canto crece con las cartas que quedan. */
+  box-shadow:
+    calc(var(--left) * 8px) calc(var(--left) * 8px) 0 -1px #d8cfb8,
+    0 6px 12px rgba(0, 0, 0, 0.45);
+}
+.juegos-root .shoe__label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Fichas propias del blackjack */
+.juegos-root .chip--bj10 {
+  --chip: #2a6fb5;
+}
+.juegos-root .chip--bj50 {
+  --chip: #23805a;
+}
+.juegos-root .chip--bj100 {
+  --chip: #1b1b21;
+}
+.juegos-root .chip--bj500 {
+  --chip: #6b3f9d;
+}
+
+.juegos-root .actions kbd {
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+@media (max-width: 640px) {
+  .juegos-root .table {
+    --bj-card: clamp(42px, min(17vw, 9.5vh), 90px);
+    border-radius: 20px 20px 40% 40% / 20px 20px 14% 14%;
+  }
+  .juegos-root .shoe {
+    display: none;
+  }
+  .juegos-root .actions kbd {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .hands .hand {
+    transition: none;
+  }
+  .juegos-root .hand__outcome {
+    animation: none;
+  }
+}
+.juegos-root .chip--bj1000 {
+  --chip: #b8862b;
+}

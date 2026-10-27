@@ -1,0 +1,1242 @@
+/* Generado desde el proyecto de juegos con scripts/scope-css.cjs: no editar aquí. */
+/* Cada pantalla ocupa justo la ventana, sin scroll: lo que sobra de alto se lo queda el juego (.fill). */
+.juegos-root .app {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 1480px);
+  height: 100vh;
+  height: 100svh;
+  margin: 0 auto;
+  padding: clamp(10px, 2.2vh, 28px) clamp(12px, 3vw, 40px);
+  overflow: hidden;
+}
+.juegos-root .app > * {
+    flex: none;
+  }
+
+.juegos-root .fill {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.juegos-root .top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+  margin-bottom: clamp(6px, 2vh, 24px);
+}
+
+.juegos-root .top h1 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(30px, min(7vw, 8vh), 84px);
+    font-weight: 400;
+    line-height: 0.9;
+    color: var(--ivory);
+  }
+
+.juegos-root .hud {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+}
+
+.juegos-root .toggles {
+  display: flex;
+  gap: 8px;
+}
+
+.juegos-root .toggles button {
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ivory);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+.juegos-root .toggles button[aria-pressed='true'] {
+      border-color: var(--brass);
+      background: var(--brass);
+      color: #1b1405;
+    }
+
+.juegos-root .toggles button:focus-visible {
+      outline: 3px solid var(--ivory);
+      outline-offset: 3px;
+    }
+
+.juegos-root .money {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin: 0;
+}
+
+.juegos-root .money small {
+    display: block;
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+.juegos-root .money dt {
+    font-size: clamp(12px, 1.9vh, 16px);
+    color: var(--muted);
+  }
+
+.juegos-root .money dd {
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(20px, min(3vw, 4.4vh), 40px);
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    color: var(--brass);
+  }
+
+.juegos-root .floor {
+  display: grid;
+  grid-template-columns: minmax(0, clamp(260px, 32vw, 480px)) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: clamp(16px, 3vw, 48px);
+}
+
+/* La rueda es tan grande como quepa en su columna, dejando sitio a los últimos números. */
+.juegos-root .side {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(10px, 2.4vh, 28px);
+  min-height: 0;
+  container-type: size;
+}
+.juegos-root .side .wheel {
+    flex: none;
+    width: min(100cqw, 100cqh - 100px);
+    max-width: none;
+  }
+
+.juegos-root .play {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Rueda */
+
+.juegos-root .wheel {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border-radius: 50%;
+  box-shadow: 0 18px 40px rgba(4, 16, 24, 0.55);
+}
+
+.juegos-root .wheel svg, .juegos-root .wheel .wheel__orbit {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+.juegos-root .wheel__disc, .juegos-root .wheel__orbit {
+  transition: transform var(--spin) cubic-bezier(0.12, 0.6, 0.1, 1);
+}
+
+.juegos-root .wheel__wood {
+  fill: var(--wood);
+}
+.juegos-root .wheel__track {
+  fill: none;
+  stroke: #33170d;
+  stroke-width: 12;
+}
+.juegos-root .wheel__trim {
+  fill: none;
+  stroke: var(--brass);
+  stroke-width: 1.2;
+}
+
+.juegos-root .pocket {
+  stroke: var(--brass);
+  stroke-width: 0.45;
+}
+.juegos-root .pocket--red {
+  fill: var(--red);
+}
+.juegos-root .pocket--black {
+  fill: var(--black);
+}
+.juegos-root .pocket--green {
+  fill: var(--green);
+}
+.juegos-root .pocket__number {
+  fill: var(--ivory);
+  font-size: 7.6px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.juegos-root .wheel__well {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.3);
+  stroke-width: 16;
+}
+.juegos-root .wheel__cone {
+  fill: #3a1c10;
+  stroke: var(--brass);
+  stroke-width: 1.2;
+}
+.juegos-root .wheel__spokes {
+  stroke: var(--brass);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.juegos-root .wheel__knob {
+  fill: var(--brass);
+}
+
+.juegos-root .wheel__ball {
+  position: absolute;
+  top: 23%;
+  left: 50%;
+  width: 3.4%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  translate: -50% -50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #d9d2c2 70%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.juegos-root .wheel--spinning .wheel__ball {
+  animation: juegos-ball-drop var(--spin) ease-in-out forwards;
+}
+
+/* La bola corre por la pista exterior y cae a la casilla al final del giro. */
+@keyframes juegos-ball-drop {
+  0% {
+    top: 23%;
+  }
+  6%,
+  62% {
+    top: 5.25%;
+  }
+  82% {
+    top: 25%;
+  }
+  90% {
+    top: 21.5%;
+  }
+  100% {
+    top: 23%;
+  }
+}
+
+.juegos-root .recent h2 {
+    margin: 0 0 10px;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+.juegos-root .recent p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+.juegos-root .recent ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+.juegos-root .tile {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 4px;
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ivory);
+}
+
+/* El número más reciente va primero y más grande. */
+
+.juegos-root .tile:first-child {
+    width: 66px;
+    height: 66px;
+    font-family: var(--display);
+    font-size: 34px;
+    font-weight: 400;
+    outline: 2px solid var(--brass);
+    outline-offset: 2px;
+    margin-right: 6px;
+  }
+.juegos-root .tile--red {
+  background: var(--red);
+}
+.juegos-root .tile--black {
+  background: var(--black);
+}
+.juegos-root .tile--green {
+  background: var(--green);
+}
+
+/* Mesa */
+
+.juegos-root .status {
+  min-height: 1.4em;
+  margin: 0 0 clamp(6px, 1.8vh, 18px);
+  font-size: clamp(15px, min(1.8vw, 2.7vh), 24px);
+  line-height: 1.4;
+  color: var(--ivory);
+}
+.juegos-root .status--win {
+  color: var(--brass);
+}
+
+.juegos-root .felt {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1.25fr)) repeat(2, minmax(0, 1fr));
+  /* Mide según el ancho, pero encoge si la ventana es baja. */
+  flex: 0 1 clamp(250px, 29vw, 420px);
+  min-height: 0;
+  padding: 1px;
+}
+
+.juegos-root .cell {
+  position: relative;
+  grid-column: var(--c) / span var(--cs);
+  grid-row: var(--r) / span var(--rs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  /* Las líneas pintadas de la mesa: contornos que se solapan entre casillas. */
+  box-shadow: 0 0 0 1px var(--line);
+  background: transparent;
+  color: var(--ivory);
+  font-family: var(--display);
+  font-size: clamp(16px, min(2.3vw, 3.8vh), 34px);
+}
+
+.juegos-root .cell:not(:disabled):hover {
+    filter: brightness(1.25);
+  }
+
+.juegos-root .cell:focus-visible {
+    outline: 3px solid var(--brass);
+    outline-offset: -4px;
+    z-index: 1;
+  }
+
+.juegos-root .cell--red {
+  background: var(--red);
+}
+.juegos-root .cell--black {
+  background: var(--black);
+}
+.juegos-root .cell--green {
+  background: var(--green);
+  font-size: clamp(28px, 3vw, 44px);
+}
+.juegos-root .cell--outside {
+  font-family: var(--sans);
+  font-size: clamp(15px, 1.4vw, 19px);
+  font-weight: 600;
+}
+.juegos-root .cell--outside:not(:disabled):hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+.juegos-root .cell--hit {
+  box-shadow:
+    0 0 0 1px var(--line),
+    inset 0 0 0 4px var(--brass);
+}
+
+.juegos-root .diamond {
+  width: 16px;
+  height: 16px;
+  rotate: 45deg;
+  border: 1px solid var(--line);
+}
+.juegos-root .diamond--red {
+  background: var(--red);
+}
+.juegos-root .diamond--black {
+  background: var(--black);
+}
+
+/* Fichas apostadas sobre una casilla */
+.juegos-root .stack {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  border: 2px dashed #6f5516;
+  background: var(--brass);
+  color: #1b1405;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+/* Controles */
+
+.juegos-root .controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: clamp(8px, 1.6vh, 20px) 20px;
+  margin-top: clamp(8px, 2.4vh, 32px);
+}
+
+.juegos-root .chips, .juegos-root .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.juegos-root button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.juegos-root button:disabled {
+    cursor: not-allowed;
+  }
+
+.juegos-root .chip {
+  width: clamp(48px, 8.4vh, 74px);
+  height: clamp(48px, 8.4vh, 74px);
+  border-radius: 50%;
+  border: 5px dashed rgba(255, 255, 255, 0.8);
+  background: var(--chip);
+  color: var(--chip-text, #fff);
+  font-size: 19px;
+  font-weight: 700;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+  transition: translate 0.12s;
+}
+
+.juegos-root .chip[aria-pressed='true'] {
+    translate: 0 -6px;
+    outline: 3px solid var(--brass);
+    outline-offset: 3px;
+  }
+
+.juegos-root .chip:focus-visible {
+    outline: 3px solid var(--ivory);
+    outline-offset: 3px;
+  }
+
+.juegos-root .chip:disabled {
+    opacity: 0.35;
+  }
+.juegos-root .chip--5 {
+  --chip: #e9e1cf;
+  --chip-text: #23201a;
+  border-color: #8f866f;
+}
+.juegos-root .chip--25 {
+  --chip: #23805a;
+}
+.juegos-root .chip--100 {
+  --chip: #1b1b21;
+}
+.juegos-root .chip--500 {
+  --chip: #6b3f9d;
+}
+
+.juegos-root .actions button {
+  padding: clamp(10px, 1.9vh, 17px) clamp(14px, 2vw, 24px);
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ivory);
+  font-size: clamp(15px, 2.2vh, 19px);
+  font-weight: 600;
+}
+
+.juegos-root .actions button:not(:disabled):hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+.juegos-root .actions button:focus-visible {
+    outline: 3px solid var(--ivory);
+    outline-offset: 3px;
+  }
+
+.juegos-root .actions button:disabled {
+    opacity: 0.4;
+  }
+
+.juegos-root .actions button.primary {
+  min-width: 160px;
+  border-color: var(--brass);
+  background: var(--brass);
+  color: #1b1405;
+}
+
+.juegos-root .actions button.primary:not(:disabled):hover {
+    background: #dcb964;
+  }
+
+/* Números relámpago: caen sobre la mesa al empezar la tirada. */
+
+.juegos-root .cell--lucky {
+  z-index: 1;
+  box-shadow:
+    0 0 0 1px var(--line),
+    inset 0 0 0 3px var(--bolt),
+    inset 0 0 24px 5px rgba(255, 226, 122, 0.75);
+  animation:
+    juegos-zap 0.5s calc(var(--z) * 0.18s) backwards,
+    juegos-lucky-glow 0.45s ease-in-out infinite alternate;
+}
+
+.juegos-root .boost {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--bolt);
+  color: #1b1405;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+@keyframes juegos-zap {
+  from {
+    background-color: #fff;
+    scale: 1.3;
+    filter: brightness(3);
+  }
+}
+
+@keyframes juegos-lucky-glow {
+  to {
+    filter: brightness(1.4);
+  }
+}
+
+.juegos-root .money__hot {
+  animation: juegos-streak-pulse 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes juegos-streak-pulse {
+  to {
+    color: var(--bolt);
+    scale: 1.12;
+  }
+}
+
+.juegos-root .floor--shake {
+  animation: juegos-shake 0.5s;
+}
+
+@keyframes juegos-shake {
+  10%,
+  50%,
+  90% {
+    translate: -7px 3px;
+  }
+  30%,
+  70% {
+    translate: 7px -3px;
+  }
+}
+
+.juegos-root .win__tag {
+  display: table;
+  margin: 12px auto 0;
+  padding: 6px 18px;
+  border-radius: 999px;
+  background: var(--bolt);
+  color: #1b1405;
+  font-size: clamp(16px, 1.8vw, 22px);
+}
+
+.juegos-root .hint {
+  max-width: 70ch;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.juegos-root .hint kbd {
+    padding: 1px 7px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font: inherit;
+    color: var(--ivory);
+  }
+
+/* Celebración al ganar */
+
+.juegos-root .cell--hit {
+  animation: juegos-hit-pulse 0.7s ease-in-out 4;
+}
+
+@keyframes juegos-hit-pulse {
+  50% {
+    box-shadow:
+      0 0 0 1px var(--line),
+      inset 0 0 0 4px var(--brass),
+      inset 0 0 26px 8px rgba(200, 162, 75, 0.85);
+  }
+}
+
+.juegos-root .money__up {
+  animation: juegos-money-up 0.9s ease-out 0.3s;
+}
+
+@keyframes juegos-money-up {
+  30% {
+    scale: 1.25;
+    color: var(--ivory);
+  }
+}
+
+.juegos-root .win {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.juegos-root .win__flash {
+  position: absolute;
+  inset: 0;
+  /* Oscurece el centro para que el premio se lea sobre la mesa. */
+  background: radial-gradient(circle at 50% 50%, rgba(6, 18, 26, 0.88), rgba(6, 18, 26, 0.6) 38%, transparent 68%);
+  opacity: 0;
+  animation: juegos-win-flash 3.2s ease-out forwards;
+}
+
+.juegos-root .win__banner {
+  position: relative;
+  margin: 0;
+  text-align: center;
+  opacity: 0;
+  animation: juegos-win-pop 3.2s ease-out forwards;
+}
+
+.juegos-root .win__banner strong {
+    display: block;
+    font-family: var(--display);
+    font-size: clamp(76px, 17vw, 220px);
+    font-weight: 400;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    /* Oro con un brillo que lo recorre de lado a lado. */
+    color: transparent;
+    background: linear-gradient(100deg, var(--brass) 25%, #fff6d0 45%, var(--brass) 62%) 0 0 / 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(0 5px 0 #6f5516) drop-shadow(0 14px 28px rgba(0, 0, 0, 0.7));
+    animation:
+      juegos-shine 1.1s linear infinite,
+      juegos-beat 0.45s ease-in-out infinite alternate;
+  }
+
+.juegos-root .win__banner span {
+    display: block;
+    margin-top: 10px;
+    font-size: clamp(19px, 2.4vw, 30px);
+    font-weight: 600;
+    color: var(--ivory);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  }
+
+.juegos-root .win__title {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--display);
+  font-size: clamp(30px, 5vw, 68px);
+  font-style: normal;
+  line-height: 1.1;
+  color: var(--bolt);
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.8);
+}
+
+/* Rayos de sol que giran detrás del premio. */
+.juegos-root .win__rays {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 170vmax;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  background: repeating-conic-gradient(rgba(255, 226, 122, 0.24) 0 8deg, transparent 8deg 20deg);
+  -webkit-mask: radial-gradient(circle, #000, transparent 46%);
+  mask: radial-gradient(circle, #000, transparent 46%);
+  opacity: 0;
+  animation:
+    juegos-rays-spin 10s linear infinite,
+    juegos-rays-show 3.2s ease-out forwards;
+}
+
+/* Ondas que se abren desde el centro. */
+.juegos-root .win__ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40vmin;
+  aspect-ratio: 1;
+  margin: -20vmin;
+  border: 6px solid var(--bolt);
+  border-radius: 50%;
+  opacity: 0;
+  animation: juegos-ring 1.1s var(--delay) ease-out forwards;
+}
+
+.juegos-root .firework {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.juegos-root .firework i {
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--tone);
+    box-shadow: 0 0 9px 2px var(--tone);
+    opacity: 0;
+    animation: juegos-spark 1s var(--delay) ease-out forwards;
+  }
+
+.juegos-root .confetti {
+  position: absolute;
+  top: -5%;
+  width: 10px;
+  height: 18px;
+  background: var(--tone);
+  opacity: 0;
+  animation:
+    juegos-confetti-fall var(--fall) var(--delay) linear forwards,
+    juegos-confetti-flip 0.6s linear infinite;
+}
+
+@keyframes juegos-shine {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+@keyframes juegos-beat {
+  to {
+    scale: 1.06;
+  }
+}
+
+@keyframes juegos-rays-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes juegos-rays-show {
+  0% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  12%,
+  80% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes juegos-ring {
+  0% {
+    opacity: 0.9;
+    scale: 0.2;
+  }
+  100% {
+    opacity: 0;
+    scale: 4.5;
+    border-width: 1px;
+  }
+}
+
+@keyframes juegos-spark {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--a)) translateY(0) scale(1.5);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(calc(var(--d) * -1)) scale(0.2);
+  }
+}
+
+@keyframes juegos-confetti-fall {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    translate: var(--sway) 115vh;
+    rotate: var(--rot);
+  }
+}
+
+@keyframes juegos-confetti-flip {
+  to {
+    transform: rotateX(360deg);
+  }
+}
+
+/* Fichas que saltan desde el centro y caen girando. */
+.juegos-root .coin {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  width: var(--size);
+  aspect-ratio: 1;
+  margin: calc(var(--size) / -2);
+  border-radius: 50%;
+  border: 3px dashed rgba(255, 255, 255, 0.8);
+  background: var(--tone);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  animation:
+    juegos-coin-burst 1.9s var(--delay) forwards,
+    juegos-coin-flip 0.45s var(--delay) linear infinite;
+}
+.juegos-root .coin--brass {
+  --tone: var(--brass);
+}
+.juegos-root .coin--ivory {
+  --tone: #e9e1cf;
+  border-color: #8f866f;
+}
+.juegos-root .coin--green {
+  --tone: #23805a;
+}
+.juegos-root .coin--purple {
+  --tone: #6b3f9d;
+}
+.juegos-root .coin--red {
+  --tone: var(--red);
+}
+
+@keyframes juegos-coin-burst {
+  0% {
+    translate: 0 0;
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.15, 0.7, 0.35, 1);
+  }
+  8% {
+    opacity: 1;
+  }
+  42% {
+    translate: calc(var(--x) * 0.65) var(--peak);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.5);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    translate: var(--x) 60vh;
+    rotate: var(--rot);
+    opacity: 0;
+  }
+}
+
+@keyframes juegos-coin-flip {
+  50% {
+    scale: 1 0.25;
+  }
+}
+
+@keyframes juegos-win-flash {
+  12%,
+  78% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes juegos-win-pop {
+  0% {
+    scale: 0.3;
+    opacity: 0;
+  }
+  10% {
+    scale: 1.12;
+    opacity: 1;
+  }
+  16% {
+    scale: 0.97;
+  }
+  22%,
+  80% {
+    scale: 1;
+    opacity: 1;
+  }
+  100% {
+    scale: 1.06;
+    opacity: 0;
+  }
+}
+
+@keyframes juegos-win-fade {
+  15%,
+  80% {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .juegos-root .floor {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 16px;
+  }
+  .juegos-root .side {
+    align-items: center;
+  }
+}
+
+/* En pantallas estrechas la mesa se pone en vertical, con el cero arriba, y llena la pantalla.
+   La rueda aparece encima solo mientras gira. */
+@media (max-width: 640px) {
+  .juegos-root .floor {
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 8px;
+  }
+  .juegos-root .side {
+    flex-direction: row;
+    container-type: normal;
+  }
+
+    .juegos-root .side .wheel {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      width: min(88vw, 60svh);
+      margin: auto;
+      opacity: 0;
+      scale: 0.7;
+      pointer-events: none;
+      transition:
+        opacity 0.3s,
+        scale 0.3s;
+    }
+    .juegos-root .side::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 29;
+      background: rgba(4, 12, 18, 0.72);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .juegos-root .side--up .wheel {
+      opacity: 1;
+      scale: 1;
+    }
+    .juegos-root .side--up::after {
+      opacity: 1;
+    }
+  .juegos-root .recent {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+    .juegos-root .recent h2 {
+      margin: 0;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .juegos-root .recent p {
+      font-size: 13px;
+    }
+    .juegos-root .recent ol {
+      flex-wrap: nowrap;
+    }
+  .juegos-root .tile {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+  }
+
+    .juegos-root .tile:first-child {
+      width: 38px;
+      height: 38px;
+      margin-right: 2px;
+      font-size: 22px;
+    }
+  .juegos-root .felt {
+    flex: 1 1 auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) repeat(2, minmax(0, 0.8fr));
+    grid-template-rows: repeat(14, minmax(0, 1fr));
+  }
+  .juegos-root .cell {
+    font-size: clamp(15px, 2.6svh, 24px);
+  }
+  .juegos-root .cell--outside {
+    font-size: 13px;
+  }
+  .juegos-root .cell {
+    grid-column: var(--mc) / span var(--rs);
+    grid-row: var(--c) / span var(--cs);
+  }
+  .juegos-root .cell--outside {
+    flex-direction: column;
+  }
+  .juegos-root .cell--outside .cell__label {
+    writing-mode: vertical-rl;
+  }
+  .juegos-root .cell--column .cell__label {
+    writing-mode: horizontal-tb;
+  }
+  .juegos-root .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .juegos-root .chips {
+    justify-content: center;
+  }
+  .juegos-root .chip {
+    width: 52px;
+    height: 52px;
+    font-size: 16px;
+  }
+  .juegos-root .actions {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .juegos-root .actions button {
+    flex: 1;
+    padding: 10px 4px;
+    font-size: 14px;
+  }
+  .juegos-root .actions button.primary {
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .wheel__disc, .juegos-root .wheel__orbit, .juegos-root .chip {
+    transition: none;
+  }
+  .juegos-root .wheel--spinning .wheel__ball, .juegos-root .cell--lucky, .juegos-root .floor--shake, .juegos-root .money__hot, .juegos-root .cell--hit, .juegos-root .money__up, .juegos-root .win__flash {
+    animation: none;
+  }
+  .juegos-root .coin, .juegos-root .confetti, .juegos-root .firework, .juegos-root .win__ring, .juegos-root .win__rays {
+    display: none;
+  }
+  .juegos-root .win__banner strong {
+    animation: none;
+  }
+  .juegos-root .win__banner {
+    animation: juegos-win-fade 3.2s linear forwards;
+  }
+}
+
+/* Ventana modal (ayuda, premios, jugadas): encima del juego, sin mover la pantalla. */
+.juegos-root .modal {
+  width: min(560px, calc(100vw - 32px));
+  max-height: min(88svh, 780px);
+  padding: 0;
+  border: 1px solid rgba(200, 162, 75, 0.55);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #14323f, #0a1f2b);
+  color: var(--ivory);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+.juegos-root .modal::backdrop {
+    background: rgba(3, 10, 16, 0.68);
+    backdrop-filter: blur(3px);
+  }
+.juegos-root .modal[open] {
+    animation: juegos-modal-in 0.22s ease-out;
+  }
+.juegos-root .modal--wide {
+  width: min(780px, calc(100vw - 32px));
+}
+
+.juegos-root .modal__body {
+  display: grid;
+  gap: 14px;
+  max-height: inherit;
+  padding: 18px 22px 22px;
+  overflow-y: auto;
+  font-size: 16px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.juegos-root .modal__body p {
+    margin: 0;
+  }
+
+.juegos-root .modal__body h3 {
+    margin: 4px 0 0;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+
+.juegos-root .modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.juegos-root .modal__head h2 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: 30px;
+    font-weight: 400;
+  }
+
+.juegos-root .modal .modal__close {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ivory);
+}
+
+.juegos-root .modal .modal__close:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+@keyframes juegos-modal-in {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}
+
+/* Botones que solo hacen falta cuando la pantalla es estrecha. */
+.juegos-root .only-narrow {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .juegos-root .toggles .only-narrow {
+    display: revert;
+  }
+}
+
+/* Cabecera compacta en móvil: título y botones en una fila, cifras debajo. */
+@media (max-width: 640px) {
+  .juegos-root .modal__body {
+    gap: 10px;
+    padding: 14px 14px 16px;
+  }
+  .juegos-root .modal__head h2 {
+    font-size: 24px;
+  }
+  .juegos-root .top {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 6px 10px;
+  }
+
+    .juegos-root .top h1 {
+      font-size: 30px;
+    }
+  .juegos-root .hud {
+    display: contents;
+  }
+  .juegos-root .money {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-wrap: nowrap;
+    gap: 4px 18px;
+  }
+
+    .juegos-root .money small {
+      display: none;
+    }
+    .juegos-root .money dt {
+      font-size: 11px;
+    }
+    .juegos-root .money dd {
+      font-size: 19px;
+    }
+  .juegos-root .toggles {
+    grid-column: 2;
+    grid-row: 1;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+    .juegos-root .toggles button {
+      padding: 5px 10px;
+      font-size: 13px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .modal[open] {
+    animation: none;
+  }
+}

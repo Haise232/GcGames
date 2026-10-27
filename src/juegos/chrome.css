@@ -1,0 +1,376 @@
+/* Escrito a mano (no generado): la cabecera común de los juegos (título, botones de volver, sonido y ayuda) y el fondo
+   propio de cada juego. Va después de las hojas de cada juego para ganarles con la misma especificidad, y antes de
+   halloween.css. Cada juego tiene su color (--accent) y su fondo (.app::before, fijo detrás de todo). */
+
+.juegos-root .app {
+  --accent: var(--brass);
+  --accent-rgb: 200, 162, 75;
+  position: relative;
+  isolation: isolate;
+}
+.juegos-root .elevator-app {
+  --accent: #ffc24a;
+  --accent-rgb: 255, 194, 74;
+}
+.juegos-root .auction-app {
+  --accent: #ff7a9a;
+  --accent-rgb: 255, 122, 154;
+}
+.juegos-root .bingo-live {
+  --accent: #c39bff;
+  --accent-rgb: 195, 155, 255;
+}
+.juegos-root .bridge-app {
+  --accent: #6fe7e7;
+  --accent-rgb: 111, 231, 231;
+}
+.juegos-root .crash-live {
+  --accent: #ff8a4c;
+  --accent-rgb: 255, 138, 76;
+}
+.juegos-root .dg-app {
+  --accent: #ffad5a;
+  --accent-rgb: 255, 173, 90;
+}
+.juegos-root .frog-app {
+  --accent: #8ee26a;
+  --accent-rgb: 142, 226, 106;
+}
+.juegos-root .gacha-app {
+  --accent: #ff7ad9;
+  --accent-rgb: 255, 122, 217;
+}
+.juegos-root .hs-app {
+  --accent: #ffd25e;
+  --accent-rgb: 255, 210, 94;
+}
+.juegos-root .plinko-app {
+  --accent: #ff5fe0;
+  --accent-rgb: 255, 95, 224;
+}
+.juegos-root .race-app {
+  --accent: #ff5a4f;
+  --accent-rgb: 255, 90, 79;
+}
+.juegos-root .roulette-live {
+  --accent: #f0cd6a;
+  --accent-rgb: 240, 205, 106;
+}
+.juegos-root .tw-app {
+  --accent: #9fd0ff;
+  --accent-rgb: 159, 208, 255;
+}
+.juegos-root .im-app {
+  --accent: #ff6a5a;
+  --accent-rgb: 255, 106, 90;
+}
+.juegos-root .sz-app {
+  --accent: #d9b45a;
+  --accent-rgb: 217, 180, 90;
+}
+
+/* ============================== Cabecera ============================== */
+.juegos-root .app > .top {
+  align-items: center;
+  padding: clamp(8px, 1.3vh, 14px) clamp(12px, 1.6vw, 22px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  background:
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.14), transparent 45%),
+    rgba(6, 12, 20, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 10px 30px rgba(0, 0, 0, 0.25);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* Título: el color del juego, con brillo y una raya debajo. */
+.juegos-root .app > .top h1 {
+  position: relative;
+  padding-bottom: 0.12em;
+  background: linear-gradient(180deg, #fff 0%, var(--ivory) 45%, var(--accent) 130%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 18px rgba(var(--accent-rgb), 0.35));
+  letter-spacing: 0.01em;
+}
+.juegos-root .app > .top h1::after {
+  content: '';
+  position: absolute;
+  left: 0.04em;
+  bottom: -0.08em;
+  width: 1.4em;
+  height: 4px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.8);
+}
+
+/* Botones de volver, sonido y ayuda: píldoras de cristal con su icono. */
+.juegos-root .toggles .tg {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px 9px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.25);
+  color: var(--ivory);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.juegos-root .toggles .tg::before {
+  content: '';
+  flex: none;
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+.juegos-root .toggles .tg:hover {
+  transform: translateY(-1px);
+  border-color: rgba(var(--accent-rgb), 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 6px 18px rgba(var(--accent-rgb), 0.25);
+}
+.juegos-root .toggles .tg:active {
+  transform: translateY(0) scale(0.97);
+}
+.juegos-root .toggles .tg:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Volver: el que más se ve, con el color del juego. */
+.juegos-root .toggles .tg--back {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 5l-7 7 7 7'/%3E%3C/svg%3E");
+  border-color: rgba(var(--accent-rgb), 0.55);
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.28), rgba(var(--accent-rgb), 0.1));
+}
+.juegos-root .toggles .tg--back:hover::before {
+  animation: tg-nudge 0.5s ease;
+}
+@keyframes tg-nudge {
+  50% {
+    transform: translateX(-3px);
+  }
+}
+
+/* Sonido: el altavoz con ondas si está puesto y tachado si no. */
+.juegos-root .toggles .tg--sound {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 9v6h4l5 4V5L8 9z' fill='black'/%3E%3Cpath d='M17 9l5 6M22 9l-5 6'/%3E%3C/svg%3E");
+  color: var(--muted);
+}
+.juegos-root .toggles .tg--sound[aria-pressed='true'] {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 9v6h4l5 4V5L8 9z' fill='black'/%3E%3Cpath d='M16.5 8.5a5 5 0 0 1 0 7M19.5 5.5a9 9 0 0 1 0 13'/%3E%3C/svg%3E");
+  border-color: rgba(var(--accent-rgb), 0.45);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+  color: var(--ivory);
+}
+
+.juegos-root .toggles .tg--help {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M9.4 9.3a2.7 2.7 0 0 1 5.2 1c0 1.8-2.6 2.3-2.6 3.9'/%3E%3Ccircle cx='12' cy='17.3' r='0.6' fill='black'/%3E%3C/svg%3E");
+}
+
+/* Móvil: solo los iconos, en círculos (el texto sigue ahí para los lectores de pantalla). */
+@media (max-width: 640px) {
+  .juegos-root .app > .top {
+    padding: 8px 10px;
+    border-radius: 16px;
+  }
+  .juegos-root .app > .top h1::after {
+    height: 3px;
+  }
+  .juegos-root .toggles .tg {
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    font-size: 0;
+    gap: 0;
+  }
+  .juegos-root .toggles .tg::before {
+    width: 19px;
+    height: 19px;
+  }
+  .juegos-root .toggles {
+    flex-wrap: nowrap;
+  }
+}
+
+/* ============================== Fondos ==============================
+   Una capa fija detrás de cada juego. Oscura en el centro para que el tablero se lea igual que antes. */
+.juegos-root .app::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Ascensor: el hueco, con los cables y las guías y la luz de la cabina arriba. */
+.juegos-root .elevator-app::before {
+  background:
+    radial-gradient(60% 40% at 50% 0%, rgba(255, 194, 74, 0.18), transparent 70%),
+    linear-gradient(90deg, transparent 0 calc(50% - 41px), rgba(200, 210, 225, 0.12) calc(50% - 41px) calc(50% - 39px), transparent 0 calc(50% + 39px), rgba(200, 210, 225, 0.12) calc(50% + 39px) calc(50% + 41px), transparent 0),
+    repeating-linear-gradient(90deg, transparent 0 9vw, rgba(255, 255, 255, 0.035) 9vw calc(9vw + 2px)),
+    repeating-linear-gradient(180deg, transparent 0 22vh, rgba(0, 0, 0, 0.35) 22vh calc(22vh + 6px), rgba(255, 255, 255, 0.04) calc(22vh + 6px) calc(22vh + 8px)),
+    linear-gradient(180deg, #1a2029, #0b0e13 70%, #07080b);
+}
+
+/* Subasta: terciopelo granate con un foco sobre la caja. */
+.juegos-root .auction-app::before {
+  background:
+    radial-gradient(40% 55% at 50% 35%, rgba(255, 220, 180, 0.14), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0 3vw, rgba(255, 255, 255, 0.025) 3vw 6vw),
+    linear-gradient(180deg, #3b0f1f, #1c0710 75%);
+}
+
+/* Bingo: una sala malva con bolas desenfocadas. */
+.juegos-root .bingo-live::before {
+  background:
+    radial-gradient(circle at 12% 22%, rgba(255, 210, 94, 0.14) 0 3vw, transparent 3.2vw),
+    radial-gradient(circle at 86% 30%, rgba(111, 231, 231, 0.12) 0 4vw, transparent 4.2vw),
+    radial-gradient(circle at 78% 82%, rgba(255, 122, 154, 0.12) 0 3.5vw, transparent 3.7vw),
+    radial-gradient(circle at 20% 78%, rgba(195, 155, 255, 0.14) 0 2.5vw, transparent 2.7vw),
+    radial-gradient(ellipse at 50% 0%, #3a2460, #160d2a 75%);
+}
+
+/* Puente de cristal: el vacío, con niebla abajo y luz que baja desde arriba. */
+.juegos-root .bridge-app::before {
+  background:
+    linear-gradient(180deg, transparent 60%, rgba(111, 231, 231, 0.1)),
+    repeating-linear-gradient(100deg, transparent 0 14vw, rgba(111, 231, 231, 0.04) 14vw 16vw),
+    radial-gradient(ellipse at 50% 0%, #0f3a44, #04141a 70%, #020a0d);
+}
+
+/* Cohete: espacio con estrellas y una nebulosa naranja. */
+.juegos-root .crash-live::before {
+  background:
+    radial-gradient(1px 1px at 10% 20%, #fff, transparent),
+    radial-gradient(1px 1px at 30% 70%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 55% 15%, #fff, transparent),
+    radial-gradient(1px 1px at 70% 55%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 88% 30%, #fff, transparent),
+    radial-gradient(1px 1px at 92% 85%, #fff, transparent),
+    radial-gradient(1px 1px at 18% 90%, #fff, transparent),
+    radial-gradient(1px 1px at 45% 45%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(50% 40% at 80% 100%, rgba(255, 120, 60, 0.22), transparent 70%),
+    radial-gradient(40% 35% at 10% 0%, rgba(120, 90, 255, 0.18), transparent 70%),
+    linear-gradient(180deg, #0a0f24, #05060f);
+}
+
+/* Laberinto: muro de piedra con antorchas a los lados. */
+.juegos-root .dg-app::before {
+  background:
+    radial-gradient(18% 30% at 0% 40%, rgba(255, 150, 60, 0.22), transparent 70%),
+    radial-gradient(18% 30% at 100% 40%, rgba(255, 150, 60, 0.22), transparent 70%),
+    repeating-linear-gradient(180deg, transparent 0 46px, rgba(0, 0, 0, 0.45) 46px 49px),
+    repeating-linear-gradient(90deg, transparent 0 94px, rgba(0, 0, 0, 0.35) 94px 97px),
+    linear-gradient(180deg, #2a2420, #14110f);
+}
+
+/* Rana: el estanque, con nenúfares. */
+.juegos-root .frog-app::before {
+  background:
+    radial-gradient(4vw 2.4vw at 8% 85%, rgba(90, 170, 70, 0.35) 60%, transparent 62%),
+    radial-gradient(3vw 1.8vw at 92% 70%, rgba(90, 170, 70, 0.3) 60%, transparent 62%),
+    radial-gradient(2.4vw 1.4vw at 85% 92%, rgba(90, 170, 70, 0.28) 60%, transparent 62%),
+    repeating-radial-gradient(circle at 30% 60%, transparent 0 40px, rgba(255, 255, 255, 0.025) 40px 42px),
+    radial-gradient(ellipse at 50% 0%, #1d4a3a, #0a2019 75%);
+}
+
+/* Gacha: brillos de colores (solo la página; las cartas siguen igual). */
+.juegos-root .gacha-app::before {
+  background:
+    radial-gradient(35% 30% at 10% 10%, rgba(255, 122, 217, 0.18), transparent 70%),
+    radial-gradient(35% 30% at 90% 20%, rgba(120, 180, 255, 0.16), transparent 70%),
+    radial-gradient(40% 35% at 50% 100%, rgba(255, 210, 94, 0.12), transparent 70%),
+    linear-gradient(180deg, #1b1430, #0b0816);
+}
+
+/* Atraco: la noche de la ciudad con láseres. */
+.juegos-root .hs-app::before {
+  background:
+    linear-gradient(28deg, transparent 49.8%, rgba(255, 59, 78, 0.18) 50%, transparent 50.2%),
+    linear-gradient(-34deg, transparent 49.8%, rgba(255, 59, 78, 0.14) 50%, transparent 50.2%),
+    radial-gradient(50% 40% at 50% 0%, rgba(255, 210, 94, 0.12), transparent 70%),
+    linear-gradient(180deg, #121a24, #070b10);
+}
+
+/* Plinko: neón de recreativa con una rejilla de clavos. */
+.juegos-root .plinko-app::before {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.07) 1.5px, transparent 2px) 0 0 / 34px 34px,
+    radial-gradient(40% 50% at 0% 50%, rgba(255, 95, 224, 0.2), transparent 70%),
+    radial-gradient(40% 50% at 100% 50%, rgba(80, 200, 255, 0.18), transparent 70%),
+    linear-gradient(180deg, #1a0f2e, #0a0614);
+}
+
+/* Carrera: asfalto con la línea de meta. */
+.juegos-root .race-app::before {
+  background:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.08) 0 25%, transparent 0 50%) left bottom / 24px 24px repeat-x,
+    radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1.5px) 0 0 / 6px 6px,
+    radial-gradient(ellipse at 50% 0%, #34383f, #16181c 75%);
+}
+
+/* Ruleta: tapete verde de casino con borde dorado. */
+.juegos-root .roulette-live::before {
+  background:
+    radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(0, 0, 0, 0.55)),
+    radial-gradient(circle, rgba(0, 0, 0, 0.08) 1px, transparent 1.5px) 0 0 / 4px 4px,
+    radial-gradient(ellipse at 50% 0%, #1d6b45, #0b3322 75%);
+  box-shadow: inset 0 0 0 6px rgba(240, 205, 106, 0.18);
+}
+
+/* Torre: cielo al anochecer (la torre ya pinta el suyo en la escena). */
+.juegos-root .tw-app::before {
+  background:
+    radial-gradient(1px 1px at 15% 15%, #fff, transparent),
+    radial-gradient(1px 1px at 75% 10%, #fff, transparent),
+    radial-gradient(1px 1px at 90% 35%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(60% 40% at 50% 100%, rgba(255, 150, 90, 0.18), transparent 70%),
+    linear-gradient(180deg, #0e1838, #1a2350 60%, #2a2550);
+}
+
+/* Inmobiliaria: tapete verde de juego de mesa con la cuadrícula de un plano de ciudad. */
+.juegos-root .im-app::before {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px) 0 0 / 48px 48px,
+    radial-gradient(ellipse at 50% 0%, #1d5a3a, #0a2618 75%);
+}
+
+.juegos-root .sz-app::before {
+  background:
+    radial-gradient(ellipse at 50% 0%, #1d3361, #070d1e 75%);
+}
+
+/* En Halloween se ve el morado del tema a través del fondo de cada juego. */
+.juegos-root.halloween .app::before {
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .toggles .tg {
+    transition: none;
+  }
+  .juegos-root .toggles .tg--back:hover::before {
+    animation: none;
+  }
+}

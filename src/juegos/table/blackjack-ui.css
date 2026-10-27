@@ -1,0 +1,1153 @@
+/* Escrito a mano (no generado): el aspecto de la mesa de blackjack en vivo, con el mismo lenguaje que la de póker
+   (poker/poker-ui.css): paño azul de TopCode, riel de nogal con filo de latón, asientos con foto y anillo de tiempo,
+   placas legibles, banda de jugadas y el pie con la decisión. Todo con prefijo bj- para no depender del póker. */
+
+.juegos-root .bj {
+  --gold: #d6b25c;
+  --felt-hi: #1f5a78;
+  --felt: #14394f;
+  --felt-lo: #0c2737;
+  --leather-hi: #7d4b2b;
+  --leather-lo: #2a1409;
+  --plate: #0a1b26;
+  --plate-hi: #153447;
+  --ink: #2a1a05;
+}
+
+.juegos-root .bj .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- Cabecera: título, sala y botones. Siempre de la misma altura. --- */
+
+.juegos-root .top.bj-top {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px 18px;
+  min-height: 48px;
+  margin-bottom: clamp(4px, 1vh, 10px);
+}
+.juegos-root .bj-top h1 {
+  flex: none;
+  font-size: clamp(26px, 4.6vh, 42px);
+  line-height: 1;
+}
+.juegos-root .bj-room {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--muted);
+}
+.juegos-root .bj-room span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.juegos-root .bj-room b {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+}
+.juegos-root .bj-room small {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+}
+.juegos-root .bj-top .toggles {
+  flex: none;
+}
+.juegos-root .bj-top .toggles button {
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+/* --- Banda: estado corto, últimas jugadas y tu saldo --- */
+
+.juegos-root .bj-band {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 40px;
+  margin-bottom: clamp(4px, 1vh, 10px);
+  padding: 0 14px;
+  overflow: hidden;
+  border: 1px solid rgba(200, 162, 75, 0.3);
+  border-radius: 12px;
+  background: rgba(6, 20, 30, 0.6);
+}
+.juegos-root .bj-band p {
+  margin: 0;
+}
+.juegos-root .bj-band__status {
+  flex: none;
+  max-width: 55%;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .bj-band__status.is-turn {
+  color: var(--gold);
+}
+.juegos-root .bj-band__log {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 16px;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 0 14px;
+  overflow: hidden;
+  border-left: 1px solid rgba(241, 233, 214, 0.2);
+  list-style: none;
+  white-space: nowrap;
+  mask-image: linear-gradient(90deg, #000 85%, transparent);
+}
+.juegos-root .bj-band__item {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: rgba(241, 233, 214, 0.62);
+}
+.juegos-root .bj-band__item::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}
+.juegos-root .bj-band__item--new {
+  font-weight: 600;
+  color: var(--ivory);
+  animation: bj-feed-in 0.35s ease-out;
+}
+.juegos-root .bj-band__item--raise.bj-band__item--new,
+.juegos-root .bj-band__item--street.bj-band__item--new {
+  color: var(--gold);
+}
+.juegos-root .bj-band__item--bad.bj-band__item--new {
+  color: #ff9a86;
+}
+.juegos-root .bj-band__item--win.bj-band__item--new {
+  color: #fff1b8;
+}
+.juegos-root .bj-band__cards {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 2px;
+}
+.juegos-root .bj-band__money {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.juegos-root .bj-band__money b {
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold);
+}
+
+.juegos-root .bj-mini {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #f6efdd;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--black);
+}
+.juegos-root .bj-mini--red {
+  color: var(--red);
+}
+
+/* --- El suelo: la mesa ocupa el espacio libre y se adapta a su forma --- */
+
+.juegos-root .bj-floor {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  container: bjfloor / size;
+}
+
+.juegos-root .bj-stage {
+  /* Ancho real de la mesa: las medidas dependen de él, no del ancho libre (en ventanas bajas sobra ancho). */
+  --sw: min(100cqw, 185cqh, 1320px);
+  --card: clamp(30px, calc(var(--sw) * 0.038), 56px);
+  --dealer-card: clamp(40px, calc(var(--sw) * 0.05), 72px);
+  --av: clamp(34px, calc(var(--sw) * 0.036), 52px);
+  --seat-w: clamp(96px, calc(var(--sw) * 0.112), 150px);
+  --rail: clamp(12px, calc(var(--sw) * 0.016), 22px);
+  position: relative;
+  width: var(--sw);
+  aspect-ratio: 1.85;
+}
+
+/* Media luna: el lado recto para el crupier y el curvo para los jugadores. Riel de nogal con filo de latón. */
+.juegos-root .bj-table {
+  position: absolute;
+  inset: 0 1% 8%;
+  border-radius: 30px 30px 50% 50% / 30px 30px 100% 100%;
+  background:
+    repeating-linear-gradient(94deg, rgba(0, 0, 0, 0) 0 7px, rgba(0, 0, 0, 0.09) 7px 8px),
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 70%),
+    linear-gradient(180deg, var(--leather-hi), var(--leather-lo));
+  box-shadow:
+    0 0 0 2px #090402,
+    0 0 0 4px rgba(200, 162, 75, 0.7),
+    0 0 0 5px #090402,
+    0 30px 60px rgba(0, 0, 0, 0.5),
+    inset 0 2px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -8px 16px rgba(0, 0, 0, 0.55);
+}
+.juegos-root .bj-table__felt {
+  position: absolute;
+  inset: var(--rail);
+  border-radius: 20px 20px 50% 50% / 20px 20px 100% 100%;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 30%, rgba(255, 255, 255, 0.1), transparent 70%),
+    radial-gradient(ellipse at 50% 35%, var(--felt-hi), var(--felt) 55%, var(--felt-lo));
+  box-shadow:
+    inset 0 0 0 2px rgba(200, 162, 75, 0.7),
+    inset 0 10px 30px rgba(0, 0, 0, 0.5),
+    inset 0 0 70px rgba(0, 0, 0, 0.4);
+}
+/* Línea de latón impresa en el paño, paralela al borde. */
+.juegos-root .bj-table__felt::after {
+  content: '';
+  position: absolute;
+  inset: 6% 5% 12%;
+  border: 1.5px solid rgba(200, 162, 75, 0.24);
+  border-top: 0;
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+}
+
+.juegos-root .bj-stage .felt-print {
+  position: absolute;
+  top: 31%;
+  left: 50%;
+  width: min(44%, 520px);
+  translate: -50% 0;
+  pointer-events: none;
+}
+
+/* --- Crupier y zapato --- */
+
+.juegos-root .bj-dealer {
+  position: absolute;
+  top: calc(var(--rail) + 2%);
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  translate: -50% 0;
+}
+.juegos-root .bj-dealer__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .bj-dealer__hand {
+  display: flex;
+  min-height: calc(var(--dealer-card) * 1.4);
+}
+.juegos-root .bj-dealer__hand .card {
+  --card-w: var(--dealer-card);
+}
+.juegos-root .bj-dealer__hand .card + .card {
+  margin-left: calc(var(--dealer-card) * -0.38);
+}
+
+.juegos-root .bj-shoe {
+  position: absolute;
+  top: calc(var(--rail) + 3%);
+  right: 9%;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+.juegos-root .bj-shoe__box {
+  position: relative;
+  width: calc(var(--dealer-card) * 0.9);
+  height: calc(var(--dealer-card) * 0.62);
+  overflow: hidden;
+  border-radius: 6px 6px 4px 4px;
+  background: linear-gradient(180deg, #2a1409, #120804);
+  box-shadow:
+    inset 0 0 0 2px rgba(200, 162, 75, 0.6),
+    0 6px 12px rgba(0, 0, 0, 0.45);
+}
+/* Cartas que quedan: el borde rojo baja a medida que se gasta el zapato. */
+.juegos-root .bj-shoe__cards {
+  position: absolute;
+  inset: auto 4px 4px;
+  height: calc((100% - 8px) * var(--left));
+  border-radius: 2px;
+  background: repeating-linear-gradient(0deg, #8e2420 0 2px, #f6efdd 2px 3px);
+}
+.juegos-root .bj-shoe small {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(241, 233, 214, 0.5);
+}
+
+/* Total de una mano: una pastilla oscura; verde con 21 y roja si se pasa. */
+.juegos-root .bj-total {
+  min-width: 2em;
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: rgba(6, 20, 30, 0.85);
+  box-shadow: inset 0 0 0 1px rgba(241, 233, 214, 0.25);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-align: center;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+  color: var(--ivory);
+}
+.juegos-root .bj-total--21 {
+  background: #1e8a5a;
+  color: #fff;
+}
+.juegos-root .bj-total--bust {
+  background: #c2332c;
+  color: #fff;
+}
+
+/* --- Aviso grande del centro: apuestas, espera o conexión --- */
+
+.juegos-root .bj-wait {
+  position: absolute;
+  top: 54%;
+  left: 50%;
+  z-index: 5;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  max-width: min(46%, 440px);
+  padding: 16px 26px 18px;
+  border: 1px solid rgba(200, 162, 75, 0.6);
+  border-radius: 24px;
+  background: rgba(6, 20, 30, 0.8);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  translate: -50% -50%;
+  animation: bj-pop-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.juegos-root .bj-wait h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(22px, 4.4cqh, 36px);
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--ivory);
+}
+.juegos-root .bj-wait p {
+  margin: 0;
+  font-size: clamp(14px, 2.3cqh, 16px);
+  color: #cfe0ea;
+}
+.juegos-root .bj-wait__big {
+  font-family: var(--display);
+  font-size: clamp(44px, 10cqh, 80px);
+  font-weight: 400;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold);
+}
+.juegos-root .bj-wait__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.juegos-root .bj-wait__actions button,
+.juegos-root .bj-wait__pill {
+  min-height: 44px;
+  padding: 10px 22px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ivory);
+}
+.juegos-root .bj-wait__actions button:first-child {
+  border-color: #f2dc9c;
+  background: linear-gradient(180deg, #f1d88c, #c79f45);
+  color: var(--ink);
+}
+.juegos-root .bj-wait__actions button:disabled {
+  opacity: 0.5;
+}
+.juegos-root .bj-wait__pill {
+  position: absolute;
+  top: 54%;
+  left: 50%;
+  z-index: 5;
+  min-height: 40px;
+  padding: 6px 16px;
+  background: rgba(6, 20, 30, 0.76);
+  font-size: 14px;
+  translate: -50% -50%;
+}
+.juegos-root .bj-wait button:focus-visible,
+.juegos-root .bj-wait__pill:focus-visible {
+  outline: 3px solid var(--ivory);
+  outline-offset: 3px;
+}
+
+/* --- Fichas sobre el paño --- */
+
+.juegos-root .bj-chips {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.juegos-root .bj-chips b {
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--ivory);
+}
+.juegos-root .bj-chips__stack {
+  position: relative;
+  width: 26px;
+  height: calc(10px + 3px * 5);
+}
+.juegos-root .bj-chip {
+  position: absolute;
+  bottom: calc(var(--n) * 3px);
+  left: 0;
+  width: 26px;
+  height: 10px;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at center, transparent 40%, rgba(255, 255, 255, 0.55) 42% 54%, transparent 56%), var(--chip);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.8),
+    0 1px 0 rgba(0, 0, 0, 0.6),
+    0 2px 3px rgba(0, 0, 0, 0.35);
+}
+
+/* --- Asientos en arco a lo largo del borde curvo --- */
+
+.juegos-root .bj-seats {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* El punto del arco es el centro del avatar; las cartas y la apuesta quedan hacia el paño. */
+.juegos-root .bj-seat {
+  position: absolute;
+  top: calc(25% + 58% * var(--sin));
+  left: calc(50% + 43% * var(--cos));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: var(--seat-w);
+  translate: -50% calc(-100% + var(--av) * 0.5 + 48px);
+  pointer-events: auto;
+}
+.juegos-root .bj-seat--talk {
+  z-index: 6;
+}
+
+.juegos-root .bj-seat__cards {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  min-height: calc(var(--card) * 1.4);
+}
+.juegos-root .bj-seat__cards .card {
+  --card-w: var(--card);
+}
+.juegos-root .bj-seat__cards .card + .card {
+  margin-left: calc(var(--card) * -0.55);
+}
+.juegos-root .bj-seat__cards .bj-total {
+  position: absolute;
+  top: -10px;
+  right: -16px;
+  z-index: 2;
+}
+.juegos-root .bj-seat--me .bj-seat__cards .card {
+  --card-w: calc(var(--card) * 1.18);
+}
+.juegos-root .bj-seat--me .bj-seat__cards {
+  min-height: calc(var(--card) * 1.18 * 1.4);
+}
+.juegos-root .bj-seat--bad .bj-seat__cards {
+  filter: grayscale(0.6) brightness(0.7);
+}
+
+/* Círculo de apuesta impreso en el paño. */
+.juegos-root .bj-seat__spot {
+  display: grid;
+  place-items: center;
+  min-width: calc(var(--av) * 0.9);
+  height: calc(var(--av) * 0.9);
+  margin: 6px 0;
+  padding: 0 6px;
+  border: 1.5px solid rgba(200, 162, 75, 0.45);
+  border-radius: 999px;
+  font-family: var(--display);
+  font-size: 15px;
+  color: rgba(241, 233, 214, 0.4);
+}
+.juegos-root .bj-seat__spot.has-bet {
+  border-color: rgba(200, 162, 75, 0.38);
+  background: rgba(6, 20, 30, 0.72);
+  font-family: var(--sans);
+  animation: bj-pop-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+
+.juegos-root .bj-seat__who {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+.juegos-root .bj-seat__anchor {
+  position: absolute;
+  top: 0;
+  left: calc(50% - 95px);
+  z-index: 4;
+  width: 190px;
+  height: var(--av);
+  pointer-events: none;
+}
+.juegos-root .bj-seat__avatar {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--av);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--plate);
+  box-shadow:
+    0 0 0 3px var(--plate),
+    0 0 0 4px rgba(200, 162, 75, 0.55),
+    0 8px 18px rgba(0, 0, 0, 0.5);
+}
+.juegos-root .bj-seat__avatar .avatar {
+  width: 100%;
+  height: 100%;
+  font-size: calc(var(--av) * 0.42);
+}
+/* Tiempo del turno: un anillo alrededor de la foto que se vacía. */
+.juegos-root .bj-seat--turn .bj-seat__avatar::before {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+  background: conic-gradient(var(--ring, var(--gold)) calc(var(--p) * 360deg), rgba(255, 255, 255, 0.14) 0);
+  mask: radial-gradient(closest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+}
+.juegos-root .bj-seat--hurry {
+  --ring: #ff7a6b;
+}
+.juegos-root .bj-seat--turn .bj-seat__avatar {
+  box-shadow:
+    0 0 0 3px var(--plate),
+    0 0 24px rgba(214, 178, 92, 0.6),
+    0 8px 18px rgba(0, 0, 0, 0.5);
+}
+.juegos-root .bj-seat--win .bj-seat__avatar {
+  animation: bj-win-glow 0.6s ease-in-out 4 alternate;
+}
+.juegos-root .bj-seat--away .bj-seat__avatar {
+  filter: grayscale(0.8) brightness(0.7);
+}
+
+.juegos-root .bj-seat__plate {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  width: 100%;
+  margin-top: -10px;
+  padding: 12px 8px 7px;
+  border: 1px solid rgba(200, 162, 75, 0.5);
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--plate-hi), var(--plate));
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+}
+.juegos-root .bj-seat__plate:has(.bj-tag) {
+  padding-bottom: 13px;
+}
+.juegos-root .bj-seat__name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ivory);
+}
+.juegos-root .bj-seat__stack {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold);
+}
+.juegos-root .bj-seat--me .bj-seat__plate {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, #1c4660, #0d2736);
+}
+.juegos-root .bj-seat--away .bj-seat__plate {
+  opacity: 0.8;
+}
+
+/* Estado: texto y símbolo sobre el filo de la placa. */
+.juegos-root .bj-tag {
+  position: absolute;
+  bottom: -11px;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 21px;
+  padding: 1px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 999px;
+  background: #f1e9d6;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.3;
+  white-space: nowrap;
+  color: #1b1405;
+  translate: -50% 0;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+  animation: bj-pop-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+.juegos-root .bj-tag i {
+  font-style: normal;
+}
+.juegos-root .bj-tag--ready {
+  border-color: #5cc595;
+  background: #2f9467;
+  color: #fff;
+}
+.juegos-root .bj-tag--turn {
+  background: var(--gold);
+}
+.juegos-root .bj-tag--bad {
+  border-color: #ffb3a6;
+  background: #c2332c;
+  color: #fff;
+}
+.juegos-root .bj-tag--away {
+  border-style: dashed;
+  border-color: rgba(241, 233, 214, 0.5);
+  background: #2a3b47;
+  color: #e3edf3;
+}
+.juegos-root .bj-tag--win {
+  background: linear-gradient(180deg, #fff1b8, var(--gold));
+  font-size: 13px;
+  box-shadow: 0 0 18px rgba(255, 226, 122, 0.7);
+}
+
+.juegos-root .bj-seat__kick {
+  position: absolute;
+  top: -6px;
+  right: calc(50% - var(--av) / 2 - 18px);
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--plate);
+  font-size: 16px;
+  line-height: 1;
+  color: var(--ivory);
+}
+
+/* Asiento libre: solo un círculo donde iría la foto («+» con un blanco de toque grande si puedes sentarte). */
+.juegos-root .bj-seat--empty {
+  width: auto;
+  translate: -50% -50%;
+}
+.juegos-root .bj-seat__sit {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 64px;
+  min-height: 64px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(241, 233, 214, 0.9);
+}
+.juegos-root .bj-seat__plus {
+  display: grid;
+  place-items: center;
+  width: var(--av);
+  aspect-ratio: 1;
+  border: 2px dashed rgba(200, 162, 75, 0.7);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.28);
+  font-size: 26px;
+  line-height: 1;
+  color: var(--gold);
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.juegos-root .bj-seat__sit:hover .bj-seat__plus {
+  border-color: var(--gold);
+  background: rgba(200, 162, 75, 0.18);
+}
+.juegos-root .bj-seat__sit:focus-visible {
+  outline: 3px solid var(--ivory);
+  outline-offset: 2px;
+}
+.juegos-root .bj-seat__free {
+  display: grid;
+  place-items: center;
+  width: var(--av);
+  aspect-ratio: 1;
+  border: 1.5px dashed rgba(200, 162, 75, 0.38);
+  border-radius: 50%;
+  font-family: var(--display);
+  font-size: 15px;
+  color: rgba(241, 233, 214, 0.45);
+}
+
+/* --- Pie: tu decisión, tu apuesta o una nota --- */
+
+.juegos-root .bj-foot {
+  display: grid;
+  justify-items: center;
+  align-items: end;
+  margin-top: clamp(6px, 1.2vh, 12px);
+}
+.juegos-root .bj-foot--seated {
+  min-height: 78px;
+}
+
+.juegos-root .bj-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  width: min(100%, 1100px);
+  padding: 10px 14px;
+  border: 1px solid rgba(200, 162, 75, 0.4);
+  border-radius: 18px;
+  background: rgba(6, 20, 30, 0.92);
+}
+.juegos-root .bj-bar--act {
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 1px rgba(214, 178, 92, 0.5),
+    0 0 26px rgba(214, 178, 92, 0.26),
+    0 14px 34px rgba(0, 0, 0, 0.45);
+}
+.juegos-root .bj-bar__note {
+  margin: 0;
+  font-size: 15px;
+  color: #c3d4de;
+}
+.juegos-root .bj-bar__hand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  color: #c3d4de;
+}
+.juegos-root .bj-bar__hand small {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .bj-bar__hand b {
+  font-family: var(--display);
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--gold);
+}
+.juegos-root .bj-bar__hand span {
+  font-size: 14px;
+}
+.juegos-root .bj-bar__buttons {
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.juegos-root .bj-bar__chips {
+  display: flex;
+  gap: 10px;
+}
+.juegos-root .bj-bar__chips .chip {
+  width: 52px;
+  height: 52px;
+  border-width: 4px;
+  font-size: 15px;
+}
+
+.juegos-root .bj-btn {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 52px;
+  padding: 12px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(241, 233, 214, 0.08);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ivory);
+}
+.juegos-root .bj-btn:not(:disabled):hover {
+  background: rgba(241, 233, 214, 0.16);
+}
+.juegos-root .bj-btn:focus-visible {
+  outline: 3px solid var(--ivory);
+  outline-offset: 2px;
+}
+.juegos-root .bj-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.juegos-root .bj-btn--hit {
+  border-color: #f2dc9c;
+  background: linear-gradient(180deg, #f1d88c, #c79f45);
+  color: var(--ink);
+}
+.juegos-root .bj-btn--hit:not(:disabled):hover {
+  background: linear-gradient(180deg, #f8e3a4, #d2ab52);
+}
+.juegos-root .bj-btn--stand {
+  border-color: #5cc595;
+  background: linear-gradient(180deg, #2f9467, #1c6a47);
+}
+.juegos-root .bj-btn--stand:not(:disabled):hover {
+  background: linear-gradient(180deg, #36a473, #207a52);
+}
+.juegos-root .bj-btn--ghost {
+  background: transparent;
+}
+.juegos-root .bj-btn small {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+.juegos-root .bj-btn kbd {
+  margin-left: 6px;
+  padding: 0 6px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* El chat no tapa el pie: el alto lo publica Table.jsx en --bj-foot-h. */
+@media (max-width: 1500px) {
+  .juegos-root .bj .chat {
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--bj-foot-h, 96px) + 8px);
+  }
+}
+
+@keyframes bj-pop-in {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+}
+@keyframes bj-feed-in {
+  from {
+    opacity: 0;
+    translate: -10px 0;
+  }
+}
+@keyframes bj-win-glow {
+  to {
+    box-shadow:
+      0 0 0 3px var(--plate),
+      0 0 30px rgba(255, 226, 122, 0.9),
+      0 8px 18px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* --- Ventana mediana: menos texto en la cabecera --- */
+
+@media (max-width: 760px) {
+  .juegos-root .bj-room small {
+    display: none;
+  }
+}
+
+/* --- Mesa vertical (móvil o ventana estrecha): crupier arriba y los asientos en una rejilla debajo. --- */
+
+@container bjfloor (aspect-ratio < 1.25) {
+  .juegos-root .bj-stage {
+    --card: clamp(26px, min(7.4cqw, 5.6cqh), 44px);
+    --dealer-card: clamp(36px, min(10cqw, 7.4cqh), 58px);
+    --av: clamp(32px, min(9cqw, 6.2cqh), 46px);
+    --rail: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100cqw;
+    height: 100cqh;
+    aspect-ratio: auto;
+    padding: 12px 12px 18px;
+  }
+  .juegos-root .bj-table {
+    inset: 0;
+    border-radius: 24px 24px 40% 40% / 24px 24px 10% 10%;
+  }
+  .juegos-root .bj-table__felt {
+    border-radius: 16px 16px 40% 40% / 16px 16px 10% 10%;
+  }
+  .juegos-root .bj-table__felt::after,
+  .juegos-root .bj-stage .felt-print {
+    display: none;
+  }
+  .juegos-root .bj-dealer,
+  .juegos-root .bj-shoe {
+    position: relative;
+    top: auto;
+    right: auto;
+    left: auto;
+    translate: none;
+  }
+  .juegos-root .bj-dealer {
+    align-self: center;
+    margin-top: 4px;
+  }
+  .juegos-root .bj-shoe {
+    display: none;
+  }
+  /* Mientras se apuesta el crupier no tiene cartas: el aviso ocupa su sitio y no tapa los asientos. */
+  .juegos-root .bj-wait {
+    top: calc(var(--rail) + 30px);
+    grid-template-columns: auto auto;
+    align-items: center;
+    gap: 2px 14px;
+    width: max-content;
+    max-width: calc(100% - 40px);
+    padding: 10px 16px 12px;
+    translate: -50% 0;
+  }
+  /* Sin cuenta atrás no hay segunda columna: el título iba a la primera y salía descentrado. */
+  .juegos-root .bj-wait:not(.bj-wait--count) {
+    grid-template-columns: auto;
+  }
+  .juegos-root .bj-wait h2 {
+    font-size: 21px;
+  }
+  .juegos-root .bj-wait__big {
+    grid-row: span 2;
+    font-size: 44px;
+  }
+  .juegos-root .bj-wait p,
+  .juegos-root .bj-wait__actions {
+    grid-column: 1 / -1;
+    font-size: 13px;
+  }
+  .juegos-root .bj-wait--count p {
+    grid-column: 1;
+  }
+  .juegos-root .bj-wait__pill {
+    top: auto;
+    bottom: 12px;
+    translate: -50% 0;
+  }
+  .juegos-root .bj-seats {
+    position: relative;
+    inset: auto;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-content: center;
+    gap: 22px 6px;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0 6px;
+    pointer-events: auto;
+  }
+  .juegos-root .bj-seat {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: auto;
+    min-width: 0;
+    translate: none;
+  }
+  .juegos-root .bj-seat__cards .card + .card {
+    margin-left: calc(var(--card) * -0.62);
+  }
+  .juegos-root .bj-seat__cards .bj-total {
+    right: -6px;
+    font-size: 12px;
+  }
+  .juegos-root .bj-seat--empty {
+    align-self: center;
+  }
+  .juegos-root .bj-seat__spot {
+    margin: 4px 0;
+    font-size: 13px;
+  }
+  .juegos-root .bj-chips b {
+    font-size: 11px;
+  }
+  .juegos-root .bj-chips__stack {
+    display: none;
+  }
+  .juegos-root .bj-seat__plate {
+    padding: 11px 4px 6px;
+  }
+  .juegos-root .bj-seat__plate:has(.bj-tag) {
+    padding-bottom: 12px;
+  }
+  .juegos-root .bj-seat__name {
+    font-size: 11px;
+  }
+  .juegos-root .bj-seat__stack {
+    font-size: 11px;
+  }
+  .juegos-root .bj-tag {
+    padding: 1px 6px;
+    font-size: 10px;
+  }
+  .juegos-root .bj-seat__anchor {
+    left: calc(50% - 70px);
+    width: 140px;
+  }
+}
+
+/* --- Móvil --- */
+
+@media (max-width: 640px) {
+  .juegos-root .top.bj-top {
+    gap: 6px 10px;
+    min-height: 40px;
+    margin-bottom: 4px;
+  }
+  .juegos-root .bj-top h1 {
+    font-size: 28px;
+  }
+  .juegos-root .bj-room {
+    display: none;
+  }
+  .juegos-root .bj-top .toggles {
+    gap: 6px;
+  }
+  .juegos-root .bj-top .toggles button {
+    min-height: 36px;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  .juegos-root .bj-band {
+    gap: 10px;
+    height: 34px;
+    margin-bottom: 4px;
+    padding: 0 10px;
+  }
+  .juegos-root .bj-band__status {
+    max-width: 62%;
+    font-size: 14px;
+  }
+  .juegos-root .bj-band__log {
+    padding-left: 10px;
+  }
+  .juegos-root .bj-band__money span {
+    display: none;
+  }
+  .juegos-root .bj-bar {
+    gap: 8px;
+    padding: 8px;
+  }
+  .juegos-root .bj-bar__chips {
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+  .juegos-root .bj-bar__chips .chip {
+    width: 48px;
+    height: 48px;
+  }
+  .juegos-root .bj-bar__buttons {
+    flex: 1 1 100%;
+    gap: 6px;
+  }
+  .juegos-root .bj-btn {
+    flex: 1 1 0;
+    min-height: 48px;
+    padding: 10px 4px;
+    font-size: 14px;
+  }
+  .juegos-root .bj-btn kbd,
+  .juegos-root .bj-btn small {
+    display: none;
+  }
+  .juegos-root .bj-bar__hand b {
+    font-size: 28px;
+  }
+  .juegos-root .bj-bar--idle .bj-bar__buttons {
+    flex: 0 0 auto;
+  }
+  .juegos-root .bj-bar--idle .bj-btn {
+    flex: none;
+    padding: 10px 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .bj-band__item--new,
+  .juegos-root .bj-wait,
+  .juegos-root .bj-tag,
+  .juegos-root .bj-seat__spot.has-bet,
+  .juegos-root .bj-seat--win .bj-seat__avatar {
+    animation: none;
+  }
+}

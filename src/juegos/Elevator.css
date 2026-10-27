@@ -1,0 +1,167 @@
+/* Escrito a mano (no generado): el Ascensor: la tira de datos y el panel.
+   La escena en primera persona está en ElevatorView.css; el panel de la derecha es el de la Season 3 (season3.css). */
+
+.juegos-root .el {
+  min-height: 0;
+}
+/* --- Tira bajo la escena: cuántos van dentro, cuántos se bajaron, el bote y las últimas caídas --- */
+.juegos-root .el-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 210, 94, 0.18);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.25);
+}
+.juegos-root .el-strip > span {
+  display: grid;
+}
+.juegos-root .el-strip small {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .el-strip b {
+  font-size: 18px;
+}
+.juegos-root .el-strip__hist {
+  display: flex !important;
+  gap: 4px;
+  margin-left: auto;
+}
+.juegos-root .el-strip__hist i {
+  min-width: 28px;
+  padding: 3px 6px;
+  border-radius: 99px;
+  background: rgba(255, 80, 80, 0.18);
+  color: #ff9a8a;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 12px;
+  text-align: center;
+}
+.juegos-root .el-strip__hist i.is-high {
+  background: rgba(255, 210, 94, 0.18);
+  color: #ffd25e;
+}
+.juegos-root .el-strip__hist i.is-roof {
+  background: rgba(95, 211, 141, 0.2);
+  color: #5fd38d;
+}
+
+/* --- Panel --- */
+.juegos-root .el-amount {
+  display: grid;
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(30px, 3vw, 40px);
+  line-height: 1.1;
+}
+.juegos-root .el-amount small {
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--muted);
+}
+.juegos-root .el-slider {
+  width: 100%;
+  accent-color: var(--bolt);
+}
+.juegos-root .el-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.juegos-root .el-chip {
+  flex: 1;
+  min-width: 48px;
+  padding: 6px 0;
+  border: 1px solid rgba(255, 210, 94, 0.35);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  font: inherit;
+  font-weight: 700;
+  color: var(--ivory);
+  cursor: pointer;
+}
+.juegos-root .el-chip.is-on {
+  border-color: var(--bolt);
+  background: rgba(255, 210, 94, 0.18);
+}
+.juegos-root .el-auto {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.juegos-root .el-auto select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid rgba(255, 210, 94, 0.3);
+  border-radius: 10px;
+  background: #0d1b2b;
+  font: inherit;
+  color: var(--ivory);
+}
+.juegos-root .el-off:not(:disabled) {
+  animation: el-pulse 1.1s ease-in-out infinite;
+}
+@keyframes el-pulse {
+  50% {
+    box-shadow: 0 0 0 6px rgba(255, 210, 94, 0.25);
+  }
+}
+.juegos-root .el-last {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.juegos-root .el-last small,
+.juegos-root .el-last span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.juegos-root .el-last b {
+  font-size: 22px;
+}
+.juegos-root .el-last.is-win b {
+  color: #5fd38d;
+}
+.juegos-root .el-last.is-lose b {
+  color: #ff8a7a;
+}
+.juegos-root .el-history {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .el-history li {
+  display: grid;
+  gap: 1px;
+  padding: 6px 10px;
+  border-left: 3px solid rgba(255, 90, 90, 0.6);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.juegos-root .el-history li.is-roof {
+  border-left-color: var(--bolt);
+}
+.juegos-root .el-history span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .el-off:not(:disabled) {
+    animation: none;
+  }
+}

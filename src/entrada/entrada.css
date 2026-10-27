@@ -1,0 +1,219 @@
+/* Pantallas de entrada (antes de llegar al casino): mismo tono que el hub de Juegos. */
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #0b0f14;
+}
+
+.entrada {
+  --gold: #ffc83d;
+  --gold-hi: #ffe08a;
+  --ink: #f1e9d6;
+  --muted: #9aa7b4;
+  --line: rgba(241, 233, 214, 0.14);
+  --teal: #3d9f89;
+  --hot: #ff5a6e;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(255, 200, 61, 0.16), transparent 60%),
+    radial-gradient(80% 60% at 50% 110%, rgba(61, 159, 137, 0.18), transparent 60%),
+    #0b0f14;
+  color: var(--ink);
+  font-family: 'Instrument Sans Variable', system-ui, sans-serif;
+}
+
+.entrada *,
+.entrada *::before,
+.entrada *::after {
+  box-sizing: border-box;
+}
+
+.entrada__card {
+  width: min(100%, 400px);
+  padding: 28px 24px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.entrada__brand {
+  margin-bottom: 22px;
+  text-align: center;
+}
+
+.entrada__brand small {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.entrada__brand h1 {
+  margin: 2px 0 0;
+  background: linear-gradient(180deg, var(--gold-hi), var(--gold));
+  background-clip: text;
+  color: transparent;
+  font-family: 'Abril Fatface', serif;
+  font-size: 52px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.entrada__title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  text-align: center;
+}
+
+.entrada__text,
+.entrada__hint {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.entrada__hint {
+  margin: 16px 0 4px;
+  font-size: 13px;
+}
+
+.entrada__tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 18px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.entrada__tabs button {
+  padding: 9px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.entrada__tabs button[aria-selected='true'] {
+  background: var(--gold);
+  color: #1b1405;
+}
+
+.entrada__form {
+  display: grid;
+  gap: 12px;
+}
+
+.entrada__form label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.entrada__form input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+
+.entrada__form input:focus {
+  border-color: var(--gold);
+  outline: none;
+}
+
+.entrada__btn {
+  width: 100%;
+  margin-top: 4px;
+  padding: 13px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--gold-hi), var(--gold));
+  color: #1b1405;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.entrada__btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.entrada__actions {
+  display: grid;
+  gap: 8px;
+}
+
+.entrada__link {
+  display: block;
+  margin: 8px auto 0;
+  padding: 6px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.entrada__note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.entrada__note.is-ok {
+  background: rgba(61, 159, 137, 0.18);
+  color: #9fe3d2;
+}
+
+.entrada__note.is-err {
+  background: rgba(255, 90, 110, 0.14);
+  color: #ffb3bd;
+}
+
+.entrada__spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--line);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: entrada-spin 0.8s linear infinite;
+}
+
+@keyframes entrada-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entrada__spinner {
+    animation-duration: 2.4s;
+  }
+}

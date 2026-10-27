@@ -1,0 +1,22 @@
+/* Escrito a mano (no generado), se carga el último: ajustes para móvil y tablet de las mesas en vivo y el Score. */
+
+/* --- Score: en pantallas estrechas, primero la clasificación y después tu semana y el podio. --- */
+@media (max-width: 1000px) {
+  .juegos-root .score__side {
+    order: 0;
+  }
+}
+
+/* --- Blackjack en vivo --- */
+/* Todo el aspecto de la mesa, también el del móvil, vive en table/blackjack-ui.css. */
+
+/* --- Póker en vivo --- */
+/* Casi todo el aspecto de la mesa vive en poker/poker-ui.css; aquí solo queda lo que depende de la ventana. */
+
+/* --- Chat de las mesas: que el botón no tape la barra de decisiones ni las fichas. --- */
+/* El pie de póker publica su alto en --pk-foot-h (PokerTable.jsx), así no hay números fijos. */
+@media (max-width: 1500px) {
+  .juegos-root .poker .chat {
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--pk-foot-h, 96px) + 8px);
+  }
+}

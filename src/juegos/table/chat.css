@@ -1,0 +1,212 @@
+/* Generado desde el proyecto de juegos con scripts/scope-css.cjs: no editar aquí. */
+.juegos-root .chat {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.juegos-root .chat__toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid var(--brass);
+  border-radius: 999px;
+  background: rgba(10, 6, 4, 0.82);
+  backdrop-filter: blur(6px);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ivory);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.juegos-root .chat__toggle:hover {
+    background: rgba(30, 20, 10, 0.9);
+  }
+
+.juegos-root .chat__toggle:focus-visible {
+    outline: 3px solid var(--ivory);
+    outline-offset: 3px;
+  }
+
+.juegos-root .chat__badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--red);
+  font-size: 12px;
+  line-height: 22px;
+  text-align: center;
+  color: #fff;
+}
+
+.juegos-root .chat__panel {
+  display: flex;
+  flex-direction: column;
+  width: min(360px, calc(100vw - 32px));
+  height: min(440px, calc(100svh - 120px));
+  border: 1px solid rgba(200, 162, 75, 0.6);
+  border-radius: 16px;
+  background: rgba(8, 20, 28, 0.96);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+.juegos-root .chat__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(241, 233, 214, 0.15);
+}
+
+.juegos-root .chat__head h2 {
+    margin: 0;
+    font-size: 15px;
+  }
+
+.juegos-root .chat__close {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 22px;
+  color: var(--ivory);
+}
+
+.juegos-root .chat__close:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+.juegos-root .chat__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 12px;
+  overflow-y: auto;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.juegos-root .chat__empty, .juegos-root .chat__system {
+  align-self: center;
+  max-width: 90%;
+  font-size: 13px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.juegos-root .chat__system {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(200, 162, 75, 0.14);
+  color: var(--brass);
+}
+
+.juegos-root .chat__msg {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 88%;
+}
+
+.juegos-root .chat__msg--me {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.juegos-root .chat__msg--me .chat__bubble {
+    background: rgba(200, 162, 75, 0.2);
+    border-color: rgba(200, 162, 75, 0.4);
+  }
+
+.juegos-root .chat__msg--me .chat__meta {
+    text-align: right;
+  }
+
+.juegos-root .chat__bubble {
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid rgba(241, 233, 214, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.juegos-root .chat__meta {
+  margin: 0 0 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.juegos-root .chat__meta b {
+    color: var(--ivory);
+  }
+
+.juegos-root .chat__text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.juegos-root .chat__form {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid rgba(241, 233, 214, 0.15);
+}
+
+.juegos-root .chat__form input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 9px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.35);
+    font: inherit;
+    font-size: 16px;
+    color: var(--ivory);
+  }
+
+.juegos-root .chat__form input:focus-visible {
+      outline: 2px solid var(--brass);
+      outline-offset: 1px;
+    }
+
+.juegos-root .chat__form button {
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--brass);
+    font-weight: 700;
+    color: #1b1405;
+  }
+
+@media (max-width: 640px) {
+  .juegos-root .chat__label {
+    display: none;
+  }
+  .juegos-root .chat__toggle {
+    padding: 12px;
+  }
+}
+
+/* En el móvil los controles ocupan el pie: el botón del chat flota por encima. */
+@media (max-width: 640px) {
+  .juegos-root .chat {
+    bottom: calc(max(16px, env(safe-area-inset-bottom)) + 76px);
+  }
+}

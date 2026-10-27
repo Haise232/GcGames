@@ -1,0 +1,1619 @@
+/* El Puente de Cristal: un puente de paneles sobre un abismo con niebla, focos y rejilla de neón. Arriba el bote, el paso y la
+   cuenta atrás; en medio el puente en perspectiva con las fichas de los jugadores; abajo los botones (o la sala de espera y el
+   reparto) y el marcador en vivo. --tilt es lo que se inclina el puente; --pawn, lo que miden las fichas. */
+@property --br-left {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+.juegos-root .br-scene {
+  --tilt: 42deg;
+  --pawn: clamp(22px, 2.4vw, 32px);
+  --neon: #ff2e6e;
+  --ice: #9fe3ff;
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  padding: clamp(10px, 1.4vw, 18px);
+  overflow: hidden;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #07040f 0%, #120a22 55%, #1b0a24 100%);
+  box-shadow:
+    0 0 0 1px rgba(159, 227, 255, 0.28),
+    0 20px 60px rgba(0, 0, 0, 0.5);
+  isolation: isolate;
+}
+.juegos-root .br-scene > :not(.br-sky) {
+  position: relative;
+  z-index: 2;
+}
+
+/* ---------- Fondo ---------- */
+.juegos-root .br-sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* Suelo del abismo: rejilla de neón en perspectiva que se pierde en la oscuridad */
+.juegos-root .br-abyss {
+  position: absolute;
+  left: -30%;
+  right: -30%;
+  bottom: -6%;
+  height: 62%;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 46, 110, 0.55) 0 2px, transparent 2px 56px),
+    repeating-linear-gradient(0deg, rgba(255, 46, 110, 0.55) 0 2px, transparent 2px 40px),
+    radial-gradient(ellipse at 50% 100%, rgba(255, 46, 110, 0.5), transparent 70%);
+  transform: perspective(380px) rotateX(62deg);
+  transform-origin: 50% 100%;
+  mask-image: linear-gradient(0deg, #000 10%, transparent 90%);
+  animation: br-grid 5s linear infinite;
+}
+.juegos-root .br-lamp {
+  position: absolute;
+  top: -6px;
+  left: var(--x);
+  width: 34%;
+  height: 78%;
+  translate: -50% 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 244, 230, 0.4),
+    rgba(255, 190, 220, 0.12) 55%,
+    transparent
+  );
+  clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+  filter: blur(5px);
+  transform-origin: 50% 0;
+  animation: br-sway var(--d) var(--w) ease-in-out infinite alternate;
+}
+.juegos-root .br-lamp::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 46%;
+  width: 8%;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 14px 6px rgba(255, 240, 220, 0.8);
+}
+.juegos-root .br-haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background-repeat: repeat-x;
+  background-size: 50% 100%;
+  opacity: 0.55;
+}
+.juegos-root .br-haze--a {
+  bottom: 14%;
+  background-image: radial-gradient(ellipse at 50% 70%, rgba(170, 130, 230, 0.5), transparent 70%);
+  animation: br-drift 26s linear infinite;
+}
+.juegos-root .br-haze--b {
+  bottom: 0;
+  background-image: radial-gradient(ellipse at 50% 80%, rgba(255, 120, 170, 0.4), transparent 70%);
+  animation: br-drift 38s linear infinite reverse;
+}
+
+/* ---------- Cabecera: bote, paso y cuenta atrás ---------- */
+.juegos-root .br-hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: clamp(10px, 2vw, 28px);
+  align-items: center;
+}
+.juegos-root .br-pot {
+  display: grid;
+  gap: 0;
+  line-height: 1.05;
+}
+.juegos-root .br-pot small {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .br-pot b {
+  font-family: var(--display);
+  font-size: clamp(32px, 4.4vw, 54px);
+  font-weight: 400;
+  color: var(--bolt);
+  text-shadow:
+    0 0 22px rgba(255, 226, 122, 0.55),
+    0 3px 0 rgba(120, 70, 0, 0.6);
+  font-variant-numeric: tabular-nums;
+  animation: br-pot 0.5s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+.juegos-root .br-pot span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.juegos-root .br-track {
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+}
+.juegos-root .br-track small {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ice);
+}
+.juegos-root .br-track span {
+  display: flex;
+  gap: 4px;
+}
+.juegos-root .br-track i {
+  width: clamp(12px, 1.7vw, 22px);
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(241, 233, 214, 0.16);
+  transition: background 0.3s;
+}
+.juegos-root .br-track i.is-done {
+  background: #6ee7a8;
+  box-shadow: 0 0 8px rgba(110, 231, 168, 0.7);
+}
+.juegos-root .br-track i.is-now {
+  background: var(--bolt);
+  animation: br-blink 0.9s ease-in-out infinite;
+}
+/* Aro que se vacía: con el tiempo justo (elegir) crece y se pone rojo al final */
+.juegos-root .br-clock {
+  --ring: var(--ice);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: clamp(76px, 8vw, 100px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, #0a0a18 80%, transparent 82% 100%),
+    conic-gradient(var(--ring) calc(var(--br-left) * 360deg), rgba(241, 233, 214, 0.14) 0);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--ring) 40%, transparent);
+  line-height: 1;
+  transition: --br-left 0.2s linear;
+}
+.juegos-root .br-clock.is-pick {
+  --ring: var(--bolt);
+  width: clamp(88px, 9.4vw, 112px);
+}
+.juegos-root .br-clock span {
+  font-family: var(--display);
+  font-size: clamp(32px, 3.8vw, 48px);
+  color: var(--ivory);
+  font-variant-numeric: tabular-nums;
+  animation: br-tick 0.35s ease-out;
+}
+.juegos-root .br-clock small {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .br-clock.is-hot {
+  --ring: #ff3b3b;
+  animation: br-hot 0.5s ease-in-out infinite;
+}
+.juegos-root .br-clock.is-hot span {
+  color: #ff6a5e;
+}
+
+/* ---------- El puente ---------- */
+.juegos-root .br-world {
+  --plat: clamp(54px, 8.4cqw, 96px);
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 210px;
+  perspective: 1700px;
+  perspective-origin: 50% 0%;
+  container-type: inline-size;
+}
+.juegos-root .br-steps,
+.juegos-root .br-deck {
+  display: grid;
+  grid-template-columns: var(--plat) repeat(8, minmax(0, 1fr)) var(--plat);
+  gap: 6px;
+  padding: 0 clamp(8px, 2.2cqw, 28px);
+}
+.juegos-root .br-steps span {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(241, 233, 214, 0.4);
+  transition: color 0.3s;
+}
+.juegos-root .br-steps span.is-done {
+  color: #6ee7a8;
+}
+.juegos-root .br-steps span.is-now {
+  color: var(--bolt);
+  text-shadow: 0 0 10px var(--bolt);
+  animation: br-blink 0.9s ease-in-out infinite;
+}
+.juegos-root .br-deck {
+  transform: rotateX(var(--tilt));
+  transform-origin: 50% 0;
+  transform-style: preserve-3d;
+}
+.juegos-root .br-col,
+.juegos-root .br-glass,
+.juegos-root .br-end,
+.juegos-root .br-who {
+  transform-style: preserve-3d;
+}
+.juegos-root .br-col {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 10px;
+  padding: 4px 0;
+}
+/* Franja de luz bajo el paso en curso */
+.juegos-root .br-col.is-current::before {
+  content: '';
+  position: absolute;
+  inset: -4px -4px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255, 226, 122, 0.22), rgba(255, 226, 122, 0.06));
+  box-shadow: 0 0 22px rgba(255, 226, 122, 0.3);
+  animation: br-blink 0.9s ease-in-out infinite;
+}
+.juegos-root .br-num {
+  display: none;
+}
+
+/* Plataformas de salida y de meta */
+.juegos-root .br-end {
+  position: relative;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+  padding-bottom: 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: linear-gradient(135deg, #4a3d66, #261c3c);
+  box-shadow:
+    inset 0 0 18px rgba(255, 255, 255, 0.12),
+    0 0 22px rgba(120, 90, 190, 0.35);
+}
+.juegos-root .br-end em {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+.juegos-root .br-end--goal {
+  border-color: rgba(255, 226, 122, 0.7);
+  background: linear-gradient(135deg, #6d5a1f, #2c2410);
+  box-shadow:
+    inset 0 0 22px rgba(255, 226, 122, 0.35),
+    0 0 30px rgba(255, 226, 122, 0.5);
+  animation: br-gold 2.4s ease-in-out infinite;
+}
+.juegos-root .br-end--goal em {
+  color: var(--bolt);
+}
+.juegos-root .br-end--goal::before {
+  content: '🏁';
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 18px;
+}
+
+/* Cristales */
+.juegos-root .br-glass {
+  position: relative;
+  min-height: clamp(48px, 15.5vh, 132px);
+  border: 1px solid rgba(190, 235, 255, 0.7);
+  border-radius: 8px;
+  background: linear-gradient(
+    135deg,
+    rgba(170, 225, 255, 0.34),
+    rgba(120, 170, 255, 0.1) 55%,
+    rgba(255, 255, 255, 0.3)
+  );
+  box-shadow:
+    inset 0 0 16px rgba(190, 235, 255, 0.35),
+    0 0 14px rgba(120, 200, 255, 0.22);
+  transition:
+    box-shadow 0.3s,
+    border-color 0.3s;
+}
+/* Brillo que cruza el cristal y reflejo en diagonal */
+.juegos-root .br-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 7px;
+  pointer-events: none;
+}
+.juegos-root .br-face::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.55) 48%,
+    transparent 58%
+  );
+  translate: -130% 0;
+  animation: br-sheen 6s ease-in-out infinite;
+}
+.juegos-root .br-glass:nth-child(odd) .br-face::before {
+  animation-delay: -3s;
+}
+.juegos-root .br-face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    60deg,
+    transparent 60%,
+    rgba(255, 255, 255, 0.22) 60% 66%,
+    transparent 66% 72%,
+    rgba(255, 255, 255, 0.12) 72% 76%,
+    transparent 76%
+  );
+}
+.juegos-root .br-col.is-current .br-glass {
+  border-color: var(--bolt);
+  box-shadow:
+    inset 0 0 18px rgba(255, 226, 122, 0.45),
+    0 0 18px rgba(255, 226, 122, 0.5);
+}
+.juegos-root .br-scene[data-hint='L'] .br-col.is-current .br-glass[data-side='L'],
+.juegos-root .br-scene[data-hint='R'] .br-col.is-current .br-glass[data-side='R'],
+.juegos-root .br-glass.is-mine {
+  border-color: #fff;
+  box-shadow:
+    inset 0 0 24px rgba(255, 226, 122, 0.8),
+    0 0 26px rgba(255, 226, 122, 0.9);
+}
+.juegos-root .br-mark {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  z-index: 3;
+  padding: 1px 7px;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: var(--bolt);
+  font-size: 10px;
+  font-weight: 900;
+  color: #3a2800;
+  transform: rotateX(calc(var(--tilt) * -1));
+}
+.juegos-root .br-glass.is-safe {
+  border-color: #7fe9b0;
+  background: linear-gradient(135deg, rgba(110, 231, 168, 0.4), rgba(110, 231, 168, 0.1));
+  box-shadow:
+    inset 0 0 18px rgba(110, 231, 168, 0.5),
+    0 0 16px rgba(110, 231, 168, 0.45);
+}
+/* Roto: queda el hueco con el borde rojo y los pedazos caen */
+.juegos-root .br-glass.is-broken {
+  border: 1px dashed rgba(255, 70, 90, 0.7);
+  background: rgba(3, 0, 8, 0.75);
+  box-shadow:
+    inset 0 0 20px rgba(255, 46, 110, 0.35),
+    0 0 12px rgba(255, 46, 110, 0.3);
+}
+.juegos-root .br-glass.is-broken .br-face {
+  opacity: 0;
+}
+.juegos-root .br-glass.is-fresh .br-face {
+  opacity: 1;
+  animation: br-crack 0.9s ease-in forwards;
+}
+.juegos-root .br-shards {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  transform: rotateX(calc(var(--tilt) * -1));
+  transform-origin: 50% 100%;
+}
+.juegos-root .br-shards > i {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 26%;
+  height: 46%;
+  background: linear-gradient(135deg, rgba(220, 245, 255, 0.95), rgba(120, 190, 255, 0.5));
+  clip-path: polygon(0 0, 100% 20%, 40% 100%);
+  filter: drop-shadow(0 0 4px rgba(190, 235, 255, 0.9));
+  animation: br-shard 1.5s var(--t) cubic-bezier(0.4, 0, 0.9, 0.6) forwards;
+}
+.juegos-root .br-shards > i:nth-child(even) {
+  clip-path: polygon(30% 0, 100% 80%, 0 100%);
+}
+.juegos-root .br-shards > i.br-flash {
+  inset: -40% -30%;
+  width: auto;
+  height: auto;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0, rgba(255, 150, 190, 0.8) 25%, transparent 62%);
+  clip-path: none;
+  filter: none;
+  animation: br-flash 0.6s ease-out forwards;
+}
+
+/* Fichas */
+.juegos-root .br-who {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
+  padding: 2px;
+  pointer-events: none;
+}
+.juegos-root .br-end .br-who {
+  position: static;
+  max-width: 100%;
+  padding: 0;
+}
+.juegos-root .br-who small {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--ivory);
+}
+.juegos-root .br-pawn {
+  display: inline-grid;
+  margin: 0 -4px;
+  transform: rotateX(calc(var(--tilt) * -1)) translateZ(2px);
+  transform-origin: 50% 100%;
+  animation: br-hopx 0.6s cubic-bezier(0.3, 0.7, 0.4, 1) backwards;
+}
+.juegos-root .br-pawn__body {
+  position: relative;
+  display: grid;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.7),
+    0 6px 10px rgba(0, 0, 0, 0.55);
+  animation: br-hopy 0.6s ease-out backwards;
+}
+.juegos-root .br-pawn .avatar {
+  width: var(--pawn) !important;
+  height: var(--pawn) !important;
+}
+.juegos-root .br-pawn.is-me .br-pawn__body {
+  box-shadow:
+    0 0 0 3px var(--bolt),
+    0 0 16px 3px rgba(255, 226, 122, 0.8);
+}
+.juegos-root .br-pawn__tag {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  padding: 0 5px;
+  translate: -50% 0;
+  border-radius: 999px;
+  background: var(--bolt);
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 14px;
+  color: #3a2800;
+}
+.juegos-root .br-pawn.is-falling {
+  animation: none;
+  z-index: 1;
+}
+.juegos-root .br-pawn.is-falling .br-pawn__body {
+  box-shadow:
+    0 0 0 2px #ff4a5e,
+    0 0 16px 4px rgba(255, 46, 110, 0.7);
+  animation: br-fall 1.5s 0.1s cubic-bezier(0.5, 0, 0.9, 0.7) forwards;
+}
+/* Niebla del fondo: las fichas que caen se pierden en ella */
+.juegos-root .br-fog {
+  position: absolute;
+  left: -2%;
+  right: -2%;
+  bottom: 0;
+  z-index: 4;
+  height: 46%;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(46, 24, 80, 0.55) 45%,
+    rgba(14, 6, 28, 0.92)
+  );
+  pointer-events: none;
+}
+
+/* ---------- Zona de abajo ---------- */
+.juegos-root .br-lower {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: clamp(8px, 1.4vw, 18px);
+  align-items: stretch;
+}
+.juegos-root .br-ctrl,
+.juegos-root .br-board {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+}
+.juegos-root .br-ctrl h2,
+.juegos-root .br-board h2 {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ice);
+}
+.juegos-root .br-board h2 small {
+  font-size: 10px;
+  color: var(--neon);
+  letter-spacing: 0.1em;
+}
+.juegos-root .br-board h2 small::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--neon);
+  animation: br-blink 1s ease-in-out infinite;
+}
+
+/* Botones de lado */
+.juegos-root .br-sides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.juegos-root .br-side {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  min-height: clamp(62px, 9.5vh, 78px);
+  padding: 6px 14px;
+  overflow: hidden;
+  border: 2px solid rgba(190, 235, 255, 0.7);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(150, 215, 255, 0.4), rgba(50, 80, 160, 0.55));
+  box-shadow:
+    0 6px 0 rgba(20, 30, 80, 0.7),
+    0 0 18px rgba(120, 200, 255, 0.3);
+  color: var(--ivory);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s;
+}
+.juegos-root .br-side--R {
+  flex-direction: row-reverse;
+  grid-template-columns: 1fr auto;
+  text-align: right;
+}
+.juegos-root .br-side--R .br-side__arrow {
+  grid-column: 2;
+  grid-row: 1 / 3;
+}
+.juegos-root .br-side--R b,
+.juegos-root .br-side--R small {
+  grid-column: 1;
+}
+.juegos-root .br-side__arrow {
+  grid-row: 1 / 3;
+  font-size: clamp(24px, 3vw, 34px);
+  color: var(--bolt);
+  text-shadow: 0 0 12px rgba(255, 226, 122, 0.7);
+}
+.juegos-root .br-side b {
+  font-family: var(--display);
+  font-size: clamp(20px, 2.2vw, 28px);
+  font-weight: 400;
+  line-height: 1.1;
+}
+.juegos-root .br-side small {
+  font-size: 11px;
+  color: rgba(241, 233, 214, 0.75);
+}
+.juegos-root .br-side:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 0 rgba(20, 30, 80, 0.7),
+    0 0 26px rgba(160, 225, 255, 0.6);
+}
+.juegos-root .br-side:not(:disabled):active {
+  transform: translateY(5px);
+  box-shadow: 0 1px 0 rgba(20, 30, 80, 0.7);
+}
+.juegos-root .br-scene.is-picking .br-side:not(:disabled):not(.is-on) {
+  animation: br-ask 1.2s ease-in-out infinite;
+}
+.juegos-root .br-side.is-on {
+  border-color: var(--bolt);
+  background: linear-gradient(180deg, rgba(255, 226, 122, 0.55), rgba(160, 110, 20, 0.6));
+  box-shadow:
+    0 6px 0 rgba(90, 60, 0, 0.7),
+    0 0 28px rgba(255, 226, 122, 0.7);
+  color: #fff8dc;
+}
+.juegos-root .br-side:disabled:not(.is-on) {
+  opacity: 0.5;
+  cursor: default;
+}
+.juegos-root .br-spectator {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px dashed rgba(241, 233, 214, 0.3);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.3);
+  font-family: var(--display);
+  font-size: clamp(17px, 1.8vw, 22px);
+  color: var(--ivory);
+}
+.juegos-root .br-spectator small {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Quién ha elegido ya (sin decir el lado) */
+.juegos-root .br-chosen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: center;
+}
+.juegos-root .br-chosen p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.juegos-root .br-chosen p b {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--bolt);
+}
+.juegos-root .br-chosen > span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.juegos-root .br-chosen > span > span {
+  position: relative;
+  display: inline-grid;
+  border-radius: 50%;
+  opacity: 0.45;
+  filter: grayscale(0.7);
+  transition:
+    opacity 0.25s,
+    filter 0.25s;
+}
+.juegos-root .br-chosen > span > span.is-ready {
+  opacity: 1;
+  filter: none;
+  box-shadow: 0 0 0 2px #6ee7a8;
+  animation: br-pop 0.35s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+.juegos-root .br-chosen > span > span.is-me {
+  outline: 2px solid var(--bolt);
+  outline-offset: 1px;
+}
+.juegos-root .br-chosen > span > span b {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #1fa968;
+  font-size: 10px;
+  color: #fff;
+}
+
+/* Sala de espera */
+.juegos-root .br-room {
+  display: grid;
+  gap: 8px;
+}
+.juegos-root .br-room p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.juegos-root .br-seats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.juegos-root .br-seat {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  width: 58px;
+}
+.juegos-root .br-seat .avatar {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+}
+.juegos-root .br-seat:not(.is-empty) {
+  animation: br-enter 0.6s cubic-bezier(0.3, 1.5, 0.5, 1) backwards;
+}
+.juegos-root .br-seat.is-me .avatar {
+  box-shadow:
+    0 0 0 3px var(--bolt),
+    0 0 16px rgba(255, 226, 122, 0.7);
+}
+.juegos-root .br-seat small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--ivory);
+}
+.juegos-root .br-seat.is-empty i {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 2px dashed rgba(241, 233, 214, 0.35);
+  border-radius: 50%;
+  font-style: normal;
+  font-size: 18px;
+  color: rgba(241, 233, 214, 0.4);
+  animation: br-blink 1.8s ease-in-out infinite;
+}
+.juegos-root .br-seat.is-empty small {
+  color: var(--muted);
+}
+
+/* Reparto: podio con una columna por ganador */
+.juegos-root .br-podium {
+  display: grid;
+  gap: 4px;
+}
+.juegos-root .br-podium h2 {
+  font-family: var(--display);
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ivory);
+}
+.juegos-root .br-podium.is-won h2 {
+  color: var(--bolt);
+  text-shadow: 0 0 16px rgba(255, 226, 122, 0.6);
+}
+.juegos-root .br-podium h2 small {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--muted);
+}
+.juegos-root .br-podium ol {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .br-podium li {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  min-width: 70px;
+  max-width: 130px;
+  font-size: 12px;
+  animation: br-enter 0.7s calc(var(--i) * 0.15s) cubic-bezier(0.3, 1.4, 0.5, 1) backwards;
+}
+.juegos-root .br-podium li em {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: normal;
+  color: var(--ivory);
+}
+.juegos-root .br-podium li b {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--bolt);
+}
+.juegos-root .br-podium li.is-me .avatar {
+  box-shadow: 0 0 0 3px var(--bolt);
+}
+.juegos-root .br-crown {
+  min-height: 20px;
+  font-size: 18px;
+  line-height: 20px;
+}
+.juegos-root .br-block {
+  width: 100%;
+  height: calc(var(--h) * 26px);
+  margin-top: 3px;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, #ffd96a, #8b6a1d);
+  box-shadow: 0 0 18px rgba(255, 217, 106, 0.45);
+  transform-origin: 50% 100%;
+  animation: br-rise 0.8s calc(0.3s + var(--i) * 0.15s) cubic-bezier(0.3, 1.3, 0.5, 1) backwards;
+}
+
+/* Marcador: una barra por jugador (paneles de 8), ordenadas por lo lejos que llegan */
+.juegos-root .br-board ol {
+  --rh: 38px;
+  position: relative;
+  height: calc(var(--n) * var(--rh));
+  max-height: 150px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.juegos-root .br-board ol::-webkit-scrollbar {
+  width: 0;
+}
+.juegos-root .br-board li {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1.1fr) minmax(0, 1.2fr) auto;
+  gap: 8px;
+  align-items: center;
+  height: calc(var(--rh) - 4px);
+  padding: 0 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  translate: 0 calc(var(--i) * var(--rh));
+  transition:
+    translate 0.6s cubic-bezier(0.3, 1.2, 0.5, 1),
+    opacity 0.4s;
+  font-size: 13px;
+}
+.juegos-root .br-board li.is-me {
+  outline: 1px solid var(--bolt);
+  background: rgba(255, 226, 122, 0.09);
+}
+.juegos-root .br-board li.is-winner {
+  background: rgba(255, 217, 106, 0.16);
+}
+.juegos-root .br-board li.is-fallen {
+  opacity: 0.6;
+}
+.juegos-root .br-board li.is-fallen .avatar {
+  filter: grayscale(1);
+}
+.juegos-root .br-board__name {
+  display: grid;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.15;
+}
+.juegos-root .br-board__name small,
+.juegos-root .br-board__num small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  color: var(--muted);
+}
+.juegos-root .br-bar {
+  position: relative;
+  height: 12px;
+  border-radius: 6px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 calc(12.5% - 2px),
+      rgba(0, 0, 0, 0.55) calc(12.5% - 2px) 12.5%
+    ),
+    rgba(241, 233, 214, 0.12);
+  overflow: hidden;
+}
+.juegos-root .br-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--w) * 100%);
+  border-radius: 6px;
+  background: linear-gradient(90deg, #1fa968, #6ee7a8);
+  box-shadow: 0 0 10px rgba(110, 231, 168, 0.7);
+  transition: width 0.8s cubic-bezier(0.3, 1.2, 0.5, 1);
+}
+.juegos-root .br-board li.is-fallen .br-bar i {
+  background: linear-gradient(90deg, #5a1a2a, #ff4a5e);
+  box-shadow: 0 0 8px rgba(255, 74, 94, 0.5);
+}
+.juegos-root .br-board li.is-winner .br-bar i {
+  background: linear-gradient(90deg, #b8860b, #ffd96a);
+  box-shadow: 0 0 10px rgba(255, 217, 106, 0.7);
+}
+.juegos-root .br-board__num {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 52px;
+  line-height: 1.1;
+  font-size: 11px;
+  color: var(--muted);
+}
+.juegos-root .br-board__num b {
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--ivory);
+}
+.juegos-root .br-board__num small {
+  color: #7fe0a8;
+}
+.juegos-root .br-board li.is-fallen .br-board__num small {
+  color: #ff9a92;
+}
+.juegos-root .br-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- Panel lateral ---------- */
+.juegos-root .br-amount {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(30px, 3.2vw, 42px);
+  line-height: 1.05;
+  color: var(--bolt);
+  text-shadow: 0 0 18px rgba(255, 226, 122, 0.35);
+  animation: br-pop 0.35s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+.juegos-root .br-amount small {
+  font-family: var(--sans);
+  font-size: 13px;
+  text-shadow: none;
+  color: var(--muted);
+}
+.juegos-root .br-slider {
+  display: block;
+  margin-top: 10px;
+}
+.juegos-root .br-slider input {
+  width: 100%;
+  height: 28px;
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  cursor: pointer;
+}
+.juegos-root .br-slider input::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #ffd96a calc(var(--p) * 100%), rgba(241, 233, 214, 0.18) 0);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.juegos-root .br-slider input::-moz-range-track {
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(241, 233, 214, 0.18);
+}
+.juegos-root .br-slider input::-moz-range-progress {
+  height: 10px;
+  border-radius: 5px;
+  background: #ffd96a;
+}
+.juegos-root .br-slider input::-webkit-slider-thumb {
+  width: 28px;
+  height: 28px;
+  margin-top: -9px;
+  border: 3px dashed rgba(120, 70, 0, 0.7);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff3b0, #e0a825 70%);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+  appearance: none;
+}
+.juegos-root .br-slider input::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border: 3px dashed rgba(120, 70, 0, 0.7);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff3b0, #e0a825 70%);
+}
+.juegos-root .br-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.juegos-root .br-chip {
+  --c: #c2332c;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 3px dashed rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in srgb, var(--c) 70%, #fff),
+    var(--c) 70%
+  );
+  box-shadow:
+    0 4px 0 color-mix(in srgb, var(--c) 40%, #000),
+    0 6px 10px rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  transition:
+    transform 0.12s,
+    box-shadow 0.12s;
+}
+.juegos-root .br-chip[data-v='100'] {
+  --c: #3a7bd5;
+}
+.juegos-root .br-chip[data-v='500'] {
+  --c: #c2332c;
+}
+.juegos-root .br-chip[data-v='1000'] {
+  --c: #1e8a5a;
+}
+.juegos-root .br-chip[data-v='2500'] {
+  --c: #7b3fb3;
+}
+.juegos-root .br-chip[data-v='5000'] {
+  --c: #16161b;
+}
+.juegos-root .br-chip:hover {
+  transform: translateY(-2px);
+}
+.juegos-root .br-chip.is-on {
+  border-color: var(--bolt);
+  box-shadow:
+    0 4px 0 color-mix(in srgb, var(--c) 40%, #000),
+    0 0 16px var(--bolt);
+  transform: translateY(-3px);
+}
+.juegos-root .br-actions .primary {
+  position: relative;
+  min-height: 60px;
+  overflow: hidden;
+  border-radius: 16px;
+  font-family: var(--display);
+  font-size: 20px;
+}
+.juegos-root .br-actions .primary:not(:disabled) {
+  animation: s3-glow 1.6s ease-in-out infinite;
+}
+.juegos-root .br-actions .primary:not(:disabled)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 65%
+  );
+  translate: -120% 0;
+  animation: br-shine 2.8s ease-in-out infinite;
+}
+.juegos-root .br-last {
+  display: grid;
+  gap: 1px;
+  padding: 10px 12px;
+  border: 1px solid rgba(241, 233, 214, 0.2);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.juegos-root .br-last small {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .br-last b {
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 400;
+}
+.juegos-root .br-last span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.juegos-root .br-last.is-win {
+  border-color: rgba(127, 224, 168, 0.5);
+  background: rgba(79, 191, 134, 0.12);
+}
+.juegos-root .br-last.is-win b {
+  color: #7fe0a8;
+}
+.juegos-root .br-last.is-lose {
+  border-color: rgba(255, 154, 146, 0.4);
+  background: rgba(194, 51, 44, 0.12);
+}
+.juegos-root .br-last.is-lose b {
+  color: #ff9a92;
+}
+
+/* Últimos puentes: hasta dónde llegó el ganador (barra) y bote (barra fina) */
+.juegos-root .br-hist {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 10px;
+  height: 100px;
+  padding: 8px 6px 0;
+  border-bottom: 1px solid rgba(241, 233, 214, 0.2);
+}
+.juegos-root .br-hist > div {
+  display: grid;
+  flex: 1 1 0;
+  grid-template-rows: 1fr auto;
+  max-width: 44px;
+  height: 100%;
+  text-align: center;
+}
+.juegos-root .br-hist__bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  height: 100%;
+}
+.juegos-root .br-hist__bars i {
+  width: 14px;
+  height: calc(var(--h) * 100%);
+  min-height: 3px;
+  border-radius: 4px 4px 0 0;
+  transform-origin: 50% 100%;
+  animation: br-rise 0.7s cubic-bezier(0.3, 1.2, 0.5, 1) backwards;
+}
+.juegos-root .br-hist__bars i.is-pot {
+  width: 6px;
+  background: var(--brass);
+}
+.juegos-root .br-hist .is-reach,
+.juegos-root .br-legend .is-reach::before {
+  background: linear-gradient(180deg, #6ee7a8, #1fa968);
+}
+.juegos-root .br-hist .is-goal .is-reach {
+  background: linear-gradient(180deg, #ffe27a, #c8a24b);
+}
+.juegos-root .br-hist .is-refund .is-reach {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(241, 233, 214, 0.35) 0 3px,
+    transparent 3px 6px
+  );
+}
+.juegos-root .br-hist small {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.juegos-root .br-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+.juegos-root .br-legend span::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 5px;
+  border-radius: 2px;
+}
+.juegos-root .br-legend .is-pot::before {
+  background: var(--brass);
+}
+.juegos-root .br-history {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .br-history li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  font-size: 13px;
+}
+.juegos-root .br-history li > span:first-child {
+  font-size: 20px;
+}
+.juegos-root .br-history small {
+  display: block;
+  color: var(--muted);
+}
+
+/* ---------- Animaciones ---------- */
+@keyframes br-grid {
+  to {
+    background-position:
+      0 0,
+      0 40px,
+      0 0;
+  }
+}
+@keyframes br-sway {
+  from {
+    rotate: -7deg;
+  }
+  to {
+    rotate: 7deg;
+  }
+}
+@keyframes br-drift {
+  to {
+    background-position: 100% 0;
+  }
+}
+@keyframes br-blink {
+  50% {
+    opacity: 0.45;
+  }
+}
+@keyframes br-pot {
+  from {
+    scale: 1.18;
+    filter: brightness(1.6);
+  }
+}
+@keyframes br-tick {
+  from {
+    scale: 1.3;
+    opacity: 0.4;
+  }
+}
+@keyframes br-hot {
+  50% {
+    scale: 1.07;
+    box-shadow: 0 0 36px rgba(255, 59, 59, 0.85);
+  }
+}
+@keyframes br-gold {
+  50% {
+    box-shadow:
+      inset 0 0 26px rgba(255, 226, 122, 0.5),
+      0 0 44px rgba(255, 226, 122, 0.75);
+  }
+}
+@keyframes br-sheen {
+  0%,
+  55% {
+    translate: -130% 0;
+  }
+  100% {
+    translate: 130% 0;
+  }
+}
+@keyframes br-crack {
+  0% {
+    filter: brightness(2.4);
+    scale: 1.08;
+  }
+  30% {
+    filter: brightness(1.6);
+    scale: 1;
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    scale: 0.9;
+  }
+}
+@keyframes br-shard {
+  0% {
+    translate: 0 0;
+    rotate: 0deg;
+    opacity: 1;
+  }
+  100% {
+    translate: var(--dx) var(--dy);
+    rotate: var(--r);
+    opacity: 0;
+  }
+}
+@keyframes br-flash {
+  from {
+    scale: 0.2;
+    opacity: 1;
+  }
+  to {
+    scale: 1.6;
+    opacity: 0;
+  }
+}
+@keyframes br-hopx {
+  from {
+    translate: calc(var(--pitch, -8.5cqw) * 1) 0;
+  }
+}
+@keyframes br-hopy {
+  0% {
+    translate: 0 0;
+  }
+  45% {
+    translate: 0 -26px;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
+@keyframes br-fall {
+  0% {
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+    opacity: 1;
+  }
+  18% {
+    translate: 0 -12px;
+    rotate: -25deg;
+  }
+  100% {
+    translate: 0 120px;
+    rotate: 600deg;
+    scale: 0.35;
+    opacity: 0;
+  }
+}
+@keyframes br-ask {
+  50% {
+    box-shadow:
+      0 6px 0 rgba(20, 30, 80, 0.7),
+      0 0 30px rgba(190, 235, 255, 0.75);
+  }
+}
+@keyframes br-pop {
+  from {
+    scale: 0.6;
+  }
+}
+@keyframes br-enter {
+  from {
+    translate: 0 -24px;
+    scale: 0.4;
+    opacity: 0;
+  }
+}
+@keyframes br-rise {
+  from {
+    scale: 1 0;
+  }
+}
+@keyframes br-shine {
+  100% {
+    translate: 120% 0;
+  }
+}
+
+/* ---------- Pantallas estrechas ---------- */
+@media (max-width: 1100px) {
+  .juegos-root .br-lower {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 860px) {
+  .juegos-root .br-scene {
+    flex: none;
+  }
+}
+/* Móvil: el puente se pone en vertical (la meta arriba, la salida abajo) y sin inclinar */
+@media (max-width: 640px) {
+  .juegos-root .br-scene {
+    --tilt: 0deg;
+    --pawn: 26px;
+  }
+  .juegos-root .br-hud {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .juegos-root .br-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .juegos-root .br-world {
+    perspective: none;
+    min-height: 0;
+  }
+  .juegos-root .br-steps {
+    display: none;
+  }
+  .juegos-root .br-deck {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 6px;
+    padding: 0 8px;
+  }
+  .juegos-root .br-col {
+    grid-template-rows: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0;
+  }
+  .juegos-root .br-col.is-current::before {
+    inset: -3px -4px;
+  }
+  .juegos-root .br-glass {
+    min-height: 46px;
+  }
+  .juegos-root .br-num {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: #0c0a1c;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--muted);
+  }
+  .juegos-root .br-col.is-current .br-num {
+    background: var(--bolt);
+    color: #3a2800;
+  }
+  .juegos-root .br-end {
+    min-height: 58px;
+    grid-template-columns: auto auto;
+    gap: 10px;
+  }
+  .juegos-root .br-pawn {
+    transform: none;
+  }
+  .juegos-root .br-shards {
+    transform: none;
+  }
+  .juegos-root .br-mark {
+    transform: none;
+  }
+  .juegos-root .br-fog {
+    display: none;
+  }
+  .juegos-root .br-sides {
+    gap: 8px;
+  }
+  .juegos-root .br-side {
+    min-height: 66px;
+    padding: 6px 10px;
+  }
+  .juegos-root .br-board ol {
+    max-height: none;
+  }
+  .juegos-root .br-board li {
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    align-content: center;
+    height: calc(var(--rh) - 4px);
+    row-gap: 4px;
+  }
+  .juegos-root .br-board li .br-bar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .juegos-root .br-board ol {
+    --rh: 56px;
+  }
+  /* Los botones se quedan pegados abajo mientras se mira el puente */
+  .juegos-root .br-scene {
+    overflow: visible;
+  }
+  .juegos-root .br-sky {
+    border-radius: inherit;
+  }
+  .juegos-root .br-lower {
+    display: contents;
+  }
+  .juegos-root .br-ctrl {
+    position: sticky;
+    bottom: 8px;
+    z-index: 6;
+    padding: 8px;
+    border: 1px solid rgba(190, 235, 255, 0.3);
+    border-radius: 16px;
+    background: rgba(10, 8, 24, 0.9);
+    backdrop-filter: blur(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .br-abyss,
+  .juegos-root .br-lamp,
+  .juegos-root .br-haze,
+  .juegos-root .br-pot b,
+  .juegos-root .br-track i.is-now,
+  .juegos-root .br-clock.is-hot,
+  .juegos-root .br-clock span,
+  .juegos-root .br-steps span.is-now,
+  .juegos-root .br-col.is-current::before,
+  .juegos-root .br-end--goal,
+  .juegos-root .br-face::before,
+  .juegos-root .br-scene.is-picking .br-side:not(:disabled):not(.is-on),
+  .juegos-root .br-seat.is-empty i,
+  .juegos-root .br-board h2 small::before,
+  .juegos-root .br-actions .primary:not(:disabled),
+  .juegos-root .br-actions .primary:not(:disabled)::after {
+    animation: none;
+  }
+  .juegos-root .br-shards,
+  .juegos-root .br-glass.is-fresh .br-face {
+    display: none;
+  }
+  .juegos-root .br-pawn,
+  .juegos-root .br-pawn__body,
+  .juegos-root .br-seat,
+  .juegos-root .br-podium li,
+  .juegos-root .br-block,
+  .juegos-root .br-hist__bars i,
+  .juegos-root .br-amount,
+  .juegos-root .br-chosen > span > span.is-ready {
+    animation-duration: 0.01s;
+    animation-delay: 0s;
+  }
+  .juegos-root .br-pawn.is-falling .br-pawn__body {
+    animation: none;
+    opacity: 0.25;
+    filter: grayscale(1);
+  }
+  .juegos-root .br-board li,
+  .juegos-root .br-bar i,
+  .juegos-root .br-clock {
+    transition-duration: 0.01s;
+  }
+}

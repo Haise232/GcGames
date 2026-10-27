@@ -1,0 +1,161 @@
+/* Escrito a mano (no generado): tema de Halloween. Solo se aplica con la clase .halloween en .juegos-root (ver
+   halloween.js), y todo cuelga de .juegos-root.halloween para que no salga de /juegos. Se importa el último en
+   Juegos.jsx. La mayoría del retinte sale de redefinir las variables de la paleta (index.css, hub.css, poker.css): así
+   cambian a la vez el fondo, las mesas y las pantallas de cada juego sin tocar sus CSS. */
+
+.juegos-root.halloween {
+  --baize: #33164f;
+  --baize-deep: #0f0718;
+  --brass: #ff8a1f;
+  --bolt: #ffb347;
+  --muted: #b8a6cc;
+  --line: rgba(255, 196, 140, 0.6);
+
+  --hub-line: rgba(255, 160, 80, 0.12);
+  --hub-line-hi: rgba(255, 160, 80, 0.34);
+  --hub-gold-hi: #ffe6c2;
+  --hub-gold: #ff9a2e;
+  --hub-gold-lo: #b0420c;
+  --hub-panel: linear-gradient(160deg, rgba(48, 20, 72, 0.92), rgba(18, 8, 30, 0.94));
+}
+
+/* Las cartas del gacha se quedan como siempre: recuperan los valores originales de lo poco de la paleta que usan
+   (el texto apagado y el dorso de la invocación). */
+.juegos-root.halloween :is(.gacha-card, .gacha-reveal, .gacha-summon) {
+  --baize: #14394f;
+  --baize-deep: #0c2737;
+  --brass: #c8a24b;
+  --bolt: #ffe27a;
+  --muted: #9db6c4;
+  --line: rgba(241, 233, 214, 0.7);
+}
+
+/* --- Selector --- */
+.juegos-root.halloween .app.hub::before {
+  background:
+    radial-gradient(520px 320px at 12% 6%, rgba(255, 138, 31, 0.14), transparent 70%),
+    radial-gradient(640px 420px at 92% 34%, rgba(160, 80, 255, 0.14), transparent 70%),
+    radial-gradient(560px 380px at 8% 72%, rgba(120, 220, 60, 0.08), transparent 70%);
+}
+
+/* Marquesina: madera quemada, bombillas naranja y violeta y el interior de noche. */
+.juegos-root.halloween .hub-top {
+  background: linear-gradient(180deg, #2b1206, #120602);
+  box-shadow:
+    0 0 0 1px rgba(255, 138, 31, 0.5),
+    0 24px 60px rgba(0, 0, 0, 0.5),
+    0 0 80px -20px rgba(255, 120, 30, 0.45);
+}
+.juegos-root.halloween .hub-top::before {
+  background: conic-gradient(from var(--hub-a), #ffe0b0, #ff8a1f 10%, #6a2a9a 24%, #ff8a1f 46%, #ffe0b0 58%, #6a2a9a 78%, #ff8a1f 92%, #ffe0b0);
+  filter: drop-shadow(0 0 5px rgba(255, 130, 40, 0.65));
+}
+.juegos-root.halloween .hub-top::after {
+  background:
+    radial-gradient(60% 140% at 14% 0%, rgba(255, 138, 31, 0.22), transparent 70%),
+    radial-gradient(50% 120% at 100% 100%, rgba(150, 70, 255, 0.22), transparent 70%),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 14px),
+    linear-gradient(160deg, #2a1240, #10071c);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 138, 31, 0.32),
+    inset 0 0 50px rgba(0, 0, 0, 0.5);
+}
+.juegos-root.halloween .hub-top h1 {
+  filter: drop-shadow(0 3px 0 rgba(60, 14, 0, 0.6)) drop-shadow(0 0 24px rgba(255, 120, 30, 0.45));
+}
+
+/* Calabaza en la esquina de la marquesina. */
+.juegos-root.halloween .hw-pumpkin {
+  position: absolute;
+  top: -22px;
+  right: clamp(18px, 4vw, 44px);
+  z-index: 1;
+  width: clamp(46px, 6vw, 64px);
+  pointer-events: none;
+  filter: drop-shadow(0 4px 10px rgba(255, 120, 30, 0.45));
+  transform: rotate(8deg);
+}
+
+/* Tarjetas de los juegos: fondo de noche violeta; cada juego mantiene su color (--tint). */
+.juegos-root.halloween .hub-card {
+  background:
+    radial-gradient(120% 70% at 50% 100%, rgba(var(--tint), 0.18), transparent 70%),
+    linear-gradient(180deg, rgba(42, 18, 64, 0.96), rgba(16, 7, 26, 0.98));
+}
+
+/* --- Adornos (HalloweenFx.jsx) --- */
+.juegos-root.halloween .hw-fx {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: paint;
+}
+.juegos-root.halloween .hw-fx__web {
+  position: absolute;
+  top: 0;
+  width: clamp(90px, 14vw, 170px);
+  color: rgba(230, 220, 255, 0.16);
+}
+.juegos-root.halloween .hw-fx__web--left {
+  left: 0;
+}
+.juegos-root.halloween .hw-fx__web--right {
+  right: 0;
+  transform: scaleX(-1);
+}
+.juegos-root.halloween .hw-fx__bat {
+  position: absolute;
+  left: 0;
+  color: #12061c;
+  filter: drop-shadow(0 0 6px rgba(255, 138, 31, 0.35));
+  animation: hw-bat linear infinite;
+}
+/* Cruza de izquierda a derecha subiendo y bajando un poco (solo transform: no recalcula el diseño). */
+@keyframes hw-bat {
+  0% {
+    transform: translate(-80px, 0) scaleY(1);
+  }
+  25% {
+    transform: translate(25vw, -26px) scaleY(0.7);
+  }
+  50% {
+    transform: translate(50vw, 10px) scaleY(1);
+  }
+  75% {
+    transform: translate(75vw, -18px) scaleY(0.7);
+  }
+  100% {
+    transform: translate(calc(100vw + 80px), 0) scaleY(1);
+  }
+}
+@media (max-width: 640px) {
+  .juegos-root.halloween .hw-fx__bat:nth-of-type(n + 4) {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root.halloween .hw-fx__bat {
+    display: none;
+  }
+}
+
+/* --- Mesas --- */
+/* Dorso de las cartas: naranja calabaza con rombos violeta. */
+.juegos-root.halloween .card__back {
+  border-color: #f3e3c8;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 6px, rgba(60, 16, 90, 0.55) 6px 7px),
+    repeating-linear-gradient(-45deg, transparent 0 6px, rgba(60, 16, 90, 0.55) 6px 7px),
+    radial-gradient(circle at 50% 50%, #ffb04a, #d9601a 70%);
+}
+
+/* Póker: paño violeta y filo naranja en lugar del burdeos y el oro. */
+.juegos-root.halloween .poker {
+  --gold: #ff9a3c;
+  --gold-soft: rgba(255, 154, 60, 0.4);
+  --felt-hi: #5b2a85;
+  --felt: #36144f;
+  --felt-lo: #14061f;
+}

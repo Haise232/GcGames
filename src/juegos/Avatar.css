@@ -1,0 +1,19 @@
+/* Generado desde el proyecto de juegos con scripts/scope-css.cjs: no editar aquí. */
+.juegos-root .avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  object-fit: cover;
+  background: hsl(var(--hue, 200) 42% 36%);
+}
+
+.juegos-root .avatar--initials {
+  font-size: calc(var(--size) * 0.42);
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1;
+  color: #fff;
+}

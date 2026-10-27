@@ -1,0 +1,136 @@
+/* Globo de chat sobre el asiento. Se coloca en absoluto respecto al asiento, así que no mueve nada. */
+.juegos-root .gbubble {
+  --gb-bg: #f1e9d6;
+  --gb-edge: #c8a24b;
+  position: absolute;
+  z-index: 30;
+  width: max-content;
+  max-width: min(18ch, 100%);
+  padding: 5px 9px;
+  border: 1px solid var(--gb-edge);
+  border-radius: 12px;
+  background: var(--gb-bg);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #1c140c;
+  text-align: left;
+  pointer-events: none;
+  overflow-wrap: anywhere;
+  animation: gbubble-in 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.juegos-root .gbubble__text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+/* Cola: un rombo con dos bordes de latón que asoma por el lado del avatar. */
+.juegos-root .gbubble::after {
+  content: '';
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  background: var(--gb-bg);
+  border: 0 solid var(--gb-edge);
+  rotate: 45deg;
+}
+
+.juegos-root .gbubble--top {
+  --gb-x: -50%;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  translate: var(--gb-x) 0;
+}
+.juegos-root .gbubble--top::after {
+  bottom: -5px;
+  left: calc(50% - 5px);
+  border-width: 0 1px 1px 0;
+}
+
+.juegos-root .gbubble--left {
+  --gb-x: 0px;
+  top: 50%;
+  right: calc(100% + 8px);
+  translate: 0 -50%;
+}
+.juegos-root .gbubble--left::after {
+  top: calc(50% - 5px);
+  right: -5px;
+  border-width: 1px 1px 0 0;
+}
+
+.juegos-root .gbubble--right {
+  --gb-x: 0px;
+  top: 50%;
+  left: calc(100% + 8px);
+  translate: 0 -50%;
+}
+.juegos-root .gbubble--right::after {
+  top: calc(50% - 5px);
+  left: -5px;
+  border-width: 0 0 1px 1px;
+}
+
+@keyframes gbubble-in {
+  from {
+    opacity: 0;
+    scale: 0.7;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .juegos-root .gbubble {
+    max-width: 100%;
+    padding: 4px 7px;
+    font-size: 12px;
+  }
+  /* En la rejilla de tres columnas el globo es de dos líneas: tres taparían la fila de arriba. */
+  .juegos-root .gbubble__text {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  .juegos-root .gbubble--top {
+    bottom: calc(100% + 4px);
+  }
+  /* Más aire entre filas de asientos para que el globo de la segunda no tape la placa de la primera. */
+  .juegos-root .ptable .ptable__seats {
+    row-gap: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .gbubble {
+    animation: none;
+  }
+}
+
+/* Interruptor «Globos» de la cabecera del chat. */
+.juegos-root .chat__bubbles {
+  margin-left: auto;
+  margin-right: 6px;
+  padding: 4px 11px;
+  border: 1px solid rgba(241, 233, 214, 0.3);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ivory);
+}
+.juegos-root .chat__bubbles[aria-pressed='true'] {
+  border-color: var(--brass);
+  background: var(--brass);
+  color: #1b1405;
+}
+.juegos-root .chat__bubbles:focus-visible {
+  outline: 3px solid var(--ivory);
+  outline-offset: 2px;
+}

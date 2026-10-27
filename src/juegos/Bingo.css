@@ -1,0 +1,844 @@
+/* Escrito a mano (no generado): el Bingo en vivo. Tres columnas: la jaula del bote, la sala (bola, barra y panel de los 90
+   números) y tus cartones con la compra. Lo que cambia de contenido según la fase reserva su tamaño, para que nada salte. */
+
+.juegos-root .bingo {
+  display: grid;
+  grid-template-columns: clamp(240px, 22vw, 330px) minmax(0, 1fr) clamp(360px, 32vw, 520px);
+  gap: clamp(14px, 2vw, 32px);
+  min-height: 0;
+}
+.juegos-root .bingo > section {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ---------- La jaula del bote ---------- */
+.juegos-root .bingo__pot {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  justify-items: center;
+  align-content: center;
+  gap: 14px;
+  padding: 16px 14px;
+  border-radius: 22px;
+  background:
+    radial-gradient(120% 70% at 50% 30%, rgba(255, 216, 107, 0.16), transparent 70%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.32));
+  border: 1px solid rgba(200, 162, 75, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 241, 194, 0.12);
+}
+.juegos-root .bingo__cage {
+  width: 100%;
+  max-width: 280px;
+  max-height: 44svh;
+}
+.juegos-root .bingo__potline {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  margin: 0;
+  text-align: center;
+}
+.juegos-root .bingo__potline small {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+.juegos-root .bingo__potline strong {
+  font-family: var(--display);
+  font-size: clamp(30px, 3.2vw, 46px);
+  font-weight: 400;
+  line-height: 1.05;
+  color: #ffe9a8;
+  text-shadow: 0 0 22px rgba(255, 210, 90, 0.45);
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .bingo__potline span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.juegos-root .bingo__history {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .bingo__history li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 8px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 13px;
+}
+.juegos-root .bingo__history li b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.juegos-root .bingo__history li span {
+  color: var(--muted);
+}
+.juegos-root .bingo__history li em {
+  grid-column: 1 / -1;
+  font-style: normal;
+  font-weight: 700;
+  color: #ffe27a;
+}
+.juegos-root .bingo__history li.is-jackpot {
+  background: linear-gradient(90deg, rgba(200, 162, 75, 0.35), rgba(0, 0, 0, 0.2));
+}
+
+/* El dibujo de la jaula (BingoCage.jsx). */
+.juegos-root .cage {
+  display: block;
+  overflow: visible;
+}
+.juegos-root .cage__glow {
+  animation: cage-glow 3.2s ease-in-out infinite alternate;
+}
+.juegos-root .cage__back {
+  fill: rgba(5, 18, 26, 0.55);
+}
+.juegos-root .cage__bars path,
+.juegos-root .cage__hoops path {
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.juegos-root .cage__hoops path {
+  stroke-width: 3.4;
+}
+.juegos-root .cage__ring {
+  fill: none;
+  stroke-width: 4;
+}
+.juegos-root .cage__plinth {
+  opacity: 0.85;
+}
+.juegos-root .cage__plate {
+  stroke: rgba(70, 45, 10, 0.7);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.juegos-root .cage__coin-edge {
+  fill: #7a520e;
+}
+.juegos-root .cage__coin {
+  stroke: rgba(110, 72, 10, 0.55);
+  stroke-width: 0.6;
+}
+.juegos-root .cage__bill {
+  fill: #3f8f5a;
+  stroke: #24593a;
+  stroke-width: 0.8;
+}
+.juegos-root .cage__bill-in {
+  fill: none;
+  stroke: rgba(210, 245, 220, 0.55);
+  stroke-width: 0.8;
+}
+.juegos-root .cage__bill-seal {
+  fill: rgba(210, 245, 220, 0.65);
+}
+.juegos-root .cage__drop {
+  animation: cage-drop 1.3s cubic-bezier(0.5, 0, 0.9, 0.6) var(--delay) both;
+}
+.juegos-root .cage__coin--fly {
+  animation: cage-flip 0.32s linear var(--delay) infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes cage-drop {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  82% {
+    transform: translateY(var(--fall));
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(var(--fall));
+    opacity: 0;
+  }
+}
+@keyframes cage-flip {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.2);
+  }
+}
+@keyframes cage-glow {
+  from {
+    opacity: 0.75;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- La sala: bola, barra y panel ---------- */
+.juegos-root .bingo__hall {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 12px;
+}
+.juegos-root .bingo__caller {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(14px, 2vw, 26px);
+  /* Alto reservado: el mensaje cambia de largo y no debe mover el panel de abajo. */
+  min-height: 132px;
+}
+.juegos-root .bingo__call {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.juegos-root .bingo__call strong {
+  font-family: var(--display);
+  font-size: clamp(30px, 3.6vw, 52px);
+  font-weight: 400;
+  line-height: 1;
+}
+.juegos-root .bingo__call strong.is-bingo {
+  color: #ffe27a;
+  text-shadow: 0 0 24px rgba(255, 210, 90, 0.6);
+  animation: bingo-shout 0.7s ease-out both;
+}
+.juegos-root .bingo__call span {
+  min-height: 2.6em;
+  font-size: 15px;
+  color: var(--muted);
+}
+.juegos-root .bingo__recent {
+  display: flex;
+  gap: 6px;
+  min-height: 34px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Las bolas: blancas por dentro con el número y el color de su decena alrededor, con luz de esfera. */
+.juegos-root .bball {
+  --size: 40px;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.85), transparent 30%),
+    radial-gradient(circle at 50% 50%, var(--tone) 55%, color-mix(in srgb, var(--tone) 55%, #000) 100%);
+  box-shadow:
+    inset -4px -6px 10px rgba(0, 0, 0, 0.35),
+    0 4px 10px rgba(0, 0, 0, 0.35);
+}
+.juegos-root .bball b {
+  display: grid;
+  place-items: center;
+  width: 58%;
+  height: 58%;
+  border-radius: 50%;
+  background: #fffaf0;
+  color: #16161b;
+  font-family: var(--sans);
+  font-size: calc(var(--size) * 0.3);
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.15);
+}
+.juegos-root .bball--sm {
+  --size: 34px;
+}
+.juegos-root .bball--xl {
+  --size: clamp(96px, 9vw, 128px);
+}
+.juegos-root .bball--empty {
+  --tone: #2a4f63;
+  font-family: var(--display);
+  font-size: 26px;
+  color: var(--ivory);
+}
+.juegos-root .bball--fresh {
+  animation: ball-in 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+}
+.juegos-root .bingo__ball {
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08), transparent 70%);
+}
+.juegos-root .bingo__ball.is-waiting .bball--empty {
+  animation: ball-wait 2s ease-in-out infinite;
+}
+@keyframes ball-in {
+  from {
+    transform: translateY(-40px) scale(0.4) rotate(-120deg);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes ball-wait {
+  50% {
+    transform: scale(1.04);
+  }
+}
+@keyframes bingo-shout {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* Barra de las 90 bolas: la zona del bote en dorado. */
+.juegos-root .btrack {
+  position: relative;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+  overflow: visible;
+}
+.juegos-root .btrack__pot {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px 0 0 999px;
+  background: repeating-linear-gradient(135deg, rgba(200, 162, 75, 0.3) 0 6px, rgba(200, 162, 75, 0.16) 6px 12px);
+  border-right: 2px solid #ffe27a;
+}
+.juegos-root .btrack__pot em {
+  position: absolute;
+  right: -2px;
+  top: 100%;
+  transform: translateX(50%);
+  margin-top: 3px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  color: #ffe27a;
+  white-space: nowrap;
+}
+.juegos-root .btrack__fill {
+  position: absolute;
+  inset: 3px auto 3px 3px;
+  max-width: calc(100% - 6px);
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f6d27a, #ffe9a8);
+  box-shadow: 0 0 10px rgba(255, 210, 90, 0.6);
+  transition: width 0.4s ease;
+}
+.juegos-root .btrack__fill.is-late {
+  background: linear-gradient(90deg, #f6d27a 0%, #9db6c4 100%);
+  box-shadow: none;
+}
+.juegos-root .btrack__end {
+  position: absolute;
+  top: -5px;
+  width: 4px;
+  height: 24px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: 0 0 10px #fff;
+}
+
+/* Panel de los 90 números: 10 × 9, siempre con casillas redondas. En escritorio ocupa lo que quepa en su hueco
+   (contenedor con tamaño propio); en pantallas estrechas, todo el ancho. */
+.juegos-root .bingo__boardwrap {
+  container-type: size;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  margin-top: 16px;
+}
+.juegos-root .bboard {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-template-rows: repeat(9, minmax(0, 1fr));
+  gap: clamp(3px, 0.45vw, 6px);
+  width: min(100cqw, 100cqh * 10 / 9);
+  aspect-ratio: 10 / 9;
+  padding: clamp(8px, 1vw, 14px);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #0b2230, #071820);
+  border: 1px solid rgba(157, 182, 196, 0.25);
+  box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+.juegos-root .bboard__n {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  border-radius: 50%;
+  font-size: clamp(11px, 1vw, 15px);
+  font-weight: 700;
+  color: rgba(241, 233, 214, 0.28);
+  background: rgba(255, 255, 255, 0.04);
+  font-variant-numeric: tabular-nums;
+  transition:
+    background 0.3s,
+    color 0.3s;
+}
+.juegos-root .bboard__n.is-on {
+  color: #16161b;
+  background: radial-gradient(circle at 35% 30%, #fffaf0 0 35%, var(--tone) 75%);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--tone) 60%, transparent);
+}
+.juegos-root .bboard__n.is-latest {
+  animation: board-pulse 1s ease-in-out infinite alternate;
+}
+@keyframes board-pulse {
+  to {
+    box-shadow: 0 0 0 4px #fff, 0 0 18px var(--tone);
+  }
+}
+.juegos-root .bingo__players {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ---------- Tus cartones y la compra ---------- */
+.juegos-root .bingo__mine {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+}
+.juegos-root .bingo__buy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 60px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(200, 162, 75, 0.4);
+}
+.juegos-root .bingo__buy.is-closed {
+  border-color: rgba(157, 182, 196, 0.25);
+}
+.juegos-root .bingo__buy p {
+  margin: 0;
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.juegos-root .bingo__buy .primary {
+  flex: 1;
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f6d27a, #c8962f);
+  color: #1b1405;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.juegos-root .bingo__buy .primary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.juegos-root .bingo__stepper {
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+}
+.juegos-root .bingo__stepper button {
+  width: 38px;
+  height: 42px;
+  border: 0;
+  background: none;
+  color: var(--ivory);
+  font-size: 22px;
+  cursor: pointer;
+}
+.juegos-root .bingo__stepper button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.juegos-root .bingo__stepper output {
+  min-width: 18px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+}
+.juegos-root .bingo__buy button:focus-visible {
+  outline: 3px solid var(--ivory);
+  outline-offset: 2px;
+}
+.juegos-root .bingo__cards {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 4px 6px 2px;
+}
+.juegos-root .bingo__empty {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 2px dashed rgba(157, 182, 196, 0.3);
+  color: var(--muted);
+  text-align: center;
+}
+.juegos-root .bcard__ghost {
+  width: min(260px, 80%);
+  aspect-ratio: 9 / 3.6;
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(90deg, rgba(241, 233, 214, 0.08) 0 calc(100% / 9 - 3px), transparent 0 calc(100% / 9)),
+    rgba(241, 233, 214, 0.04);
+}
+
+/* Un cartón de papel: crema, marco del color del cartón, números en negro y huecos rayados. */
+.juegos-root .bcard {
+  margin: 0;
+  padding: 8px 10px 10px;
+  border-radius: 12px;
+  background: #fbf3df;
+  color: #1c1a16;
+  border: 3px solid var(--card);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  transition:
+    transform 0.3s,
+    box-shadow 0.3s;
+}
+.juegos-root .bcard figcaption {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+.juegos-root .bcard figcaption span {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--card);
+}
+.juegos-root .bcard figcaption small {
+  color: #7a7060;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .bcard figcaption em {
+  margin-left: auto;
+  font-style: normal;
+  font-weight: 700;
+  color: #5a5245;
+}
+.juegos-root .bcard__grid {
+  display: grid;
+  gap: 3px;
+}
+.juegos-root .bcard__row {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 3px;
+  border-radius: 6px;
+  transition: background 0.3s;
+}
+.juegos-root .bcard__row--full {
+  background: color-mix(in srgb, var(--card) 22%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--card) 60%, transparent);
+}
+.juegos-root .bcard__cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: clamp(28px, 3.4vh, 38px);
+  border-radius: 5px;
+  background: #fff;
+  border: 1px solid rgba(28, 26, 22, 0.14);
+  font-family: var(--display);
+  font-size: clamp(15px, 1.4vw, 20px);
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .bcard__cell--blank {
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--card) 30%, #fbf3df) 0 4px, #fbf3df 4px 8px);
+  border-color: transparent;
+}
+/* Marca de rotulador: un círculo translúcido encima del número. */
+.juegos-root .bcard__cell.is-hit::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--card) 55%, transparent);
+  mix-blend-mode: multiply;
+  animation: dab 0.35s ease-out both;
+}
+.juegos-root .bcard__cell.is-latest::after {
+  animation:
+    dab 0.35s ease-out both,
+    dab-glow 1s ease-in-out 0.35s 2 alternate;
+}
+@keyframes dab {
+  from {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes dab-glow {
+  to {
+    box-shadow: 0 0 0 3px var(--card);
+  }
+}
+.juegos-root .bcard--hot {
+  box-shadow:
+    0 0 0 3px #ffe27a,
+    0 6px 20px rgba(255, 210, 90, 0.45);
+}
+.juegos-root .bcard--won {
+  transform: scale(1.02);
+  box-shadow:
+    0 0 0 4px #ffe27a,
+    0 0 30px rgba(255, 210, 90, 0.7);
+}
+.juegos-root .bcard--won figcaption em {
+  color: var(--card);
+  font-size: 14px;
+}
+
+/* ---------- Bola dorada ---------- */
+.juegos-root .bball--golden {
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.95), transparent 32%),
+    conic-gradient(from 20deg, #fff1b8, #e0a92a, #fff4c9, #b07a12, #ffe27a, #fff1b8);
+  box-shadow:
+    inset -4px -6px 10px rgba(90, 55, 0, 0.45),
+    0 0 0 3px rgba(255, 226, 122, 0.55),
+    0 0 26px rgba(255, 210, 90, 0.85);
+  animation: golden-glow 1.4s ease-in-out infinite alternate;
+}
+.juegos-root .bball--golden.bball--fresh {
+  animation:
+    ball-in 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.25) both,
+    golden-glow 1.4s ease-in-out 0.55s infinite alternate;
+}
+@keyframes golden-glow {
+  to {
+    box-shadow:
+      inset -4px -6px 10px rgba(90, 55, 0, 0.45),
+      0 0 0 6px rgba(255, 226, 122, 0.35),
+      0 0 44px rgba(255, 210, 90, 1);
+  }
+}
+.juegos-root .bboard__n.is-golden {
+  color: #2b1a00;
+  background: conic-gradient(from 20deg, #fff1b8, #e0a92a, #fff4c9, #b07a12, #ffe27a, #fff1b8);
+  box-shadow: 0 0 0 2px #ffe27a, 0 0 16px rgba(255, 210, 90, 0.9);
+}
+.juegos-root .bcard__cell.is-golden {
+  background: linear-gradient(135deg, #fff4c9, #f2c246);
+  box-shadow: 0 0 0 2px #e0a92a, 0 0 12px rgba(255, 210, 90, 0.8);
+}
+
+/* ---------- Cartón premium: papel dorado ---------- */
+.juegos-root .bcard--premium {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.55), transparent 40%, rgba(255, 255, 255, 0.35) 60%, transparent),
+    #f6e2a6;
+  border-color: #c8962f;
+  box-shadow:
+    0 0 0 2px #fff1c2 inset,
+    0 6px 18px rgba(0, 0, 0, 0.35),
+    0 0 18px rgba(255, 210, 90, 0.35);
+}
+.juegos-root .bcard--premium figcaption span {
+  color: #8a5a08;
+}
+.juegos-root .bcard--premium .bcard__cell:not(.bcard__cell--blank) {
+  background: #fffaf0;
+}
+
+/* ---------- Selector de tipo de cartón ---------- */
+.juegos-root .bingo__buy {
+  flex-wrap: wrap;
+}
+.juegos-root .bingo__kinds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex: 1 1 100%;
+}
+.juegos-root .bingo__kind {
+  display: grid;
+  justify-items: start;
+  gap: 1px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(241, 233, 214, 0.25);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--ivory);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.juegos-root .bingo__kind b {
+  font-size: 15px;
+}
+.juegos-root .bingo__kind small {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .bingo__kind[aria-checked='true'] {
+  border-color: #f6d27a;
+  background: rgba(200, 162, 75, 0.22);
+  box-shadow: 0 0 0 1px #f6d27a inset;
+}
+.juegos-root .bingo__kind--premium b::before {
+  content: '★ ';
+  color: #ffe27a;
+}
+.juegos-root .bingo__kind--premium[aria-checked='true'] {
+  background: linear-gradient(135deg, rgba(255, 226, 122, 0.35), rgba(200, 150, 47, 0.25));
+}
+.juegos-root .bingo__kind:focus-visible {
+  outline: 3px solid var(--ivory);
+  outline-offset: 2px;
+}
+
+/* ---------- Pantallas más pequeñas ---------- */
+@media (max-width: 1180px) {
+  .juegos-root .bingo {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
+    grid-template-areas:
+      'hall mine'
+      'pot mine';
+    grid-template-rows: auto auto;
+    align-content: start;
+    overflow-y: auto;
+    padding-bottom: 16px;
+  }
+  /* Aquí la pantalla se desplaza: cada parte con su alto natural (en escritorio se encogen para caber sin scroll). */
+  .juegos-root .bingo > section,
+  .juegos-root .bingo__boardwrap {
+    min-height: auto;
+  }
+  .juegos-root .bingo__hall {
+    grid-template-rows: none;
+  }
+  .juegos-root .bingo__boardwrap {
+    container-type: normal;
+  }
+  .juegos-root .bboard {
+    width: min(100%, 560px);
+  }
+  .juegos-root .bingo__cards {
+    overflow: visible;
+  }
+  .juegos-root .bingo__hall {
+    grid-area: hall;
+  }
+  .juegos-root .bingo__mine {
+    grid-area: mine;
+  }
+  .juegos-root .bingo__pot {
+    grid-area: pot;
+    grid-template-columns: 130px minmax(0, 1fr);
+    grid-template-rows: auto;
+    align-items: center;
+    justify-items: start;
+  }
+  .juegos-root .bingo__pot .bingo__potline {
+    justify-items: start;
+    text-align: left;
+  }
+  .juegos-root .bingo__cage {
+    grid-row: span 2;
+    max-height: 170px;
+  }
+}
+@media (max-width: 760px) {
+  .juegos-root .bingo {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'pot'
+      'hall'
+      'mine';
+    grid-template-rows: none;
+    align-content: start;
+    overflow-y: auto;
+    padding-bottom: 16px;
+  }
+  .juegos-root .bingo__pot {
+    grid-template-columns: 110px minmax(0, 1fr);
+  }
+  /* Durante la venta, lo primero es comprar: tus cartones antes de la sala. */
+  .juegos-root .bingo--buying {
+    grid-template-areas:
+      'pot'
+      'mine'
+      'hall';
+  }
+  .juegos-root .bingo__history {
+    display: none;
+  }
+  .juegos-root .bingo__caller {
+    min-height: 0;
+  }
+  .juegos-root .bball--xl {
+    --size: 84px;
+  }
+  .juegos-root .bboard {
+    width: 100%;
+    gap: 3px;
+    padding: 8px;
+  }
+  .juegos-root .bboard__n {
+    font-size: 11px;
+  }
+  .juegos-root .bingo__buy {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .cage__glow,
+  .juegos-root .cage__drop,
+  .juegos-root .cage__coin--fly,
+  .juegos-root .bball--fresh,
+  .juegos-root .bboard__n.is-latest,
+  .juegos-root .bcard__cell.is-hit::after,
+  .juegos-root .bingo__call strong.is-bingo,
+  .juegos-root .bball--golden,
+  .juegos-root .bingo__ball.is-waiting .bball--empty {
+    animation: none;
+  }
+}

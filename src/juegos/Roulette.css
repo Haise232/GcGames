@@ -1,0 +1,358 @@
+/* Ruleta en vivo (escrito a mano, no generado): cuenta atrás, pista de vecinos y estadísticas. */
+
+/* La rueda la mueve requestAnimationFrame con el reloj del servidor: sin transiciones que la retrasen. */
+.juegos-root .wheel--live .wheel__disc,
+.juegos-root .wheel--live .wheel__orbit {
+  transition: none;
+  will-change: transform;
+}
+.juegos-root .wheel--live .wheel__ball {
+  transition: opacity 0.3s;
+}
+
+/* Deja sitio bajo la rueda para los últimos números y las estadísticas. */
+.juegos-root .roulette-live .side .wheel {
+  width: min(100cqw, 100cqh - 300px);
+}
+
+/* Crupier: cuenta atrás y lo que anuncia. */
+.juegos-root .dealer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: clamp(6px, 1.4vh, 14px);
+}
+.juegos-root .dealer .status {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.juegos-root .dealer .status strong {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(20px, min(2.6vw, 3.6vh), 34px);
+  line-height: 1.1;
+}
+.juegos-root .dealer .status span {
+  font-size: clamp(14px, min(1.5vw, 2.2vh), 18px);
+  color: var(--muted);
+}
+.juegos-root .dealer .status--win span {
+  color: var(--brass);
+}
+.juegos-root .dealer__players {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: right;
+}
+
+.juegos-root .countdown {
+  --size: clamp(46px, 7vh, 64px);
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, var(--baize-deep) 78%, transparent 80% 100%),
+    conic-gradient(var(--brass) calc(var(--left) * 360deg), rgba(241, 233, 214, 0.15) 0);
+  font-family: var(--display);
+  font-size: calc(var(--size) * 0.42);
+  color: var(--ivory);
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .countdown--last {
+  background:
+    radial-gradient(closest-side, var(--baize-deep) 78%, transparent 80% 100%),
+    conic-gradient(var(--red) calc(var(--left) * 360deg), rgba(241, 233, 214, 0.15) 0);
+  animation: juegos-countdown-pulse 1s ease-in-out infinite;
+}
+.juegos-root .countdown--spinning,
+.juegos-root .countdown--result {
+  background:
+    radial-gradient(closest-side, var(--baize-deep) 78%, transparent 80% 100%),
+    conic-gradient(rgba(241, 233, 214, 0.15) 0 360deg);
+  color: var(--brass);
+}
+@keyframes juegos-countdown-pulse {
+  50% {
+    scale: 1.08;
+  }
+}
+
+/* Pestañas Mesa / Pista */
+.juegos-root .views {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.juegos-root .views button {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ivory);
+  font-size: 14px;
+  font-weight: 600;
+}
+.juegos-root .views button[aria-selected='true'] {
+  border-color: var(--brass);
+  background: var(--brass);
+  color: #1b1405;
+}
+.juegos-root .views button:focus-visible {
+  outline: 3px solid var(--ivory);
+  outline-offset: 2px;
+}
+
+/* Pista de vecinos */
+.juegos-root .track {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 0 1 clamp(250px, 29vw, 420px);
+  min-height: 0;
+}
+.juegos-root .track svg {
+  width: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+.juegos-root .track__ring {
+  fill: rgba(0, 0, 0, 0.12);
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.juegos-root .track__num {
+  cursor: pointer;
+}
+.juegos-root .track__num circle {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.juegos-root .track__num--red circle {
+  fill: var(--red);
+}
+.juegos-root .track__num--black circle {
+  fill: var(--black);
+}
+.juegos-root .track__num--green circle {
+  fill: var(--green);
+}
+.juegos-root .track__num text {
+  fill: var(--ivory);
+  font-size: 15px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+.juegos-root .track__num:hover circle,
+.juegos-root .track__num:focus-visible circle {
+  stroke: var(--brass);
+  stroke-width: 3;
+}
+.juegos-root .track__num:focus-visible {
+  outline: none;
+}
+.juegos-root .track__num--hit circle {
+  stroke: var(--brass);
+  stroke-width: 4;
+}
+.juegos-root .track__num[aria-disabled='true'] {
+  cursor: default;
+}
+.juegos-root .track .track__stack {
+  fill: var(--brass);
+  font-size: 12px;
+}
+.juegos-root .track__sectors {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.juegos-root .track__sectors button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.15);
+  color: var(--ivory);
+  font-size: 14px;
+  font-weight: 600;
+}
+.juegos-root .track__sectors button small {
+  font-weight: 400;
+  color: var(--muted);
+}
+.juegos-root .track__sectors button:not(:disabled):hover {
+  border-color: var(--brass);
+}
+.juegos-root .track__sectors button:disabled {
+  opacity: 0.5;
+}
+
+/* Estadísticas */
+.juegos-root .stats h2 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.juegos-root .stats__hc {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 10px;
+}
+.juegos-root .stats__hc h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.juegos-root .stats__hc ol {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .stats .tile,
+.juegos-root .stats .tile:first-child {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  outline: none;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+}
+.juegos-root .stats .tile small {
+  position: absolute;
+  right: -3px;
+  bottom: -5px;
+  min-width: 16px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: var(--ivory);
+  color: var(--black);
+  font-size: 10px;
+  line-height: 15px;
+  text-align: center;
+}
+.juegos-root .stats__bar {
+  display: flex;
+  height: 20px;
+  margin-top: 4px;
+  overflow: hidden;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 20px;
+}
+.juegos-root .stats__part {
+  flex-basis: 0;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+  color: var(--ivory);
+  transition: flex-grow 0.6s;
+}
+.juegos-root .stats__part--red {
+  background: var(--red);
+}
+.juegos-root .stats__part--black {
+  background: var(--black);
+}
+.juegos-root .stats__part--green {
+  background: var(--green);
+}
+.juegos-root .stats__part--plain {
+  background: rgba(241, 233, 214, 0.18);
+}
+.juegos-root .stats__part--plain + .stats__part--green + .stats__part--plain {
+  background: rgba(241, 233, 214, 0.32);
+}
+
+/* Ventanas bajas: las estadísticas ceden su sitio a la rueda. */
+@media (max-height: 780px) and (min-width: 641px) {
+  .juegos-root .stats {
+    display: none;
+  }
+  .juegos-root .roulette-live .side .wheel {
+    width: min(100cqw, 100cqh - 100px);
+  }
+}
+
+@media (max-width: 640px) {
+  .juegos-root .stats,
+  .juegos-root .dealer__players {
+    display: none;
+  }
+  .juegos-root .dealer {
+    gap: 10px;
+  }
+  .juegos-root .track {
+    flex: 1 1 auto;
+  }
+  .juegos-root .track__sectors {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .countdown--last {
+    animation: none;
+  }
+  .juegos-root .stats__part {
+    transition: none;
+  }
+}
+
+/* Pagos de la mesa y tu última jugada, siempre a la vista. */
+.juegos-root .roulette-live .pays,
+.juegos-root .roulette-live .track__hint {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+.juegos-root .roulette-live .track__hint {
+  margin: 0 0 6px;
+}
+.juegos-root .roulette-live .last-play {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 14px;
+}
+.juegos-root .roulette-live .last-play .tile {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+.juegos-root .roulette-live .last-play--win {
+  border-color: var(--brass);
+  color: var(--brass);
+}
+.juegos-root .roulette-live .last-play--lose {
+  color: var(--muted);
+}

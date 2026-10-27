@@ -1,0 +1,1126 @@
+/* Escrito a mano (no generado): el Ascensor en primera persona (ElevatorView.jsx). Todo en % del cuadro para que
+   valga igual en el móvil; solo se animan transform y opacity. */
+
+.juegos-root .pv {
+  --steel-hi: #d7dde6;
+  --steel: #9aa6b5;
+  --steel-lo: #5b6675;
+  --glow: 255, 214, 120;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  min-height: 300px;
+  max-height: min(62vh, 560px);
+  overflow: hidden;
+  border-radius: 22px;
+  background: #07090d;
+  box-shadow:
+    0 0 0 1px rgba(255, 214, 120, 0.25),
+    0 24px 60px rgba(0, 0, 0, 0.5);
+  isolation: isolate;
+  contain: paint;
+}
+@media (max-width: 640px) {
+  .juegos-root .pv {
+    aspect-ratio: 4 / 5;
+    max-height: 70vh;
+  }
+}
+
+/* ============================== Dentro de la cabina ==============================
+   Una caja 3D de verdad (techo, suelo, dos paredes y la pared de las puertas con su hueco) vista desde la entrada.
+   Las medidas van en unidades del cuadro (cqw/cqh), así la cabina es la misma en cualquier tamaño. Detrás del hueco de
+   la puerta hay otro espacio 3D, el rellano de la planta, que solo se ve cuando se abren las puertas. */
+.juegos-root .pv--inside {
+  container: pv / size;
+}
+.juegos-root .pv-view {
+  --D: 44cqw; /* fondo de la cabina */
+  --L: 50cqw; /* fondo del rellano */
+  position: absolute;
+  inset: 0;
+  perspective: 72cqw;
+  /* El ojo: un poco por encima del centro (vas de pie) y se desplaza con el ratón. */
+  perspective-origin: calc(50% + var(--px, 0) * 10%) calc(42% + var(--py, 0) * 7%);
+  transition: perspective-origin 0.6s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+@container pv (max-width: 560px) {
+  .juegos-root .pv-view {
+    --D: 36cqw;
+    --L: 44cqw;
+    perspective: 80cqw;
+  }
+}
+.juegos-root .pv-box,
+.juegos-root .pv-land,
+.juegos-root .pv-wall {
+  transform-style: preserve-3d;
+}
+.juegos-root .pv-box {
+  position: absolute;
+  inset: 0;
+}
+.juegos-root .pv-box > *,
+.juegos-root .pv-land > * {
+  position: absolute;
+}
+/* --spd (0 en la planta baja, 1 arriba): cuanto más alto, más deprisa va y más vibra todo. */
+.juegos-root .pv.is-moving .pv-box {
+  animation: pv-hum calc(0.18s - var(--spd, 0) * 0.08s) steps(2) infinite;
+}
+.juegos-root .pv.is-tense .pv-box {
+  animation: pv-hum-hard calc(0.12s - var(--spd, 0) * 0.05s) steps(2) infinite;
+}
+.juegos-root .pv.is-shake .pv-box,
+.juegos-root .pv.is-shake .pv-hall {
+  animation: pv-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) 2;
+}
+@keyframes pv-hum {
+  50% {
+    transform: translateY(0.25cqh);
+  }
+}
+@keyframes pv-hum-hard {
+  50% {
+    transform: translate(0.3cqw, 0.5cqh);
+  }
+}
+@keyframes pv-shake {
+  10%,
+  90% {
+    transform: translate(-2px, 1px) rotate(-0.4deg);
+  }
+  20%,
+  80% {
+    transform: translate(4px, -2px) rotate(0.6deg);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translate(-7px, 3px) rotate(-1deg);
+  }
+  40%,
+  60% {
+    transform: translate(7px, -3px) rotate(1deg);
+  }
+}
+
+/* --- Techo: acero oscuro con un panel de luz y focos --- */
+.juegos-root .pv-ceiling {
+  left: 0;
+  top: 0;
+  width: 100cqw;
+  height: var(--D);
+  transform-origin: top;
+  transform: rotateX(-90deg);
+  background:
+    radial-gradient(circle, #fff6dc 0 0.7cqw, rgba(255, 214, 140, 0.45) 1cqw, transparent 2.4cqw) 0 0 / 25% 50%,
+    linear-gradient(180deg, #23262d, #121419);
+}
+.juegos-root .pv-ceiling__panel {
+  position: absolute;
+  inset: 22% 26%;
+  border: 0.5cqw solid #2c3038;
+  border-radius: 0.6cqw;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.25) 0 1px, transparent 1px 1.2cqw),
+    linear-gradient(180deg, #fff8e6, #ffe2a8);
+  box-shadow: 0 0 6cqw rgba(var(--glow), 0.55);
+}
+.juegos-root .pv.is-fallen .pv-ceiling__panel {
+  background: #3a0a0a;
+  box-shadow: 0 0 6cqw rgba(255, 40, 40, 0.6);
+}
+
+/* --- Suelo: mármol a cuadros con el reflejo de la luz y el umbral de las puertas al fondo --- */
+.juegos-root .pv-floor {
+  left: 0;
+  top: calc(100cqh - var(--D));
+  width: 100cqw;
+  height: var(--D);
+  transform-origin: bottom;
+  transform: rotateX(90deg);
+  background:
+    radial-gradient(45% 55% at 50% 30%, rgba(255, 228, 170, 0.28), transparent 70%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.5), transparent 55%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 18%),
+    repeating-conic-gradient(#3a332d 0 25%, #221e1b 0 50%) 0 0 / 12.5cqw 12.5cqw;
+}
+.juegos-root .pv-floor__sill {
+  position: absolute;
+  left: 31%;
+  width: 38%;
+  top: 0;
+  height: 5%;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.35) 0 1px, transparent 1px 0.8cqw),
+    linear-gradient(180deg, #7e8896, #c3cad4);
+}
+
+/* --- Paredes laterales: madera en paneles, zócalo de acero y pasamanos que sale de la pared --- */
+.juegos-root .pv-wall {
+  top: 0;
+  width: var(--D);
+  height: 100cqh;
+  --wood: linear-gradient(90deg, #8d633b, #5e3f25);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 14%, transparent 80%, rgba(0, 0, 0, 0.35)),
+    linear-gradient(180deg, transparent 86%, #262a31 86% 87%, #8d97a5 87% 92%, #6a7480 92%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.4) 0 0.35cqw, rgba(255, 220, 170, 0.08) 0.35cqw 0.6cqw, transparent 0.6cqw 33.33%),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 0.7cqh),
+    var(--wood);
+}
+.juegos-root .pv-wall--l {
+  left: 0;
+  transform-origin: left;
+  transform: rotateY(90deg);
+}
+/* En la pared derecha el frente queda a la derecha del elemento: se le da la vuelta a la luz. */
+.juegos-root .pv-wall--r {
+  left: calc(100cqw - var(--D));
+  transform-origin: right;
+  transform: rotateY(-90deg);
+  --wood: linear-gradient(270deg, #8d633b, #5e3f25);
+}
+.juegos-root .pv-wall::after {
+  /* Sombra del pasamanos sobre la madera. */
+  content: '';
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 59%;
+  height: 2cqh;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.35);
+  filter: blur(4px);
+}
+.juegos-root .pv-wall__rail {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 56%;
+  height: 1.8cqh;
+  border-radius: 99px;
+  background: linear-gradient(180deg, #ffffff, #c9d0d9 35%, #6f7886 75%, #aab2bd);
+  transform: translateZ(2cqw);
+}
+
+/* --- Pared de las puertas: acero cepillado con el hueco recortado --- */
+.juegos-root .pv-back {
+  left: 0;
+  top: 0;
+  width: 100cqw;
+  height: 100cqh;
+  transform: translateZ(calc(-1 * var(--D)));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 69% 100%, 69% 29%, 31% 29%, 31% 100%, 0 100%);
+  background:
+    linear-gradient(180deg, transparent 88%, #2b3038 88% 89%, #79838f 89%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
+    linear-gradient(90deg, #66707c, #a9b2be 25%, #d5dbe3 50%, #a9b2be 75%, #66707c);
+  box-shadow: inset 0 0 7cqw rgba(0, 0, 0, 0.55);
+}
+.juegos-root .pv-back__frame {
+  position: absolute;
+  left: 29.4%;
+  right: 29.4%;
+  top: 26.6%;
+  bottom: 0;
+  border: 1.6cqw solid #2d323a;
+  border-bottom: 0;
+  border-radius: 0.4cqw 0.4cqw 0 0;
+  box-shadow:
+    0 0 0 0.3cqw #c3cad4,
+    0 0 3cqw rgba(0, 0, 0, 0.4);
+}
+.juegos-root .pv-back__brand {
+  position: absolute;
+  left: 8%;
+  top: 33%;
+  width: 17%;
+  padding: 0.6cqh 0;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  background: linear-gradient(180deg, #e8d49a, #b8964c);
+  color: #3a2a08;
+  font: 700 1.3cqw / 1.2 var(--display, serif);
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.juegos-root .pv-back__brand::after {
+  /* Rejilla del interfono debajo. */
+  content: '';
+  position: absolute;
+  left: 25%;
+  right: 25%;
+  top: calc(100% + 3cqh);
+  height: 8cqh;
+  border-radius: 1cqw;
+  background: radial-gradient(circle, #2b3038 0.25cqw, transparent 0.3cqw) 0 0 / 1cqw 1cqw, #8d97a5;
+}
+
+/* Las puertas: dos hojas de acero justo detrás de la pared, que al abrirse se meten detrás de ella. */
+.juegos-root .pv-door {
+  left: 31%;
+  top: 29%;
+  width: 19.2%;
+  height: 71%;
+  transform: translateZ(calc(-1 * var(--D) - 0.6cqw));
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 4px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 40%),
+    linear-gradient(90deg, #858f9d, #cfd6df 45%, #96a0ae);
+  /* Rápidas: arriba las puertas solo están abiertas medio segundo. */
+  transition: translate 0.28s cubic-bezier(0.6, 0, 0.3, 1);
+}
+.juegos-root .pv-door--l {
+  box-shadow: inset -2px 0 0 #3f4650;
+}
+.juegos-root .pv-door--r {
+  left: 49.8%;
+  box-shadow: inset 2px 0 0 #3f4650;
+}
+.juegos-root .pv.is-open .pv-box .pv-door--l {
+  translate: -100% 0;
+}
+.juegos-root .pv.is-open .pv-box .pv-door--r {
+  translate: 100% 0;
+}
+/* Rendija entre las hojas: mientras se sube, pasan por ella las luces de las plantas. */
+.juegos-root .pv-seam {
+  left: 49.85%;
+  top: 29%;
+  width: 0.3%;
+  height: 71%;
+  transform: translateZ(calc(-1 * var(--D) - 0.4cqw));
+  background: #1a1d22;
+}
+.juegos-root .pv.is-moving .pv-seam {
+  background: linear-gradient(180deg, transparent 0 40%, rgba(255, 236, 190, 0.95) 46% 54%, transparent 60%) 0 0 / 100% 200%, #1a1d22;
+  animation: pv-seam calc(0.9s - var(--spd, 0) * 0.6s) linear infinite;
+}
+.juegos-root .pv.is-open .pv-seam {
+  opacity: 0;
+}
+@keyframes pv-seam {
+  from {
+    background-position: 0 -100%;
+  }
+  to {
+    background-position: 0 100%;
+  }
+}
+
+/* --- El rellano, detrás del hueco --- */
+.juegos-root .pv-land {
+  inset: 0;
+  transform: translateZ(calc(-1 * var(--D) - 0.8cqw));
+}
+.juegos-root .pv-land__wall,
+.juegos-root .pv-land__floor,
+.juegos-root .pv-land__ceil {
+  position: absolute;
+  left: 0;
+  width: 100cqw;
+}
+.juegos-root .pv-land__wall {
+  top: 0;
+  height: 100cqh;
+  overflow: hidden;
+  transform: translateZ(calc(-1 * var(--L)));
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.25), transparent 30%, transparent 80%, rgba(0, 0, 0, 0.3)),
+    var(--wall);
+}
+.juegos-root .pv-land__floor {
+  top: calc(100cqh - var(--L));
+  height: var(--L);
+  transform-origin: bottom;
+  transform: rotateX(90deg);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 40%),
+    repeating-conic-gradient(#d8ccb6 0 25%, #c2b394 0 50%) 0 0 / 10cqw 10cqw;
+}
+.juegos-root .pv-land__ceil {
+  top: 0;
+  height: var(--L);
+  transform-origin: top;
+  transform: rotateX(-90deg);
+  background: radial-gradient(30% 40% at 50% 50%, rgba(255, 240, 200, 0.8), transparent 70%), #2a2620;
+}
+.juegos-root .pv-landing--office .pv-land__floor {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 40%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.08) 0 2px, transparent 2px 6px),
+    #5b4a3c;
+}
+.juegos-root .pv-landing--high .pv-land__floor,
+.juegos-root .pv-landing--sky .pv-land__floor {
+  background:
+    radial-gradient(40% 60% at 50% 0%, rgba(255, 170, 110, 0.25), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 8cqw),
+    #1d2230;
+}
+.juegos-root .pv-landing--sky .pv-land__ceil,
+.juegos-root .pv-landing--high .pv-land__ceil {
+  background: #12151d;
+}
+.juegos-root .pv-landing--roof .pv-land__floor {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1.5px) 0 0 / 1.2cqw 1.2cqw,
+    linear-gradient(180deg, #2c2a3a, #4a4558);
+}
+.juegos-root .pv-land__window {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  width: 64cqw;
+  top: 12%;
+  bottom: 22%;
+  overflow: hidden;
+  border: 1cqw solid #12151d;
+  box-shadow: 0 0 4cqw rgba(0, 0, 0, 0.5);
+}
+.juegos-root .pv-land__window::after {
+  /* Montantes del muro cortina. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 49.4%, #12151d 49.4% 50.6%, transparent 50.6%),
+    repeating-linear-gradient(90deg, transparent 0 24.4%, #12151d 24.4% 25.6%, transparent 25.6% 25%);
+}
+.juegos-root .pv-land__num {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  translate: -50% 0;
+  font-family: var(--display, serif);
+  font-size: 22cqh;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--ink);
+  opacity: 0.8;
+}
+.juegos-root .pv-land__num.is-glass {
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 0 2cqw rgba(0, 0, 0, 0.6);
+}
+.juegos-root .pv-landing--roof .pv-land__num {
+  top: 30%;
+  font-size: 9cqh;
+  letter-spacing: 0.1em;
+  color: #7dffb2;
+  text-shadow: 0 0 2cqw rgba(80, 255, 160, 0.8);
+  opacity: 1;
+}
+.juegos-root .pv-land__mult {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  translate: -50% 0;
+  padding: 0.4cqh 1.2cqw;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #ffd25e;
+  font: 700 2.6cqh / 1.2 ui-monospace, Menlo, Consolas, monospace;
+}
+.juegos-root .pv-landing--roof .pv-land__mult {
+  top: 42%;
+}
+.juegos-root .pv-land__lamp {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(5cqw 22cqh at calc(50% - 18cqw) 18%, rgba(255, 230, 170, 0.55), transparent),
+    radial-gradient(5cqw 22cqh at calc(50% + 18cqw) 18%, rgba(255, 230, 170, 0.55), transparent);
+}
+.juegos-root .pv-land__railing {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30%;
+  background:
+    linear-gradient(180deg, #9aa4b2 0 3%, transparent 3%),
+    repeating-linear-gradient(90deg, #6a7480 0 0.5cqw, transparent 0.5cqw 4cqw);
+}
+.juegos-root .pv-land .pv-plant {
+  right: auto;
+  bottom: 0;
+  width: 9cqw;
+  height: 40%;
+}
+.juegos-root .pv-plant--l {
+  left: calc(50% - 30cqw);
+}
+.juegos-root .pv-plant--r {
+  left: calc(50% + 21cqw);
+}
+
+/* --- Gente de pie: recortes en 3D que encogen con la distancia --- */
+.juegos-root .pv-fig {
+  --u: min(1cqh, 0.62cqw);
+  left: calc(var(--x) * 1cqw - 10 * var(--u));
+  top: calc(100cqh - 74 * var(--u));
+  width: calc(20 * var(--u));
+  height: calc(74 * var(--u));
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  justify-items: center;
+  pointer-events: none;
+}
+.juegos-root .pv-box > .pv-fig {
+  transform: translateZ(calc(-1 * var(--z) * var(--D)));
+}
+.juegos-root .pv-land > .pv-fig {
+  transform: translateZ(calc(-1 * var(--z) * var(--L)));
+}
+.juegos-root .pv-fig .avatar {
+  --size: calc(12 * var(--u)) !important;
+  position: relative;
+  z-index: 1;
+  box-shadow:
+    0 0 0 0.4cqh rgba(0, 0, 0, 0.35),
+    0 1cqh 1.5cqh rgba(0, 0, 0, 0.35);
+}
+.juegos-root .pv-fig.is-back .avatar {
+  filter: brightness(0.8) saturate(0.85);
+}
+.juegos-root .pv-fig__body {
+  width: 100%;
+  height: calc(28 * var(--u));
+  margin-top: calc(-1.2 * var(--u));
+  border-radius: calc(8 * var(--u)) calc(8 * var(--u)) calc(2 * var(--u)) calc(2 * var(--u));
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.35), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.4)),
+    linear-gradient(180deg, hsl(var(--h) 55% 48%), hsl(var(--h) 50% 30%));
+}
+.juegos-root .pv-fig.is-back .pv-fig__body {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.4), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.45)),
+    linear-gradient(180deg, hsl(var(--h) 45% 38%), hsl(var(--h) 45% 22%));
+}
+.juegos-root .pv-fig__legs {
+  position: relative;
+  width: 62%;
+  height: 100%;
+  background: linear-gradient(90deg, #262a33 0 46%, transparent 46% 54%, #262a33 54%);
+}
+.juegos-root .pv-fig__legs::after {
+  /* Sombra en el suelo. */
+  content: '';
+  position: absolute;
+  left: -40%;
+  right: -40%;
+  bottom: -1.5cqh;
+  height: 3cqh;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.5), transparent);
+}
+
+/* --- Display de planta: letras de led ámbar --- */
+.juegos-root .pv-display {
+  position: absolute;
+  left: 50%;
+  top: 3%;
+  translate: -50% 0;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  column-gap: 8px;
+  min-width: 30%;
+  padding: 2px 12px 5px;
+  border: 2px solid #1d2128;
+  border-radius: 8px;
+  background: #0b0c0f;
+  box-shadow:
+    inset 0 0 12px rgba(0, 0, 0, 0.9),
+    0 0 18px rgba(var(--glow), 0.25);
+  color: #ffc24a;
+  text-shadow: 0 0 8px rgba(255, 180, 60, 0.85);
+  z-index: 4;
+}
+.juegos-root .pv-display__arrow {
+  grid-row: span 2;
+  font-size: clamp(14px, 2vw, 22px);
+  opacity: 0.18;
+}
+.juegos-root .pv-display__arrow.is-on {
+  opacity: 1;
+  animation: pv-arrow calc(0.6s - var(--spd, 0) * 0.35s) ease-in-out infinite;
+}
+@keyframes pv-arrow {
+  50% {
+    transform: translateY(-3px);
+    opacity: 0.55;
+  }
+}
+.juegos-root .pv-display__floor {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: clamp(22px, 3.6vw, 42px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  animation: pv-flip 0.25s ease-out;
+}
+@keyframes pv-flip {
+  from {
+    opacity: 0;
+    transform: translateY(-30%);
+  }
+}
+.juegos-root .pv-display__mult {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: clamp(10px, 1.3vw, 14px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+/* Dentro de la cabina el display está en la pared del fondo: se mide en unidades del cuadro. */
+.juegos-root .pv-back .pv-display {
+  top: 3.5%;
+  min-width: 28%;
+  column-gap: 1.2cqw;
+  padding: 0.6cqh 2cqw 1cqh;
+  border-width: 0.4cqw;
+  border-radius: 1cqw;
+}
+.juegos-root .pv-back .pv-display__arrow {
+  font-size: max(min(2.6cqw, 5cqh), 12px);
+}
+.juegos-root .pv-back .pv-display__floor {
+  font-size: max(min(5.5cqw, 11cqh), 22px);
+}
+.juegos-root .pv-back .pv-display__mult {
+  font-size: max(min(1.8cqw, 3.4cqh), 10px);
+}
+/* Tensión del cable: lo probable que es llegar a la siguiente planta (verde → rojo). */
+.juegos-root .pv-display__cable {
+  grid-column: 1 / -1;
+  height: 4px;
+  margin-top: 4px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #222;
+}
+.juegos-root .pv-display__cable i {
+  display: block;
+  height: 100%;
+  width: calc(var(--c) * 100%);
+  background: hsl(calc(var(--c) * 120) 80% 50%);
+  box-shadow: 0 0 6px hsl(calc(var(--c) * 120) 80% 50%);
+  transition: width 0.4s;
+}
+.juegos-root .pv-display.is-alarm {
+  color: #ff4040;
+  text-shadow: 0 0 10px rgba(255, 40, 40, 0.9);
+  animation: pv-blink 0.4s steps(2) infinite;
+}
+.juegos-root .pv-display.is-roof {
+  color: #7dffb2;
+  text-shadow: 0 0 10px rgba(80, 255, 160, 0.9);
+}
+@keyframes pv-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* --- Botonera --- */
+.juegos-root .pv-cop {
+  display: grid;
+  gap: 0.8cqw;
+  padding: 1cqw;
+  border: 0.3cqw solid #3a3f47;
+  border-radius: 1cqw;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, #d3d9e1, #8c96a3);
+  box-shadow:
+    0 0.6cqw 2cqw rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+/* En escritorio, en la pared junto a la puerta. */
+.juegos-root .pv-cop--wall {
+  position: absolute;
+  left: 72%;
+  width: min(18%, 27cqh);
+  top: 27%;
+  gap: 1.2cqh;
+  padding: 1.4cqh;
+}
+.juegos-root .pv-cop--wall .pv-cop__grid {
+  gap: 1cqh;
+}
+.juegos-root .pv-cop--wall .pv-btn {
+  font-size: max(2.6cqh, 9px);
+}
+.juegos-root .pv-cop--wall .pv-exit {
+  padding: 1cqh 0.2cqw;
+}
+.juegos-root .pv-cop--wall .pv-exit,
+.juegos-root .pv-cop--wall .pv-exit b {
+  font-size: max(2.3cqh, 9px);
+}
+.juegos-root .pv-cop--wall .pv-cop__brand {
+  font-size: max(1.6cqh, 7px);
+}
+/* En el móvil, en primer plano a la derecha (la de la pared quedaría demasiado pequeña para el dedo). */
+.juegos-root .pv-cop--hand {
+  display: none;
+  position: absolute;
+  right: 2%;
+  top: 22%;
+  width: 26%;
+  z-index: 8;
+  transform: perspective(400px) rotateY(-14deg);
+  transform-origin: right center;
+}
+@container pv (max-width: 560px) {
+  .juegos-root .pv-cop--wall {
+    display: none;
+  }
+  .juegos-root .pv-cop--hand {
+    display: grid;
+    gap: 4px;
+    padding: 5px;
+  }
+}
+.juegos-root .pv-cop__brand {
+  font: 700 max(1cqw, 7px) / 1 ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: 0.1em;
+  text-align: center;
+  color: #2a2f36;
+  opacity: 0.7;
+}
+.juegos-root .pv-cop__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6cqw;
+}
+.juegos-root .pv-cop--hand .pv-cop__grid {
+  gap: 4px;
+}
+.juegos-root .pv-btn {
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid #555d68;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f6f7f9, #a9b1bc);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.25);
+  font: 700 max(1.5cqw, 9px) / 1 ui-monospace, Menlo, Consolas, monospace;
+  color: #2a2f36;
+  cursor: pointer;
+}
+.juegos-root .pv-btn.is-past {
+  opacity: 0.45;
+}
+.juegos-root .pv-btn.is-lit {
+  border-color: #ffb43a;
+  background: radial-gradient(circle at 35% 30%, #fff3c8, #ffb43a);
+  box-shadow: 0 0 1.2cqw rgba(255, 180, 60, 0.9);
+  color: #4a2a00;
+}
+.juegos-root .pv-btn:disabled {
+  cursor: default;
+}
+.juegos-root .pv-btn:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+.juegos-root .pv-btn:not(:disabled):active {
+  transform: scale(0.92);
+}
+/* El botón grande: «abrir puertas», que aquí es bajarse. */
+.juegos-root .pv-exit {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 0.7cqw 0.2cqw;
+  border: 0.25cqw solid #5b1a1a;
+  border-radius: 0.8cqw;
+  background: radial-gradient(circle at 40% 30%, #ff6b5b, #a3201a);
+  font: inherit;
+  font-size: max(1.3cqw, 9px);
+  line-height: 1.15;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.5;
+}
+.juegos-root .pv-exit b {
+  font-size: max(1.35cqw, 9px);
+}
+.juegos-root .pv-exit.is-ready {
+  opacity: 1;
+  animation: pv-ready 0.9s ease-in-out infinite;
+}
+@keyframes pv-ready {
+  50% {
+    box-shadow:
+      0 0 0 0.5cqw rgba(255, 90, 70, 0.4),
+      0 0 2.4cqw rgba(255, 90, 70, 0.8);
+  }
+}
+
+/* --- Capas por encima de la escena: luz, viñeta y caída --- */
+.juegos-root .pv-light,
+.juegos-root .pv-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+.juegos-root .pv-light {
+  background: radial-gradient(70% 60% at 50% 0%, rgba(var(--glow), 0.12), transparent 70%);
+}
+.juegos-root .pv-vignette {
+  background: radial-gradient(120% 95% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55));
+}
+.juegos-root .pv-more--cab {
+  position: absolute;
+  left: 2%;
+  bottom: 3%;
+  z-index: 8;
+}
+.juegos-root .pv.is-tense .pv-light {
+  animation: pv-flicker 2.2s steps(1) infinite;
+}
+@keyframes pv-flicker {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  42% {
+    background-color: rgba(0, 0, 0, 0.35);
+  }
+  44% {
+    background-color: transparent;
+  }
+  71% {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  72% {
+    background-color: transparent;
+  }
+}
+/* Caída: luz de emergencia roja y el cuadro se va a negro con rayas que suben (caes). */
+.juegos-root .pv.is-fallen .pv-light {
+  background: radial-gradient(80% 80% at 50% 10%, rgba(255, 30, 30, 0.45), rgba(80, 0, 0, 0.6));
+  animation: pv-blink 0.5s steps(2) infinite;
+}
+.juegos-root .pv-fall {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.88);
+  color: #fff;
+  text-align: center;
+  animation: pv-fade 1.2s 0.7s both;
+}
+.juegos-root .pv-fall b {
+  font-family: var(--display);
+  font-size: clamp(26px, 4vw, 44px);
+  font-weight: 400;
+  color: #ff5a4a;
+  text-shadow: 0 0 20px rgba(255, 60, 40, 0.7);
+}
+.juegos-root .pv-fall small {
+  color: var(--muted);
+}
+.juegos-root .pv-fall__lines {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: repeating-linear-gradient(90deg, transparent 0 9%, rgba(255, 255, 255, 0.08) 9% 9.4%);
+  animation: pv-rush 0.25s linear infinite;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+}
+@keyframes pv-rush {
+  to {
+    background-position: 0 -120px;
+  }
+}
+@keyframes pv-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ============================== Rellanos ============================== */
+.juegos-root .pv-landing,
+.juegos-root .pv-hall {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--wall);
+}
+.juegos-root .pv-landing--lobby {
+  --wall: linear-gradient(180deg, #e9dfcf, #cdbfa8);
+  --ink: #3b2f22;
+}
+.juegos-root .pv-landing--office {
+  --wall: linear-gradient(180deg, #d9cbb0, #b39c7a);
+  --ink: #3b2f22;
+}
+.juegos-root .pv-landing--high {
+  --wall: linear-gradient(180deg, #4b5a72, #2e3a4f);
+  --ink: #f1e9d6;
+}
+.juegos-root .pv-landing--sky {
+  --wall: linear-gradient(180deg, #1b2440, #0e1426);
+  --ink: #f1e9d6;
+}
+.juegos-root .pv-landing--roof {
+  --wall: linear-gradient(180deg, #0b1030 0%, #2a2a6a 55%, #ff9a5a 100%);
+  --ink: #fff;
+}
+.juegos-root .pv-landing__floor {
+  position: absolute;
+  inset: auto 0 0;
+  height: 14%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.6));
+}
+.juegos-root .pv-landing__window,
+.juegos-root .pv-hall__window {
+  position: absolute;
+  overflow: hidden;
+  border: 4px solid rgba(0, 0, 0, 0.45);
+  border-radius: 4px;
+}
+.juegos-root .pv-landing__window {
+  inset: 12% 10% 30%;
+}
+.juegos-root .pv-hall__window {
+  left: 4%;
+  top: 14%;
+  width: 22%;
+  height: 46%;
+}
+.juegos-root .pv-sky {
+  position: absolute;
+  inset: 0;
+}
+.juegos-root .pv-sky--high {
+  background: linear-gradient(180deg, #2a3c78, #e9785a 75%, #ffc27a);
+}
+.juegos-root .pv-sky--sky {
+  background: linear-gradient(180deg, #050816, #14204a 70%, #2a3060);
+}
+.juegos-root .pv-sky--roof {
+  background: none;
+}
+.juegos-root .pv-city {
+  position: absolute;
+  inset: auto 0 0;
+  height: 100%;
+}
+.juegos-root .pv-city i {
+  position: absolute;
+  bottom: 0;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 6px, rgba(255, 220, 140, 0.55) 6px 8px),
+    #141a2e;
+  background-size: 100% 100%;
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 3px, transparent 3px 6px);
+  mask-image: repeating-linear-gradient(90deg, #000 0 3px, transparent 3px 6px);
+}
+.juegos-root .pv-sky--high .pv-city i {
+  background: #2a2036;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.juegos-root .pv-stars i {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #fff;
+  animation: pv-twinkle 2.4s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+@keyframes pv-twinkle {
+  50% {
+    opacity: 0.25;
+  }
+}
+.juegos-root .pv-plant {
+  position: absolute;
+  right: 8%;
+  bottom: 12%;
+  width: 14%;
+  height: 34%;
+  background:
+    radial-gradient(40% 30% at 30% 30%, #4f8a3a 60%, transparent 62%),
+    radial-gradient(40% 30% at 70% 26%, #5f9c46 60%, transparent 62%),
+    radial-gradient(45% 32% at 50% 50%, #3e7a30 60%, transparent 62%),
+    linear-gradient(180deg, transparent 62%, #7a4a2a 62% 66%, #5a3418 66%);
+}
+.juegos-root .pv-plant--hall {
+  right: 6%;
+  width: 10%;
+}
+.juegos-root .pv-plaque {
+  position: absolute;
+  left: 50%;
+  top: 4%;
+  translate: -50% 0;
+  display: grid;
+  justify-items: center;
+  padding: 2px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: clamp(9px, 1.1vw, 13px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.juegos-root .pv-plaque small {
+  color: #ffd25e;
+  font-weight: 700;
+}
+.juegos-root .pv-plaque--hall {
+  left: auto;
+  right: 4%;
+  top: 18%;
+  translate: none;
+  padding: 6px 14px;
+  font-size: clamp(11px, 1.3vw, 15px);
+}
+.juegos-root .pv-landing__people {
+  position: absolute;
+  inset: auto 6% 6%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 4%;
+}
+.juegos-root .pv-hall__people {
+  position: absolute;
+  left: 4%;
+  bottom: 4%;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  z-index: 3;
+}
+
+/* Personas: la foto como cabeza y un cuerpo del color de su nombre. */
+.juegos-root .pv-person {
+  display: inline-grid;
+  justify-items: center;
+}
+.juegos-root .pv-person .avatar,
+.juegos-root .pv-person img {
+  position: relative;
+  z-index: 1;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45);
+}
+.juegos-root .pv-person__body {
+  width: 64px;
+  height: 46px;
+  margin-top: -6px;
+  border-radius: 30px 30px 6px 6px;
+  background: linear-gradient(180deg, hsl(var(--h) 55% 45%), hsl(var(--h) 50% 28%));
+}
+.juegos-root .pv-person.is-small .pv-person__body {
+  width: 42px;
+  height: 32px;
+}
+.juegos-root .pv-person.is-me .pv-person__body {
+  box-shadow: 0 0 0 2px #ffd25e;
+}
+.juegos-root .pv-more {
+  align-self: center;
+  padding: 2px 6px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ============================== Desde fuera ============================== */
+.juegos-root .pv-outer__doors .pv-door {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  z-index: 3;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 4px),
+    linear-gradient(90deg, #8d97a5, #c9d0da 45%, #9aa4b2);
+  transition: translate 0.55s cubic-bezier(0.6, 0, 0.3, 1);
+}
+.juegos-root .pv-outer__doors .pv-door--l {
+  left: 0;
+}
+.juegos-root .pv-outer__doors .pv-door--r {
+  right: 0;
+  left: auto;
+}
+.juegos-root .pv.is-boarding .pv-outer__doors .pv-door--l {
+  translate: -100% 0;
+}
+.juegos-root .pv.is-boarding .pv-outer__doors .pv-door--r {
+  translate: 100% 0;
+}
+.juegos-root .pv-outer {
+  position: absolute;
+  left: 32%;
+  right: 32%;
+  top: 6%;
+  bottom: 14%;
+}
+.juegos-root .pv-outer .pv-display {
+  top: 0;
+  min-width: 62%;
+}
+.juegos-root .pv-outer__doors {
+  position: absolute;
+  inset: 26% 0 0;
+  overflow: hidden;
+  border: 6px solid #2b3038;
+  border-bottom: 0;
+  background: linear-gradient(180deg, #3a2a1c, #6b4a2c);
+  box-shadow: 0 0 0 3px #9aa4b2;
+}
+.juegos-root .pv-outer__cabin {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 4px;
+  background: radial-gradient(80% 60% at 50% 0%, rgba(var(--glow), 0.35), transparent 70%);
+}
+.juegos-root .pv-dust {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  background: radial-gradient(40% 50% at 50% 60%, rgba(180, 160, 140, 0.5), transparent 70%);
+  animation: pv-fade 1.8s reverse both;
+}
+
+/* Azotea: cielo, estrellas y destellos de celebración. */
+.juegos-root .pv.is-roof .pv-light {
+  background: radial-gradient(70% 70% at 50% 30%, rgba(120, 255, 180, 0.18), transparent 70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .pv *,
+  .juegos-root .pv .pv-room,
+  .juegos-root .pv .pv-hall {
+    animation: none !important;
+    transition: none !important;
+  }
+}

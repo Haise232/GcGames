@@ -1,0 +1,1357 @@
+/* Hacienda: la carta certificada que cae, el impreso oficial con el motivo, el sello, las monedas que vuelan al bote del
+   bingo y el banner de arriba con lo cobrado. */
+
+.hz {
+  --ink: #1b2233;
+  --muted: #5d6678;
+  --paper: #fbf7ec;
+  --red: #c8102e;
+  --blue: #1f4fbf;
+  --green: #138a4b;
+  --gold: #ffc400;
+  position: fixed;
+  inset: 0;
+  z-index: 10002;
+  /* Siempre se puede desplazar: en un móvil bajo la carta no cabe y los botones no pueden quedar fuera de la pantalla.
+     Con flex y margin: auto la carta va centrada si cabe y, si no, empieza arriba (sin cortarse). */
+  display: flex;
+  flex-direction: column;
+  padding: 52px 16px 24px;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  background: radial-gradient(ellipse at 50% 35%, rgba(40, 48, 72, 0.9), rgba(4, 6, 12, 0.94) 70%);
+  backdrop-filter: blur(6px);
+  animation: hz-fade 0.25s ease-out;
+}
+.hz *,
+.hz *::before,
+.hz *::after {
+  box-sizing: border-box;
+}
+.hz--done.hz--alarm {
+  animation: hz-thud 0.35s ease-out;
+}
+
+/* Luces de sirena (inspección, redada, pillado). */
+.hz__lights {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+.hz--alarm .hz__lights {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 30, 60, 0.55), transparent 55%),
+    radial-gradient(circle at 100% 0%, rgba(40, 110, 255, 0.55), transparent 55%);
+  animation: hz-siren 0.6s steps(1) infinite;
+}
+
+/* Cinta de arriba. */
+.hz__tape {
+  position: absolute;
+  top: 18px;
+  left: -5%;
+  right: -5%;
+  display: flex;
+  padding: 6px 0;
+  white-space: nowrap;
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: #111;
+  background: repeating-linear-gradient(-45deg, #ffd23f 0 18px, #ffbf00 18px 36px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  transform: rotate(-2deg);
+}
+.hz__tape span {
+  flex: none;
+  padding-right: 1em;
+  animation: hz-tape 18s linear infinite;
+}
+
+/* ---------- El sobre ---------- */
+.hz__env {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(320px, 82vw);
+  aspect-ratio: 16 / 10;
+  margin: calc(min(320px, 82vw) * -0.3125) 0 0 calc(min(320px, 82vw) * -0.5);
+  perspective: 800px;
+  animation: hz-drop 1.1s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+.hz:not(.hz--arrive) .hz__env {
+  animation: hz-env-out 0.8s ease-in 0.15s both;
+}
+.hz__env-back,
+.hz__env-front {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+}
+.hz__env-back {
+  background: #d9cfb6;
+}
+.hz__env-front {
+  display: grid;
+  place-content: center;
+  gap: 2px;
+  text-align: center;
+  color: var(--ink);
+  background:
+    linear-gradient(to top right, transparent 49.5%, rgba(0, 0, 0, 0.08) 50%) left / 50% 100% no-repeat,
+    linear-gradient(to top left, transparent 49.5%, rgba(0, 0, 0, 0.08) 50%) right / 50% 100% no-repeat,
+    #efe6cf;
+  border: 3px solid transparent;
+  border-image: repeating-linear-gradient(45deg, var(--red) 0 12px, #fff 12px 20px, var(--blue) 20px 32px, #fff 32px 40px) 6;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.55);
+}
+.hz__env-front small {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  color: var(--red);
+}
+.hz__env-front b {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(28px, 8vw, 38px);
+  letter-spacing: 0.08em;
+}
+.hz__wax {
+  position: absolute;
+  left: 50%;
+  bottom: -18px;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin-left: -23px;
+  border-radius: 50%;
+  font: 900 22px Georgia, serif;
+  color: #ffd9d9;
+  background: radial-gradient(circle at 35% 30%, #ff5a6e, var(--red) 55%, #7a0618);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.hz__env-flap {
+  position: absolute;
+  inset: 0 0 45% 0;
+  z-index: 1;
+  background: #e4d9bd;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: top;
+  transition: transform 0.45s ease-in;
+}
+.hz:not(.hz--arrive) .hz__env-flap {
+  transform: rotateX(180deg);
+}
+
+/* ---------- El impreso ---------- */
+.hz__letter {
+  position: relative;
+  flex: none;
+  width: min(440px, 100%);
+  margin: auto;
+  overflow: hidden;
+  padding: 20px 20px 14px;
+  border-radius: 4px;
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, transparent 33%, rgba(0, 0, 0, 0.035) 33.2%, transparent 34%, transparent 66%, rgba(0, 0, 0, 0.035) 66.2%, transparent 67%),
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.7), transparent 50%),
+    var(--paper);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.18),
+    0 2px 0 #e9e1cc,
+    0 4px 0 #ded5bc,
+    0 40px 90px rgba(0, 0, 0, 0.7);
+  text-align: center;
+}
+.hz--arrive .hz__letter {
+  visibility: hidden;
+}
+.hz:not(.hz--arrive) .hz__letter {
+  animation: hz-rise 0.75s cubic-bezier(0.2, 1.3, 0.4, 1) 0.25s both;
+}
+/* Ribete de seguridad, como en los impresos oficiales. */
+.hz__letter::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(27, 34, 51, 0.18);
+  outline: 3px double rgba(200, 16, 46, 0.25);
+  outline-offset: -1px;
+  pointer-events: none;
+}
+.hz__letter::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 6px;
+  background: linear-gradient(90deg, var(--red) 0 33%, var(--gold) 33% 66%, var(--red) 66%);
+}
+.hz__watermark {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  width: 230px;
+  opacity: 0.035;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  pointer-events: none;
+}
+.hz__watermark .hz__crest {
+  width: 100%;
+  height: auto;
+}
+.hz__crest {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  fill: var(--ink);
+}
+.hz__crest-dot {
+  fill: var(--gold);
+}
+
+.hz__head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0 10px;
+  border-bottom: 2px solid var(--ink);
+  text-align: left;
+}
+.hz__org {
+  flex: 1;
+  min-width: 0;
+}
+.hz__org b {
+  display: block;
+  font: 900 22px Georgia, 'Times New Roman', serif;
+  letter-spacing: 0.14em;
+}
+.hz__org small {
+  display: block;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--muted);
+}
+.hz__form {
+  display: grid;
+  place-items: center;
+  padding: 2px 8px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  line-height: 1;
+}
+.hz__form small {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.hz__form b {
+  font: 900 20px 'Courier New', monospace;
+}
+.hz__ref {
+  position: relative;
+  margin: 6px 0 0;
+  font: 11px 'Courier New', monospace;
+  color: var(--muted);
+  text-align: left;
+}
+
+.hz__kicker {
+  position: relative;
+  display: inline-block;
+  margin: 12px 0 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--ink);
+}
+.hz--alarm .hz__kicker {
+  background: var(--red);
+}
+.hz--free .hz__kicker {
+  background: var(--green);
+}
+.hz__title {
+  position: relative;
+  margin: 8px 0 10px;
+  font: 800 clamp(24px, 6.5vw, 30px) Georgia, 'Times New Roman', serif;
+  line-height: 1.1;
+}
+.hz--alarm .hz__title {
+  color: var(--red);
+}
+.hz--free .hz__title {
+  color: var(--green);
+}
+
+/* El motivo: por qué te cobran. */
+.hz__reason {
+  position: relative;
+  padding: 10px 12px;
+  border-left: 4px solid var(--red);
+  border-radius: 0 8px 8px 0;
+  text-align: left;
+  background: rgba(200, 16, 46, 0.07);
+}
+.hz--free .hz__reason {
+  border-color: var(--green);
+  background: rgba(19, 138, 75, 0.08);
+}
+.hz:not(.hz--alarm):not(.hz--free):not(.hz--deal) .hz__reason {
+  border-color: var(--blue);
+  background: rgba(31, 79, 191, 0.07);
+}
+.hz__reason b {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hz__reason p {
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Desglose. */
+.hz__table {
+  position: relative;
+  margin: 12px 0 0;
+  text-align: left;
+}
+.hz__table div {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px 0;
+  font-size: 14px;
+}
+.hz__table div::after {
+  content: '';
+  order: 1;
+  flex: 1;
+  border-bottom: 2px dotted rgba(27, 34, 51, 0.25);
+}
+.hz__table dt {
+  color: var(--muted);
+}
+.hz__table dd {
+  order: 2;
+  margin: 0;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.hz__owe {
+  position: relative;
+  margin: 12px 0 0;
+  padding: 10px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: #fff;
+}
+.hz__owe small {
+  display: block;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hz__owe b {
+  display: block;
+  font: 900 clamp(24px, 7.5vw, 40px) 'Courier New', monospace;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--red);
+}
+.hz__owe span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.hz__owe--free b {
+  color: var(--green);
+}
+
+/* La declaración: pagar o declarar de menos. */
+.hz__choices {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+.hz__choices button {
+  display: grid;
+  gap: 2px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+.hz__choices button:hover {
+  transform: translateY(-2px);
+}
+.hz__choices b {
+  font-size: 17px;
+}
+.hz__choices small {
+  font-size: 12px;
+  opacity: 0.85;
+}
+.hz__pay {
+  border: 0;
+  color: #fff;
+  background: linear-gradient(180deg, #2e3a52, #1b2233);
+  box-shadow: 0 4px 0 #0c1120;
+}
+.hz__fraud {
+  border: 2px dashed var(--red);
+  color: var(--red);
+  background: #fff4f1;
+  animation: hz-wiggle 2.4s ease-in-out 1.5s infinite;
+}
+.hz__choices button:focus-visible,
+.hz__ok:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+.hz__timer {
+  position: relative;
+  margin-top: 12px;
+}
+.hz__timer i {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--red) calc(var(--k) * 100%), rgba(27, 34, 51, 0.12) 0);
+}
+.hz__timer span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.hz__error {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--red);
+}
+
+/* El inspector revisa los papeles. */
+.hz__check {
+  margin-top: 16px;
+}
+.hz__check p {
+  margin: 8px 0 0;
+  font-weight: 700;
+  animation: hz-blink 0.9s ease-in-out infinite;
+}
+.hz__papers {
+  position: relative;
+  height: 110px;
+}
+.hz__papers i {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 70px;
+  height: 90px;
+  margin-left: -35px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(0deg, #fff 0 9px, #d7dbe3 9px 10px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  animation: hz-shuffle 1.2s ease-in-out infinite;
+}
+.hz__papers i:nth-child(2) {
+  animation-delay: -0.4s;
+}
+.hz__papers i:nth-child(3) {
+  animation-delay: -0.8s;
+}
+.hz__lupa {
+  position: absolute;
+  top: 26px;
+  left: 50%;
+  font-size: 46px;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+  animation: hz-lupa 1.3s ease-in-out infinite alternate;
+}
+
+/* El sello de tinta: cae sobre el total, con bordes gastados. */
+.hz__stamp {
+  position: absolute;
+  top: -14px;
+  right: -10px;
+  z-index: 2;
+  pointer-events: none;
+  transform: rotate(12deg);
+  animation: hz-stamp 0.4s cubic-bezier(0.5, 0, 0.6, 1.4) both;
+}
+.hz__stamp span {
+  display: block;
+  padding: 2px 12px;
+  border: 4px double currentColor;
+  border-radius: 8px;
+  font: 900 clamp(20px, 6vw, 26px) Impact, 'Arial Black', sans-serif;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: rgba(200, 16, 46, 0.88);
+  mix-blend-mode: multiply;
+  -webkit-mask-image: radial-gradient(circle at 30% 40%, #000 55%, rgba(0, 0, 0, 0.55) 70%, #000 85%),
+    repeating-linear-gradient(20deg, #000 0 3px, rgba(0, 0, 0, 0.75) 3px 5px);
+  mask-image: radial-gradient(circle at 30% 40%, #000 55%, rgba(0, 0, 0, 0.55) 70%, #000 85%),
+    repeating-linear-gradient(20deg, #000 0 3px, rgba(0, 0, 0, 0.75) 3px 5px);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.hz__stamp--escapado span {
+  color: rgba(19, 138, 75, 0.88);
+}
+.hz__stamp--tramo span,
+.hz__stamp--auto span {
+  color: rgba(31, 79, 191, 0.88);
+}
+
+/* Las monedas salen de la cifra y se van hacia arriba, al bote. */
+.hz__coins i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6c8, #ffc83d 50%, #b97c0e);
+  box-shadow: 0 0 8px rgba(255, 196, 64, 0.8);
+  opacity: 0;
+  animation: hz-coin 1s cubic-bezier(0.3, 0.6, 0.6, 1) calc(0.5s + var(--i) * 0.07s) both;
+}
+.hz__ok {
+  position: relative;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(180deg, #2e3a52, #1b2233);
+  box-shadow: 0 4px 0 #0c1120;
+  cursor: pointer;
+  animation: hz-fade 0.3s ease-out 1.4s both;
+}
+.hz--free .hz__ok {
+  background: linear-gradient(180deg, #1aa35b, var(--green));
+  box-shadow: 0 4px 0 #0b5a31;
+}
+
+/* Firma y código de barras. */
+.hz__foot {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(27, 34, 51, 0.2);
+  text-align: left;
+}
+.hz__sign {
+  display: block;
+  font: italic 26px 'Brush Script MT', 'Segoe Script', cursive;
+  line-height: 1;
+  color: var(--blue);
+  transform: rotate(-4deg);
+}
+.hz__foot small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+}
+.hz__barcode {
+  width: 120px;
+  height: 28px;
+  background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 4px, var(--ink) 4px 5px, transparent 5px 8px, var(--ink) 8px 11px, transparent 11px 12px);
+  opacity: 0.85;
+}
+
+/* Móviles bajos: carta más compacta (sin marca de agua, referencia ni firma). */
+@media (max-height: 760px) {
+  .hz {
+    padding-top: 44px;
+  }
+  .hz__letter {
+    padding: 14px 14px 10px;
+  }
+  .hz__watermark,
+  .hz__ref,
+  .hz__foot {
+    display: none;
+  }
+  .hz__head {
+    padding-bottom: 6px;
+  }
+  .hz__kicker {
+    margin-top: 8px;
+  }
+  .hz__title {
+    margin: 4px 0 6px;
+    font-size: 22px;
+  }
+  .hz__reason {
+    padding: 6px 10px;
+  }
+  .hz__reason p {
+    font-size: 13px;
+  }
+  .hz__owe {
+    margin-top: 8px;
+    padding: 6px;
+  }
+  .hz__choices {
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .hz__choices button {
+    min-height: 46px;
+    padding: 7px 12px;
+  }
+  .hz__choices b {
+    font-size: 15px;
+  }
+  .hz__choices small {
+    font-size: 11px;
+  }
+}
+
+/* ---------- Banner de arriba ---------- */
+.hzb {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  z-index: 10003;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(460px, calc(100% - 32px));
+  padding: 12px 14px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 16px;
+  font: inherit;
+  text-align: left;
+  color: #fff;
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.04) 0 10px, transparent 10px 20px),
+    linear-gradient(135deg, #b30f2a, #6e0717);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+    0 18px 50px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  transform: translateX(-50%);
+  animation:
+    hzb-in 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both,
+    hzb-out 0.45s ease-in 8.5s forwards;
+}
+.hzb *,
+.hzb *::before,
+.hzb *::after {
+  box-sizing: border-box;
+}
+.hzb--tramo,
+.hzb--auto {
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.04) 0 10px, transparent 10px 20px),
+    linear-gradient(135deg, #24345e, #111a33);
+}
+.hzb__shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.25) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: hzb-shine 1.2s ease-in-out 0.5s;
+  pointer-events: none;
+}
+.hzb__seal {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #fbf7ec;
+  box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.6);
+  animation: hzb-seal 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) 0.2s both;
+}
+.hzb__seal .hz__crest {
+  width: 30px;
+  height: 30px;
+  fill: #1b2233;
+}
+.hzb__seal .hz__crest-dot {
+  fill: #ffc400;
+}
+.hzb__text {
+  flex: 1;
+  min-width: 0;
+}
+.hzb__text small {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.hzb__text b {
+  display: block;
+  font: 900 26px 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  animation: hzb-shake 0.4s ease-in-out 0.6s 2;
+}
+.hzb__why {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.25;
+  color: #ffd36a;
+}
+.hzb__pot {
+  display: grid;
+  place-items: center;
+  flex: none;
+  font-size: 11px;
+  opacity: 0.9;
+}
+.hzb__ball {
+  font-size: 26px;
+  animation: hzb-gulp 0.25s ease-out 1.1s 4 alternate;
+}
+.hzb__coins i {
+  position: absolute;
+  top: 50%;
+  left: 90px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6c8, #ffc83d 50%, #b97c0e);
+  opacity: 0;
+  animation: hzb-coin 0.8s ease-in calc(0.6s + var(--i) * 0.08s) both;
+}
+.hzb__timer {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: rgba(255, 210, 106, 0.8);
+  transform-origin: left;
+  animation: hzb-timer 9s linear both;
+}
+
+/* ---------- Soborno ---------- */
+.hz__bribe-btn {
+  border: 2px solid #b8860b;
+  color: #5a3d00;
+  background: linear-gradient(180deg, #fff3c4, #ffd76a);
+  box-shadow: 0 4px 0 #b8860b;
+}
+.hz__bribe {
+  margin-top: 14px;
+}
+.hz__bribe p {
+  margin: 8px 0 0;
+  font-weight: 700;
+  animation: hz-blink 0.9s ease-in-out infinite;
+}
+.hz__desk {
+  position: relative;
+  height: 120px;
+  border-radius: 10px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, transparent 62%, #6b4423 62%, #4e3018),
+    linear-gradient(180deg, #e9e2cf, #d9cfb6);
+}
+.hz__cash {
+  position: absolute;
+  left: 8%;
+  bottom: 30px;
+  display: grid;
+  place-items: center;
+  width: 70px;
+  height: 44px;
+  border-radius: 4px;
+  background: #f4ecd6;
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.35);
+  animation: hz-slide-cash 1.6s cubic-bezier(0.5, 0, 0.3, 1) 0.2s both;
+}
+.hz__cash i {
+  position: absolute;
+  inset: -6px 10px auto;
+  height: 16px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(90deg, #4f9d5d 0 10px, #3e8a4c 10px 12px);
+  transform: rotate(-4deg);
+}
+.hz__cash b {
+  position: relative;
+  font: 900 20px Georgia, serif;
+  color: #3e8a4c;
+}
+.hz__agent {
+  position: absolute;
+  right: 8%;
+  bottom: 30px;
+  font-size: 58px;
+  line-height: 1;
+}
+.hz__think {
+  position: absolute;
+  top: -18px;
+  left: -26px;
+  padding: 2px 6px;
+  border-radius: 50%;
+  font-size: 24px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  animation: hz-think 0.9s ease-in-out 1.6s infinite alternate both;
+}
+.hz--deal .hz__kicker {
+  color: #3a2700;
+  background: var(--gold);
+}
+.hz--deal .hz__title {
+  color: #9a6a00;
+}
+.hz--deal .hz__reason {
+  border-color: #b8860b;
+  background: rgba(255, 196, 0, 0.12);
+}
+.hz--deal .hz__owe b {
+  color: #9a6a00;
+}
+.hz__stamp--sobornado span {
+  color: rgba(184, 134, 11, 0.9);
+}
+.hz__cuffs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-align: left;
+  color: #fff;
+  background: #1b2233;
+}
+.hz__cuffs span {
+  font-size: 30px;
+  animation: hz-cuffs 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) 0.8s both;
+}
+.hz__cuffs p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* ---------- La cárcel ---------- */
+.jail {
+  position: fixed;
+  inset: 0;
+  z-index: 10004;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  background: #0b0d12;
+  animation: hz-fade 0.3s ease-out;
+}
+.jail *,
+.jail *::before,
+.jail *::after {
+  box-sizing: border-box;
+}
+.jail__wall {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(0deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0.6)),
+    repeating-linear-gradient(0deg, #2b2a30 0 2px, transparent 2px 34px),
+    repeating-linear-gradient(90deg, #2b2a30 0 2px, transparent 2px 70px),
+    #45434d;
+}
+.jail__tally,
+.jail__graffiti {
+  position: absolute;
+  font-family: 'Comic Sans MS', 'Segoe Print', cursive;
+  color: rgba(255, 255, 255, 0.35);
+}
+.jail__tally {
+  top: 18%;
+  left: 6%;
+  font-size: 34px;
+  transform: rotate(-6deg);
+}
+.jail__graffiti {
+  bottom: 12%;
+  right: 6%;
+  font-size: 16px;
+  transform: rotate(-4deg);
+}
+.jail__lamp {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 90px;
+  background: #222;
+  transform-origin: top;
+  animation: jail-swing 3s ease-in-out infinite alternate;
+}
+.jail__lamp i {
+  position: absolute;
+  left: -9px;
+  bottom: -18px;
+  width: 20px;
+  height: 24px;
+  border-radius: 50% 50% 45% 45%;
+  background: radial-gradient(circle at 50% 40%, #fffbe0, #ffd86b 60%, #c9a13a);
+  box-shadow: 0 0 30px 10px rgba(255, 220, 120, 0.45);
+}
+.jail__lamp span {
+  position: absolute;
+  top: 100px;
+  left: -180px;
+  width: 360px;
+  height: 100vh;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 225, 140, 0.18), transparent 60%);
+  clip-path: polygon(45% 0, 55% 0, 100% 100%, 0 100%);
+  pointer-events: none;
+}
+
+.jail__card {
+  position: relative;
+  z-index: 3;
+  flex: none;
+  margin: auto;
+  width: min(380px, 100%);
+  padding: 18px 18px 16px;
+  border-radius: 18px;
+  text-align: center;
+  color: #f1f5f9;
+  background: rgba(14, 16, 24, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(3px);
+  animation: hz-rise 0.6s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.jail__prisoner {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  margin: 0 auto 6px;
+  width: 120px;
+}
+.jail__face {
+  position: relative;
+  z-index: 1;
+  font-size: 54px;
+  line-height: 1;
+  animation: jail-sob 1.6s ease-in-out infinite;
+}
+.jail__body {
+  width: 92px;
+  height: 46px;
+  margin-top: -6px;
+  border-radius: 40px 40px 8px 8px;
+  background: repeating-linear-gradient(0deg, #f2f2f2 0 8px, #1a1a1a 8px 16px);
+}
+.jail__plate {
+  margin-top: -14px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font: 800 11px 'Courier New', monospace;
+  color: #111;
+  background: #f1efe6;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+}
+.jail__kicker {
+  margin: 10px 0 0;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #ff6b7a;
+}
+.jail__title {
+  margin: 4px 0 8px;
+  font: 900 clamp(30px, 9vw, 40px) Impact, 'Arial Black', sans-serif;
+  letter-spacing: 0.06em;
+}
+.jail__clock {
+  display: inline-grid;
+  padding: 6px 18px;
+  border: 3px solid #ffd23f;
+  border-radius: 10px;
+  background: #000;
+}
+.jail__clock small {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #ffd23f;
+}
+.jail__clock b {
+  font: 900 40px 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+  color: #ff3b4f;
+  text-shadow: 0 0 12px rgba(255, 59, 79, 0.7);
+}
+.jail__text {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: #c3cad8;
+}
+.jail__ok {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 14px;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 800;
+  color: #111;
+  background: linear-gradient(180deg, #ffe08a, #ffbf2e);
+  cursor: pointer;
+  animation: hz-fade 0.3s ease-out 1.2s both;
+}
+.jail__ok:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+.jail__bars {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: space-evenly;
+  border-top: 18px solid #50555f;
+  border-bottom: 18px solid #50555f;
+  pointer-events: none;
+  animation: jail-bars 0.45s cubic-bezier(0.6, 0, 0.9, 0.6) 0.3s both;
+}
+.jail__bars i {
+  width: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #3c414b, #c9ced8 40%, #5d6370);
+  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.7);
+}
+.jail__sentence {
+  height: 8px;
+  margin: 10px auto 0;
+  width: 80%;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+}
+.jail__sentence i {
+  display: block;
+  height: 100%;
+  width: calc(var(--k) * 100%);
+  background: linear-gradient(90deg, #ffd23f, #3ddc84);
+  transition: width 1s linear;
+}
+/* Libre: los barrotes suben y la celda se ilumina. */
+.jail--free .jail__bars {
+  animation: jail-bars-up 0.9s cubic-bezier(0.5, 0, 0.3, 1) both;
+}
+.jail--free .jail__kicker {
+  color: #3ddc84;
+}
+.jail--free .jail__title {
+  color: #3ddc84;
+  text-shadow: 0 0 20px rgba(61, 220, 132, 0.6);
+}
+.jail--free .jail__lamp i {
+  box-shadow: 0 0 60px 30px rgba(255, 230, 150, 0.6);
+}
+
+@keyframes jail-bars-up {
+  to {
+    transform: translateY(-105%);
+  }
+}
+@keyframes hz-slide-cash {
+  0% {
+    transform: translateX(0) rotate(-6deg);
+  }
+  70% {
+    transform: translateX(min(180px, 42vw)) rotate(4deg);
+  }
+  100% {
+    transform: translateX(min(160px, 38vw)) rotate(0);
+  }
+}
+@keyframes hz-think {
+  from {
+    transform: translateY(0) scale(0.9);
+  }
+  to {
+    transform: translateY(-4px) scale(1.05);
+  }
+}
+@keyframes hz-cuffs {
+  from {
+    transform: scale(3) rotate(-30deg);
+    opacity: 0;
+  }
+}
+@keyframes jail-swing {
+  from {
+    transform: rotate(-9deg);
+  }
+  to {
+    transform: rotate(9deg);
+  }
+}
+@keyframes jail-sob {
+  50% {
+    transform: translateY(2px) rotate(-3deg);
+  }
+}
+@keyframes jail-bars {
+  from {
+    transform: translateY(-105%);
+  }
+}
+
+@keyframes hz-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes hz-thud {
+  25% {
+    transform: translate(-6px, 4px);
+  }
+  50% {
+    transform: translate(5px, -3px);
+  }
+  75% {
+    transform: translate(-3px, 2px);
+  }
+}
+@keyframes hz-siren {
+  50% {
+    opacity: 1;
+    filter: hue-rotate(180deg);
+  }
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+}
+@keyframes hz-tape {
+  to {
+    transform: translateX(-100%);
+  }
+}
+@keyframes hz-drop {
+  0% {
+    transform: translateY(-120vh) rotate(-25deg);
+  }
+  55% {
+    transform: translateY(0) rotate(4deg);
+  }
+  70% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  85% {
+    transform: translateY(0) rotate(2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+}
+@keyframes hz-env-out {
+  to {
+    opacity: 0;
+    transform: translateY(45vh) scale(0.8);
+  }
+}
+@keyframes hz-rise {
+  from {
+    opacity: 0;
+    transform: translateY(140px) scale(0.5) rotate(4deg);
+  }
+}
+@keyframes hz-wiggle {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  10% {
+    transform: rotate(-3deg);
+  }
+  20% {
+    transform: rotate(3deg);
+  }
+  30% {
+    transform: rotate(0);
+  }
+}
+@keyframes hz-blink {
+  50% {
+    opacity: 0.45;
+  }
+}
+@keyframes hz-shuffle {
+  0%,
+  100% {
+    transform: translateX(-40px) rotate(-10deg);
+  }
+  50% {
+    transform: translateX(40px) rotate(10deg);
+  }
+}
+@keyframes hz-lupa {
+  from {
+    transform: translate(-90%, 0) rotate(-15deg);
+  }
+  to {
+    transform: translate(-10%, 20px) rotate(15deg);
+  }
+}
+@keyframes hz-stamp {
+  from {
+    opacity: 0;
+    transform: rotate(12deg) scale(3.5);
+  }
+}
+@keyframes hz-coin {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--x) * 22px), -320px) scale(0.5) rotate(540deg);
+  }
+}
+@keyframes hzb-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -140%) scale(0.9);
+  }
+}
+@keyframes hzb-out {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -140%);
+  }
+}
+@keyframes hzb-shine {
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes hzb-seal {
+  from {
+    transform: scale(0) rotate(-180deg);
+  }
+}
+@keyframes hzb-shake {
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+@keyframes hzb-gulp {
+  to {
+    transform: scale(1.3);
+  }
+}
+@keyframes hzb-coin {
+  0% {
+    opacity: 0;
+    transform: translate(0, -50%);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+    transform: translate(calc(min(460px, 100vw - 32px) - 160px), -50%) scale(0.5);
+  }
+}
+@keyframes hzb-timer {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hz,
+  .hz__lights,
+  .hz__tape span,
+  .hz__env,
+  .hz:not(.hz--arrive) .hz__env,
+  .hz:not(.hz--arrive) .hz__letter,
+  .hz__fraud,
+  .hz__papers i,
+  .hz__lupa,
+  .hz__check p,
+  .hz__stamp,
+  .hz__coins i,
+  .hz__ok,
+  .hzb,
+  .hzb__shine,
+  .hzb__seal,
+  .hzb__text b,
+  .hzb__ball,
+  .hzb__coins i,
+  .hz__cash,
+  .hz__think,
+  .hz__cuffs span,
+  .jail,
+  .jail__lamp,
+  .jail__card,
+  .jail__face,
+  .jail__ok,
+  .jail__bars {
+    animation: none;
+  }
+  .hz:not(.hz--arrive) .hz__env,
+  .hz__coins,
+  .hzb__coins,
+  .jail--free .jail__bars {
+    display: none;
+  }
+}

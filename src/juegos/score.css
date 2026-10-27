@@ -1,0 +1,721 @@
+/* Escrito a mano (no generado): la pantalla del Score. Usa las variables del selector (hub.css): superficies planas,
+   borde fino y el latón para lo importante. Oro, plata y bronce solo en el podio y en los tres primeros puestos. */
+
+.juegos-root .app.sb {
+  --gold: #f5c84c;
+  --silver: #c9d3db;
+  --bronze: #d38a55;
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+/* --- Cabecera --- */
+.juegos-root .sb-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+}
+.juegos-root .sb-top__title {
+  flex: 1;
+  min-width: 0;
+}
+.juegos-root .sb-top__title h1 {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: clamp(32px, 4vw, 46px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--ivory);
+}
+.juegos-root .sb-top__title p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.juegos-root .sb-reset {
+  position: relative;
+  display: grid;
+  min-width: 150px;
+  padding: 8px 14px 12px;
+  border: 1px solid var(--hub-line);
+  border-radius: 14px;
+  background: var(--hub-surface);
+  overflow: hidden;
+}
+.juegos-root .sb-reset small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.juegos-root .sb-reset b {
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ivory);
+}
+/* Lo que queda de semana, como una barra que se vacía. */
+.juegos-root .sb-reset i {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 4px;
+  width: calc(var(--left) * 100%);
+  background: linear-gradient(90deg, var(--brass), var(--gold));
+}
+
+.juegos-root .sb-empty {
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--hub-line-hi);
+  border-radius: 14px;
+  color: var(--muted);
+}
+
+/* --- Podio de esta semana --- */
+.juegos-root .sb-podium {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: clamp(8px, 2vw, 22px);
+  max-width: 760px;
+  width: 100%;
+  margin: 8px auto 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .sb-podium__step {
+  --c: var(--silver);
+  --h: 86px;
+  animation: sb-rise 0.6s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+.juegos-root .sb-podium__step--1 {
+  --c: var(--gold);
+  --h: 128px;
+  animation-delay: 0.15s;
+}
+.juegos-root .sb-podium__step--3 {
+  --c: var(--bronze);
+  --h: 62px;
+  animation-delay: 0.3s;
+}
+.juegos-root .sb-podium__step > button,
+.juegos-root .sb-podium__step.is-empty {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ivory);
+  text-align: center;
+  cursor: pointer;
+}
+.juegos-root .sb-podium__step.is-empty {
+  cursor: default;
+  opacity: 0.45;
+}
+.juegos-root .sb-podium__crown {
+  font-size: 30px;
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 0 0 16px rgba(245, 200, 76, 0.7);
+  animation: sb-bob 2.4s ease-in-out infinite;
+}
+.juegos-root .sb-podium__avatar {
+  display: inline-grid;
+  padding: 3px;
+  border-radius: 50%;
+  background: conic-gradient(from 210deg, var(--c), #fff 25%, var(--c) 50%, rgba(0, 0, 0, 0.3) 75%, var(--c));
+  box-shadow: 0 0 24px color-mix(in srgb, var(--c) 45%, transparent);
+}
+.juegos-root .sb-podium__avatar > * {
+  border-radius: 50%;
+}
+.juegos-root .sb-podium__seat {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: 2px dashed var(--hub-line-hi);
+  border-radius: 50%;
+  font-weight: 800;
+  color: var(--muted);
+}
+.juegos-root .sb-podium__name {
+  max-width: 100%;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.juegos-root .sb-podium__name small {
+  color: var(--brass);
+}
+.juegos-root .sb-podium__money {
+  font-size: clamp(16px, 2.2vw, 22px);
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .sb-podium__step--1 .sb-podium__money {
+  color: var(--gold);
+}
+.juegos-root .sb-podium__step small.up,
+.juegos-root .sb-podium__step small.down {
+  font-size: 12px;
+}
+.juegos-root .sb-podium__block {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: var(--h);
+  margin-top: 6px;
+  border-radius: 14px 14px 4px 4px;
+  font-family: var(--display);
+  font-size: clamp(30px, 5vw, 46px);
+  color: rgba(0, 0, 0, 0.55);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 90%, #fff), color-mix(in srgb, var(--c) 70%, #000));
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    0 10px 30px color-mix(in srgb, var(--c) 25%, transparent);
+}
+.juegos-root .sb-podium__step.is-empty .sb-podium__block {
+  background: var(--hub-surface-hi);
+  color: var(--muted);
+  box-shadow: none;
+}
+.juegos-root .sb-podium__step.is-me .sb-podium__block {
+  outline: 2px solid var(--ivory);
+  outline-offset: 2px;
+}
+.juegos-root .sb-podium__step > button:focus-visible {
+  outline: 3px solid var(--ivory);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+/* --- Tu tarjeta --- */
+.juegos-root .sb-me {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border: 1px solid color-mix(in srgb, var(--brass) 55%, transparent);
+  border-radius: var(--hub-radius);
+  background:
+    radial-gradient(ellipse at 0% 50%, rgba(200, 162, 75, 0.18), transparent 60%),
+    var(--hub-surface);
+}
+.juegos-root .sb-me__rank {
+  display: grid;
+  justify-items: center;
+  min-width: 74px;
+  padding-right: 16px;
+  border-right: 1px solid var(--hub-line);
+}
+.juegos-root .sb-me__rank b {
+  font-family: var(--display);
+  font-size: 38px;
+  line-height: 1;
+  color: var(--brass);
+}
+.juegos-root .sb-me small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.juegos-root .sb-me__money {
+  margin: 0;
+  font-size: clamp(20px, 2.6vw, 28px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--ivory);
+}
+.juegos-root .sb-me__money small {
+  margin-left: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.juegos-root .sb-me__chase {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--ivory);
+  opacity: 0.85;
+}
+.juegos-root .sb-me__today {
+  display: grid;
+  justify-items: end;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--hub-surface-hi);
+}
+.juegos-root .sb-me__today b {
+  font-variant-numeric: tabular-nums;
+  color: var(--ivory);
+}
+.juegos-root .sb-me__today.is-up b {
+  color: var(--hub-up);
+}
+.juegos-root .sb-me__today.is-down b {
+  color: var(--hub-down);
+}
+
+/* --- Clasificación y gráfica --- */
+.juegos-root .sb-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(16px, 2.5vw, 30px);
+}
+.juegos-root .sb-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .sb-list li {
+  animation: sb-in 0.4s ease-out calc(var(--i) * 0.035s) both;
+}
+.juegos-root .sb-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 34px 38px minmax(0, 1fr) 96px minmax(120px, auto);
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 14px;
+  border: 1px solid var(--hub-line);
+  border-radius: 14px;
+  background: var(--hub-surface);
+  color: var(--ivory);
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    transform 0.15s;
+}
+.juegos-root .sb-row > :not(.sb-row__bar) {
+  position: relative;
+}
+/* Barra de fondo: saldo comparado con el del líder. */
+.juegos-root .sb-row__bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--w) * 100%);
+  background: linear-gradient(90deg, rgba(200, 162, 75, 0.12), rgba(200, 162, 75, 0.02));
+  transform-origin: left;
+  animation: sb-grow 0.8s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+.juegos-root .sb-row:hover {
+  border-color: var(--hub-line-hi);
+  transform: translateX(2px);
+}
+.juegos-root .sb-row.is-selected {
+  border-color: var(--brass);
+  background: rgba(200, 162, 75, 0.08);
+}
+.juegos-root .sb-row--me {
+  box-shadow: inset 3px 0 0 var(--brass);
+}
+.juegos-root .sb-row:focus-visible {
+  outline: 3px solid var(--ivory);
+  outline-offset: 2px;
+}
+.juegos-root .sb-row__rank {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  background: var(--hub-surface-hi);
+}
+.juegos-root .sb-row__rank--1 {
+  color: #2a1d00;
+  background: var(--gold);
+}
+.juegos-root .sb-row__rank--2 {
+  color: #1d242a;
+  background: var(--silver);
+}
+.juegos-root .sb-row__rank--3 {
+  color: #2a1406;
+  background: var(--bronze);
+}
+.juegos-root .sb-row__name {
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.juegos-root .sb-row__name > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.juegos-root .sb-row__name small {
+  color: var(--brass);
+}
+.juegos-root .sb-row__name em {
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+}
+.juegos-root .sb-row__money {
+  display: grid;
+  justify-items: end;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .sb-row__money b {
+  font-size: 18px;
+}
+.juegos-root .sb-row__money small {
+  font-size: 12px;
+}
+/* Subidas y bajadas (también las usa el resumen del Score en el selector). */
+.juegos-root .up {
+  color: var(--hub-up, #5fd38d);
+}
+.juegos-root .down {
+  color: var(--hub-down, #ff9c94);
+}
+
+.juegos-root .sb-spark {
+  width: 96px;
+  height: 28px;
+  overflow: visible;
+  color: var(--hub-up);
+}
+.juegos-root .sb-spark.is-down {
+  color: var(--hub-down);
+}
+.juegos-root .sb-spark polyline {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.juegos-root .sb-spark circle {
+  fill: currentColor;
+}
+
+.juegos-root .sb-side {
+  display: grid;
+  gap: 16px;
+  position: sticky;
+  top: 16px;
+}
+.juegos-root .sb-card {
+  padding: 16px;
+  border: 1px solid var(--hub-line);
+  border-radius: var(--hub-radius);
+  background: var(--hub-surface);
+}
+.juegos-root .sb-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-size: 17px;
+  color: var(--ivory);
+}
+
+.juegos-root .sb-chart {
+  margin: 0;
+  color: var(--hub-up);
+}
+.juegos-root .sb-chart.is-down {
+  color: var(--hub-down);
+}
+.juegos-root .sb-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: pan-y;
+}
+.juegos-root .sb-chart__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  min-height: 1.6em;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.juegos-root .sb-chart__head b {
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ivory);
+}
+.juegos-root .sb-chart__head small {
+  margin-left: 6px;
+  font-size: 13px;
+}
+.juegos-root .sb-chart__grid line {
+  stroke: rgba(241, 233, 214, 0.08);
+}
+.juegos-root .sb-chart__grid text,
+.juegos-root .sb-chart__day {
+  font-size: 12px;
+  fill: var(--muted);
+}
+.juegos-root .sb-chart__day {
+  font-weight: 600;
+}
+.juegos-root .sb-chart__base {
+  stroke: rgba(241, 233, 214, 0.4);
+  stroke-dasharray: 4 4;
+}
+.juegos-root .sb-chart__cross {
+  stroke: rgba(241, 233, 214, 0.35);
+}
+.juegos-root .sb-chart__line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.juegos-root .sb-chart__dot {
+  fill: currentColor;
+  stroke: var(--baize-deep);
+  stroke-width: 2;
+}
+.juegos-root .sb-chart__hit {
+  fill: transparent;
+}
+
+.juegos-root .sb-last {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .sb-last__item {
+  display: grid;
+  grid-template-columns: 32px 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: var(--hub-surface-hi);
+}
+.juegos-root .sb-last__name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ivory);
+}
+.juegos-root .sb-last__item b {
+  font-variant-numeric: tabular-nums;
+  color: var(--ivory);
+}
+
+@keyframes sb-rise {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+@keyframes sb-bob {
+  50% {
+    transform: translateY(-4px) rotate(-6deg);
+  }
+}
+@keyframes sb-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes sb-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@media (max-width: 1000px) {
+  .juegos-root .sb-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .juegos-root .sb-side {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .juegos-root .sb-reset {
+    min-width: 0;
+    width: 100%;
+  }
+  .juegos-root .sb-podium__step {
+    --h: 64px;
+  }
+  .juegos-root .sb-podium__step--1 {
+    --h: 92px;
+  }
+  .juegos-root .sb-podium__step--3 {
+    --h: 46px;
+  }
+  .juegos-root .sb-me {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px 14px;
+  }
+  .juegos-root .sb-me__rank {
+    min-width: 58px;
+    padding-right: 12px;
+  }
+  .juegos-root .sb-me__today {
+    grid-column: 1 / -1;
+    grid-auto-flow: column;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .juegos-root .sb-row {
+    grid-template-columns: 28px 34px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  .juegos-root .sb-row .sb-spark {
+    display: none;
+  }
+  .juegos-root .sb-row__money b {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .sb-podium__step,
+  .juegos-root .sb-podium__crown,
+  .juegos-root .sb-list li,
+  .juegos-root .sb-row__bar {
+    animation: none;
+  }
+  .juegos-root .sb-row {
+    transition: none;
+  }
+}
+
+/* ============================== Activos ============================== */
+.juegos-root .sb-board__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.juegos-root .sb-modes {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.3);
+}
+.juegos-root .sb-modes button {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.juegos-root .sb-modes button.is-on {
+  background: #ffd25e;
+  color: #1b1405;
+}
+.juegos-root .sb-modes__note {
+  margin: 4px 0 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.juegos-root .sb-row__assets {
+  color: var(--muted) !important;
+}
+.juegos-root .sb-row__plus {
+  font-style: normal;
+  color: #d9b45a;
+}
+.juegos-root .sb-me__assets {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #d9b45a;
+}
+.juegos-root .sb-wealth {
+  display: grid;
+  gap: 10px;
+}
+.juegos-root .sb-wealth__total {
+  display: grid;
+  margin: 0;
+}
+.juegos-root .sb-wealth__total small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.juegos-root .sb-wealth__total b {
+  font-family: var(--display);
+  font-size: 30px;
+  font-weight: 400;
+  color: #ffd25e;
+}
+.juegos-root .sb-wealth__bar {
+  display: flex;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.juegos-root .sb-wealth__bar i {
+  flex-basis: 0;
+  min-width: 0;
+  transition: flex-grow 0.8s ease;
+}
+.juegos-root .sb-wealth__list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .sb-wealth__list li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.juegos-root .sb-wealth__list li > i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.juegos-root .sb-wealth--balance {
+  background: #5fd38d;
+}
+.juegos-root .sb-wealth--cards {
+  background: #b58cff;
+}
+.juegos-root .sb-wealth--inmo {
+  background: #ff8a5a;
+}
+.juegos-root .sb-wealth--suiza {
+  background: #d9b45a;
+}

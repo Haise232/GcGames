@@ -1,0 +1,524 @@
+/* Escrito a mano (no generado): Plinko. El tablero se mide con el alto libre y el panel va al lado (debajo en el móvil). */
+
+.juegos-root .plinko {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(240px, 320px);
+  justify-content: center;
+  align-items: center;
+  gap: clamp(20px, 3.4vw, 56px);
+  min-height: 0;
+}
+
+/* Mueble: máquina de arcade con marco de neón (violeta a cian) y cristal oscuro. */
+.juegos-root .plinko__machine {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  max-height: 100%;
+  padding: clamp(12px, 1.8vw, 22px);
+  border: 2px solid transparent;
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, #171230, #0c0a1c) padding-box,
+    linear-gradient(135deg, #a46bff, #3ad7ff 50%, #ff5fa8) border-box;
+  box-shadow:
+    0 0 40px rgba(122, 92, 255, 0.35),
+    0 20px 50px rgba(2, 4, 16, 0.6);
+}
+.juegos-root .plinko__machine .status {
+  min-height: 2.8em;
+  margin: 0 0 12px;
+  font-size: clamp(15px, min(1.6vw, 2.4vh), 20px);
+  color: #e9e4ff;
+}
+.juegos-root .plinko__machine .status--win {
+  color: #ffe48a;
+  text-shadow: 0 0 14px rgba(255, 210, 90, 0.6);
+}
+
+/* Tablero: noche violeta con una rejilla de puntos y un foco arriba. */
+.juegos-root .plinko__board {
+  min-height: 0;
+  padding: clamp(6px, 1vw, 12px);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(164, 107, 255, 0.35), transparent 70%),
+    radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1.5px) 0 0 / 18px 18px,
+    linear-gradient(180deg, #1d1645, #120d2c 60%, #0a0818);
+  box-shadow:
+    inset 0 0 0 1px rgba(164, 107, 255, 0.4),
+    inset 0 14px 40px rgba(0, 0, 0, 0.5);
+}
+.juegos-root .plinko__board svg {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: min(calc(100svh - 300px), 680px);
+  min-height: 260px;
+  margin-inline: auto;
+  overflow: visible;
+}
+
+.juegos-root .plinko__peg {
+  fill: #e8f6ff;
+}
+.juegos-root .plinko__pegs {
+  color: #7fe3ff;
+}
+.juegos-root .plinko__peg.is-hit {
+  animation: plinko-peg 0.4s ease-out;
+}
+@keyframes plinko-peg {
+  from {
+    fill: #ff7ad1;
+    r: 7.5px;
+  }
+}
+
+.juegos-root .plinko__ball circle:first-child {
+  fill: url(#plinko-ball);
+  filter: drop-shadow(0 0 6px rgba(255, 210, 90, 0.9)) drop-shadow(0 3px 3px rgba(0, 0, 0, 0.5));
+}
+.juegos-root .plinko__shine {
+  fill: rgba(255, 255, 255, 0.8);
+}
+/* Estela: dos sombras doradas que siguen a la bola con un poco de retraso. */
+.juegos-root .plinko__ghost {
+  fill: #ffd25a;
+  opacity: 0.35;
+}
+.juegos-root .plinko__ghost--1 {
+  opacity: 0.18;
+}
+
+/* Casillas: de las orillas (calientes) al centro (fríos), con degradado y un brillo arriba. */
+.juegos-root .plinko__slot rect:first-child {
+  stroke: rgba(0, 0, 0, 0.35);
+  stroke-width: 1;
+}
+.juegos-root .plinko__slot-shine {
+  fill: rgba(255, 255, 255, 0.28);
+}
+.juegos-root .plinko__slot text {
+  font-size: 13px;
+  font-weight: 900;
+  text-anchor: middle;
+  dominant-baseline: central;
+  fill: #fff;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.35);
+  stroke-width: 2.5px;
+  pointer-events: none;
+}
+.juegos-root .plinko__slot--gold text,
+.juegos-root .plinko__slot--even text {
+  fill: #1b1405;
+  stroke: rgba(255, 255, 255, 0.3);
+}
+/* Al caer la bola, la casilla da un salto y se ilumina. */
+.juegos-root .plinko__slot.is-hit {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: plinko-slot 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+@keyframes plinko-slot {
+  from {
+    translate: 0 10px;
+    filter: brightness(1.8) drop-shadow(0 0 10px #fff);
+  }
+}
+
+/* Panel: riesgo, apuesta, botón e historial. */
+.juegos-root .plinko__panel {
+  display: grid;
+  align-content: center;
+  gap: clamp(14px, 2.4vh, 22px);
+  min-width: 0;
+  padding: clamp(16px, 2vw, 22px);
+  border: 1px solid rgba(164, 107, 255, 0.28);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(29, 22, 69, 0.55), rgba(12, 10, 28, 0.55));
+  box-shadow: 0 18px 40px rgba(2, 4, 16, 0.4);
+}
+/* Última bola: el multiplicador grande con el color de su casilla. */
+.juegos-root .plinko__last {
+  --tone: #8f86b8;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 12px;
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--tone) 35%, transparent), transparent 70%),
+    rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 45%, transparent);
+}
+.juegos-root .plinko__last small {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .plinko__last b {
+  font-family: var(--display);
+  font-size: clamp(34px, 4vw, 46px);
+  font-weight: 400;
+  line-height: 1.05;
+  color: var(--tone);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--tone) 55%, transparent);
+  animation: plinko-pop 0.4s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+.juegos-root .plinko__last span {
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--ivory);
+}
+.juegos-root .plinko__last--hot {
+  --tone: #ff6a5e;
+}
+.juegos-root .plinko__last--warm {
+  --tone: #ffa04a;
+}
+.juegos-root .plinko__last--gold {
+  --tone: #ffd65c;
+}
+.juegos-root .plinko__last--even {
+  --tone: #8ee6b4;
+}
+.juegos-root .plinko__last--cold {
+  --tone: #8fb6cf;
+}
+@keyframes plinko-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+.juegos-root .plinko__group h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .plinko__hint {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.juegos-root .plinko__seg {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 4px;
+  border: 1px solid rgba(164, 107, 255, 0.45);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+}
+.juegos-root .plinko__seg button,
+.juegos-root .plinko__bets button {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: none;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ivory);
+}
+.juegos-root .plinko__seg button[aria-pressed='true'],
+.juegos-root .plinko__bets button[aria-pressed='true'] {
+  border-color: transparent;
+  background: linear-gradient(135deg, #a46bff, #3ad7ff);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(122, 92, 255, 0.45);
+}
+.juegos-root .plinko__seg button:disabled:not([aria-pressed='true']),
+.juegos-root .plinko__bets button:disabled {
+  opacity: 0.4;
+}
+.juegos-root .plinko__seg button:focus-visible,
+.juegos-root .plinko__bets button:focus-visible {
+  outline: 3px solid var(--ivory);
+  outline-offset: 2px;
+}
+
+.juegos-root .plinko__bets {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.juegos-root .plinko__bets button {
+  border-color: var(--line);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.juegos-root .plinko-app .plinko__drop button.primary {
+  width: 100%;
+  min-height: 58px;
+  border: 0;
+  font-size: 20px;
+  color: #1b1405;
+  background: linear-gradient(180deg, #ffe48a, #f0b429);
+  box-shadow:
+    0 0 24px rgba(255, 196, 64, 0.4),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+}
+.juegos-root .plinko-app .plinko__drop button.primary:not(:disabled):hover {
+  background: linear-gradient(180deg, #fff0b0, #f5c03a);
+}
+.juegos-root .plinko-app .plinko__drop button.primary:not(:disabled):active {
+  transform: translateY(2px);
+}
+
+.juegos-root .plinko__history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .plinko__chip {
+  min-width: 3.2em;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tone) 80%, #fff), var(--tone));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--tone) 40%, transparent);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink, #1b1405);
+}
+.juegos-root .plinko__chip:first-child {
+  animation: plinko-in 0.35s ease-out;
+}
+@keyframes plinko-in {
+  from {
+    opacity: 0;
+    translate: -8px 0;
+  }
+}
+.juegos-root .plinko__chip--hot {
+  --tone: #e2463c;
+  --ink: #fff;
+}
+.juegos-root .plinko__chip--warm {
+  --tone: #f08a24;
+}
+.juegos-root .plinko__chip--gold {
+  --tone: #e6c35c;
+}
+.juegos-root .plinko__chip--even {
+  --tone: #7fd0a4;
+}
+.juegos-root .plinko__chip--cold {
+  --tone: #5f87a0;
+  --ink: #f1f6f9;
+}
+
+/* Automático: cuántas bolas, parar en un premio gordo y el botón de empezar o parar. */
+.juegos-root .plinko__auto-counts button {
+  font-size: 15px;
+}
+.juegos-root .plinko__auto-stop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.juegos-root .plinko__auto-stop input {
+  width: 18px;
+  height: 18px;
+  accent-color: #a46bff;
+}
+.juegos-root .plinko__auto-go {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 10px;
+  border: 1px solid rgba(164, 107, 255, 0.6);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  color: #e9e4ff;
+  background: linear-gradient(135deg, rgba(164, 107, 255, 0.25), rgba(58, 215, 255, 0.18));
+  cursor: pointer;
+}
+.juegos-root .plinko__auto-go:not(:disabled):hover {
+  background: linear-gradient(135deg, rgba(164, 107, 255, 0.4), rgba(58, 215, 255, 0.3));
+}
+.juegos-root .plinko__auto-go:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.juegos-root .plinko__auto-go:focus-visible {
+  outline: 3px solid var(--ivory);
+  outline-offset: 2px;
+}
+.juegos-root .plinko__auto-go.is-stop {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, #ff4f7a, #c8102e);
+  box-shadow: 0 0 18px rgba(255, 79, 122, 0.45);
+  animation: plinko-auto 1.2s ease-in-out infinite;
+}
+@keyframes plinko-auto {
+  50% {
+    box-shadow: 0 0 30px rgba(255, 79, 122, 0.7);
+  }
+}
+
+/* Pantallas bajas (escritorio pequeño, tableta o móvil en horizontal): el tablero se mide con el alto libre y el
+   panel se desplaza por dentro cuando no cabe. */
+@media (max-height: 760px) {
+  .juegos-root .plinko__panel {
+    align-self: stretch;
+    align-content: start;
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+@media (max-height: 560px) and (orientation: landscape) {
+  .juegos-root .plinko {
+    gap: 12px;
+  }
+  .juegos-root .plinko__machine {
+    padding: 8px;
+    border-radius: 14px;
+  }
+  .juegos-root .plinko__machine .status {
+    min-height: 0;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+  .juegos-root .plinko__board {
+    padding: 4px;
+  }
+  .juegos-root .plinko__board svg {
+    height: calc(100svh - 150px);
+    min-height: 160px;
+  }
+  .juegos-root .plinko__panel {
+    gap: 10px;
+    padding: 12px;
+  }
+  .juegos-root .plinko__last,
+  .juegos-root .plinko__group h2,
+  .juegos-root .plinko__drop kbd {
+    display: none;
+  }
+  .juegos-root .plinko-app .plinko__drop button.primary {
+    min-height: 48px;
+    font-size: 18px;
+  }
+}
+
+/* Tableta y móvil en vertical: el tablero a lo ancho con su proporción y el panel debajo; la pantalla se desplaza
+   (antes el tablero se aplastaba para caber y en los móviles bajos casi desaparecía). */
+@media (max-width: 900px) and (orientation: portrait) {
+  .juegos-root .plinko {
+    grid-template-columns: minmax(0, 1fr);
+    /* max-content: con min-height: 0 en el mueble, una fila auto se encogía y los clavos se salían del marco. */
+    grid-template-rows: max-content max-content;
+    align-content: start;
+    align-items: stretch;
+    gap: 12px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .juegos-root .plinko__machine {
+    max-height: none;
+  }
+  .juegos-root .plinko__board svg {
+    width: 100%;
+    height: auto;
+    max-height: 62svh;
+    min-height: 0;
+  }
+  .juegos-root .plinko__panel {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 10px 16px;
+  }
+  /* Lo primero bajo el tablero es el botón de soltar. */
+  .juegos-root .plinko__drop {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+  .juegos-root .plinko__panel .plinko__group:last-child {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .juegos-root .plinko__last {
+    display: none;
+  }
+  .juegos-root .plinko__panel {
+    padding: 12px;
+  }
+  .juegos-root .plinko__machine {
+    padding: 8px;
+    border-radius: 14px;
+  }
+  .juegos-root .plinko__machine .status {
+    min-height: 2.6em;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+  .juegos-root .plinko__board {
+    padding: 4px;
+  }
+  .juegos-root .plinko__panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .juegos-root .plinko__group h2 {
+    display: none;
+  }
+  .juegos-root .plinko__hint {
+    display: none;
+  }
+  .juegos-root .plinko__drop kbd {
+    display: none;
+  }
+  /* En el móvil .actions no salta de línea: el botón se estrujaba junto al turbo («Solta bola» en dos líneas). */
+  .juegos-root .plinko__drop {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .juegos-root .plinko__drop button.primary {
+    flex: 1 1 100%;
+  }
+  .juegos-root .plinko__seg button,
+  .juegos-root .plinko__bets button {
+    min-height: 40px;
+    font-size: 15px;
+  }
+  .juegos-root .plinko__drop button.primary {
+    min-height: 50px;
+    font-size: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .plinko__peg.is-hit,
+  .juegos-root .plinko__slot.is-hit,
+  .juegos-root .plinko__chip:first-child {
+    animation: none;
+  }
+}
+
+.juegos-root .plinko__turbo {
+  justify-content: center;
+}
+.juegos-root .plinko__turbo input {
+  accent-color: #f0b429;
+}

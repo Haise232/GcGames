@@ -1,0 +1,304 @@
+/* Guía de Juegos (Tutorial.jsx). Va en un portal sobre <body>, fuera de .juegos-root: define sus propios colores. */
+.tut {
+  --gold: #f2c14e;
+  --ink: #f1e9d6;
+  --muted: #9db6c4;
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  font-family: 'Instrument Sans Variable', 'Instrument Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
+  color: var(--ink);
+  animation: tut-fade 0.25s ease-out;
+}
+.tut *,
+.tut *::before {
+  box-sizing: border-box;
+}
+/* Sin zona: fondo oscuro entero. */
+.tut__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(242, 193, 78, 0.18), transparent 60%),
+    rgba(3, 8, 14, 0.86);
+  backdrop-filter: blur(6px);
+}
+/* Con zona: un agujero iluminado (la sombra enorme oscurece todo lo demás) con borde dorado que late. */
+.tut__hole {
+  position: absolute;
+  border-radius: 18px;
+  box-shadow:
+    0 0 0 3px var(--gold),
+    0 0 30px 6px rgba(242, 193, 78, 0.55),
+    0 0 0 9999px rgba(3, 8, 14, 0.8);
+  transition:
+    left 0.45s cubic-bezier(0.3, 0.9, 0.3, 1),
+    top 0.45s cubic-bezier(0.3, 0.9, 0.3, 1),
+    width 0.45s cubic-bezier(0.3, 0.9, 0.3, 1),
+    height 0.45s cubic-bezier(0.3, 0.9, 0.3, 1);
+  animation: tut-ring 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.tut__card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(380px, calc(100vw - 24px));
+  translate: -50% -50%;
+  padding: 22px 22px 18px;
+  border: 1px solid rgba(242, 193, 78, 0.4);
+  border-radius: 22px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(242, 193, 78, 0.18), transparent 60%),
+    linear-gradient(180deg, #16263a, #0c1724);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+  animation: tut-pop 0.4s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.tut__card.is-pinned {
+  translate: none;
+}
+.tut--hero .tut__card {
+  width: min(460px, calc(100vw - 24px));
+  padding: 28px 26px 22px;
+}
+.tut__art {
+  width: 96px;
+  height: 96px;
+  margin: -6px auto 8px;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
+}
+.tut--hero .tut__art {
+  width: 150px;
+  height: 150px;
+  animation: tut-float 3s ease-in-out infinite;
+}
+.tut__art svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.tut__kicker {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.tut__card h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fff;
+}
+.tut--hero .tut__card h2 {
+  font-family: 'Abril Fatface', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(30px, 6vw, 40px);
+  background: linear-gradient(180deg, #fff6d6, var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 16px rgba(242, 193, 78, 0.45));
+}
+.tut__card p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #d6e0e8;
+}
+.tut__dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 16px 0 14px;
+}
+.tut__dots button {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(241, 233, 214, 0.25);
+  cursor: pointer;
+  transition: width 0.25s;
+}
+.tut__dots button.is-on {
+  width: 24px;
+  background: var(--gold);
+}
+.tut__btns {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+}
+.tut__btns button {
+  min-height: 46px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.tut__ghost {
+  padding: 0 16px;
+  border: 1px solid rgba(241, 233, 214, 0.25);
+  color: var(--ink);
+  background: transparent;
+}
+.tut__next {
+  border: 0;
+  color: #1b1405;
+  background: linear-gradient(180deg, #ffe08a, #f2c14e);
+  box-shadow: 0 4px 0 #a07a1c;
+}
+.tut__next:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #a07a1c;
+}
+.tut__btns button:focus-visible,
+.tut__dots button:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+.tut__confetti i {
+  position: absolute;
+  top: -20px;
+  left: var(--x);
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--c);
+  animation: tut-confetti 3s linear var(--t) infinite;
+}
+
+/* Dibujos animados. */
+.tut .tut-twinkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tut-twinkle 1.6s ease-in-out infinite;
+}
+.tut .tut-stack {
+  animation: tut-drop 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.tut .tut-bob {
+  animation: tut-float 2s ease-in-out infinite;
+}
+.tut .tut-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tut-spin 4s linear infinite;
+}
+.tut .tut-rocket {
+  animation: tut-float 1.4s ease-in-out infinite;
+}
+.tut .tut-flame {
+  animation: tut-twinkle 0.3s ease-in-out infinite;
+}
+.tut .tut-clash-l {
+  transform-box: view-box;
+  transform-origin: 20px 100px;
+  animation: tut-clash-l 1.2s ease-in-out infinite;
+}
+.tut .tut-clash-r {
+  transform-box: view-box;
+  transform-origin: 100px 100px;
+  animation: tut-clash-r 1.2s ease-in-out infinite;
+}
+.tut .tut-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tut-twinkle 1.2s ease-in-out infinite;
+}
+.tut .tut-card1 {
+  animation: tut-flip 2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.tut .tut-card2 {
+  animation: tut-flip 2s ease-in-out 0.3s infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.tut .tut-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tut-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes tut-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes tut-pop {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+}
+@keyframes tut-ring {
+  50% {
+    box-shadow:
+      0 0 0 3px #fff3b0,
+      0 0 44px 10px rgba(242, 193, 78, 0.75),
+      0 0 0 9999px rgba(3, 8, 14, 0.8);
+  }
+}
+@keyframes tut-float {
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes tut-twinkle {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.6);
+  }
+}
+@keyframes tut-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+@keyframes tut-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes tut-clash-l {
+  50% {
+    transform: rotate(10deg);
+  }
+}
+@keyframes tut-clash-r {
+  50% {
+    transform: rotate(-10deg);
+  }
+}
+@keyframes tut-flip {
+  50% {
+    transform: scaleX(0.1);
+  }
+}
+@keyframes tut-pulse {
+  50% {
+    transform: scale(1.08);
+  }
+}
+@keyframes tut-confetti {
+  to {
+    transform: translateY(110vh) rotate(720deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tut *,
+  .tut__hole {
+    animation: none !important;
+    transition: none !important;
+  }
+}

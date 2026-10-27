@@ -1,0 +1,10 @@
+/* La sección de juegos se diseñó sobre los estilos por defecto del navegador, y el preflight de Tailwind de TopCode los borra
+   (negritas de títulos, márgenes de párrafos, aspecto de botones…). Aquí se devuelven, solo dentro de juegos.
+   :where() deja la especificidad en la de .juegos-root, así que cualquier regla de juegos manda sobre esto.
+   Los SVG se excluyen: sus colores van en atributos que «revert» borraría. */
+.juegos-root :where(*:not(svg, svg *)) {
+  all: revert;
+}
+.juegos-root :where(*, *::before, *::after) {
+  box-sizing: border-box;
+}

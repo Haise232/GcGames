@@ -1,0 +1,112 @@
+/* Escrito a mano (no generado): textos de la celebración y avisos de premios de otros jugadores en las mesas en vivo. */
+
+.juegos-root .win__lead {
+  display: block;
+  margin-bottom: 4px;
+  font-size: clamp(20px, 2.6vw, 34px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ivory);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85);
+}
+
+/* Avisos: bajan desde arriba, brillan un momento y se van. */
+.juegos-root .wtoast {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  z-index: 11;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: min(92vw, 520px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  translate: -50% 0;
+  pointer-events: none;
+}
+.juegos-root .wtoast__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 16px;
+  overflow: hidden;
+  border: 1px solid #e2bf6a;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(36, 24, 8, 0.96), rgba(14, 9, 7, 0.96));
+  box-shadow:
+    0 0 0 1px rgba(226, 191, 106, 0.3),
+    0 0 26px rgba(226, 191, 106, 0.35),
+    0 12px 28px rgba(0, 0, 0, 0.5);
+  color: #f1e9d6;
+  font-size: 15px;
+  line-height: 1.35;
+  animation: juegos-toast-in 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+/* Destello que cruza el aviso al llegar. */
+.juegos-root .wtoast__item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 246, 208, 0.35) 50%, transparent 70%) -100% 0 / 200% 100% no-repeat;
+  animation: juegos-toast-shine 1.2s 0.3s ease-out both;
+}
+.juegos-root .wtoast__text strong {
+  color: #ffe27a;
+  font-size: 1.1em;
+}
+.juegos-root .wtoast__cup {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff3c4, #c8a24b 60%, #6f5516);
+  box-shadow: 0 0 12px rgba(255, 226, 122, 0.7);
+}
+.juegos-root .wtoast__cup i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ffe27a;
+  animation: juegos-toast-spark 1s 0.35s ease-out both;
+}
+
+@keyframes juegos-toast-in {
+  from {
+    opacity: 0;
+    translate: 0 -30px;
+    scale: 0.9;
+  }
+}
+@keyframes juegos-toast-shine {
+  to {
+    background-position: 200% 0;
+  }
+}
+@keyframes juegos-toast-spark {
+  from {
+    transform: rotate(var(--a)) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: rotate(var(--a)) translateY(-26px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .wtoast__item,
+  .juegos-root .wtoast__item::after,
+  .juegos-root .wtoast__cup i {
+    animation: none;
+  }
+}

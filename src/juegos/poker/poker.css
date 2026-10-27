@@ -1,0 +1,1236 @@
+/* Generado desde el proyecto de juegos con scripts/scope-css.cjs: no editar aquí. */
+/* Mesa de póker: óvalo con riel de cuero cosido, paño burdeos y filo dorado. Todo cabe en la ventana. */
+.juegos-root .poker {
+  --gold: #e2bf6a;
+  --gold-soft: rgba(226, 191, 106, 0.4);
+  --felt-hi: #a32d40;
+  --felt: #6e1727;
+  --felt-lo: #360914;
+  --leather-hi: #3d271d;
+  --leather-lo: #140b08;
+  --plate: #120c0a;
+}
+
+.juegos-root .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- Cabecera: título, panel de jugadas en el centro y botones --- */
+
+.juegos-root .top.pk-top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px clamp(14px, 2vw, 28px);
+}
+
+.juegos-root .pk-top .hud {
+  align-items: center;
+}
+
+/* Panel de jugadas: arriba y en el centro, siempre a la vista. */
+.juegos-root .pfeed {
+  position: relative;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  justify-self: center;
+  width: min(100%, 620px);
+  min-height: 64px;
+  padding: 8px 18px;
+  overflow: hidden;
+  border: 1px solid var(--gold-soft);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(30, 18, 14, 0.92), rgba(12, 8, 7, 0.92));
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.juegos-root .pfeed p {
+    margin: 0;
+  }
+
+.juegos-root .pfeed__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--ivory);
+}
+
+.juegos-root .pfeed__log {
+  display: flex;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+  white-space: nowrap;
+  mask-image: linear-gradient(90deg, #000 80%, transparent);
+}
+
+.juegos-root .pfeed__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: rgba(245, 236, 215, 0.45);
+}
+
+.juegos-root .pfeed__item::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    flex: none;
+    border-radius: 50%;
+    background: currentColor;
+  }
+.juegos-root .pfeed__item--new {
+  font-weight: 600;
+  color: var(--ivory);
+  animation: juegos-feed-in 0.35s ease-out;
+}
+.juegos-root .pfeed__item--raise.pfeed__item--new, .juegos-root .pfeed__item--street.pfeed__item--new {
+  color: var(--gold);
+}
+.juegos-root .pfeed__item--allin.pfeed__item--new {
+  color: #ff8a72;
+}
+.juegos-root .pfeed__item--win.pfeed__item--new {
+  color: #fff1b8;
+}
+
+.juegos-root .pfeed__cards {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 4px;
+}
+
+/* Tu turno: el panel se vuelve dorado y una barra marca el tiempo. */
+.juegos-root .pfeed--turn {
+  border-color: #fff1b8;
+  background: linear-gradient(180deg, #f6dc8f, #c99c3f);
+  box-shadow:
+    0 0 0 3px rgba(255, 241, 184, 0.35),
+    0 0 40px rgba(226, 191, 106, 0.7),
+    0 12px 30px rgba(0, 0, 0, 0.45);
+  color: #2a1a05;
+  animation: juegos-turn-pulse 1.1s ease-in-out infinite alternate;
+}
+.juegos-root .pfeed--turn .pfeed__head {
+    align-items: center;
+    color: #2a1a05;
+  }
+.juegos-root .pfeed--turn .pfeed__head b {
+      font-family: var(--display);
+      font-size: clamp(22px, 3.4vh, 30px);
+      font-weight: 400;
+      letter-spacing: 0.02em;
+    }
+.juegos-root .pfeed--turn .pfeed__clock {
+    font-size: 22px;
+    font-variant-numeric: tabular-nums;
+  }
+.juegos-root .pfeed--turn .pfeed__line {
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+.juegos-root .pfeed--turn .pfeed__last {
+    opacity: 0.75;
+  }
+.juegos-root .pfeed--turn .mini {
+    box-shadow: 0 0 0 1px rgba(42, 26, 5, 0.4);
+  }
+
+.juegos-root .pfeed__timer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: calc(var(--p) * 100%);
+  height: 4px;
+  background: #2a1a05;
+  transition: width 0.2s linear;
+}
+
+/* Borde de la pantalla iluminado mientras te toca. */
+.juegos-root .poker--turn::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 3px var(--gold),
+    inset 0 0 70px rgba(226, 191, 106, 0.4);
+  animation: juegos-turn-pulse 1.1s ease-in-out infinite alternate;
+}
+
+/* Carta en miniatura */
+.juegos-root .mini {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #f6efdd;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--black);
+}
+.juegos-root .mini--red {
+  color: var(--red);
+}
+
+/* --- El suelo: la mesa ocupa todo el espacio libre y se adapta a su forma --- */
+
+.juegos-root .pk-floor {
+  display: grid;
+  place-items: center;
+  container: pkfloor / size;
+}
+
+/*
+  Geometría (tamaños en cq = espacio libre):
+  · --top-room / --bottom-room: lo que sobresale un asiento por encima y por debajo del centro de su avatar.
+  · Los asientos van en una elipse que deja ese margen; la mesa se dibuja debajo, con el riel bajo los avatares.
+*/
+.juegos-root .pstage {
+  --size: clamp(40px, min(4.6cqw, 8.6cqh), 62px);
+  --pcard: clamp(32px, min(3.5cqw, 6.6cqh), 50px);
+  --mycard: clamp(44px, min(5cqw, 10cqh), 74px);
+  --board-card: clamp(40px, min(5.6cqw, 11.5cqh), 76px);
+  --pod-w: clamp(100px, 11cqw, 136px);
+  --top-room: calc(var(--pcard) * 1.4 + 2px);
+  --bottom-room: calc(var(--size) / 2 + 62px);
+  --rx: calc(50% - var(--pod-w) / 2);
+  --ry: calc(50% - (var(--top-room) + var(--bottom-room)) / 2);
+  --shift: calc((var(--top-room) - var(--bottom-room)) / 2);
+  position: relative;
+  width: min(100cqw, 210cqh, 1400px);
+  aspect-ratio: 2.1 / 1;
+}
+
+/* Ventana alta (móvil en vertical): la mesa se pone de pie. */
+@container pkfloor (aspect-ratio < 1.15) {
+  .juegos-root .pstage {
+    --size: clamp(38px, min(10cqw, 7cqh), 54px);
+    --pcard: clamp(28px, min(8cqw, 5.4cqh), 42px);
+    --mycard: clamp(40px, min(12cqw, 8cqh), 60px);
+    --board-card: clamp(32px, min(11cqw, 8cqh), 58px);
+    --pod-w: clamp(84px, 25cqw, 108px);
+    width: min(100cqw, 66cqh);
+    aspect-ratio: 0.66;
+  }
+  /* Sin sitio a los lados del tablero: solo la calle actual, y el ganador se lee en el panel de arriba. */
+  .juegos-root .pstreets li:not(.is-now) {
+    display: none;
+  }
+  .juegos-root .presult {
+    display: none;
+  }
+  .juegos-root .pbet:not(.pbet--me) {
+    display: none;
+  }
+  .juegos-root .pod:not(.pod--me) .pod__bet {
+    display: block;
+  }
+}
+
+.juegos-root .pktable {
+  position: absolute;
+  inset: calc(var(--top-room) - var(--size) * 0.25) calc(var(--pod-w) / 2 - var(--size) * 0.4)
+    calc(var(--bottom-room) - var(--size) * 0.25);
+  padding: clamp(10px, 2.2cqh, 22px);
+  border-radius: 999px;
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(255, 255, 255, 0.14), transparent 70%),
+    linear-gradient(180deg, var(--leather-hi), var(--leather-lo));
+  box-shadow:
+    0 0 0 2px #070403,
+    0 0 0 4px var(--gold-soft),
+    0 0 0 5px #070403,
+    0 30px 60px rgba(0, 0, 0, 0.55),
+    0 70px 120px rgba(0, 0, 0, 0.35),
+    inset 0 2px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -8px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* Costura del cuero */
+
+.juegos-root .pktable::before {
+    content: '';
+    position: absolute;
+    inset: clamp(4px, 0.9cqh, 8px);
+    border-radius: inherit;
+    border: 1.5px dashed rgba(226, 191, 106, 0.3);
+    pointer-events: none;
+  }
+
+.juegos-root .pktable__felt {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 999px;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 45%, var(--felt-hi), var(--felt) 55%, var(--felt-lo) 100%);
+  box-shadow:
+    inset 0 0 0 2px rgba(226, 191, 106, 0.55),
+    inset 0 10px 30px rgba(0, 0, 0, 0.55),
+    inset 0 0 70px rgba(0, 0, 0, 0.45);
+}
+
+/* Textura del paño */
+
+.juegos-root .pktable__felt::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.22;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+/* Línea de apuestas pintada en el paño */
+
+.juegos-root .pktable__felt::after {
+    content: '';
+    position: absolute;
+    inset: 14% 10%;
+    border-radius: 999px;
+    border: 1.5px solid rgba(226, 191, 106, 0.2);
+  }
+
+/* Placa de la sala, en la esquina libre */
+.juegos-root .pplaque {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  display: grid;
+  justify-items: start;
+  padding: 6px 12px;
+  border: 1px solid var(--gold-soft);
+  border-radius: 10px;
+  background: rgba(10, 6, 4, 0.55);
+  line-height: 1.15;
+}
+.juegos-root .pplaque span, .juegos-root .pplaque small {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+.juegos-root .pplaque b {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+  }
+
+/* --- Centro: calles, bote y cartas comunitarias --- */
+
+.juegos-root .pcenter {
+  position: absolute;
+  top: calc(50% + var(--shift));
+  left: 50%;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: clamp(6px, 1.4cqh, 12px);
+  translate: -50% -50%;
+}
+
+.juegos-root .ppot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 32px;
+  padding: 3px 12px 3px 6px;
+  border: 1px solid var(--gold-soft);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.juegos-root .pstreets {
+  display: flex;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.juegos-root .pstreets li {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(245, 236, 215, 0.35);
+  }
+
+.juegos-root .pstreets .is-done {
+    color: rgba(245, 236, 215, 0.7);
+  }
+
+.juegos-root .pstreets .is-now {
+    background: var(--gold);
+    color: #2a1a05;
+  }
+
+.juegos-root .pboard {
+  display: flex;
+  gap: clamp(3px, 0.6cqw, 8px);
+}
+
+.juegos-root .pboard .card {
+    --card-w: var(--board-card);
+  }
+
+.juegos-root .pboard__slot {
+  width: var(--board-card);
+  aspect-ratio: 5 / 7;
+  border: 1.5px dashed rgba(226, 191, 106, 0.28);
+  border-radius: calc(var(--board-card) * 0.08);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.juegos-root .presult {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  margin: 0;
+  padding: 5px 14px;
+  border-radius: 12px;
+  background: rgba(10, 6, 4, 0.78);
+  font-size: clamp(13px, 2.4cqh, 16px);
+  text-align: center;
+  animation: juegos-pop-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+
+.juegos-root .presult b {
+    color: var(--gold);
+  }
+
+.juegos-root .presult em {
+    font-style: normal;
+    color: rgba(245, 236, 215, 0.8);
+  }
+
+/* Cartas resaltadas en el enfrentamiento */
+.juegos-root .pcard {
+  display: inline-flex;
+  transition:
+    translate 0.3s,
+    filter 0.3s;
+}
+.juegos-root .pcard--best {
+  translate: 0 -8px;
+  filter: drop-shadow(0 0 10px rgba(255, 226, 122, 0.85));
+}
+.juegos-root .pcard--dim {
+  filter: brightness(0.5) saturate(0.6);
+}
+
+/* --- Fichas --- */
+
+.juegos-root .pchips {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.juegos-root .pchips b {
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ivory);
+  }
+
+.juegos-root .pchips__stack {
+  position: relative;
+  width: 18px;
+  height: calc(14px + 3px * 5);
+}
+
+.juegos-root .pchip {
+  position: absolute;
+  bottom: calc(var(--n) * 3px);
+  left: 0;
+  width: 18px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.75),
+    0 1px 0 rgba(0, 0, 0, 0.6);
+}
+.juegos-root .pchip--purple {
+  --tone: #6b3f9d;
+}
+.juegos-root .pchip--black {
+  --tone: #222228;
+}
+.juegos-root .pchip--green {
+  --tone: #23805a;
+}
+.juegos-root .pchip--red {
+  --tone: #c2332c;
+}
+.juegos-root .pchip--white {
+  --tone: #e9e1cf;
+}
+
+/* Apuesta de cada asiento, entre él y el centro */
+.juegos-root .pbet {
+  position: absolute;
+  top: calc(50% + var(--shift) + var(--ry) * 0.56 * sin(var(--a)));
+  left: calc(50% + var(--rx) * 0.6 * cos(var(--a)));
+  z-index: 1;
+  padding: 3px 10px 3px 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  translate: -50% -50%;
+  animation: juegos-pop-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+
+.juegos-root .pdealer {
+  position: absolute;
+  top: calc(50% + var(--shift) + var(--ry) * 0.74 * sin(var(--a) - 18deg));
+  left: calc(50% + var(--rx) * 0.8 * cos(var(--a) - 18deg));
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #ddd5c2);
+  font-size: 13px;
+  font-weight: 800;
+  color: #1b1405;
+  box-shadow:
+    inset 0 0 0 2px #b9ad91,
+    0 3px 6px rgba(0, 0, 0, 0.5);
+  translate: -50% -50%;
+  transition:
+    top 0.6s ease,
+    left 0.6s ease;
+}
+
+/* --- Asientos: el punto (top, left) es el centro del avatar --- */
+
+.juegos-root .pod {
+  position: absolute;
+  top: calc(50% + var(--shift) + var(--ry) * sin(var(--a)));
+  left: calc(50% + var(--rx) * cos(var(--a)));
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  width: var(--pod-w);
+  translate: -50% calc(var(--size) / -2);
+  transition: scale 0.2s;
+}
+
+.juegos-root .pod__cards {
+  position: absolute;
+  bottom: calc(100% - var(--size) * 0.5);
+  left: 50%;
+  display: flex;
+  translate: -50% 0;
+}
+
+.juegos-root .pod__cards .card {
+    --card-w: var(--pcard);
+    animation-duration: 0.3s;
+  }
+
+.juegos-root .pod__cards .pcard:first-child {
+    rotate: -7deg;
+  }
+
+.juegos-root .pod__cards .pcard + .pcard {
+    margin-left: calc(var(--pcard) * -0.35);
+    rotate: 7deg;
+  }
+
+.juegos-root .pod--me .pod__cards .card {
+    --card-w: var(--mycard);
+  }
+
+.juegos-root .pod--me .pod__cards .pcard + .pcard {
+    margin-left: calc(var(--mycard) * -0.3);
+  }
+
+.juegos-root .pod__avatar {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--size);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, hsl(var(--hue) 60% 62%), hsl(var(--hue) 55% 28%));
+  font-size: calc(var(--size) * 0.36);
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  box-shadow:
+    0 0 0 3px var(--plate),
+    0 0 0 4px var(--gold-soft),
+    0 8px 18px rgba(0, 0, 0, 0.5);
+  transition:
+    filter 0.3s,
+    box-shadow 0.3s;
+}
+
+/* Anillo que se vacía con el tiempo del turno */
+.juegos-root .pod--turn .pod__avatar::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  border-radius: 50%;
+  background: conic-gradient(var(--ring, var(--gold)) calc(var(--p) * 360deg), rgba(255, 255, 255, 0.1) 0);
+  mask: radial-gradient(closest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+}
+.juegos-root .pod--hurry {
+  --ring: #ff6b57;
+}
+.juegos-root .pod--turn {
+  z-index: 3;
+  scale: 1.06;
+}
+
+/* Acción: bocadillo junto al avatar, sin ocupar alto */
+.juegos-root .pod__badge {
+  position: absolute;
+  bottom: 62%;
+  left: 72%;
+  z-index: 3;
+  padding: 2px 9px;
+  border-radius: 999px 999px 999px 4px;
+  background: rgba(245, 236, 215, 0.95);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: #1b1405;
+  text-shadow: none;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+  animation: juegos-pop-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+.juegos-root .pod__badge--raise {
+  background: var(--gold);
+}
+.juegos-root .pod__badge--allin {
+  background: #d8432f;
+  color: #fff;
+}
+.juegos-root .pod__badge--fold {
+  background: rgba(20, 12, 10, 0.9);
+  color: rgba(245, 236, 215, 0.7);
+}
+.juegos-root .pod__badge--win {
+  background: linear-gradient(180deg, #fff1b8, var(--gold));
+  font-size: 14px;
+  box-shadow: 0 0 18px rgba(255, 226, 122, 0.7);
+}
+
+.juegos-root .pod__plate {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  min-width: 100%;
+  margin-top: -10px;
+  padding: 5px 10px 6px;
+  border: 1px solid var(--gold-soft);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #221713, var(--plate));
+  text-align: center;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.juegos-root .pod__name {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.juegos-root .pod__name small {
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+.juegos-root .pod__stack {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold);
+}
+
+.juegos-root .pod__hand {
+  margin-top: 4px;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.65);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--ivory);
+  animation: juegos-pop-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+.juegos-root .pod--me .pod__hand {
+  border: 1px solid var(--gold-soft);
+  color: var(--gold);
+}
+.juegos-root .pod__hand--win {
+  background: var(--gold);
+  color: #2a1a05;
+}
+
+/* Apuesta bajo la placa: solo en la mesa vertical. */
+.juegos-root .pod__bet {
+  display: none;
+  margin-top: 3px;
+  padding: 1px 8px 1px 4px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+}
+.juegos-root .pod__bet .pchips b {
+    font-size: 12px;
+  }
+.juegos-root .pod__bet .pchips__stack {
+    height: 22px;
+  }
+
+.juegos-root .pod__kick {
+  position: absolute;
+  top: calc(var(--size) - 16px);
+  right: -6px;
+  z-index: 3;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--gold-soft);
+  border-radius: 50%;
+  background: var(--plate);
+  font-size: 16px;
+  line-height: 1;
+  color: var(--ivory);
+}
+
+.juegos-root .pod__kick:hover {
+    background: #8a2a20;
+  }
+
+.juegos-root .pod--turn .pod__plate {
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 1px var(--gold),
+    0 0 24px rgba(226, 191, 106, 0.55);
+}
+
+.juegos-root .pod--me .pod__plate {
+  background: linear-gradient(180deg, #2c1e15, #160e0a);
+}
+
+.juegos-root .pod--folded .pod__avatar, .juegos-root .pod--folded .pod__cards {
+    filter: grayscale(0.8) brightness(0.55);
+  }
+
+.juegos-root .pod--folded .pod__plate {
+    opacity: 0.75;
+  }
+
+.juegos-root .pod--away .pod__avatar {
+  filter: grayscale(1) brightness(0.6);
+}
+
+.juegos-root .pod--winner .pod__avatar {
+  box-shadow:
+    0 0 0 3px var(--plate),
+    0 0 0 5px var(--gold),
+    0 0 34px rgba(255, 226, 122, 0.75);
+  animation: juegos-winner-glow 1.2s ease-in-out infinite alternate;
+}
+
+.juegos-root .pod__sit, .juegos-root .pod__free {
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  width: var(--size);
+  aspect-ratio: 1;
+  border: 2px dashed rgba(226, 191, 106, 0.45);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  color: rgba(245, 236, 215, 0.6);
+}
+.juegos-root .pod__sit {
+  width: calc(var(--size) + 12px);
+  padding: 0;
+  font-family: inherit;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    scale 0.15s;
+}
+.juegos-root .pod__sit span {
+    font-size: 22px;
+    line-height: 1;
+    color: var(--gold);
+  }
+.juegos-root .pod__sit:hover {
+    border-color: var(--gold);
+    background: rgba(226, 191, 106, 0.15);
+    scale: 1.06;
+  }
+.juegos-root .pod__sit:focus-visible {
+    outline: 3px solid var(--ivory);
+    outline-offset: 3px;
+  }
+
+/* --- Pie: la barra de decisiones siempre ocupa lo mismo, así la mesa no salta --- */
+
+.juegos-root .pk-foot {
+  display: grid;
+  align-items: end;
+  height: 84px;
+  margin-top: clamp(6px, 1.4vh, 14px);
+}
+
+.juegos-root .pbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 18px;
+  width: min(100%, 1080px);
+  margin: 0 auto;
+  padding: 12px 14px;
+  border: 1px solid var(--gold-soft);
+  border-radius: 18px;
+  background: rgba(14, 9, 7, 0.88);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+}
+
+.juegos-root .pbar--act {
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 1px rgba(226, 191, 106, 0.4),
+    0 0 30px rgba(226, 191, 106, 0.3),
+    0 14px 34px rgba(0, 0, 0, 0.45);
+  animation: juegos-rise 0.25s ease-out;
+}
+
+.juegos-root .pbar__note {
+  margin: 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.juegos-root .pbar__raise {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 1fr);
+  align-items: center;
+  gap: 8px 14px;
+}
+
+.juegos-root .pbar__presets {
+  display: flex;
+  gap: 6px;
+}
+
+.juegos-root .pbar__presets button {
+    padding: 7px 11px;
+    border: 1px solid var(--gold-soft);
+    border-radius: 999px;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ivory);
+  }
+
+.juegos-root .pbar__presets button:hover {
+      border-color: var(--gold);
+      background: rgba(226, 191, 106, 0.14);
+    }
+
+.juegos-root .pbar__presets button[aria-pressed='true'] {
+      border-color: var(--gold);
+      background: var(--gold);
+      color: #2a1a05;
+    }
+
+.juegos-root .pbar__presets button:focus-visible {
+      outline: 2px solid var(--ivory);
+      outline-offset: 2px;
+    }
+
+.juegos-root .pbar__slider input {
+  --fill: 0;
+  width: 100%;
+  height: 8px;
+  appearance: none;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gold) calc(var(--fill) * 100%), rgba(255, 255, 255, 0.14) 0);
+  cursor: pointer;
+}
+
+.juegos-root .pbar__slider input::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+    appearance: none;
+    border: 3px solid var(--plate);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff3c4, var(--gold));
+    box-shadow:
+      0 0 0 1px var(--gold),
+      0 3px 8px rgba(0, 0, 0, 0.5);
+  }
+
+.juegos-root .pbar__slider input::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: 3px solid var(--plate);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff3c4, var(--gold));
+    box-shadow:
+      0 0 0 1px var(--gold),
+      0 3px 8px rgba(0, 0, 0, 0.5);
+  }
+
+.juegos-root .pbar__slider input:focus-visible {
+    outline: 2px solid var(--ivory);
+    outline-offset: 6px;
+  }
+
+.juegos-root .pbar__buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.juegos-root .pbtn {
+  min-width: 128px;
+  padding: 13px 18px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transition:
+    filter 0.15s,
+    translate 0.1s;
+}
+
+.juegos-root .pbtn:hover {
+    filter: brightness(1.12);
+  }
+
+.juegos-root .pbtn:active {
+    translate: 0 1px;
+  }
+
+.juegos-root .pbtn:focus-visible {
+    outline: 3px solid var(--ivory);
+    outline-offset: 3px;
+  }
+
+.juegos-root .pbtn kbd {
+    margin-left: 6px;
+    padding: 0 6px;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    font: inherit;
+    font-size: 12px;
+    opacity: 0.6;
+  }
+
+.juegos-root .pbtn--fold {
+  border-color: rgba(245, 236, 215, 0.3);
+  background: transparent;
+  color: var(--ivory);
+}
+
+.juegos-root .pbtn--fold:hover {
+    border-color: #d8432f;
+    background: rgba(216, 67, 47, 0.16);
+  }
+
+.juegos-root .pbtn--call {
+  border-color: #4cb585;
+  background: linear-gradient(180deg, #2f9467, #1c6a47);
+  color: #fff;
+}
+
+.juegos-root .pbtn--raise {
+  border-color: #f6e3a6;
+  background: linear-gradient(180deg, #f3da92, #c79f45);
+  color: #2a1a05;
+}
+
+/* --- Ventana «Jugadas»: pestañas y tabla de manos --- */
+
+.juegos-root .ptabs {
+  display: flex;
+  gap: 6px;
+}
+
+.juegos-root .ptabs button {
+    padding: 6px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ivory);
+  }
+
+.juegos-root .ptabs button[aria-selected='true'] {
+      border-color: var(--brass);
+      background: var(--brass);
+      color: #1b1405;
+    }
+
+.juegos-root .pguide__intro {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.juegos-root .pranks {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.juegos-root .pranks__row {
+  display: grid;
+  grid-template-columns: 26px minmax(130px, auto) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 2px 14px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.juegos-root .pranks__row--mine {
+  border-color: var(--brass);
+  background: rgba(200, 162, 75, 0.16);
+}
+
+.juegos-root .pranks__n {
+  font-family: var(--display);
+  font-size: 18px;
+  color: var(--brass);
+}
+.juegos-root .pranks__name {
+  display: grid;
+  font-weight: 700;
+}
+.juegos-root .pranks__name small {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+.juegos-root .pranks__cards {
+  display: flex;
+  gap: 3px;
+}
+.juegos-root .pranks__text {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+@keyframes juegos-pop-in {
+  from {
+    scale: 0.5;
+    opacity: 0;
+  }
+}
+
+@keyframes juegos-rise {
+  from {
+    translate: 0 12px;
+    opacity: 0;
+  }
+}
+
+@keyframes juegos-feed-in {
+  from {
+    translate: -10px 0;
+    opacity: 0;
+  }
+}
+
+@keyframes juegos-turn-pulse {
+  to {
+    filter: brightness(1.12);
+  }
+}
+
+@keyframes juegos-winner-glow {
+  to {
+    box-shadow:
+      0 0 0 3px var(--plate),
+      0 0 0 5px #fff1b8,
+      0 0 50px rgba(255, 226, 122, 0.95);
+  }
+}
+
+/* Pantallas medianas: la barra en dos filas y el panel debajo del título. */
+@media (max-width: 1100px) {
+  .juegos-root .top.pk-top {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+    .juegos-root .top.pk-top h1 {
+      grid-row: 1;
+      grid-column: 1;
+    }
+    .juegos-root .top.pk-top .pfeed {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      width: 100%;
+    }
+    .juegos-root .top.pk-top .hud {
+      grid-row: 1;
+      grid-column: 2;
+      justify-self: end;
+    }
+  .juegos-root .pk-foot {
+    height: 124px;
+  }
+  .juegos-root .pbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .juegos-root .pbar__buttons .pbtn {
+    flex: 1;
+    min-width: 0;
+  }
+  .juegos-root .pbar--idle {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .juegos-root .top.pk-top {
+    gap: 6px 10px;
+  }
+
+    .juegos-root .top.pk-top .money {
+      display: none;
+    }
+    .juegos-root .top.pk-top .pfeed {
+      grid-row: 2;
+    }
+  .juegos-root .pfeed {
+    min-height: 58px;
+    padding: 7px 12px;
+  }
+  .juegos-root .pfeed__head {
+    font-size: 14px;
+  }
+  .juegos-root .pfeed__item {
+    font-size: 13px;
+  }
+  .juegos-root .pk-foot {
+    height: 132px;
+  }
+  .juegos-root .pbar {
+    gap: 8px;
+    padding: 10px;
+  }
+  .juegos-root .pbar__raise {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .juegos-root .pbar__presets button {
+    flex: 1;
+    padding: 6px 4px;
+  }
+  .juegos-root .pbar--idle {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .juegos-root .pbtn {
+    padding: 12px 6px;
+    font-size: 15px;
+  }
+
+    .juegos-root .pbtn kbd {
+      display: none;
+    }
+  .juegos-root .pod__name {
+    font-size: 12px;
+  }
+  .juegos-root .pod__stack {
+    font-size: 13px;
+  }
+  .juegos-root .pod__badge {
+    font-size: 11px;
+  }
+  .juegos-root .pplaque {
+    padding: 4px 8px;
+  }
+
+    .juegos-root .pplaque b {
+      font-size: 17px;
+    }
+  .juegos-root .pranks__row {
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    padding: 3px 8px;
+  }
+  .juegos-root .pranks__name {
+    font-size: 14px;
+  }
+  /* En el móvil basta con el nombre y el ejemplo. */
+  .juegos-root .pranks__text {
+    display: none;
+  }
+  .juegos-root .mini {
+    min-width: 22px;
+    padding: 1px 2px;
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .pbet, .juegos-root .presult, .juegos-root .pod__badge, .juegos-root .pod__hand, .juegos-root .pbar--act, .juegos-root .pfeed--turn, .juegos-root .pfeed__item--new, .juegos-root .poker--turn::after, .juegos-root .pod--winner .pod__avatar {
+    animation: none;
+  }
+  .juegos-root .pdealer, .juegos-root .pcard, .juegos-root .pod {
+    transition: none;
+  }
+}
+
+/* Foto de TopCode dentro del círculo del jugador. */
+.juegos-root .pod__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}

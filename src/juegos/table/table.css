@@ -1,0 +1,473 @@
+/* Generado desde el proyecto de juegos con scripts/scope-css.cjs: no editar aquí. */
+.juegos-root .room-code {
+  padding: 2px 12px;
+  border: 1px dashed var(--brass);
+  border-radius: 8px;
+  letter-spacing: 0.18em;
+  color: var(--brass);
+}
+
+.juegos-root .countdown {
+  font-variant-numeric: tabular-nums;
+  color: var(--brass);
+}
+
+.juegos-root .lobby-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.juegos-root .lobby-card {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid rgba(200, 162, 75, 0.5);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.juegos-root .lobby-card h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+.juegos-root .lobby-card label {
+    display: grid;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+.juegos-root .lobby-card input, .juegos-root .lobby-card select {
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.35);
+    font: inherit;
+    font-size: 18px;
+    color: var(--ivory);
+  }
+
+.juegos-root .mseats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.juegos-root .mseats__cell {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.juegos-root .mseat {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  min-height: 190px;
+  padding: 10px 8px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.28);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.juegos-root .mseat h3 {
+    margin: 0;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 15px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+.juegos-root .mseat small {
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+.juegos-root .mseat--empty {
+  align-content: center;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: var(--muted);
+}
+
+.juegos-root .mseat--me {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.juegos-root .mseat--turn {
+  border-color: var(--brass);
+  box-shadow: 0 0 18px rgba(200, 162, 75, 0.55);
+}
+
+.juegos-root .mseat--win, .juegos-root .mseat--blackjack {
+  border-color: #5fd38d;
+}
+
+.juegos-root .mseat--lose, .juegos-root .mseat--bust {
+  border-color: rgba(220, 90, 90, 0.7);
+}
+
+.juegos-root .mseat__money {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.juegos-root .mseat__bet {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.juegos-root .mseat__info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.juegos-root .mseat__paid {
+  color: #5fd38d;
+  font-weight: 700;
+}
+
+.juegos-root .mseat__kick {
+  justify-self: center;
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+.juegos-root .hand--seat {
+  min-height: 90px;
+  transform-origin: top center;
+}
+
+/* Mesa online de blackjack: el crupier arriba y los asientos en arco a lo largo del borde curvo. */
+.juegos-root .ptable {
+  --seat-card: clamp(34px, min(4.4vw, 7vh), 66px);
+  align-content: start;
+}
+
+.juegos-root .ptable .card {
+  --card-w: var(--seat-card);
+}
+
+.juegos-root .ptable__dealer .card {
+    --card-w: calc(var(--seat-card) * 1.15);
+  }
+
+.juegos-root .ptable__dealer .hand {
+    min-height: calc(var(--seat-card) * 1.15 * 1.4);
+  }
+
+.juegos-root .ptable__dealer .hand .card + .card {
+    margin-left: calc(var(--seat-card) * 1.15 * -0.42);
+  }
+
+.juegos-root .ptable .felt-print {
+  position: absolute;
+  top: 31%;
+  left: 50%;
+  width: min(50%, 560px);
+  translate: -50% 0;
+  pointer-events: none;
+}
+.juegos-root .felt-print__main {
+  font-family: var(--display);
+  font-size: 30px;
+  letter-spacing: 0.04em;
+  fill: var(--brass);
+}
+.juegos-root .felt-print__note {
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  fill: rgba(241, 233, 214, 0.55);
+}
+
+.juegos-root .placard {
+  position: absolute;
+  top: clamp(10px, 2vh, 22px);
+  left: clamp(12px, 2vw, 28px);
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 6px 14px;
+  border: 1px solid rgba(200, 162, 75, 0.6);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+}
+.juegos-root .placard__label, .juegos-root .placard__limits {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .placard__code {
+  font-family: var(--display);
+  font-size: clamp(20px, 3.4vh, 28px);
+  letter-spacing: 0.12em;
+  color: var(--brass);
+}
+
+.juegos-root .ptable__seats {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.juegos-root .pseat {
+  position: absolute;
+  top: calc(36% + 40% * var(--sin));
+  left: calc(50% + 41% * var(--cos));
+  display: grid;
+  justify-items: center;
+  width: clamp(92px, 11vw, 150px);
+  translate: -50% -50%;
+  pointer-events: auto;
+}
+
+/* Las cartas caen sobre el círculo de apuesta. */
+.juegos-root .pseat__cards {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  min-height: calc(var(--seat-card) * 1.4);
+}
+.juegos-root .pseat__cards .card + .card {
+    margin-left: calc(var(--seat-card) * -0.55);
+  }
+
+.juegos-root .pseat__total {
+  position: absolute;
+  top: -10px;
+  right: -22px;
+  min-width: 0;
+  padding: 1px 8px;
+  font-size: 14px;
+}
+
+.juegos-root .pseat__spot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(42px, 6.4vh, 60px);
+  aspect-ratio: 1;
+  margin-top: calc(clamp(42px, 6.4vh, 60px) * -0.45);
+  border: 2px dashed rgba(241, 233, 214, 0.45);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.juegos-root .pseat__number {
+  font-family: var(--display);
+  font-size: 18px;
+  color: rgba(241, 233, 214, 0.6);
+}
+
+/* Pila de fichas de la apuesta (anula la etiqueta de apuesta de la ruleta). */
+.juegos-root .pseat .stack {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  display: block;
+  width: 30px;
+  min-width: 0;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.juegos-root .stack__chip {
+  position: absolute;
+  bottom: calc(var(--n) * 3px);
+  left: 0;
+  width: 30px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--chip);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.75),
+    0 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.juegos-root .pseat__outcome {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--ivory);
+  font-size: 13px;
+  white-space: nowrap;
+  color: #1b1405;
+  translate: -50% -50%;
+  animation: juegos-outcome-pop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+.juegos-root .pseat--win .pseat__outcome, .juegos-root .pseat--blackjack .pseat__outcome {
+  background: var(--bolt);
+}
+.juegos-root .pseat--lose .pseat__outcome, .juegos-root .pseat--bust .pseat__outcome {
+  background: var(--red);
+  color: var(--ivory);
+}
+
+.juegos-root .pseat__plate {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  min-width: 100%;
+  margin-top: 6px;
+  padding: 4px 8px 6px;
+  overflow: hidden;
+  border: 1px solid rgba(200, 162, 75, 0.45);
+  border-radius: 10px;
+  background: rgba(4, 22, 15, 0.82);
+  text-align: center;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+.juegos-root .pseat__name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.juegos-root .pseat__name small {
+    font-weight: 400;
+    color: var(--muted);
+  }
+.juegos-root .pseat__money {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--brass);
+}
+.juegos-root .pseat__money small {
+    color: var(--muted);
+  }
+.juegos-root .pseat__state {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.juegos-root .pseat__kick {
+  margin-top: 3px;
+  padding: 1px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 11px;
+  color: var(--ivory);
+}
+
+.juegos-root .pseat--me .pseat__plate {
+  border-color: var(--ivory);
+}
+
+/* Turno: la placa brilla y una barra marca el tiempo que queda. */
+.juegos-root .pseat--turn .pseat__plate {
+  border-color: var(--bolt);
+  box-shadow: 0 0 22px rgba(255, 226, 122, 0.5);
+}
+.juegos-root .pseat--turn .pseat__plate::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: calc(var(--p) * 100%);
+    height: 3px;
+    background: var(--bolt);
+  }
+
+.juegos-root .pseat--away {
+  opacity: 0.55;
+}
+.juegos-root .pseat--win .pseat__plate, .juegos-root .pseat--blackjack .pseat__plate {
+  border-color: #5fd38d;
+}
+.juegos-root .pseat--lose .pseat__cards, .juegos-root .pseat--bust .pseat__cards {
+  opacity: 0.6;
+}
+
+.juegos-root .pseat--empty .pseat__cards {
+  min-height: 0;
+}
+.juegos-root .pseat--empty .pseat__spot {
+  margin-top: 0;
+}
+
+.juegos-root .pseat__sit, .juegos-root .pseat__plate--free {
+  margin-top: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+.juegos-root .pseat__sit {
+  border: 1px solid var(--brass);
+  background: rgba(0, 0, 0, 0.3);
+  font-weight: 700;
+  color: var(--brass);
+}
+.juegos-root .pseat__sit:hover {
+    background: var(--brass);
+    color: #1b1405;
+  }
+.juegos-root .pseat__plate--free {
+  min-width: 0;
+  border-style: dashed;
+  background: transparent;
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .juegos-root .ptable {
+    --seat-card: clamp(30px, 9vw, 44px);
+  }
+  .juegos-root .ptable .felt-print {
+    top: 27%;
+    width: 80%;
+  }
+  .juegos-root .pseat {
+    top: calc(27% + 55% * var(--sin));
+    left: calc(50% + 37% * var(--cos));
+    width: 84px;
+  }
+  .juegos-root .placard {
+    padding: 3px 10px;
+  }
+  .juegos-root .placard__code {
+    font-size: 18px;
+  }
+  .juegos-root .pseat__name, .juegos-root .pseat__money {
+    font-size: 12px;
+  }
+  .juegos-root .pseat__money small, .juegos-root .placard__limits {
+    display: none;
+  }
+}
+
+/* Foto de TopCode junto al nombre del asiento. */
+.juegos-root .pseat__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}

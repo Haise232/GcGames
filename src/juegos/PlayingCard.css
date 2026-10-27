@@ -1,0 +1,87 @@
+/* Generado desde el proyecto de juegos con scripts/scope-css.cjs: no editar aquí. */
+.juegos-root .card {
+  --card-w: clamp(64px, 7.5vw, 104px);
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--card-w);
+  aspect-ratio: 5 / 7;
+  perspective: 600px;
+  animation: juegos-card-deal 0.38s cubic-bezier(0.2, 0.8, 0.3, 1) calc(var(--i) * 0.2s) backwards;
+}
+
+.juegos-root .card__inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.45s ease-in-out;
+}
+.juegos-root .card--down .card__inner {
+  transform: rotateY(180deg);
+}
+
+.juegos-root .card__face, .juegos-root .card__back {
+  position: absolute;
+  inset: 0;
+  border-radius: calc(var(--card-w) * 0.08);
+  backface-visibility: hidden;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.2),
+    0 6px 14px rgba(4, 16, 24, 0.45);
+}
+
+.juegos-root .card__face {
+  display: grid;
+  place-items: center;
+  background: #f6efdd;
+  color: var(--black);
+  font-family: var(--display);
+}
+.juegos-root .card--red .card__face {
+  color: var(--red);
+}
+
+.juegos-root .card__corner {
+  position: absolute;
+  top: 6%;
+  left: 8%;
+  font-size: calc(var(--card-w) * 0.2);
+  line-height: 0.95;
+  text-align: center;
+}
+.juegos-root .card__corner--end {
+  inset: auto 8% 6% auto;
+  rotate: 180deg;
+}
+.juegos-root .card__pip {
+  font-size: calc(var(--card-w) * 0.48);
+  line-height: 1;
+}
+
+/* Reverso: rombos en granate con filo dorado. */
+.juegos-root .card__back {
+  transform: rotateY(180deg);
+  border: calc(var(--card-w) * 0.06) solid #f6efdd;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 6px, rgba(200, 162, 75, 0.45) 6px 7px),
+    repeating-linear-gradient(-45deg, transparent 0 6px, rgba(200, 162, 75, 0.45) 6px 7px),
+    #7a1d1a;
+}
+
+/* Cada carta sale del zapato, arriba a la derecha. */
+@keyframes juegos-card-deal {
+  from {
+    opacity: 0;
+    translate: 40vw -30vh;
+    rotate: -25deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .card {
+    animation: none;
+  }
+  .juegos-root .card__inner {
+    transition: none;
+  }
+}
