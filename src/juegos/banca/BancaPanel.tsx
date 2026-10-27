@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { Coins, MessageSquare, Zap, X, Search, Users, Check, Clock, Trophy, Landmark, Ghost, UserPlus } from 'lucide-react'
+import { Coins, MessageSquare, Zap, X, Search, Users, Check, Clock, Trophy, Landmark, Ghost, UserPlus, KeyRound, Copy, Contact } from 'lucide-react'
 import {
   ABUSE_MINUTES,
   POT_MINUTES,
@@ -17,11 +17,12 @@ import {
   type Jugador,
   type Movimiento,
   type Pendiente,
+  type UsuarioAdmin,
 } from './banca'
 import './banca-panel.css'
 import { enFechas, preferencia, setPreferencia, type PreferenciaHalloween } from '../halloween'
 
-type Tab = 'dinero' | 'mensaje' | 'abuso' | 'bote' | 'hacienda' | 'cuentas' | 'tema'
+type Tab = 'dinero' | 'mensaje' | 'abuso' | 'bote' | 'hacienda' | 'cuentas' | 'usuarios' | 'tema'
 const ALL = 'todos'
 const CHIPS = [100, 1000, 10000, 50000]
 const MAX = 1_000_000
@@ -86,6 +87,10 @@ export default function BancaPanel({ onClose }: { onClose: () => void }) {
   const [, setTick] = useState(0)
   const [tema, setTema] = useState<PreferenciaHalloween>(() => preferencia())
   const [pending, setPending] = useState<Pendiente[]>([])
+  const [users, setUsers] = useState<UsuarioAdmin[] | null>(null)
+  const [userQuery, setUserQuery] = useState('')
+  const [resetFor, setResetFor] = useState<string | null>(null) // a quién se le va a poner la temporal (pide confirmar)
+  const [temp, setTemp] = useState<{ id: string; password: string; copied: boolean } | null>(null)
 
   const loadPeople = useCallback(async () => {
     const { banca } = await bancaCall({ t: 'banca_gente' })
@@ -105,6 +110,51 @@ export default function BancaPanel({ onClose }: { onClose: () => void }) {
       .then(({ banca }) => setPending(banca?.pendientes ?? []))
       .catch(() => {})
   }, [loadPeople])
+
+  // Banca → Usuarios: se carga al abrir la pestaña.
+  useEffect(() => {
+    if (tab !== 'usuarios') return
+    bancaCall({ t: 'banca_usuarios' })
+      .then(({ banca }) => setUsers(banca?.usuarios ?? []))
+      .catch((e: Error) => setNote({ ok: false, text: e.message }))
+  }, [tab])
+
+  const shownUsers = useMemo(() => {
+    const q = userQuery.trim().toLowerCase()
+    const list = users ?? []
+    return q ? list.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) : list
+  }, [users, userQuery])
+
+  // Contraseña temporal: el primer clic pide confirmar; el segundo la genera y se enseña una sola vez.
+  const resetPassword = async (u: UsuarioAdmin) => {
+    if (resetFor !== u.id) {
+      setResetFor(u.id)
+      setTemp(null)
+      return
+    }
+    setBusy(true)
+    setResetFor(null)
+    try {
+      const { banca } = await bancaCall({ t: 'banca_password', id: u.id })
+      if (!banca?.temporal) throw new Error('No se pudo poner la contraseña temporal.')
+      setTemp({ id: u.id, password: banca.temporal, copied: false })
+      setUsers((list) => list?.map((x) => (x.id === u.id ? { ...x, temporal: true } : x)) ?? list)
+    } catch (e) {
+      setNote({ ok: false, text: (e as Error).message })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const copyTemp = async () => {
+    if (!temp) return
+    try {
+      await navigator.clipboard.writeText(temp.password)
+      setTemp({ ...temp, copied: true })
+    } catch {
+      // sin portapapeles: se copia a mano
+    }
+  }
 
   // Acepta o rechaza una cuenta nueva; al aceptarla ya sale entre los jugadores.
   const decide = async (person: Pendiente, aceptar: boolean) => {
@@ -143,6 +193,7 @@ export default function BancaPanel({ onClose }: { onClose: () => void }) {
   }, [onClose])
 
   useEffect(() => setArmed(false), [to, amount, tab, raidPct, raidFloor])
+  useEffect(() => setResetFor(null), [tab, userQuery])
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -243,6 +294,7 @@ export default function BancaPanel({ onClose }: { onClose: () => void }) {
               ['bote', 'Bote', Trophy],
               ['hacienda', 'Hacienda', Landmark],
               ['cuentas', pending.length ? `Cuentas (${pending.length})` : 'Cuentas', UserPlus],
+              ['usuarios', 'Usuarios', Contact],
               ['tema', 'Tema', Ghost],
             ] as const
           ).map(([id, label, Icon]) => (
@@ -546,6 +598,65 @@ export default function BancaPanel({ onClose }: { onClose: () => void }) {
                         </button>
                       </li>
                     ))}
+                  </ul>
+                )}
+              </>
+            )}
+
+            {tab === 'usuarios' && (
+              <>
+                <p className="bp-muted">
+                  Todas las cuentas con su email. Si alguien olvida su contraseña, ponle una temporal: se le cierran las sesiones
+                  abiertas y, al entrar con ella, tendrá que elegir una nueva antes de jugar.
+                </p>
+                <label className="bp-search">
+                  <Search size={14} />
+                  <input value={userQuery} onChange={(e) => setUserQuery(e.target.value)} placeholder="Buscar por nombre o email…" />
+                </label>
+                {users === null ? (
+                  <p className="bp-muted">Cargando…</p>
+                ) : (
+                  <ul className="bp-users">
+                    {shownUsers.map((u) => (
+                      <li key={u.id}>
+                        <div className="bp-users__row">
+                          <Face person={u} />
+                          <span className="bp-users__who">
+                            <b>
+                              {u.name}
+                              {u.master && <em className="bp-tag bp-tag--master">Master</em>}
+                              {u.estado !== 'aprobado' && <em className={`bp-tag bp-tag--${u.estado}`}>{u.estado}</em>}
+                              {u.temporal && <em className="bp-tag bp-tag--temp">Temporal</em>}
+                            </b>
+                            <a href={`mailto:${u.email}`}>{u.email}</a>
+                            <small>{u.acceso ? `Último acceso ${ago(u.acceso)}` : 'Nunca ha entrado'}</small>
+                          </span>
+                          {!u.master && (
+                            <button
+                              type="button"
+                              className={`bp-users__reset ${resetFor === u.id ? 'is-armed' : ''}`}
+                              disabled={busy}
+                              onClick={() => resetPassword(u)}
+                            >
+                              <KeyRound size={14} />
+                              {resetFor === u.id ? '¿Seguro? Pulsa otra vez' : 'Contraseña temporal'}
+                            </button>
+                          )}
+                        </div>
+                        {temp?.id === u.id && (
+                          <div className="bp-temp" role="status">
+                            <span>Contraseña temporal de {u.name}:</span>
+                            <code>{temp.password}</code>
+                            <button type="button" onClick={copyTemp}>
+                              {temp.copied ? <Check size={14} /> : <Copy size={14} />}
+                              {temp.copied ? 'Copiada' : 'Copiar'}
+                            </button>
+                            <small>Pásasela por privado. No se vuelve a mostrar; al entrar, tendrá que cambiarla.</small>
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                    {shownUsers.length === 0 && <li className="bp-muted">Nadie con ese nombre o email.</li>}
                   </ul>
                 )}
               </>

@@ -70,6 +70,7 @@ export const ERRORS = {
   AUTH_REQUIRED: 'Inicia sesión para jugar.',
   AUTH_INVALID: 'Tu sesión caducó. Recarga la página.',
   AUTH_PENDING: 'Tu cuenta aún no está aprobada: el master tiene que aceptarla.',
+  AUTH_PASSWORD: 'Antes de jugar, elige una contraseña nueva.',
   AUTH_DOWN: 'No se pudo comprobar tu sesión. Reintentando…',
   ...GACHA_ERRORS,
   ...BINGO_ERRORS,

@@ -45,7 +45,7 @@ el domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el
 - **Economía**: gacha de cartas coleccionables (con casa de empeños), Inmobiliaria con tablero, Cuenta en Suiza para
   esconder dinero y **Hacienda**, que reclama su parte a los que más tienen.
 - **La banca**: el master puede dar dinero, mandar mensajes, activar el *Admin Abuse* (×2, ×3 o todo gratis), abrir el
-  bote del bingo, lanzar redadas de Hacienda y aceptar las cuentas nuevas.
+  bote del bingo, lanzar redadas de Hacienda, aceptar las cuentas nuevas y dar contraseñas temporales.
 - App instalable en el móvil (PWA) y tema de Halloween en fechas.
 
 ## 🃏 Juegos
@@ -170,6 +170,10 @@ Supabase (proyecto propio de GcGames).
 
 - Cualquiera puede crear una cuenta, pero queda **pendiente** hasta que el master la acepta en **la banca → Cuentas**.
 - El master es la cuenta con `usuarios.es_superadmin = true` (solo hay una). Es el único que ve el botón de la banca.
+- **La banca → Usuarios** lista todas las cuentas con su email, su estado y su último acceso. Si alguien olvida la
+  contraseña, el master le pone una **temporal** (12 caracteres al azar que genera el servidor y que solo se ven una vez):
+  se le cierran las sesiones abiertas y, al entrar con ella, tiene que elegir una nueva antes de jugar (el servidor no le
+  deja jugar hasta entonces). Funciones en `supabase/01_usuarios_password.sql`; solo las puede llamar `juegos_api`.
 - «He olvidado la contraseña» manda un enlace por email; en Supabase → Authentication → URL Configuration la *Site URL*
   tiene que ser `https://play.gcgames.workers.dev`.
 

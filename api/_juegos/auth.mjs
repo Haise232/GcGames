@@ -85,9 +85,11 @@ export async function verifyUser(authorization, db) {
   if (hit && hit.until > Date.now()) return hit.user
 
   const id = (await localUserId(token)) ?? (await remoteUserId(token, hit))
-  const perfil = (await db.query(`select nombre, avatar_url, estado_acceso from public.usuarios where id = $1`, [id])).rows[0]
+  const perfil = (await db.query(`select nombre, avatar_url, estado_acceso, debe_cambiar_password from public.usuarios where id = $1`, [id])).rows[0]
   if (!perfil) throw new JuegosError('AUTH_INVALID')
   if (perfil.estado_acceso !== 'aprobado') throw new JuegosError('AUTH_PENDING')
+  // Entró con una contraseña temporal de la banca: hasta que elija otra, no juega.
+  if (perfil.debe_cambiar_password) throw new JuegosError('AUTH_PASSWORD')
   const user = { id, name: shortName(perfil.nombre) || 'Jugador', avatar: safeAvatar(perfil.avatar_url) }
 
   if (cache.size > 2000) cache.clear()

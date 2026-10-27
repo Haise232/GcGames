@@ -34,7 +34,7 @@ async function api(request) {
   } catch (error) {
     if (error instanceof JuegosError) {
       // AUTH_DOWN: Supabase Auth no respondió; con 503 el navegador reintenta en vez de pedir que recargues.
-      const status = error.code === 'AUTH_DOWN' ? 503 : error.code.startsWith('AUTH_') ? (error.code === 'AUTH_PENDING' ? 403 : 401) : 400
+      const status = error.code === 'AUTH_DOWN' ? 503 : error.code.startsWith('AUTH_') ? (error.code === 'AUTH_PENDING' || error.code === 'AUTH_PASSWORD' ? 403 : 401) : 400
       return json(status, { error: { code: error.code, message: error.message } })
     }
     // Choque entre dos peticiones a la vez sobre la misma mesa (bloqueo): el cliente reintenta.

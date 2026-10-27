@@ -441,9 +441,10 @@ export function Entrada() {
   )
 }
 
-// Al abrir el enlace del correo de «he olvidado la contraseña».
-export function NuevaPassword() {
-  const { endRecovery } = useAuth()
+// Al abrir el enlace del correo de «he olvidado la contraseña», o al entrar con una contraseña temporal que dio el master
+// (obligatoria: no se puede jugar hasta elegir otra).
+export function NuevaPassword({ obligatoria = false, nombre = '' }) {
+  const { endRecovery, refresh } = useAuth()
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [nota, setNota] = useState(null)
@@ -453,17 +454,33 @@ export function NuevaPassword() {
     e.preventDefault()
     setBusy(true)
     setNota(null)
+    if (password.length < 6) {
+      setBusy(false)
+      setNota({ ok: false, text: 'La contraseña tiene que tener al menos 6 caracteres.' })
+      return
+    }
     const { error } = await supabase.auth.updateUser({ password })
+    if (error) {
+      setBusy(false)
+      setNota({ ok: false, text: /same|different from the old/i.test(error.message) ? 'Tiene que ser distinta de la temporal.' : mensaje(error) })
+      return
+    }
+    // Ya no es temporal: se quita la marca y se vuelve a leer el perfil para entrar al casino.
+    await supabase.rpc('juegos_password_cambiada')
+    await refresh()
     setBusy(false)
-    if (error) setNota({ ok: false, text: mensaje(error) })
-    else endRecovery()
+    endRecovery()
   }
 
   return (
     <Marco compacto>
       <header className="entrada__head">
-        <h2 className="entrada__title">Elige una contraseña nueva</h2>
-        <p className="entrada__text">La usarás a partir de ahora para entrar.</p>
+        <h2 className="entrada__title">{obligatoria ? `Hola, ${nombre}: elige tu contraseña` : 'Elige una contraseña nueva'}</h2>
+        <p className="entrada__text">
+          {obligatoria
+            ? 'Has entrado con una contraseña temporal que te dio el master. Antes de jugar, cámbiala por una tuya.'
+            : 'La usarás a partir de ahora para entrar.'}
+        </p>
       </header>
       <form className="entrada__form" onSubmit={enviar}>
         <Password id={`${id}-pw`} value={password} onChange={setPassword} label="Contraseña nueva" autoComplete="new-password" />
@@ -477,6 +494,7 @@ export function NuevaPassword() {
           {busy ? 'Guardando…' : 'Guardar y entrar'}
         </button>
       </form>
+      {obligatoria && <Salir />}
     </Marco>
   )
 }

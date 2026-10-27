@@ -21,6 +21,8 @@ function Casino() {
     return <Aviso titulo="Cuenta rechazada">El master no ha aceptado esta cuenta.</Aviso>
   }
   if (usuario.estado_acceso !== 'aprobado') return <Pendiente nombre={usuario.nombre} />
+  // Entró con una contraseña temporal de la banca: primero elige la suya.
+  if (usuario.debe_cambiar_password) return <NuevaPassword obligatoria nombre={usuario.nombre} />
   return (
     <Suspense fallback={<Cargando />}>
       <Juegos />

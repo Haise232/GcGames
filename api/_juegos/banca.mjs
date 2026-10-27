@@ -13,6 +13,8 @@
 //                 (null: sin límite; una: se cierra en cuanto alguien se lo lleve) y { cerrar: true } lo cierra
 //   banca_hacienda master: { pct, desde } redada de Hacienda a todos los que tengan «desde» o más (ver hacienda.mjs)
 //   banca_cuentas master: sin más, las cuentas nuevas que esperan; { id, aceptar: true | false } acepta o rechaza una
+//   banca_usuarios master: todas las cuentas con su email, estado y último acceso
+//   banca_password master: { id } le pone una contraseña temporal (la devuelve una vez) y le obliga a cambiarla al entrar
 //
 // Admin Abuse (juegos_meta.abuso): x2 y x3 multiplican lo que ganas en una jugada (la banca paga la diferencia) y dan
 // más suerte donde el sorteo es de cada uno (plinko, laberinto y cartones gratis en el bingo; en la rana no: devolvía
@@ -20,11 +22,16 @@
 // devuelve lo que pierdes. Ámbito: todos los juegos o solo el póker.
 // Lo que da la banca es saldo normal: cuenta en el Score.
 
+import { randomInt } from 'node:crypto'
+
 export const BANK_TOPIC = 'juegos-banca' // aviso de Realtime: «la banca tiene algo nuevo» (sin datos)
 export const ABUSE_MODES = new Set(['x2', 'x3', 'gratis'])
 export const ABUSE_MINUTES = [5, 10, 30, 60]
 const MAX_GIFT = 1_000_000
 const MAX_TEXT = 300
+// Contraseñas temporales: fáciles de dictar (sin 0/O ni 1/l/I) y con 12 caracteres al azar (unos 70 bits).
+const TEMP_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+const TEMP_LENGTH = 12
 const ABUSE_TTL_MS = 3000 // cada instancia de la función relee el Admin Abuse como mucho cada este rato
 const MASTER_TTL_MS = 60000
 const POT_TTL_MS = 3000 // como el Admin Abuse: el estado del bote se relee como mucho cada este rato
@@ -266,7 +273,36 @@ export function createBanca({ db, ping, now, credit, pot, hacienda }) {
     return { banca: { pendientes: rows.map((r) => ({ id: r.id, name: r.name, email: r.email, at: Math.round(Number(r.at)) })) } }
   }
 
-  const MASTER_ONLY = { banca_cuentas: accounts, banca_gente: people, banca_dar: give, banca_mensaje: message, banca_abuso: setAbuse, banca_bote: jackpot, banca_hacienda: raid }
+  async function users() {
+    const { rows } = await db.query(`select * from public.juegos_usuarios_admin()`)
+    return {
+      banca: {
+        usuarios: rows.map((r) => ({
+          id: r.id,
+          name: r.nombre,
+          email: r.email,
+          avatar: r.avatar_url ?? null,
+          estado: r.estado_acceso,
+          master: r.es_superadmin,
+          temporal: r.debe_cambiar_password,
+          creado: r.creado ? new Date(r.creado).getTime() : null,
+          acceso: r.ultimo_acceso ? new Date(r.ultimo_acceso).getTime() : null,
+        })),
+      },
+    }
+  }
+
+  // Contraseña temporal para quien la olvidó. Se genera aquí, se guarda solo su hash (Supabase Auth) y el master la ve
+  // una vez para pasársela; al entrar con ella, la app obliga a elegir otra.
+  async function tempPassword(user, msg) {
+    if (typeof msg.id !== 'string' || !/^[0-9a-f-]{36}$/i.test(msg.id) || msg.id === user.id) return { error: 'BAD_MESSAGE' }
+    const temporal = Array.from({ length: TEMP_LENGTH }, () => TEMP_ALPHABET[randomInt(TEMP_ALPHABET.length)]).join('')
+    const { rows } = await db.query(`select public.juegos_password_temporal($1, $2) as ok`, [msg.id, temporal])
+    if (!rows[0]?.ok) return { error: 'BAD_MESSAGE' }
+    return { banca: { temporal, para: msg.id } }
+  }
+
+  const MASTER_ONLY = { banca_usuarios: users, banca_password: tempPassword, banca_cuentas: accounts, banca_gente: people, banca_dar: give, banca_mensaje: message, banca_abuso: setAbuse, banca_bote: jackpot, banca_hacienda: raid }
 
   async function handle(user, msg) {
     if (msg.t === 'banca') return status(user)

@@ -95,7 +95,23 @@ export interface BancaReply {
     declaracion?: HaciendaDatos & { paid: number; balance: number }
     redada?: { personas: number; total: number }
     pendientes?: Pendiente[]
+    usuarios?: UsuarioAdmin[]
+    temporal?: string
+    para?: string
   }
+}
+
+// Una cuenta en Banca → Usuarios.
+export interface UsuarioAdmin {
+  id: string
+  name: string
+  email: string
+  avatar: string | null
+  estado: 'aprobado' | 'pendiente' | 'rechazado'
+  master: boolean
+  temporal: boolean // entró (o entrará) con una contraseña temporal y aún no ha elegido la suya
+  creado: number | null
+  acceso: number | null // último inicio de sesión
 }
 
 // Cuenta nueva que espera a que el master la acepte.
