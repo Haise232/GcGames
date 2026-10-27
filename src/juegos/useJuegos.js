@@ -5,8 +5,10 @@ import { supabase } from '../lib/supabase'
 // Supabase, y Supabase Realtime avisa cuando cambia tu mesa para pedir tu vista (cada uno ve solo sus cartas).
 // Los temporizadores de la mesa (turnos, crupier) los hace avanzar el propio navegador con «tick» cuando vencen.
 // conn: connecting | open | closed (sin red; reintenta) | denied (cuenta no aprobada o sesión caducada)
-const HEARTBEAT_MS = 20000
-const LOBBY_POLL_MS = 30000
+// Menos peticiones = menos consumo de Vercel. El latido de la mesa tiene que quedar por debajo de AWAY_MS (45 s, game.mjs).
+// Fuera de las mesas Realtime avisa de los cambios: el sondeo es solo un respaldo y se para con la pestaña oculta.
+const HEARTBEAT_MS = 30000
+const LOBBY_POLL_MS = 60000
 const RETRY_MS = 3000
 const RETRY_MAX_MS = 30000
 const ERROR_MS = 3500
@@ -228,11 +230,15 @@ export function useJuegos() {
       })
     }
     channel.subscribe()
-    // Latido: te mantiene presente en la mesa y recupera cualquier aviso perdido.
-    const beat = setInterval(() => call(code ? { t: 'view' } : { t: 'lobby' }), code ? HEARTBEAT_MS : LOBBY_POLL_MS)
+    // Latido: te mantiene presente en la mesa y recupera cualquier aviso perdido. Fuera de la mesa trae también el
+    // Score (una petición en vez de dos) y no se manda con la pestaña oculta.
+    const beat = setInterval(() => {
+      if (code) call({ t: 'view' })
+      else if (document.visibilityState === 'visible') call({ t: 'lobby', scores: true })
+    }, code ? HEARTBEAT_MS : LOBBY_POLL_MS)
     // Al volver a la pestaña (el navegador espacia los temporizadores de las pestañas ocultas) se pone al día al momento.
     const onVisible = () => {
-      if (document.visibilityState === 'visible') call(code ? { t: 'view' } : { t: 'lobby' })
+      if (document.visibilityState === 'visible') call(code ? { t: 'view' } : { t: 'lobby', scores: true })
     }
     document.addEventListener('visibilitychange', onVisible)
     // Pagaste a Hacienda (banca/BancaAvisos.tsx): el saldo cambió fuera de una jugada.

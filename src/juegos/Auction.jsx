@@ -27,7 +27,7 @@ import './season3.css'
 import './Auction.css'
 
 const TOPIC = 'juegos-subasta' // canal público: el servidor avisa con cada puja (evento «cambio»)
-const POLL_MS = 4000 // respaldo del Realtime mientras se puja
+const POLL_MS = 10000 // respaldo del Realtime mientras se puja
 const REVEAL_WAIT_MS = 700 // tras el cierre, lo que se espera para pedir qué llevaba la caja
 const COALESCE_MS = 250 // avisos seguidos del Realtime se juntan en una sola petición
 const NOTICE_MS = 2600 // cuánto se ve el cartel de «¡PRÓRROGA!»

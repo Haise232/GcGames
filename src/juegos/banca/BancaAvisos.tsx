@@ -11,7 +11,7 @@ import './banca.css'
 // El Admin Abuse ya presentado (con su animación grande) en este navegador: se guarda su «desde».
 const SEEN_KEY = 'topcode-abuso-visto'
 const POT_SEEN_KEY = 'topcode-bote-visto' // lo mismo con la apertura del bote del bingo
-const POLL_MS = 30000 // por si se pierde un aviso de Realtime (pestaña dormida, red que cae), se pregunta igualmente
+const POLL_MS = 90000 // por si se pierde un aviso de Realtime (pestaña dormida, red que cae), se pregunta igualmente
 const INTRO_MS = 11000 // la presentación se cierra sola pasado este rato (o antes, con «¡A jugar!»)
 
 const readSeen = (key = SEEN_KEY) => {

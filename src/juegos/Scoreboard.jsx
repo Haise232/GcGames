@@ -260,7 +260,7 @@ function Scoreboard({ juegos, onExit }) {
     if (conn !== 'open' || !me) return
     send({ t: 'scores' })
     const timer = setInterval(() => {
-      send({ t: 'scores' })
+      if (document.visibilityState === 'visible') send({ t: 'scores' })
       tick((n) => n + 1)
     }, REFRESH_MS)
     return () => clearInterval(timer)

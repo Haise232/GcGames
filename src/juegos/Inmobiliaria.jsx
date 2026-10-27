@@ -15,7 +15,7 @@ import './Inmobiliaria.css'
 // Alrededor, las 40 casillas; en el centro, la ciudad que se va construyendo entre todos; al lado, tu cartera y la ficha
 // de la propiedad que tocas, con comprar, poner casas y hotel o venderla.
 
-const REFRESH_MS = 20000
+const REFRESH_MS = 60000 // respaldo de Realtime, solo con la pestaña visible
 const ICON = { salida: '➜', caja: '📦', suerte: '❓', impuesto: '💸', carcel: '🚔', parking: '🅿️', 'a-carcel': '👮', estacion: '🚌', compania: '⚡' }
 const STATION_ICON = { 5: '🚌', 15: '⚓', 25: '✈️', 35: '✈️' }
 
@@ -54,7 +54,7 @@ function useInmo(request) {
         debounce.current = setTimeout(() => load(), 250)
       })
       .subscribe()
-    const timer = setInterval(() => load(), REFRESH_MS)
+    const timer = setInterval(() => document.visibilityState === 'visible' && load(), REFRESH_MS)
     return () => {
       clearTimeout(debounce.current)
       clearInterval(timer)

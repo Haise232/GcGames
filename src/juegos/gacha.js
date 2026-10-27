@@ -33,7 +33,7 @@ export function useServerNow(offset) {
   return t
 }
 
-const REFRESH_MS = 20000
+const REFRESH_MS = 60000 // respaldo de Realtime (cada tirada avisa), solo con la pestaña visible
 
 // Estado del gacha y su canal. Se cargan al entrar, cada vez que alguien tira o reclama (aviso de Realtime
 // «juegos-gacha», sin datos) y cada REFRESH_MS por si se pierde un aviso. load(a, extra) manda una acción y devuelve
@@ -72,7 +72,7 @@ export function useGacha(request) {
         debounce.current = setTimeout(() => load('estado'), 250)
       })
       .subscribe()
-    const timer = setInterval(() => load('estado'), REFRESH_MS)
+    const timer = setInterval(() => document.visibilityState === 'visible' && load('estado'), REFRESH_MS)
     return () => {
       clearTimeout(debounce.current)
       clearInterval(timer)

@@ -28,7 +28,7 @@ const MAX_PUBLIC_PER_GAME = 6
 const AWAY_MS = 45000 // sin noticias del navegador: se le da por desconectado
 const GONE_MS = 3 * 60000 // y pasado este rato, fuera de la mesa
 const SEEN_SAVE_MS = 15000 // el latido se guarda aunque la mesa no cambie, como mucho una vez cada este rato
-const ONLINE_MS = 60000
+const ONLINE_MS = 150000 // más que el sondeo del lobby (60 s) con margen: si no, el contador de conectados parpadea
 const TOUCH_S = 20
 const CHAT_KEEP = 50
 const CHAT_GAP_MS = 700
@@ -881,7 +881,9 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         reply.lobby = await lobby(user)
         return reply
       case 'lobby':
-        reply.lobby = await lobby(user)
+        // { scores: true }: el sondeo del selector trae también el Score, en la misma petición.
+        ;[reply.lobby, reply.scores] = await Promise.all([lobby(user), msg.scores === true ? scores(user) : undefined])
+        if (reply.scores === undefined) delete reply.scores
         return reply
       case 'scores':
         reply.scores = await scores(user)

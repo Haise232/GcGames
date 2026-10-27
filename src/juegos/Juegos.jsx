@@ -218,7 +218,6 @@ function WhatsAppIcon() {
   )
 }
 
-const SCORES_MS = 30000
 // Asientos de las mesas públicas (igual que en el servidor) para dibujar la mesa antes de que llegue el lobby.
 const SEATS = { blackjack: 7, poker: 6 }
 const CAPTION = { blackjack: 'Contra el crupier', poker: 'Ciegas de 50 y 100 €' }
@@ -529,13 +528,11 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome 
   }, [hubReady])
   const online = connected && Boolean(lobby)
 
-  // El resumen del score se refresca mientras se está en el selector.
+  // El resumen del score se pide al entrar en el selector; después llega con cada sondeo del lobby (useJuegos).
+  const ready = conn === 'open' && Boolean(me)
   useEffect(() => {
-    if (conn !== 'open' || !me) return
-    send({ t: 'scores' })
-    const timer = setInterval(() => send({ t: 'scores' }), SCORES_MS)
-    return () => clearInterval(timer)
-  }, [conn, me, send])
+    if (ready) send({ t: 'scores' })
+  }, [ready, send])
   const tablesOf = (game) => lobby?.tables.filter((t) => t.game === game) ?? []
 
   let status = { tone: 'off', text: 'Sin conexión · reintentando' }
