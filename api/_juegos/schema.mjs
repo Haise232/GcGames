@@ -23,7 +23,7 @@ create index if not exists juegos_cuentas_ranking_idx on public.juegos_cuentas (
 
 create table if not exists public.juegos_mesas (
   codigo      text primary key,
-  juego       text not null check (juego in ('blackjack', 'poker')),
+  juego       text not null check (juego in ('blackjack', 'poker', 'chess')),
   etiqueta    text not null,
   numero      int not null,
   persistente boolean not null default false,
@@ -233,4 +233,10 @@ alter table public.juegos_inmuebles       enable row level security;
 alter table public.juegos_inmuebles_log   enable row level security;
 alter table public.juegos_suiza           enable row level security;
 alter table public.juegos_inmo_bote       enable row level security;
+`
+
+// Mesas de ajedrez en una base de datos creada antes de que existieran (igual que supabase/migracion_juegos_ajedrez.sql).
+export const CHESS_CHECK_SQL = `
+alter table public.juegos_mesas drop constraint if exists juegos_mesas_juego_check;
+alter table public.juegos_mesas add constraint juegos_mesas_juego_check check (juego in ('blackjack', 'poker', 'chess'));
 `

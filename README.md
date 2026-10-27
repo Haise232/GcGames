@@ -38,7 +38,7 @@
 GcGames es un casino con dinero de mentira para un grupo cerrado. Cada jugador empieza la semana con **15.000 €**;
 el domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el podio de la semana.
 
-- **Mesas en vivo** de blackjack y póker, con chat, globos de mensaje y enlaces de invitación.
+- **Mesas en vivo** de blackjack, póker y ajedrez (uno contra uno, con apuesta), con chat, globos de mensaje y enlaces de invitación.
 - **Juegos para todos a la vez**: una ronda común cada pocos segundos que todos ven igual.
 - **Juegos en solitario** que sortea el servidor (nadie puede hacer trampas desde el navegador).
 - **Score** semanal con la evolución día a día y lo que cada uno tiene en activos (cartas, inmuebles, Suiza).
@@ -54,7 +54,7 @@ el domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el
 |---|---|---|---|
 | Blackjack | Ruleta (cada 25 s) | Laberinto | Gacha de cartas |
 | Póker | Cohete (cada 30 s) | Plinko | Inmobiliaria |
-| | Carrera (cada 55 s) | Rana | Cuenta en Suiza |
+| Ajedrez | Carrera (cada 55 s) | Rana | Cuenta en Suiza |
 | | Ascensor | La Torre | Hacienda |
 | | La Subasta | El Atraco | Duelos |
 | | El Puente de Cristal | | |
@@ -104,7 +104,7 @@ flowchart LR
 │   ├── lib/supabase.js      # Cliente de Supabase
 │   └── juegos/              # El casino: selector, cada juego, mesas, póker, banca, gacha…
 ├── api/_juegos/             # Servidor: un módulo por juego, banca, Hacienda, auth y base de datos
-│   └── engine/              # Motor de las mesas en vivo (blackjack y póker)
+│   └── engine/              # Motor de las mesas en vivo (blackjack, póker y ajedrez)
 ├── worker.mjs               # Entrada del Worker de Cloudflare
 ├── wrangler.jsonc           # Configuración del Worker (assets, Hyperdrive, variables)
 ├── public/                  # Iconos (salen de src/assets/logo.svg) y _headers (cabeceras de seguridad)

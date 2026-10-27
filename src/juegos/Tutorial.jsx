@@ -220,7 +220,7 @@ const STEPS = [
     target: 'live',
     art: 'tables',
     title: 'Mesas en vivo',
-    text: 'Blackjack y póker con la gente del casino. Siéntate a jugar o entra a mirar, chatea en la mesa e invita a tus amigos con un enlace. Y ojo al Bingo: el bote lo abre la banca a ratos y se avisa a todos a pantalla completa.',
+    text: 'Blackjack, póker y ajedrez con la gente del casino. Siéntate a jugar o entra a mirar, chatea en la mesa e invita a tus amigos con un enlace. Y ojo al Bingo: el bote lo abre la banca a ratos y se avisa a todos a pantalla completa.',
   },
   {
     target: 'gacha',

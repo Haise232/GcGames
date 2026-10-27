@@ -28,6 +28,7 @@ import Inmobiliaria from './Inmobiliaria.jsx'
 import Suiza, { SuizaBanner } from './Suiza.jsx'
 import Table from './table/Table.jsx'
 import PokerTable from './poker/PokerTable.jsx'
+import ChessTable from './chess/ChessTable.jsx'
 import { useJuegos } from './useJuegos.js'
 import Scoreboard from './Scoreboard.jsx'
 import Avatar from './Avatar.jsx'
@@ -56,6 +57,7 @@ const BancaPanel = lazy(() => import('./banca/BancaPanel'))
 const LIVE = {
   blackjack: { name: 'Blackjack' },
   poker: { name: 'Póker' },
+  chess: { name: 'Ajedrez' },
 }
 
 // Cada juego lleva su mini escena (HubArt.jsx), un color (--tint, en r, g, b) para el brillo de su tarjeta y una frase corta.
@@ -220,11 +222,13 @@ function WhatsAppIcon() {
 }
 
 // Asientos de las mesas públicas (igual que en el servidor) para dibujar la mesa antes de que llegue el lobby.
-const SEATS = { blackjack: 7, poker: 6 }
-const CAPTION = { blackjack: 'Contra el crupier', poker: 'Ciegas de 50 y 100 €' }
+const SEATS = { blackjack: 7, poker: 6, chess: 2 }
+const CAPTION = { blackjack: 'Contra el crupier', poker: 'Ciegas de 50 y 100 €', chess: 'Uno contra uno, con apuesta' }
 
 // Posición de cada asiento en la mini mesa, en % del recuadro. Póker: óvalo completo. Blackjack: arco bajo el crupier.
+// Ajedrez: uno a cada lado del tablero.
 function seatSpot(i, n, game) {
+  if (game === 'chess') return { left: i === 0 ? '13%' : '87%', top: '50%' }
   const [from, span] = game === 'blackjack' ? [162, -144] : [90, 360]
   const deg = game === 'blackjack' ? from + (span * i) / (n - 1) : from + (span * i) / n
   const rad = (deg * Math.PI) / 180
@@ -236,6 +240,10 @@ function seatSpot(i, n, game) {
 // Texto y tono del estado de una mesa.
 function tableState(game, t) {
   if (!t || t.players === 0) return { tone: 'free', text: 'Mesa libre' }
+  if (game === 'chess') {
+    if (t.phase === 'playing') return { tone: 'hand', text: 'Partida en curso' }
+    return t.players === 1 ? { tone: 'wait', text: 'Busca rival' } : { tone: 'on', text: 'Acordando la apuesta' }
+  }
   if (game === 'poker' && t.phase === 'waiting') {
     return t.players === 1 ? { tone: 'wait', text: `Espera rival ${t.players}/${t.seats}` } : { tone: 'on', text: `${t.players} jugando` }
   }
@@ -404,6 +412,7 @@ function MiniTable({ game, table, name }) {
     <div className={`hub-table hub-table--${game}`} role="img" aria-label={label}>
       <span className="hub-table__felt" aria-hidden="true">
         {game === 'blackjack' && <em className="hub-table__dealer">Crupier</em>}
+        {game === 'chess' && <span className="hub-table__board" />}
         <span className="hub-table__caption">{CAPTION[game]}</span>
       </span>
       {seats.map((seat, i) => (
@@ -824,7 +833,7 @@ function JuegosScreens() {
 
   // Dentro de una mesa manda el servidor (también al volver tras recargar la página).
   if (juegos.room) {
-    const Kind = juegos.room.state.game === 'poker' ? PokerTable : Table
+    const Kind = { poker: PokerTable, chess: ChessTable }[juegos.room.state.game] ?? Table
     return (
       <Kind
         room={juegos.room}

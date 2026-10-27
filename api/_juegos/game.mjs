@@ -6,10 +6,11 @@
 import { randomInt } from 'node:crypto'
 import { Room } from './engine/room.mjs'
 import { PokerRoom } from './engine/poker-room.mjs'
+import { ChessRoom } from './engine/chess-room.mjs'
 import { storedTimers } from './engine/timers.mjs'
 import { weekOf } from './engine/week.mjs'
 import { PUBLIC_SEATS, GAMES, nextNumber, pickTable } from './engine/lobby.mjs'
-import { SCHEMA_SQL } from './schema.mjs'
+import { CHESS_CHECK_SQL, SCHEMA_SQL } from './schema.mjs'
 import { SOLO_GAMES, SOLO_PLAY, crashDue, crashView, crashWaitMs, raceDue, raceView, rouletteDue, rouletteView } from './solo.mjs'
 import { GACHA_ERRORS, createGacha, priceOf } from './gacha.mjs'
 import { BINGO_ERRORS, createBingo } from './bingo.mjs'
@@ -64,6 +65,7 @@ export const ERRORS = {
   ROOM_NOT_FOUND: 'Esa mesa ya no existe.',
   ROOM_FULL: 'Todas las mesas están llenas. Prueba a mirar.',
   RATE_LIMIT: 'Vas demasiado rápido.',
+  ILLEGAL_MOVE: 'Ese movimiento no vale.',
   BUSY: 'La mesa está muy concurrida, inténtalo de nuevo.',
   HEIST_CREW: 'Alguna carta de tu banda ya no es tuya. Elige la banda otra vez.',
   BROKE: 'Te quedaste sin saldo esta semana: el domingo a las 23:59 todos vuelven a empezar con 15.000 €.',
@@ -152,6 +154,23 @@ class PokerTableRoom extends PokerRoom {
   }
 }
 
+// Ajedrez con Admin Abuse: al acabar la partida, la banca multiplica lo ganado (o devuelve lo perdido) a cada uno.
+class ChessTableRoom extends ChessRoom {
+  finish(winner, reason) {
+    super.finish(winner, reason)
+    this.seats.forEach((seat, index) => {
+      if (!seat) return
+      const extra = abuseExtra(this.abuse, 'chess', seat.won - this.stake)
+      if (!extra) return
+      this.accounts.adjust(seat.token, extra)
+      seat.won += extra
+      this.result.won[index] += extra
+    })
+  }
+}
+
+const ROOMS = { blackjack: BlackjackRoom, poker: PokerTableRoom, chess: ChessTableRoom }
+
 // Al empezar ronda el motor libera el asiento de quien lleva un rato desconectado, pero no avisa a su sesión, que se queda
 // creyendo que sigue sentada: al volver no la dejaba sentarse otra vez (el motor contesta BAD_PHASE). Se corrige al abrir.
 function fixSeats(room) {
@@ -192,7 +211,7 @@ function serialize(room) {
 }
 
 function restore(row, accounts, now) {
-  const Kind = row.juego === 'poker' ? PokerTableRoom : BlackjackRoom
+  const Kind = ROOMS[row.juego]
   const room = Object.create(Kind.prototype)
   Object.assign(room, row.estado.room, { accounts, randomInt, now, timers: storedTimers, timer: null, onClose: null })
   room.members = new Map()
@@ -631,7 +650,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
   // Inserta una mesa pública vacía. Si otra petición creó ya ese número a la vez, no hace nada (índice único).
   async function createTable(game, number, taken) {
     const code = newCode(taken)
-    const Kind = game === 'poker' ? PokerTableRoom : BlackjackRoom
+    const Kind = ROOMS[game]
     const label = `Mesa ${number}`
     const room = new Kind({ code, seats: PUBLIC_SEATS[game], accounts: new TxAccounts([], 0), randomInt, now: () => now(), label, persistent: number === 1, timers: storedTimers })
     room.number = number
@@ -844,6 +863,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
     bet: (room, s, msg) => (room.bet ? room.bet(s, msg.amount) : 'BAD_MESSAGE'),
     ready: (room, s) => (room.ready ? room.ready(s) : 'BAD_MESSAGE'),
     action: (room, s, msg) => room.action(s, msg.kind, msg.amount),
+    move: (room, s, msg) => (room.move ? room.move(s, msg.from, msg.to, msg.promo) : 'BAD_MESSAGE'),
     rebuy: () => 'BROKE',
     kick: () => 'NOT_HOST',
     leave_room: (room, s) => room.leave(s),
@@ -1038,6 +1058,9 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
   async function ensurePublicTables() {
     if (tablesReady) return
     const { rows } = await db.query(`select juego, codigo from public.juegos_mesas where persistente`)
+    // El ajedrez llegó después: en una base de datos de antes, el check de juegos_mesas aún no lo admite
+    // (supabase/migracion_juegos_ajedrez.sql). Solo pasa la primera vez, cuando falta su «Mesa 1».
+    if (!rows.some((r) => r.juego === 'chess')) await db.query(CHESS_CHECK_SQL)
     for (const game of GAMES) {
       if (!rows.some((r) => r.juego === game)) await createTable(game, 1, new Set(rows.map((r) => r.codigo)))
     }

@@ -516,3 +516,21 @@ export function playSnap() {
   tone(ac, { freq: 900, to: 60, at: 0.1, dur: 0.9, type: 'sawtooth', peak: 0.06 })
   tone(ac, { freq: 90, to: 30, at: 0.9, dur: 0.6, type: 'triangle', peak: 0.25 })
 }
+
+// Ajedrez: la pieza de piedra se arrastra por el tablero.
+export function playStone() {
+  const ac = audio()
+  if (!ac) return
+  tone(ac, { freq: 180, to: 120, dur: 0.12, type: 'triangle', peak: 0.12 })
+  tone(ac, { freq: 95, to: 70, at: 0.05, dur: 0.16, type: 'sine', peak: 0.1 })
+}
+
+// Ajedrez: una pieza revienta en pedazos al ser capturada.
+export function playSmash() {
+  const ac = audio()
+  if (!ac) return
+  tone(ac, { freq: 2400, to: 700, dur: 0.07, type: 'square', peak: 0.05 })
+  tone(ac, { freq: 1300, to: 400, at: 0.03, dur: 0.12, type: 'sawtooth', peak: 0.05 })
+  tone(ac, { freq: 120, to: 38, at: 0.02, dur: 0.55, type: 'sawtooth', peak: 0.14 })
+  tone(ac, { freq: 70, to: 30, at: 0.08, dur: 0.6, type: 'square', peak: 0.05 })
+}

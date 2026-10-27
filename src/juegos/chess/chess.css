@@ -1,0 +1,867 @@
+/* Escrito a mano: la mesa de ajedrez mágico (ChessTable.jsx). Tablero de piedra en una sala oscura, piezas de mármol y
+   obsidiana que avanzan arrastrándose y revientan en pedazos al ser capturadas. */
+
+.juegos-root .chess-app {
+  --accent: #9fc3ff;
+  --accent-rgb: 159, 195, 255;
+  --cz-gold: #e2c27a;
+  --cz-panel: rgba(10, 14, 24, 0.78);
+  --cz-edge: rgba(226, 194, 122, 0.28);
+  --cz-light: #d9cdb4;
+  --cz-dark: #6e6a62;
+}
+
+/* Sala de piedra: bóveda en penumbra con la luz cayendo sobre el tablero. */
+.juegos-root .chess-app::before {
+  background:
+    radial-gradient(50% 45% at 50% 42%, rgba(159, 195, 255, 0.13), transparent 70%),
+    repeating-linear-gradient(0deg, transparent 0 64px, rgba(0, 0, 0, 0.28) 64px 67px),
+    repeating-linear-gradient(90deg, transparent 0 128px, rgba(0, 0, 0, 0.2) 128px 131px),
+    linear-gradient(180deg, #1b1f2b, #0d0f16 70%, #07080c);
+}
+
+.juegos-root .cz .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.juegos-root .cz-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* --- Cabecera --- */
+.juegos-root .cz-top {
+  flex-wrap: nowrap;
+}
+.juegos-root .cz-room {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--muted);
+}
+.juegos-root .cz-room span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.juegos-root .cz-room b {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--cz-gold);
+}
+.juegos-root .cz-room small {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+}
+.juegos-root .cz-top .toggles {
+  flex: none;
+}
+.juegos-root .cz-top .toggles button {
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+/* --- Suelo: el tablero en el centro y las jugadas al lado --- */
+.juegos-root .cz-floor {
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 260px);
+  gap: clamp(12px, 2vw, 28px);
+  min-height: 0;
+}
+.juegos-root .cz-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(100%, calc(100svh - 150px));
+  min-height: 0;
+  margin-inline: auto;
+}
+.juegos-root .cz-boardwrap {
+  display: grid;
+  flex: 1 1 auto;
+  place-items: center;
+  min-height: 160px;
+  container-type: size;
+}
+
+/* --- Tablero --- */
+.juegos-root .cz-board {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
+  width: min(100cqw, 100cqh);
+  aspect-ratio: 1;
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 6px #2b2620,
+    0 0 0 8px #8a7650,
+    0 0 0 13px #1d1915,
+    0 26px 60px rgba(0, 0, 0, 0.65),
+    0 0 90px rgba(159, 195, 255, 0.08);
+}
+.juegos-root .cz-sq {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Losas de piedra: una veta suave y algo de relieve. */
+.juegos-root .cz-sq--light {
+  background:
+    radial-gradient(120% 90% at 30% 20%, rgba(255, 255, 255, 0.22), transparent 60%),
+    linear-gradient(135deg, transparent 40%, rgba(120, 100, 70, 0.12) 41%, transparent 47%),
+    var(--cz-light);
+}
+.juegos-root .cz-sq--dark {
+  background:
+    radial-gradient(120% 90% at 30% 20%, rgba(255, 255, 255, 0.1), transparent 60%),
+    linear-gradient(45deg, transparent 52%, rgba(0, 0, 0, 0.14) 53%, transparent 58%),
+    var(--cz-dark);
+}
+.juegos-root .cz-sq:nth-child(1) {
+  border-top-left-radius: 6px;
+}
+.juegos-root .cz-sq:nth-child(8) {
+  border-top-right-radius: 6px;
+}
+.juegos-root .cz-sq:nth-child(57) {
+  border-bottom-left-radius: 6px;
+}
+.juegos-root .cz-sq:nth-child(64) {
+  border-bottom-right-radius: 6px;
+}
+.juegos-root .cz-board.is-live .cz-sq {
+  cursor: pointer;
+}
+.juegos-root .cz-sq:focus-visible {
+  z-index: 3;
+  outline: 3px solid #fff;
+  outline-offset: -3px;
+}
+.juegos-root .cz-sq__rank,
+.juegos-root .cz-sq__file {
+  position: absolute;
+  font-size: clamp(9px, 1.6cqmin, 13px);
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
+.juegos-root .cz-sq__rank {
+  top: 4px;
+  left: 4px;
+}
+.juegos-root .cz-sq__file {
+  right: 4px;
+  bottom: 3px;
+}
+.juegos-root .cz-sq--light > span {
+  color: rgba(70, 60, 45, 0.75);
+}
+.juegos-root .cz-sq--dark > span {
+  color: rgba(240, 230, 210, 0.7);
+}
+/* Última jugada, pieza elegida y destinos. */
+.juegos-root .cz-sq--last::after,
+.juegos-root .cz-sq--sel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(159, 195, 255, 0.32);
+  pointer-events: none;
+}
+.juegos-root .cz-sq--sel::after {
+  background: rgba(255, 214, 110, 0.45);
+}
+.juegos-root .cz-sq--to::before {
+  content: '';
+  position: absolute;
+  inset: 36%;
+  z-index: 2;
+  border-radius: 50%;
+  background: rgba(30, 50, 90, 0.42);
+  box-shadow: 0 0 10px rgba(159, 195, 255, 0.55);
+  pointer-events: none;
+}
+.juegos-root .cz-sq--hit::before {
+  content: '';
+  position: absolute;
+  inset: 4%;
+  z-index: 2;
+  border: 4px solid rgba(255, 95, 70, 0.75);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.juegos-root .cz-sq--to:hover::before {
+  inset: 30%;
+}
+.juegos-root .cz-sq--check {
+  box-shadow: inset 0 0 22px 6px rgba(255, 50, 30, 0.85);
+  animation: cz-check 1s ease-in-out infinite alternate;
+}
+@keyframes cz-check {
+  to {
+    box-shadow: inset 0 0 30px 10px rgba(255, 70, 40, 1);
+  }
+}
+
+/* --- Piezas: una capa encima de las casillas que no recibe clics --- */
+.juegos-root .cz-pieces {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+.juegos-root .cz-piece,
+.juegos-root .cz-shatter {
+  position: absolute;
+  z-index: calc(10 + var(--z, 0));
+  width: 12.5%;
+  height: 12.5%;
+}
+.juegos-root .cz-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.5));
+}
+.juegos-root .cz-svg--b {
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 4px rgba(226, 194, 122, 0.25));
+}
+.juegos-root .cz-piece--lift .cz-svg {
+  transform: translateY(-6%) scale(1.08);
+  filter: drop-shadow(0 10px 6px rgba(0, 0, 0, 0.55));
+  transition: transform 0.15s ease;
+}
+/* La pieza avanza por el tablero: se levanta, cruza y cae con peso. */
+.juegos-root .cz-piece--move {
+  z-index: 40;
+  animation: cz-slide 0.42s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+}
+@keyframes cz-slide {
+  from {
+    transform: translate(calc(var(--dx) * 100%), calc(var(--dy) * 100%)) scale(1.1);
+  }
+  70% {
+    transform: translate(0, -6%) scale(1.14);
+  }
+  to {
+    transform: none;
+  }
+}
+/* El rey vencido cae de lado y se agrieta. */
+.juegos-root .cz-piece--fallen .cz-svg {
+  transform-origin: 50% 92%;
+  animation: cz-fall 0.9s cubic-bezier(0.5, 0, 0.7, 1) 0.2s both;
+}
+@keyframes cz-fall {
+  to {
+    transform: rotate(78deg) translateY(4%);
+    filter: grayscale(0.7) brightness(0.75) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6));
+  }
+}
+
+/* La pieza capturada: entera hasta que llega la otra, luego cinco pedazos que vuelan y se apagan. */
+.juegos-root .cz-shatter {
+  z-index: 35;
+}
+.juegos-root .cz-shard {
+  position: absolute;
+  inset: 0;
+  animation: cz-shard 0.85s cubic-bezier(0.2, 0.6, 0.4, 1) 0.3s both;
+}
+@keyframes cz-shard {
+  from {
+    transform: none;
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--fx), var(--fy)) rotate(var(--fr)) scale(0.85);
+    opacity: 0;
+  }
+}
+.juegos-root .cz-dust {
+  position: absolute;
+  inset: -30%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(230, 220, 200, 0.75), rgba(180, 170, 150, 0.25) 45%, transparent 70%);
+  opacity: 0;
+  animation: cz-dust 0.9s ease-out 0.3s both;
+}
+@keyframes cz-dust {
+  from {
+    transform: scale(0.3);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* Coronación: las cuatro piezas en columna sobre la casilla. */
+.juegos-root .cz-promo {
+  position: absolute;
+  top: 0;
+  z-index: 60;
+  display: grid;
+  width: 12.5%;
+  border-radius: 8px;
+  background: rgba(10, 14, 24, 0.94);
+  box-shadow:
+    0 0 0 2px var(--cz-gold),
+    0 14px 30px rgba(0, 0, 0, 0.6);
+}
+.juegos-root .cz-promo button {
+  aspect-ratio: 1;
+  padding: 6%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.juegos-root .cz-promo button:hover,
+.juegos-root .cz-promo button:focus-visible {
+  background: rgba(226, 194, 122, 0.25);
+  outline: none;
+}
+
+/* Cartel del final (y de la cuenta atrás) sobre el tablero. */
+.juegos-root .cz-result {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 70;
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  min-width: min(80%, 320px);
+  padding: 16px 24px;
+  border: 1px solid var(--cz-edge);
+  border-radius: 16px;
+  background: rgba(8, 11, 18, 0.88);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  translate: -50% -50%;
+  animation: cz-pop 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) 0.6s both;
+  pointer-events: none;
+}
+.juegos-root .cz-result b {
+  font-family: var(--display);
+  font-size: clamp(26px, 6cqmin, 42px);
+  font-weight: 400;
+  line-height: 1.05;
+  color: var(--ivory);
+}
+.juegos-root .cz-result span {
+  font-size: 15px;
+  color: var(--muted);
+}
+.juegos-root .cz-result small {
+  font-size: 13px;
+  color: var(--muted);
+}
+.juegos-root .cz-result.is-win b {
+  color: var(--cz-gold);
+  text-shadow: 0 0 24px rgba(226, 194, 122, 0.6);
+}
+.juegos-root .cz-result.is-lose b {
+  color: #ff8a7a;
+}
+.juegos-root .cz-result--count {
+  animation-delay: 0s;
+}
+.juegos-root .cz-result--count b {
+  font-size: clamp(48px, 12cqmin, 80px);
+  color: var(--cz-gold);
+}
+@keyframes cz-pop {
+  from {
+    opacity: 0;
+    scale: 0.7;
+  }
+}
+
+/* --- Jugadores --- */
+.juegos-root .cz-player {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 54px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: var(--cz-panel);
+}
+.juegos-root .cz-player--turn {
+  border-color: rgba(159, 195, 255, 0.55);
+  box-shadow: 0 0 18px rgba(159, 195, 255, 0.2);
+}
+.juegos-root .cz-player--empty {
+  justify-content: space-between;
+  border-style: dashed;
+  color: var(--muted);
+}
+.juegos-root .cz-player__free {
+  padding-left: 6px;
+  font-size: 14px;
+}
+.juegos-root .cz-player__who {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.juegos-root .cz-player__anchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+}
+.juegos-root .cz-player__text {
+  display: grid;
+  min-width: 0;
+}
+.juegos-root .cz-player__text b {
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.juegos-root .cz-player__text small {
+  font-weight: 500;
+  color: var(--muted);
+}
+.juegos-root .cz-player__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.juegos-root .cz-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.juegos-root .cz-dot--w {
+  background: #f3ead8;
+  box-shadow: 0 0 0 1px #8a7650;
+}
+.juegos-root .cz-dot--b {
+  background: #1d1b24;
+  box-shadow: 0 0 0 1px #c9ae74;
+}
+.juegos-root .cz-player__side {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+.juegos-root .cz-grave {
+  display: flex;
+  align-items: center;
+  max-width: 34vw;
+  overflow: hidden;
+}
+.juegos-root .cz-grave__piece {
+  width: 18px;
+  height: 18px;
+  margin-right: -5px;
+  filter: grayscale(0.4);
+}
+.juegos-root .cz-grave__piece .cz-svg {
+  filter: none;
+}
+.juegos-root .cz-grave em {
+  margin-left: 9px;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--muted);
+}
+.juegos-root .cz-tag {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.juegos-root .cz-tag--ready {
+  background: rgba(95, 211, 141, 0.16);
+  color: #8fe6b0;
+}
+.juegos-root .cz-tag--win {
+  background: rgba(226, 194, 122, 0.2);
+  color: var(--cz-gold);
+}
+.juegos-root .cz-tag--lose {
+  color: #ff9d8f;
+}
+.juegos-root .cz-tag--away {
+  color: var(--muted);
+}
+.juegos-root .cz-clock {
+  min-width: 64px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  font-size: 19px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--muted);
+}
+.juegos-root .cz-clock.is-on {
+  background: #f1e9d6;
+  color: #12141c;
+}
+.juegos-root .cz-clock.is-low {
+  background: #ff5a4f;
+  color: #fff;
+  animation: cz-low 0.5s ease-in-out infinite alternate;
+}
+@keyframes cz-low {
+  to {
+    background: #c2332c;
+  }
+}
+
+.juegos-root .cz-status {
+  min-height: 22px;
+  margin: 0;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+.juegos-root .cz-status.is-turn {
+  color: var(--ivory);
+}
+.juegos-root .cz-status.is-check {
+  color: #ff8a7a;
+}
+
+/* --- Jugadas --- */
+.juegos-root .cz-side {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: var(--cz-panel);
+}
+.juegos-root .cz-side__title {
+  margin: 0 0 8px;
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--cz-gold);
+}
+.juegos-root .cz-moves {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .cz-moves li {
+  display: grid;
+  grid-template-columns: 34px 1fr 1fr;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.juegos-root .cz-moves li:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.04);
+}
+.juegos-root .cz-moves__n {
+  color: var(--muted);
+}
+.juegos-root .cz-moves .cz-moves__empty {
+  display: block;
+  color: var(--muted);
+  background: none;
+}
+
+/* --- Pie: apuesta y controles --- */
+.juegos-root .cz-foot {
+  display: flex;
+  justify-content: center;
+  margin-top: clamp(6px, 1.2vh, 12px);
+}
+.juegos-root .cz-foot__note {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.juegos-root .cz-lobby,
+.juegos-root .cz-controls {
+  display: grid;
+  gap: 8px;
+  width: min(100%, 900px);
+  padding: 10px 14px;
+  border: 1px solid var(--cz-edge);
+  border-radius: 16px;
+  background: rgba(8, 11, 18, 0.92);
+}
+.juegos-root .cz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  width: auto;
+  align-items: center;
+  justify-content: center;
+}
+.juegos-root .cz-controls__note {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cz-gold);
+}
+.juegos-root .cz-lobby__title {
+  margin: 0;
+  font-size: 16px;
+}
+.juegos-root .cz-lobby__title b {
+  color: var(--cz-gold);
+}
+.juegos-root .cz-lobby__text {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.juegos-root .cz-lobby__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.juegos-root .cz-lobby__row .cz-btn--gold {
+  flex: 1 1 auto;
+}
+.juegos-root .cz-lobby__row > button:not(.cz-btn) {
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  font-weight: 650;
+  color: var(--ivory);
+}
+.juegos-root .cz-stakes {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+.juegos-root .cz-stakes > button,
+.juegos-root .cz-stakes__custom button {
+  flex: none;
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--ivory);
+  cursor: pointer;
+}
+.juegos-root .cz-stakes > button[aria-pressed='true'] {
+  border-color: var(--cz-gold);
+  background: var(--cz-gold);
+  color: #1b1405;
+}
+.juegos-root .cz-stakes button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.juegos-root .cz-stakes__custom {
+  display: flex;
+  flex: none;
+  gap: 4px;
+}
+.juegos-root .cz-stakes__custom input {
+  width: 80px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ivory);
+}
+.juegos-root .cz-btn {
+  min-height: 42px;
+  padding: 9px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ivory);
+  cursor: pointer;
+}
+.juegos-root .cz-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+.juegos-root .cz-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.juegos-root .cz-btn--gold {
+  border-color: transparent;
+  background: linear-gradient(180deg, #f2d48d, #c9a14f);
+  color: #1b1405;
+}
+.juegos-root .cz-btn--gold:hover:not(:disabled) {
+  background: linear-gradient(180deg, #f8dfa3, #d6ad5a);
+}
+.juegos-root .cz-btn--danger {
+  border-color: transparent;
+  background: #c2332c;
+}
+.juegos-root .cz-btn--danger:hover:not(:disabled) {
+  background: #d8443c;
+}
+
+/* El chat no tapa el pie: el alto lo publica ChessTable.jsx en --cz-foot-h. */
+@media (max-width: 1500px) {
+  .juegos-root .cz .chat {
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--cz-foot-h, 80px) + 8px);
+  }
+}
+
+/* --- Móvil y ventanas estrechas: todo en columna y las jugadas en una tira --- */
+@media (max-width: 860px) {
+  .juegos-root .cz-floor {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+  .juegos-root .cz-stage {
+    width: 100%;
+    gap: 6px;
+  }
+  .juegos-root .cz-side {
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 12px;
+  }
+  .juegos-root .cz-side__title,
+  .juegos-root .cz-side--empty {
+    display: none;
+  }
+  .juegos-root .cz-moves {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+  }
+  .juegos-root .cz-moves li {
+    display: flex;
+    gap: 5px;
+    padding: 2px 6px;
+    font-size: 13px;
+  }
+  .juegos-root .cz-moves li:nth-child(odd) {
+    background: none;
+  }
+  .juegos-root .cz-room small,
+  .juegos-root .cz-room span {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  .juegos-root .cz-top h1 {
+    font-size: 28px;
+  }
+  .juegos-root .cz-top .toggles button {
+    min-height: 36px;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  .juegos-root .cz-room {
+    display: none;
+  }
+  .juegos-root .cz-player {
+    min-height: 46px;
+    padding: 4px 8px;
+  }
+  .juegos-root .cz-player .avatar {
+    --size: 32px !important;
+  }
+  .juegos-root .cz-player__anchor {
+    width: 32px;
+    height: 32px;
+  }
+  .juegos-root .cz-grave {
+    max-width: 28vw;
+  }
+  .juegos-root .cz-grave__piece {
+    width: 14px;
+    height: 14px;
+  }
+  .juegos-root .cz-clock {
+    min-width: 54px;
+    padding: 4px 8px;
+    font-size: 16px;
+  }
+  .juegos-root .cz-lobby {
+    padding: 8px 10px;
+  }
+  .juegos-root .cz-lobby__text {
+    display: none;
+  }
+  .juegos-root .cz-btn {
+    min-height: 40px;
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .cz-piece--move,
+  .juegos-root .cz-shard,
+  .juegos-root .cz-dust,
+  .juegos-root .cz-piece--fallen .cz-svg,
+  .juegos-root .cz-result,
+  .juegos-root .cz-sq--check,
+  .juegos-root .cz-clock.is-low {
+    animation-duration: 0.01s;
+    animation-delay: 0s;
+  }
+}

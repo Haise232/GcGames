@@ -71,7 +71,7 @@ function Escaparate({ compacto = false }) {
         </div>
       </div>
       <p className="gc-show__lead">
-        Mesas de blackjack y póker en vivo, ruletas y carreras para todos a la vez, cartas coleccionables y una semana para
+        Mesas de blackjack, póker y ajedrez en vivo, ruletas y carreras para todos a la vez, cartas coleccionables y una semana para
         acabar en lo más alto del Score.
       </p>
 
