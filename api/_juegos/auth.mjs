@@ -1,6 +1,5 @@
 // Quién llama: el access token de Supabase de la sesión de Juegos (cabecera Authorization).
 // Supabase Auth valida el token y la tabla usuarios dice si la cuenta está aprobada.
-import { createPublicKey, verify } from 'node:crypto'
 import { safeAvatar, shortName } from './engine/names.mjs'
 import { JuegosError } from './game.mjs'
 
@@ -31,8 +30,10 @@ async function signingKey(kid) {
     if (!res.ok) throw new Error(`jwks ${res.status}`)
     const keys = new Map()
     for (const jwk of (await res.json()).keys ?? []) {
+      const alg = ALGS[jwk.alg]
+      if (!alg) continue // clave de un tipo que no usamos
       try {
-        keys.set(jwk.kid, { alg: jwk.alg, key: createPublicKey({ key: jwk, format: 'jwk' }) })
+        keys.set(jwk.kid, { alg: jwk.alg, key: await crypto.subtle.importKey('jwk', jwk, alg.key, false, ['verify']) })
       } catch {
         // clave de un tipo que no usamos
       }
@@ -46,7 +47,12 @@ async function signingKey(kid) {
   return jwks.keys.get(kid) ?? null
 }
 
-const ALGS = { ES256: { hash: 'sha256', dsaEncoding: 'ieee-p1363' }, RS256: { hash: 'sha256' } }
+// Con WebCrypto, igual en Node y en el Worker de Cloudflare. La firma ES256 de un JWT ya viene como r||s, que es lo que
+// espera WebCrypto.
+const ALGS = {
+  ES256: { key: { name: 'ECDSA', namedCurve: 'P-256' }, verify: { name: 'ECDSA', hash: 'SHA-256' } },
+  RS256: { key: { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, verify: { name: 'RSASSA-PKCS1-v1_5' } },
+}
 const b64 = (part) => Buffer.from(part, 'base64url')
 
 // Devuelve el id del usuario si el token es válido, null si no se puede comprobar aquí (p. ej. firma HS256 antigua) y
@@ -65,7 +71,7 @@ async function localUserId(token) {
   if (!alg || !header.kid) return null
   const found = await signingKey(header.kid).catch(() => null)
   if (!found || found.alg !== header.alg) return null
-  const ok = verify(alg.hash, Buffer.from(`${parts[0]}.${parts[1]}`), { key: found.key, dsaEncoding: alg.dsaEncoding }, b64(parts[2]))
+  const ok = await crypto.subtle.verify(alg.verify, found.key, b64(parts[2]), new TextEncoder().encode(`${parts[0]}.${parts[1]}`))
   if (!ok) throw new JuegosError('AUTH_INVALID')
   if (typeof claims.exp !== 'number' || claims.exp * 1000 < Date.now()) throw new JuegosError('AUTH_INVALID')
   if (claims.role !== 'authenticated' || typeof claims.sub !== 'string') throw new JuegosError('AUTH_INVALID')

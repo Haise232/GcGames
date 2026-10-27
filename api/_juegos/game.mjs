@@ -28,6 +28,8 @@ const MAX_PUBLIC_PER_GAME = 6
 const AWAY_MS = 45000 // sin noticias del navegador: se le da por desconectado
 const GONE_MS = 3 * 60000 // y pasado este rato, fuera de la mesa
 const SEEN_SAVE_MS = 15000 // el latido se guarda aunque la mesa no cambie, como mucho una vez cada este rato
+const LOBBY_MEMO_MS = 3000
+const SCORES_MEMO_MS = 10000
 const ONLINE_MS = 150000 // más que el sondeo del lobby (60 s) con margen: si no, el contador de conectados parpadea
 const TOUCH_S = 20
 const CHAT_KEEP = 50
@@ -253,6 +255,18 @@ const cleanText = (value) =>
     : ''
 
 // db: { query(sql, params), tx(fn) } · ping(topic) avisa por Realtime · now() reloj · secret: semilla de la ruleta en vivo
+// Guarda el último resultado de fn durante ms (en la memoria de esta instancia). Se guarda el valor, no la promesa: en un
+// Worker, una petición no puede quedarse esperando una consulta que lanzó otra.
+function memo(ms, fn) {
+  let cached = null
+  return async () => {
+    if (cached && Date.now() - cached.at < ms) return cached.value
+    const value = await fn()
+    cached = { at: Date.now(), value }
+    return value
+  }
+}
+
 export function createJuegos({ db, ping = async () => {}, now = Date.now, secret = 'topcode-juegos' }) {
   let schemaReady = null
   let knownWeek = null
@@ -504,22 +518,25 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
     return rows.reverse().map((r) => ({ ...r, id: Number(r.id), at: Number(r.at) }))
   }
 
-  async function lobby(user) {
+  // Lo del selector que es igual para todos (mesas, conectados, bingo) se guarda LOBBY_MEMO_MS en esta instancia: es la
+  // petición que más se repite y leer el estado de todas las mesas es lo que más CPU gasta (en el Worker se paga).
+  const sharedLobby = memo(LOBBY_MEMO_MS, async () => {
     const t = now()
     await bingo.settleDue()
-    const [tables, online, acc, jackpot] = await Promise.all([
+    const [tables, online, jackpot] = await Promise.all([
       db.query(`select codigo, juego, etiqueta, numero, estado from public.juegos_mesas order by juego, numero`),
       db.query(`select count(*)::int as n from public.juegos_cuentas where visto > now() - make_interval(secs => $1::int)`, [ONLINE_MS / 1000]),
-      db.query(`select saldo from public.juegos_cuentas where usuario_id = $1`, [user.id]),
       bingo.summary(),
     ])
-    return {
-      tables: tables.rows.map((row) => summary(row, t)),
-      online: online.rows[0].n,
-      balance: acc.rows[0]?.saldo ?? STARTING_BALANCE,
-      resetAt: weekOf(t).resetAt,
-      bingo: jackpot,
-    }
+    return { tables: tables.rows.map((row) => summary(row, t)), online: online.rows[0].n, resetAt: weekOf(t).resetAt, bingo: jackpot }
+  })
+
+  async function lobby(user) {
+    const [shared, acc] = await Promise.all([
+      sharedLobby(),
+      db.query(`select saldo from public.juegos_cuentas where usuario_id = $1`, [user.id]),
+    ])
+    return { ...shared, balance: acc.rows[0]?.saldo ?? STARTING_BALANCE }
   }
 
   // Lo que tiene cada uno fuera del saldo (Hacienda no lo ve): las cartas (lo que darían al venderlas; las empeñadas,
@@ -538,7 +555,15 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
     return out
   }
 
+  // La clasificación es la misma para todos (solo cambia quién eres): se guarda SCORES_MEMO_MS en esta instancia.
+  const sharedScores = memo(SCORES_MEMO_MS, () => rankings())
+
   async function scores(user) {
+    const out = await sharedScores()
+    return { ...out, players: out.players.map(({ id, ...p }) => ({ ...p, me: id === user.id })) }
+  }
+
+  async function rankings() {
     const week = weekOf(now())
     const [rows, meta] = await Promise.all([
       db.query(
@@ -556,7 +581,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         if (value !== null) last = value
         return last
       })
-      return { rank: i + 1, name: r.name, avatar: r.avatar, balance: r.balance, days, me: r.usuario_id === user.id, assets: assets.get(r.usuario_id) }
+      return { id: r.usuario_id, rank: i + 1, name: r.name, avatar: r.avatar, balance: r.balance, days, assets: assets.get(r.usuario_id) }
     })
     return {
       week: { key: week.key, day: week.day, resetAt: week.resetAt },

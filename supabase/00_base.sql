@@ -65,3 +65,6 @@ end
 $$;
 grant usage, create on schema public to juegos_api;
 grant select, update, references on public.usuarios to juegos_api;
+
+-- usuarios tiene RLS: sin esta política juegos_api (que no es su dueño) no vería ni podría cambiar ninguna fila.
+create policy juegos_api_usuarios on public.usuarios for all to juegos_api using (true) with check (true);
