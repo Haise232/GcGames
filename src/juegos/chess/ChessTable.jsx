@@ -29,60 +29,81 @@ const REASONS = {
 }
 const colorName = (c) => (c === 'w' ? 'blancas' : 'negras')
 
-// --- Piezas: estatuas de mármol y obsidiana, dibujadas en un cuadro de 100 × 100 apoyadas abajo ---
+// --- Piezas: estatuas de piedra tallada, más altas que anchas (cuadro de 100 × 150, apoyadas abajo) ---
 
 const BASE = (
   <>
-    <path d="M18 93h64v-6q0-6-7-7H25q-7 1-7 7z" />
-    <path d="M27 80h46l-4-7H31z" />
+    <path d="M14 146h72v-8q0-6-8-7H22q-8 1-8 7z" />
+    <path d="M22 131h56l-5-8H27z" />
   </>
 )
 const SHAPES = {
+  // Soldado con yelmo y escudo.
   p: (
     <>
-      <path d="M37 73q2-14 7-20h12q5 6 7 20z" />
-      <ellipse cx="50" cy="53" rx="13" ry="4" />
-      <circle cx="50" cy="40" r="12" />
+      <path d="M30 123q2-30 10-42h20q8 12 10 42z" />
+      <path d="M33 87q17-12 34 0l-3-7q-14-9-28 0z" />
+      <ellipse cx="50" cy="103" rx="12" ry="15" />
+      <circle cx="50" cy="103" r="3" />
+      <path d="M38 81q0-23 12-23t12 23z" />
+      <path d="M42 72h16" fill="none" />
     </>
   ),
+  // Torre maciza con almenas, saetera y puerta.
   r: (
     <>
-      <path d="M34 73l3-35h26l3 35z" />
-      <path d="M30 39V19h9v7h6.5v-7h9v7H61v-7h9v20z" />
+      <path d="M28 123l5-78h34l5 78z" />
+      <path d="M22 47V24h11v8h8v-8h18v8h8v-8h11v23z" />
+      <path d="M31 66h38M30 86h40M29 106h42M44 47v19M56 66v20M42 86v20M58 106v17" fill="none" />
+      <path d="M48 54h4v12h-4z" />
+      <path d="M43 123v-15q7-9 14 0v15z" />
     </>
   ),
+  // Caballo encabritado: cabeza y cuello con crin.
   n: (
     <>
-      <path d="M33 73c0-13 4-21 13-27-7-1-14 2-19 6-5-2-7-6-4-11 6-10 14-18 23-22l2-9 6 9c13 4 21 16 21 34 0 8-2 14-4 20z" />
-      <path d="M57 26c7 6 10 15 10 26" fill="none" />
+      <path d="M28 123c0-22 6-35 20-45-10-2-21 3-28 9-7-3-10-9-6-17 9-16 21-29 34-35l3-14 9 14c19 6 30 26 30 55 0 13-3 23-6 33z" />
+      <path d="M62 36c9 8 13 22 14 38M66 52c6 2 9 6 11 11M64 70c5 2 9 6 10 11" fill="none" />
+      <path d="M27 74l-6 3" fill="none" />
     </>
   ),
+  // Obispo con mitra y báculo.
   b: (
     <>
-      <path d="M38 73q2-16 5-22h14q3 6 5 22z" />
-      <ellipse cx="50" cy="51" rx="14" ry="4" />
-      <path d="M50 17c11 8 15 17 13 25q-2 6-13 6t-13-6c-2-8 2-17 13-25z" />
-      <path d="M56 26l-9 11" fill="none" />
-      <circle cx="50" cy="13" r="4.5" />
+      <path d="M32 123q4-40 10-62h16q6 22 10 62z" />
+      <path d="M38 88q12 7 24 0" fill="none" />
+      <ellipse cx="50" cy="61" rx="13" ry="4" />
+      <path d="M50 18c12 10 15 22 12 34q-3 8-12 8t-12-8c-3-12 0-24 12-34z" />
+      <path d="M55 28l-9 14" fill="none" />
+      <circle cx="50" cy="14" r="4" />
+      <path d="M71 123V44M67 48q4-8 8 0" fill="none" />
     </>
   ),
+  // Reina alta, de túnica larga y corona de puntas.
   q: (
     <>
-      <path d="M36 73q3-20 7-28h14q4 8 7 28z" />
-      <ellipse cx="50" cy="45" rx="15" ry="4" />
-      <path d="M34 43l-5-21 11 12 4-16 6 14 6-14 4 16 11-12-5 21z" />
-      <circle cx="29" cy="20" r="4" />
-      <circle cx="44" cy="15" r="4" />
-      <circle cx="56" cy="15" r="4" />
-      <circle cx="71" cy="20" r="4" />
+      <path d="M27 123q6-46 15-68h16q9 22 15 68z" />
+      <ellipse cx="50" cy="84" rx="12" ry="3" />
+      <ellipse cx="50" cy="56" rx="13" ry="4" />
+      <circle cx="50" cy="45" r="9" />
+      <path d="M38 40l-4-22 9 10 3-16 4 14 4-14 3 16 9-10-4 22z" />
+      <circle cx="34" cy="17" r="3" />
+      <circle cx="46" cy="11" r="3" />
+      <circle cx="54" cy="11" r="3" />
+      <circle cx="66" cy="17" r="3" />
     </>
   ),
+  // Rey ancho, con corona, cruz y una espada clavada delante.
   k: (
     <>
-      <path d="M36 73q3-20 7-28h14q4 8 7 28z" />
-      <ellipse cx="50" cy="45" rx="15" ry="4" />
-      <path d="M36 43q-3-14 4-20h20q7 6 4 20z" />
-      <path d="M46.5 5h7v6h6v7h-6v8h-7v-8h-6v-7h6z" />
+      <path d="M25 123q6-46 16-66h18q10 20 16 66z" />
+      <ellipse cx="50" cy="58" rx="15" ry="4" />
+      <circle cx="50" cy="47" r="10" />
+      <path d="M38 42q-2-12 3-18h18q5 6 3 18z" />
+      <path d="M47.5 2h5v6h6v5h-6v12h-5V13h-6V8h6z" />
+      <path d="M48 72h4v48l-2 4-2-4z" />
+      <path d="M40 67h20v5H40z" />
+      <circle cx="50" cy="63" r="3" />
     </>
   ),
 }
@@ -90,58 +111,166 @@ const SHAPES = {
 function Piece({ piece }) {
   const white = colorOf(piece) === 'w'
   const type = typeOf(piece)
+  const shape = (
+    <>
+      {BASE}
+      {SHAPES[type]}
+    </>
+  )
   return (
-    <svg viewBox="0 0 100 100" className={`cz-svg cz-svg--${white ? 'w' : 'b'}`} aria-hidden="true">
-      <g fill={`url(#cz-${white ? 'w' : 'b'})`} stroke={white ? '#5c4a33' : '#c9ae74'} strokeWidth="2.4" strokeLinejoin="round">
-        {BASE}
-        {SHAPES[type]}
+    <svg viewBox="0 0 100 150" className={`cz-svg cz-svg--${white ? 'w' : 'b'}`} aria-hidden="true">
+      {/* Piedra, después el grano de la roca y la sombra del lado que no da la antorcha. */}
+      <g fill={`url(#cz-${white ? 'w' : 'b'})`} stroke={white ? '#3b3328' : '#0a0a0c'} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round">
+        {shape}
       </g>
-      {type === 'n' && <circle cx="42" cy="30" r="3" fill={white ? '#3a2c1c' : '#ffd36b'} />}
-      {/* Brillo de piedra pulida */}
-      <path d="M41 70q1-10 4-14" stroke="rgba(255,255,255,0.45)" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <g fill="url(#cz-grain)" stroke="none" opacity={white ? 0.3 : 0.35}>
+        {shape}
+      </g>
+      <g fill="url(#cz-shade)" stroke="none">
+        {shape}
+      </g>
+      {type === 'n' && <circle cx="38" cy="52" r="3.2" fill={white ? '#2a231a' : '#ff9a3c'} />}
     </svg>
   )
 }
 
-// Degradados de las piezas: una vez por mesa.
+// Degradados y grano de la piedra: una vez por mesa.
 function PieceDefs() {
   return (
     <svg width="0" height="0" className="cz-defs" aria-hidden="true">
       <defs>
-        <linearGradient id="cz-w" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#fffaf0" />
-          <stop offset="0.55" stopColor="#e7dcc6" />
-          <stop offset="1" stopColor="#b9a888" />
+        <linearGradient id="cz-w" x1="0" y1="0" x2="0.6" y2="1">
+          <stop offset="0" stopColor="#f1ece0" />
+          <stop offset="0.5" stopColor="#c9c0ad" />
+          <stop offset="1" stopColor="#8a806e" />
         </linearGradient>
-        <linearGradient id="cz-b" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#5d5a6e" />
-          <stop offset="0.5" stopColor="#2a2833" />
-          <stop offset="1" stopColor="#0e0d12" />
+        <linearGradient id="cz-b" x1="0" y1="0" x2="0.6" y2="1">
+          <stop offset="0" stopColor="#58565c" />
+          <stop offset="0.5" stopColor="#2c2b30" />
+          <stop offset="1" stopColor="#111114" />
         </linearGradient>
+        {/* La luz llega de la izquierda: el lado derecho queda en sombra. */}
+        <linearGradient id="cz-shade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0.35" stopColor="#000" stopOpacity="0" />
+          <stop offset="1" stopColor="#000" stopOpacity="0.45" />
+        </linearGradient>
+        <filter id="cz-noise" x="0" y="0" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="7" />
+          <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.4 0.9" />
+        </filter>
+        <pattern id="cz-grain" width="80" height="80" patternUnits="userSpaceOnUse">
+          <rect width="80" height="80" filter="url(#cz-noise)" />
+        </pattern>
       </defs>
     </svg>
   )
 }
 
-// La pieza capturada revienta: cinco pedazos que salen volando y una nube de polvo.
+// La pieza capturada revienta: trozos que saltan y caen, piedrecitas por el suelo y una nube de polvo.
 const SHARDS = [
-  ['polygon(0 0, 55% 0, 42% 46%, 0 36%)', -70, -90, -55],
-  ['polygon(55% 0, 100% 0, 100% 42%, 42% 46%)', 75, -95, 50],
-  ['polygon(0 36%, 42% 46%, 30% 100%, 0 100%)', -85, 25, -95],
-  ['polygon(42% 46%, 100% 42%, 100% 72%, 60% 76%)', 90, -5, 80],
-  ['polygon(42% 46%, 60% 76%, 100% 72%, 100% 100%, 30% 100%)', 15, 55, 30],
+  ['polygon(0 0, 60% 0, 45% 30%, 0 26%)', -90, -70, -70],
+  ['polygon(60% 0, 100% 0, 100% 34%, 45% 30%)', 95, -80, 60],
+  ['polygon(0 26%, 45% 30%, 38% 58%, 0 55%)', -120, -30, -110],
+  ['polygon(45% 30%, 100% 34%, 100% 60%, 38% 58%)', 120, -40, 95],
+  ['polygon(0 55%, 38% 58%, 30% 82%, 0 80%)', -70, 0, -40],
+  ['polygon(38% 58%, 100% 60%, 100% 82%, 30% 82%)', 80, -10, 50],
+  ['polygon(0 80%, 100% 82%, 100% 100%, 0 100%)', 0, 0, 0],
+]
+const PEBBLES = [
+  [-160, -40], [-120, 20], [-60, 50], [40, 60], [110, 30], [170, -30], [-30, -90], [70, -80],
 ]
 function Shatter({ piece, style }) {
   return (
     <div className="cz-shatter" style={style} aria-hidden="true">
+      <span className="cz-flash" />
       {SHARDS.map(([clip, x, y, r], i) => (
-        <div key={i} className="cz-shard" style={{ clipPath: clip, '--fx': `${x}%`, '--fy': `${y}%`, '--fr': `${r}deg` }}>
+        <div key={i} className={`cz-shard ${i === SHARDS.length - 1 ? 'cz-shard--base' : ''}`} style={{ clipPath: clip, '--fx': `${x}%`, '--fy': `${y}%`, '--fr': `${r}deg` }}>
           <Piece piece={piece} />
         </div>
+      ))}
+      {PEBBLES.map(([x, y], i) => (
+        <span key={i} className={`cz-pebble cz-pebble--${colorOf(piece)}`} style={{ '--px': `${x}%`, '--py': `${y}%`, '--d': `${i * 0.02}s` }} />
       ))}
       <span className="cz-dust" />
     </div>
   )
+}
+
+// Escombros que se quedan en la casilla hasta la siguiente jugada.
+const RUBBLE = [
+  [18, 30, 22, 'polygon(0 30%, 40% 0, 100% 20%, 80% 100%, 10% 90%)'],
+  [52, 22, 16, 'polygon(10% 0, 100% 30%, 70% 100%, 0 70%)'],
+  [64, 58, 20, 'polygon(0 20%, 60% 0, 100% 60%, 40% 100%)'],
+  [26, 64, 14, 'polygon(20% 0, 100% 40%, 60% 100%, 0 60%)'],
+  [44, 46, 11, 'polygon(0 0, 100% 30%, 50% 100%)'],
+]
+function Rubble({ piece, style }) {
+  return (
+    <div className={`cz-rubble cz-rubble--${colorOf(piece)}`} style={style} aria-hidden="true">
+      {RUBBLE.map(([x, y, size, clip], i) => (
+        <i key={i} style={{ left: `${x}%`, top: `${y}%`, width: `${size}%`, height: `${size}%`, clipPath: clip }} />
+      ))}
+    </div>
+  )
+}
+
+// --- El tablero en perspectiva: un plano inclinado (CSS) y las piezas de pie encima ---
+// Las piezas no se inclinan con el tablero: se colocan donde cae cada casilla al proyectarla, con la misma cuenta que
+// hace el navegador con perspective() y rotateX(). Todo en unidades del lado del tablero.
+const PERSPECTIVE = 2.4 // distancia del ojo, en lados de tablero
+const SPRITE_H = 1.5 // alto de una pieza, en anchos de casilla
+const FOOT = 0.72 // dónde apoya la pieza dentro de su casilla (0 arriba, 1 abajo)
+
+function projector(tilt) {
+  const sin = Math.sin((tilt * Math.PI) / 180)
+  const cos = Math.cos((tilt * Math.PI) / 180)
+  // u, v: posición en el tablero (de -0,5 a 0,5; v crece hacia quien mira).
+  return (u, v) => {
+    const s = PERSPECTIVE / (PERSPECTIVE - v * sin)
+    return { x: u * s, y: v * cos * s, s }
+  }
+}
+
+// Tamaño y sitio del tablero para que quepa entero (con las piezas de la última fila) en el hueco.
+function layoutOf(w, h) {
+  if (!w || !h) return null
+  // Menos inclinado en un móvil en vertical: allí sobra alto y falta ancho.
+  const tilt = w < 560 ? (h > w * 1.05 ? 22 : 30) : 40
+  const proj = projector(tilt)
+  const back = proj(0, -0.5 + FOOT / 8)
+  const top = Math.min(proj(0, -0.5).y, back.y - (SPRITE_H / 8) * back.s)
+  const bottom = proj(0, 0.5).y + 0.03
+  const wide = proj(0.5, 0.5).x * 2 + 0.06
+  const size = Math.floor(Math.min((w * 0.98) / wide, h / (bottom - top)))
+  return { tilt, proj, size, cx: w / 2, cy: h / 2 - ((top + bottom) / 2) * size }
+}
+
+// Rectángulo en pantalla de la pieza de la casilla (col, row) de la vista.
+function spriteRect(layout, col, row) {
+  const { proj, size, cx, cy } = layout
+  const p = proj((col + 0.5) / 8 - 0.5, (row + FOOT) / 8 - 0.5)
+  const width = (size / 8) * p.s
+  const height = width * SPRITE_H
+  return { left: cx + p.x * size - width / 2, top: cy + p.y * size - height, width, height }
+}
+
+function useBox(ref) {
+  const [box, setBox] = useState({ w: 0, h: 0 })
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const read = () => setBox((old) => (old.w === el.clientWidth && old.h === el.clientHeight ? old : { w: el.clientWidth, h: el.clientHeight }))
+    read()
+    // La ventana también, por si algún navegador no avisa al observador al girar el móvil.
+    window.addEventListener('resize', read)
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(read)
+    observer?.observe(el)
+    return () => {
+      window.removeEventListener('resize', read)
+      observer?.disconnect()
+    }
+  }, [ref])
+  return box
 }
 
 // --- Utilidades de la vista ---
@@ -494,7 +623,9 @@ function ChessTable({ room, me, conn, error, send, onLeave, chat, bubbles, pendi
   const firstPly = useRef(state.moves.length)
   const firstMatch = useRef(state.match)
   const animate = Boolean(last) && (state.match !== firstMatch.current || last.ply > firstPly.current)
-  const boardRef = useRef(null)
+  const wrapRef = useRef(null)
+  const box = useBox(wrapRef)
+  const layout = useMemo(() => layoutOf(box.w, box.h), [box.w, box.h])
   // Cada jugada suena una vez (la vista optimista y la del servidor traen la misma jugada). El estallido llega cuando la
   // pieza que captura alcanza su casilla, y no se cancela aunque llegue otro estado mientras tanto.
   const heard = useRef(`${state.match}-${last?.ply ?? 0}`)
@@ -509,11 +640,18 @@ function ChessTable({ room, me, conn, error, send, onLeave, chat, bubbles, pendi
     smashTimer.current = setTimeout(() => {
       playSmash()
       navigator.vibrate?.(40)
-      boardRef.current?.animate?.(
-        [{ transform: 'translate(0,0)' }, { transform: 'translate(-4px,3px)' }, { transform: 'translate(4px,-2px)' }, { transform: 'translate(-2px,1px)' }, { transform: 'translate(0,0)' }],
-        { duration: 320, easing: 'ease-out' },
+      wrapRef.current?.animate?.(
+        [
+          { transform: 'translate(0,0)' },
+          { transform: 'translate(-7px,5px)' },
+          { transform: 'translate(6px,-4px)' },
+          { transform: 'translate(-4px,2px)' },
+          { transform: 'translate(2px,-1px)' },
+          { transform: 'translate(0,0)' },
+        ],
+        { duration: 450, easing: 'ease-out' },
       )
-    }, 300)
+    }, 620)
   }, [animate, last, state.match])
 
   // Tu turno se oye, vibra y se ve en la pestaña.
@@ -612,14 +750,18 @@ function ChessTable({ room, me, conn, error, send, onLeave, chat, bubbles, pendi
     edge,
   })
 
-  const shown = (sq, piece) => {
-    const { col, row } = spot(sq)
-    return { left: `${col * 12.5}%`, top: `${row * 12.5}%`, '--z': row, key: piece }
-  }
-
   return (
     <main ref={mainRef} className="app chess-app cz">
       <PieceDefs />
+      <div className="cz-hall" aria-hidden="true">
+        <span className="cz-torch cz-torch--l">
+          <i />
+        </span>
+        <span className="cz-torch cz-torch--r">
+          <i />
+        </span>
+        <span className="cz-mist" />
+      </div>
       <header className="top cz-top">
         <h1>Ajedrez</h1>
         <p className="cz-room" data-room-code={state.code}>
@@ -647,36 +789,54 @@ function ChessTable({ room, me, conn, error, send, onLeave, chat, bubbles, pendi
           <p className={`cz-status ${myTurn ? 'is-turn' : ''} ${state.check !== null && playing ? 'is-check' : ''}`} role="status" aria-live="polite">
             {status}
           </p>
-          <div className="cz-boardwrap">
-            <div ref={boardRef} className={`cz-board ${canMove ? 'is-live' : ''}`}>
-              {squares.map((sq) => {
-                const { col, row } = spot(sq)
-                const p = board[sq]
-                const dark = ((sq % 8) + Math.floor(sq / 8)) % 2 === 0
-                const target = targets.get(sq)
-                const classes = [
-                  'cz-sq',
-                  dark ? 'cz-sq--dark' : 'cz-sq--light',
-                  last && (last.from === sq || last.to === sq) && 'cz-sq--last',
-                  selected === sq && 'cz-sq--sel',
-                  target && (board[sq] || target.to === state.ep ? 'cz-sq--hit' : 'cz-sq--to'),
-                  state.check === sq && !sent && 'cz-sq--check',
-                ]
-                  .filter(Boolean)
-                  .join(' ')
-                const label = `${nameOf(sq)}${p ? `, ${NAMES[typeOf(p)]} ${colorOf(p) === 'w' ? 'blanco' : 'negro'}` : ''}`
-                return (
-                  <button key={sq} type="button" className={classes} style={{ gridColumn: col + 1, gridRow: row + 1 }} aria-label={label} aria-pressed={selected === sq} onClick={() => onSquare(sq)}>
-                    {col === 0 && <span className="cz-sq__rank">{Math.floor(sq / 8) + 1}</span>}
-                    {row === 7 && <span className="cz-sq__file">{'abcdefgh'[sq % 8]}</span>}
-                  </button>
-                )
-              })}
-              <div className="cz-pieces" aria-hidden="true">
+          <div ref={wrapRef} className="cz-boardwrap">
+            {layout && (
+              <div
+                className={`cz-board ${canMove ? 'is-live' : ''}`}
+                style={{
+                  width: layout.size,
+                  height: layout.size,
+                  left: layout.cx - layout.size / 2,
+                  top: layout.cy - layout.size / 2,
+                  transform: `perspective(${PERSPECTIVE * layout.size}px) rotateX(${layout.tilt}deg)`,
+                }}
+              >
+                {squares.map((sq) => {
+                  const { col, row } = spot(sq)
+                  const p = board[sq]
+                  const dark = ((sq % 8) + Math.floor(sq / 8)) % 2 === 0
+                  const target = targets.get(sq)
+                  const classes = [
+                    'cz-sq',
+                    dark ? 'cz-sq--dark' : 'cz-sq--light',
+                    last && (last.from === sq || last.to === sq) && 'cz-sq--last',
+                    selected === sq && 'cz-sq--sel',
+                    target && (board[sq] || target.to === state.ep ? 'cz-sq--hit' : 'cz-sq--to'),
+                    state.check === sq && !sent && 'cz-sq--check',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')
+                  const label = `${nameOf(sq)}${p ? `, ${NAMES[typeOf(p)]} ${colorOf(p) === 'w' ? 'blanco' : 'negro'}` : ''}`
+                  return (
+                    <button key={sq} type="button" className={classes} style={{ gridColumn: col + 1, gridRow: row + 1 }} aria-label={label} aria-pressed={selected === sq} onClick={() => onSquare(sq)}>
+                      {col === 0 && <span className="cz-sq__rank">{Math.floor(sq / 8) + 1}</span>}
+                      {row === 7 && <span className="cz-sq__file">{'abcdefgh'[sq % 8]}</span>}
+                    </button>
+                  )
+                })}
+                {animate && last?.captured && (
+                  <Rubble key={`r-${state.match}-${last.ply}`} piece={last.captured} style={{ left: `${spot(last.capturedAt).col * 12.5}%`, top: `${spot(last.capturedAt).row * 12.5}%` }} />
+                )}
+              </div>
+            )}
+            {layout && (
+              <div className="cz-sprites" aria-hidden="true">
                 {board.map((p, sq) => {
                   if (!p) return null
-                  const { key, ...style } = shown(sq, p)
-                  let cls = 'cz-piece'
+                  const { col, row } = spot(sq)
+                  const rect = spriteRect(layout, col, row)
+                  const style = { ...rect, zIndex: 10 + row * 2 }
+                  const classes = ['cz-sprite', colorOf(p) === myColor && canMove && 'is-mine']
                   let move = null
                   if (animate && last) {
                     if (last.to === sq) move = last.from
@@ -684,46 +844,55 @@ function ChessTable({ room, me, conn, error, send, onLeave, chat, bubbles, pendi
                   }
                   if (move !== null) {
                     const a = spot(move)
-                    const b = spot(sq)
-                    style['--dx'] = a.col - b.col
-                    style['--dy'] = a.row - b.row
-                    cls += ' cz-piece--move'
+                    const from = spriteRect(layout, a.col, a.row)
+                    style['--dx'] = `${from.left - rect.left}px`
+                    style['--dy'] = `${from.top + from.height - rect.top - rect.height}px`
+                    style['--s0'] = from.width / rect.width
+                    style['--lift'] = `${rect.height * (typeOf(p) === 'n' ? 0.45 : 0.12)}px`
+                    style.zIndex = 40
+                    classes.push('cz-sprite--move')
+                    if (last.to === sq && last.captured) classes.push('cz-sprite--strike')
                   }
-                  if (sq === fallen) cls += ' cz-piece--fallen'
-                  if (selected === sq) cls += ' cz-piece--lift'
+                  if (sq === fallen) classes.push('cz-sprite--fallen')
+                  if (selected === sq) classes.push('cz-sprite--lift')
+                  if (state.check === sq && !sent && playing) classes.push('cz-sprite--check')
                   return (
-                    <div key={`${sq}-${key}-${move !== null ? `${state.match}-${last.ply}` : ''}`} className={cls} style={style}>
+                    <div key={`${sq}-${p}-${move !== null ? `${state.match}-${last.ply}` : ''}`} className={classes.filter(Boolean).join(' ')} style={style} onClick={() => onSquare(sq)}>
                       <Piece piece={p} />
                     </div>
                   )
                 })}
-                {animate && last?.captured && (
-                  <Shatter key={`x-${state.match}-${last.ply}`} piece={last.captured} style={{ left: `${spot(last.capturedAt).col * 12.5}%`, top: `${spot(last.capturedAt).row * 12.5}%` }} />
-                )}
+                {animate && last?.captured && (() => {
+                  const { col, row } = spot(last.capturedAt)
+                  return <Shatter key={`x-${state.match}-${last.ply}`} piece={last.captured} style={{ ...spriteRect(layout, col, row), zIndex: 39 }} />
+                })()}
               </div>
-              {promo && (
-                <div className="cz-promo" role="group" aria-label="Elige la pieza de la coronación" style={{ left: `${spot(promo.to).col * 12.5}%` }}>
+            )}
+            {promo && (
+              <div className="cz-promo" role="group" aria-label="Elige la pieza de la coronación">
+                <span>Corona tu peón</span>
+                <div>
                   {['q', 'r', 'b', 'n'].map((t) => (
                     <button key={t} type="button" aria-label={NAMES[t]} onClick={() => go(promo.from, promo.to, t)}>
                       <Piece piece={myColor === 'w' ? t.toUpperCase() : t} />
                     </button>
                   ))}
                 </div>
-              )}
-              {over && result && (
-                <div className={`cz-result ${result.winner === null ? 'is-draw' : result.winner === mySeat ? 'is-win' : mySeat >= 0 ? 'is-lose' : ''}`}>
-                  <b>{result.winner === null ? 'Tablas' : result.winner === mySeat ? '¡Has ganado!' : mySeat >= 0 ? 'Has perdido' : `Gana ${result.names[result.winner] ?? colorName(result.color)}`}</b>
-                  <span>{REASONS[result.reason]}</span>
-                  {resetIn && <small>Nueva partida en {resetIn.seconds} s</small>}
-                </div>
-              )}
-              {countdown && (
-                <div className="cz-result cz-result--count">
-                  <b>{countdown.seconds}</b>
-                  <span>{state.stake > 0 ? `Por ${eur(state.stake * 2)}` : 'Partida amistosa'}</span>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
+            {over && result && (
+              <div className={`cz-result ${result.winner === null ? 'is-draw' : result.winner === mySeat ? 'is-win' : mySeat >= 0 ? 'is-lose' : ''}`}>
+                <b>{result.winner === null ? 'Tablas' : result.winner === mySeat ? '¡Has ganado!' : mySeat >= 0 ? 'Has perdido' : `Gana ${result.names[result.winner] ?? colorName(result.color)}`}</b>
+                <span>{REASONS[result.reason]}</span>
+                {resetIn && <small>Nueva partida en {resetIn.seconds} s</small>}
+              </div>
+            )}
+            {countdown && (
+              <div className="cz-result cz-result--count">
+                <b>{countdown.seconds}</b>
+                <span>{state.stake > 0 ? `Por ${eur(state.stake * 2)}` : 'Partida amistosa'}</span>
+              </div>
+            )}
           </div>
           <Player {...playerProps(bottomSeat, 'bottom')} />
         </section>
