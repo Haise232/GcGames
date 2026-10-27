@@ -10,3 +10,4 @@ dist/
 *.tsbuildinfo
 scripts/gacha/.cache/
 .dev.vars
+.preview/

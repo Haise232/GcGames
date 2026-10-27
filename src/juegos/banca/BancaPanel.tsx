@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Coins, MessageSquare, Zap, X, Search, Users, Check, Clock, Trophy, Landmark, Ghost, UserPlus, KeyRound, Copy, Contact } from 'lucide-react'
 import {
@@ -51,6 +51,67 @@ const hours = (ms: number) => {
 }
 const initial = (name: string) => (name.trim()[0] ?? '?').toUpperCase()
 
+// Secciones del panel, agrupadas en la barra lateral, con la frase que sale debajo del título.
+const SECTIONS: { name: string; items: { id: Tab; label: string; desc: string; Icon: typeof Coins }[] }[] = [
+  {
+    name: 'Dinero',
+    items: [
+      { id: 'dinero', label: 'Dar dinero', desc: 'Reparte dinero a una persona o a todos, con un mensaje si quieres.', Icon: Coins },
+      { id: 'mensaje', label: 'Mensaje', desc: 'Escribe a nombre de la banca: le sale a quien elijas al momento.', Icon: MessageSquare },
+    ],
+  },
+  {
+    name: 'Eventos',
+    items: [
+      { id: 'abuso', label: 'Admin Abuse', desc: 'Durante unos minutos, la banca multiplica lo que se gana o devuelve lo que se pierde.', Icon: Zap },
+      { id: 'bote', label: 'Bote del bingo', desc: 'Abre el bote para que alguien se lo lleve cantando bingo.', Icon: Trophy },
+      { id: 'hacienda', label: 'Hacienda', desc: 'Redada: cobra un porcentaje a todos los que tengan más de una cantidad.', Icon: Landmark },
+    ],
+  },
+  {
+    name: 'Gente',
+    items: [
+      { id: 'cuentas', label: 'Cuentas nuevas', desc: 'Acepta o rechaza a quien se acaba de registrar.', Icon: UserPlus },
+      { id: 'usuarios', label: 'Usuarios', desc: 'Todas las cuentas con su email, y contraseñas temporales para quien olvide la suya.', Icon: Contact },
+    ],
+  },
+  {
+    name: 'Ajustes',
+    items: [{ id: 'tema', label: 'Tema', desc: 'El aspecto de temporada, solo en este navegador.', Icon: Ghost }],
+  },
+]
+
+// Últimos movimientos de la banca. Va en la barra lateral en pantallas anchas y al final de la sección en el móvil.
+function History({ history, className }: { history: Movimiento[]; className: string }) {
+  if (!history.length) return null
+  return (
+    <section className={`bp__history ${className}`} aria-label="Últimos movimientos">
+      <h4>Últimos movimientos</h4>
+      <ul>
+        {history.map((h) => (
+          <li key={h.id}>
+            <span className={`bp-hist__icon bp-hist__icon--${h.tipo}`} aria-hidden="true">
+              {h.tipo === 'dinero' ? '€' : h.tipo === 'hacienda_todos' ? 'H' : '✉'}
+            </span>
+            <span className="bp-hist__what">
+              {h.tipo === 'hacienda_todos' ? (
+                <>
+                  Hacienda: <b>−{eur(h.importe ?? 0)}</b> a {h.para ?? '—'}
+                </>
+              ) : (
+                <>
+                  {h.tipo === 'dinero' ? <b>{eur(h.importe ?? 0)}</b> : <q>{h.texto}</q>} → {h.para ?? 'todos'}
+                </>
+              )}
+            </span>
+            <small>{ago(h.at)}</small>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 function Face({ person, size = 34 }: { person: Pick<Jugador, 'name' | 'avatar'>; size?: number }) {
   return person.avatar ? (
     <img className="bp-face" src={person.avatar} alt="" style={{ width: size, height: size }} />
@@ -63,8 +124,8 @@ function Face({ person, size = 34 }: { person: Pick<Jugador, 'name' | 'avatar'>;
 
 // Panel del master: dar dinero, escribir a nombre de la banca y activar el Admin Abuse. El servidor comprueba que eres el
 // master; aquí solo se enseña el botón a quien lo es.
-export default function BancaPanel({ onClose }: { onClose: () => void }) {
-  const [tab, setTab] = useState<Tab>('dinero')
+export default function BancaPanel({ onClose, initialTab = 'dinero' }: { onClose: () => void; initialTab?: Tab }) {
+  const [tab, setTab] = useState<Tab>(initialTab)
   const [people, setPeople] = useState<Jugador[]>([])
   const [history, setHistory] = useState<Movimiento[]>([])
   const [to, setTo] = useState<string>(ALL)
@@ -249,488 +310,489 @@ export default function BancaPanel({ onClose }: { onClose: () => void }) {
   }
   const setClamped = (n: number) => setAmount(Math.max(1, Math.min(MAX, Math.floor(n) || 1)))
 
+  const current = SECTIONS.flatMap((g) => g.items).find((item) => item.id === tab) ?? SECTIONS[0].items[0]
+  // Lo que se marca junto a cada sección: algo en marcha (punto) o cuántos hay (número).
+  const badge = (id: Tab): ReactNode => {
+    if (id === 'cuentas' && pending.length) return <em className="bp__badge bp__badge--hot">{pending.length}</em>
+    if (id === 'abuso' && active) return <em className="bp__badge bp__badge--live" aria-label="en marcha" />
+    if (id === 'bote' && potOpen) return <em className="bp__badge bp__badge--live" aria-label="abierto" />
+    if (id === 'usuarios' && users) return <em className="bp__badge">{users.length}</em>
+    return null
+  }
+  // En el móvil las secciones son chips en una fila que se desliza: la elegida se pone a la vista.
+  const navRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    navRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest', inline: 'center' })
+  }, [tab])
+  const pick = (id: Tab) => {
+    setTab(id)
+    setNote(null)
+  }
+  const closeButton = (where: 'side' | 'main') => (
+    <button type="button" className={`bp__close bp__close--${where}`} onClick={onClose} aria-label="Cerrar la banca">
+      <X size={18} />
+    </button>
+  )
+
   return createPortal(
     <div className="bp" role="dialog" aria-modal="true" aria-labelledby="bp-title">
       <div className="bp__backdrop" onClick={onClose} />
       <div className="bp__panel">
-        <header className="bp__head">
-          <div className="bp__vault" aria-hidden="true">
-            <span>€</span>
-          </div>
-          <div className="bp__titles">
-            <h2 id="bp-title">La banca</h2>
-            <p>Panel del master · solo tú lo ves</p>
-          </div>
-          <button type="button" className="bp__close" onClick={onClose} aria-label="Cerrar">
-            <X size={18} />
-          </button>
-        </header>
+        <aside className="bp__side">
+          <header className="bp__head">
+            <div className="bp__vault" aria-hidden="true">
+              <span>€</span>
+            </div>
+            <div className="bp__titles">
+              <h2 id="bp-title">La banca</h2>
+              <p>Solo la ve el master</p>
+            </div>
+            {closeButton('side')}
+          </header>
 
-        <div className="bp__stats">
-          <div>
-            <small>Jugadores</small>
-            <b>{people.length}</b>
-          </div>
-          <div>
-            <small>Dinero en juego</small>
-            <b>{eur(inCirculation)}</b>
-          </div>
-          <div className={active ? 'is-hot' : ''}>
-            <small>Admin Abuse</small>
-            <b>{active ? `${active.modo === 'gratis' ? 'Gratis' : active.modo === 'x3' ? '×3' : '×2'} · ${clock(active.hasta - Date.now())}` : 'Apagado'}</b>
-          </div>
-          <div className={potOpen ? 'is-hot' : ''}>
-            <small>Bote del bingo</small>
-            <b>{potOpen ? `Abierto${potOpen.hasta ? ` · ${hours(potOpen.hasta - Date.now())}` : ''}` : 'Cerrado'}</b>
-          </div>
-        </div>
-
-        <nav className="bp__tabs" role="tablist">
-          {(
-            [
-              ['dinero', 'Dar dinero', Coins],
-              ['mensaje', 'Mensaje', MessageSquare],
-              ['abuso', 'Admin Abuse', Zap],
-              ['bote', 'Bote', Trophy],
-              ['hacienda', 'Hacienda', Landmark],
-              ['cuentas', pending.length ? `Cuentas (${pending.length})` : 'Cuentas', UserPlus],
-              ['usuarios', 'Usuarios', Contact],
-              ['tema', 'Tema', Ghost],
-            ] as const
-          ).map(([id, label, Icon]) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={tab === id}
-              className={`bp__tab bp__tab--${id}`}
-              onClick={() => {
-                setTab(id)
-                setNote(null)
-              }}
-            >
-              <Icon size={16} />
-              {label}
-            </button>
-          ))}
-        </nav>
-
-        <div className="bp__body">
-          {(tab === 'dinero' || tab === 'mensaje') && (
-            <section className="bp__who" aria-label="Para quién">
-              <button type="button" className={`bp-all ${to === ALL ? 'is-on' : ''}`} onClick={() => setTo(ALL)}>
-                <span className="bp-all__icon">
-                  <Users size={18} />
-                </span>
-                <span>
-                  <b>Todos</b>
-                  <small>{people.length} jugadores</small>
-                </span>
-                {to === ALL && <Check size={18} className="bp-check" />}
-              </button>
-              <label className="bp-search">
-                <Search size={14} />
-                <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar a alguien…" />
-              </label>
-              <ul className="bp-people">
-                {shown.map((p) => (
-                  <li key={p.id}>
-                    <button type="button" className={`bp-person ${to === p.id ? 'is-on' : ''}`} onClick={() => setTo(p.id)}>
-                      <Face person={p} />
-                      <span className="bp-person__name">{p.name}</span>
-                      <span className="bp-person__money">{p.balance === null ? 'sin jugar' : eur(p.balance)}</span>
-                    </button>
-                  </li>
-                ))}
-                {shown.length === 0 && <li className="bp-muted">Nadie con ese nombre.</li>}
-              </ul>
-            </section>
-          )}
-
-          <section className="bp__action">
-            {tab === 'dinero' && (
-              <>
-                <div className="bp-amount">
-                  <small>Cantidad para {targetName}</small>
-                  <label>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      min={1}
-                      max={MAX}
-                      value={amount}
-                      onChange={(e) => setClamped(Number(e.target.value))}
-                      aria-label="Cantidad en euros"
-                    />
-                    <span>€</span>
-                  </label>
-                  {!target && people.length > 1 && <small>En total: {eur(amount * people.length)}</small>}
-                </div>
-                <div className="bp-chips" aria-label="Sumar a la cantidad">
-                  {CHIPS.map((c, i) => (
-                    <button key={c} type="button" className="bp-chip" style={{ '--chip': ['#e9e1cf', '#2f7be0', '#c2332c', '#1b1b1f'][i] } as CSSProperties} onClick={() => setClamped(amount + c)}>
-                      +{c >= 1000 ? `${c / 1000}k` : c}
-                    </button>
-                  ))}
-                  <button type="button" className="bp-chip bp-chip--reset" onClick={() => setAmount(100)}>
-                    Borrar
+          <nav ref={navRef} className="bp__nav" aria-label="Secciones de la banca">
+            {SECTIONS.map((group) => (
+              <div key={group.name} className="bp__group">
+                <span className="bp__group-name">{group.name}</span>
+                {group.items.map(({ id, label, Icon }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className={`bp__tab bp__tab--${id}`}
+                    aria-current={tab === id ? 'page' : undefined}
+                    onClick={() => pick(id)}
+                  >
+                    <Icon size={17} aria-hidden="true" />
+                    <span>{label}</span>
+                    {badge(id)}
                   </button>
-                </div>
-                <textarea className="bp-text" value={gift} onChange={(e) => setGift(e.target.value.slice(0, 300))} rows={2} placeholder="Mensaje opcional («¡Por ganar el torneo!»)" />
-                <Preview>
-                  <p className="bp-prev__from">La banca</p>
-                  <p className="bp-prev__big">
-                    ¡Has recibido <b>{eur(amount)}</b> de la banca!
-                  </p>
-                  {gift.trim() && <p className="bp-prev__small">«{gift.trim()}»</p>}
-                </Preview>
-                <button type="button" className={`bp-go bp-go--gold ${armed ? 'is-armed' : ''}`} disabled={busy || amount < 1 || count === 0} onClick={give}>
-                  {armed ? `Confirmar: ${eur(amount)} a cada uno (${count})` : `Dar ${eur(amount)} a ${targetName}`}
+                ))}
+              </div>
+            ))}
+          </nav>
+
+          <History history={history} className="bp__history--side" />
+        </aside>
+
+        <section className="bp__main">
+          <header className="bp__main-head">
+            <div>
+              <h3>{current.label}</h3>
+              <p>{current.desc}</p>
+            </div>
+            {closeButton('main')}
+          </header>
+
+          <div className="bp__stats">
+            <div>
+              <small>Jugadores</small>
+              <b>{people.length}</b>
+            </div>
+            <div>
+              <small>Dinero en juego</small>
+              <b>{eur(inCirculation)}</b>
+            </div>
+            <button type="button" className={active ? 'is-hot' : ''} onClick={() => pick('abuso')}>
+              <small>Admin Abuse</small>
+              <b>{active ? `${active.modo === 'gratis' ? 'Gratis' : active.modo === 'x3' ? '×3' : '×2'} · ${clock(active.hasta - Date.now())}` : 'Apagado'}</b>
+            </button>
+            <button type="button" className={potOpen ? 'is-hot' : ''} onClick={() => pick('bote')}>
+              <small>Bote del bingo</small>
+              <b>{potOpen ? `Abierto${potOpen.hasta ? ` · ${hours(potOpen.hasta - Date.now())}` : ''}` : 'Cerrado'}</b>
+            </button>
+          </div>
+
+          <div className="bp__body">
+            {(tab === 'dinero' || tab === 'mensaje') && (
+              <section className="bp__who" aria-label="Para quién">
+                <button type="button" className={`bp-all ${to === ALL ? 'is-on' : ''}`} onClick={() => setTo(ALL)}>
+                  <span className="bp-all__icon">
+                    <Users size={18} />
+                  </span>
+                  <span>
+                    <b>Todos</b>
+                    <small>{people.length} jugadores</small>
+                  </span>
+                  {to === ALL && <Check size={18} className="bp-check" />}
                 </button>
-              </>
-            )}
-
-            {tab === 'mensaje' && (
-              <>
-                <textarea className="bp-text" value={text} onChange={(e) => setText(e.target.value.slice(0, 300))} rows={4} placeholder="Escribe el mensaje de la banca…" />
-                <div className="bp-templates">
-                  {TEMPLATES.map((t) => (
-                    <button key={t} type="button" onClick={() => setText(t)}>
-                      {t}
-                    </button>
-                  ))}
-                </div>
-                <p className="bp-count">{text.length}/300</p>
-                <Preview>
-                  <p className="bp-prev__from">{target ? 'Mensaje de la banca' : 'Mensaje de la banca para todos'}</p>
-                  <p className="bp-prev__big bp-prev__big--msg">{text.trim() || 'Tu mensaje aparecerá aquí.'}</p>
-                </Preview>
-                <button type="button" className="bp-go bp-go--teal" disabled={busy || !text.trim()} onClick={send}>
-                  Enviar a {targetName}
-                </button>
-              </>
-            )}
-
-            {tab === 'abuso' && (
-              <>
-                {active && (
-                  <div className="bp-live">
-                    <span className="bp-live__dot" aria-hidden="true" />
-                    <div>
-                      <b>{abuseText(active).big}</b>
-                      <small>
-                        <Clock size={12} /> Quedan {clock(active.hasta - Date.now())}
-                      </small>
-                    </div>
-                    <button type="button" disabled={busy} onClick={stopAbuse}>
-                      Desactivar
-                    </button>
-                  </div>
-                )}
-                <div className="bp-modes" role="radiogroup" aria-label="Qué activa">
-                  {MODES.map((m) => (
-                    <button key={m.id} type="button" role="radio" aria-checked={mode === m.id} className={`bp-mode bp-mode--${m.id}`} onClick={() => setMode(m.id)}>
-                      <b>{m.big}</b>
-                      <span>{m.label}</span>
-                    </button>
-                  ))}
-                </div>
-                <div className="bp-row">
-                  <span className="bp-label">Dónde</span>
-                  <div className="bp-seg" role="radiogroup">
-                    {(
-                      [
-                        ['todo', 'Todos los juegos'],
-                        ['poker', 'Solo póker'],
-                      ] as const
-                    ).map(([id, label]) => (
-                      <button key={id} type="button" role="radio" aria-checked={scope === id} onClick={() => setScope(id)}>
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="bp-row">
-                  <span className="bp-label">Cuánto dura</span>
-                  <div className="bp-seg" role="radiogroup">
-                    {ABUSE_MINUTES.map((m) => (
-                      <button key={m} type="button" role="radio" aria-checked={minutes === m} onClick={() => setMinutes(m)}>
-                        {m} min
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <ul className="bp-perks">
-                  {abusePerks({ modo: mode, ambito: scope }).map((p) => (
-                    <li key={p}>{p}</li>
-                  ))}
-                </ul>
-                <button type="button" className={`bp-go bp-go--abuse bp-go--${mode}`} disabled={busy} onClick={startAbuse}>
-                  <Zap size={18} /> {active ? 'CAMBIAR ADMIN ABUSE' : 'ACTIVAR ADMIN ABUSE'}
-                </button>
-              </>
-            )}
-
-            {tab === 'bote' && (
-              <>
-                <div className={`bp-live ${potOpen ? '' : 'bp-live--off'}`}>
-                  <span className="bp-live__dot" aria-hidden="true" />
-                  <div>
-                    <b>{potOpen ? 'BOTE ABIERTO' : 'BOTE CERRADO'}</b>
-                    <small>
-                      {bote ? `En la jaula: ${eur(bote.pot)}` : 'Cargando…'}
-                      {potOpen && (
-                        <>
-                          {' · '}
-                          <Clock size={12} /> {potOpen.hasta ? `Quedan ${hours(potOpen.hasta - Date.now())}` : 'Sin límite'}
-                          {potOpen.una ? ' · se cierra al salir' : ''}
-                        </>
-                      )}
-                    </small>
-                  </div>
-                  {potOpen && (
-                    <button type="button" disabled={busy} onClick={closePot}>
-                      Cerrar
-                    </button>
-                  )}
-                </div>
-                <p className="bp-muted">
-                  Mientras el bote está cerrado nadie se lo lleva, ni con la bola dorada ni cantando bingo antes de la bola 66:
-                  la jaula sigue creciendo. Lo que decidas vale desde la próxima partida que cierre la venta; la que ya se
-                  está jugando sigue como empezó.
-                </p>
-                <div className="bp-row">
-                  <span className="bp-label">Abierto durante</span>
-                  <div className="bp-seg" role="radiogroup">
-                    {POT_MINUTES.map((m) => (
-                      <button key={String(m)} type="button" role="radio" aria-checked={potFor === m} onClick={() => setPotFor(m)}>
-                        {potMinutes(m)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <label className="bp-check-row">
-                  <input type="checkbox" checked={potOnce} onChange={(e) => setPotOnce(e.target.checked)} />
-                  Cerrarlo en cuanto alguien se lo lleve (así no sale varias veces seguidas)
-                </label>
-                <button type="button" className="bp-go bp-go--gold" disabled={busy} onClick={openPot}>
-                  <Trophy size={18} /> {potOpen ? 'Volver a abrir con estas opciones' : 'Abrir el bote'}
-                </button>
-                {bote && bote.botes.length > 0 && (
-                  <ul className="bp-perks">
-                    {bote.botes.map((b) => (
-                      <li key={b.round}>
-                        {eur(b.jackpot)} para {b.bingo.join(', ') || '—'}
-                        {b.golden ? ' (bola dorada)' : ''}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </>
-            )}
-
-            {tab === 'hacienda' && (
-              <>
-                <p className="bp-muted">
-                  Hacienda ya cobra sola: al pasar de 100.000 €, 200.000 €… cada uno declara (o se la juega declarando de menos), y
-                  a quien pasa de 100.000 € le pueden caer inspecciones sorpresa. Con la redada vas tú a por todos los que pasen
-                  de cierta cantidad. Todo va a la jaula del bingo; a quien está sentado en una mesa no se le cobra.
-                </p>
-                <div className="bp-row">
-                  <span className="bp-label">Cuánto se lleva</span>
-                  <div className="bp-seg" role="radiogroup">
-                    {RAID_PCTS.map((p) => (
-                      <button key={p} type="button" role="radio" aria-checked={raidPct === p} onClick={() => setRaidPct(p)}>
-                        {p} %
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="bp-row">
-                  <span className="bp-label">A quien tenga</span>
-                  <div className="bp-seg" role="radiogroup">
-                    {RAID_FLOORS.map((f) => (
-                      <button key={f} type="button" role="radio" aria-checked={raidFloor === f} onClick={() => setRaidFloor(f)}>
-                        {eur(f)} o más
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <ul className="bp-perks">
-                  {targets.length === 0 ? (
-                    <li>Ahora mismo nadie llega a {eur(raidFloor)}.</li>
-                  ) : (
-                    targets.map((p) => (
-                      <li key={p.id}>
-                        {p.name}: −{eur(Math.floor(((p.balance ?? 0) * raidPct) / 100))}
-                      </li>
-                    ))
-                  )}
-                </ul>
-                <button type="button" className="bp-go bp-go--hot" disabled={busy || targets.length === 0} onClick={raid}>
-                  <Landmark size={18} />{' '}
-                  {armed ? `¿Seguro? Pulsa otra vez (${eur(raidTotal)})` : `Mandar a Hacienda (${targets.length})`}
-                </button>
-              </>
-            )}
-
-            {tab === 'cuentas' && (
-              <>
-                <p className="bp-muted">Quien se registra no puede jugar hasta que aceptes su cuenta.</p>
-                {pending.length === 0 ? (
-                  <p className="bp-muted">No hay cuentas esperando.</p>
-                ) : (
-                  <ul className="bp-accounts">
-                    {pending.map((p) => (
-                      <li key={p.id}>
-                        <Face person={{ name: p.name, avatar: null }} />
-                        <span className="bp-accounts__who">
-                          <b>{p.name}</b>
-                          <small>
-                            {p.email} · {ago(p.at)}
-                          </small>
-                        </span>
-                        <button type="button" className="bp-accounts__no" disabled={busy} onClick={() => decide(p, false)}>
-                          Rechazar
-                        </button>
-                        <button type="button" className="bp-accounts__ok" disabled={busy} onClick={() => decide(p, true)}>
-                          <Check size={14} /> Aceptar
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </>
-            )}
-
-            {tab === 'usuarios' && (
-              <>
-                <p className="bp-muted">
-                  Todas las cuentas con su email. Si alguien olvida su contraseña, ponle una temporal: se le cierran las sesiones
-                  abiertas y, al entrar con ella, tendrá que elegir una nueva antes de jugar.
-                </p>
                 <label className="bp-search">
                   <Search size={14} />
-                  <input value={userQuery} onChange={(e) => setUserQuery(e.target.value)} placeholder="Buscar por nombre o email…" />
+                  <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar a alguien…" />
                 </label>
-                {users === null ? (
-                  <p className="bp-muted">Cargando…</p>
-                ) : (
-                  <ul className="bp-users">
-                    {shownUsers.map((u) => (
-                      <li key={u.id}>
-                        <div className="bp-users__row">
-                          <Face person={u} />
-                          <span className="bp-users__who">
-                            <b>
-                              {u.name}
-                              {u.master && <em className="bp-tag bp-tag--master">Master</em>}
-                              {u.estado !== 'aprobado' && <em className={`bp-tag bp-tag--${u.estado}`}>{u.estado}</em>}
-                              {u.temporal && <em className="bp-tag bp-tag--temp">Temporal</em>}
-                            </b>
-                            <a href={`mailto:${u.email}`}>{u.email}</a>
-                            <small>{u.acceso ? `Último acceso ${ago(u.acceso)}` : 'Nunca ha entrado'}</small>
-                          </span>
-                          {!u.master && (
-                            <button
-                              type="button"
-                              className={`bp-users__reset ${resetFor === u.id ? 'is-armed' : ''}`}
-                              disabled={busy}
-                              onClick={() => resetPassword(u)}
-                            >
-                              <KeyRound size={14} />
-                              {resetFor === u.id ? '¿Seguro? Pulsa otra vez' : 'Contraseña temporal'}
-                            </button>
-                          )}
-                        </div>
-                        {temp?.id === u.id && (
-                          <div className="bp-temp" role="status">
-                            <span>Contraseña temporal de {u.name}:</span>
-                            <code>{temp.password}</code>
-                            <button type="button" onClick={copyTemp}>
-                              {temp.copied ? <Check size={14} /> : <Copy size={14} />}
-                              {temp.copied ? 'Copiada' : 'Copiar'}
-                            </button>
-                            <small>Pásasela por privado. No se vuelve a mostrar; al entrar, tendrá que cambiarla.</small>
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                    {shownUsers.length === 0 && <li className="bp-muted">Nadie con ese nombre o email.</li>}
-                  </ul>
-                )}
-              </>
+                <ul className="bp-people">
+                  {shown.map((p) => (
+                    <li key={p.id}>
+                      <button type="button" className={`bp-person ${to === p.id ? 'is-on' : ''}`} onClick={() => setTo(p.id)}>
+                        <Face person={p} />
+                        <span className="bp-person__name">{p.name}</span>
+                        <span className="bp-person__money">{p.balance === null ? 'sin jugar' : eur(p.balance)}</span>
+                      </button>
+                    </li>
+                  ))}
+                  {shown.length === 0 && <li className="bp-muted">Nadie con ese nombre.</li>}
+                </ul>
+              </section>
             )}
 
-            {tab === 'tema' && (
-              <>
-                <p className="bp-muted">
-                  El tema de Halloween se pone solo del 27/10 al 1/11 (hora de Canarias){enFechas() ? ' y ahora está en fechas' : ''}.
-                  Aquí puedes verlo antes o quitarlo, pero solo en este navegador: a los demás les sigue mandando la fecha. Solo
-                  cambia el aspecto, no los juegos.
-                </p>
-                <div className="bp-row">
-                  <span className="bp-label">Halloween</span>
-                  <div className="bp-seg" role="radiogroup">
-                    {(
-                      [
-                        ['auto', 'Por fechas'],
-                        ['on', 'Encendido'],
-                        ['off', 'Apagado'],
-                      ] as const
-                    ).map(([id, label]) => (
-                      <button
-                        key={id}
-                        type="button"
-                        role="radio"
-                        aria-checked={tema === id}
-                        onClick={() => {
-                          setTema(id)
-                          setPreferencia(id)
-                        }}
-                      >
-                        {label}
+            <section className="bp__action">
+              {tab === 'dinero' && (
+                <>
+                  <div className="bp-amount">
+                    <small>Cantidad para {targetName}</small>
+                    <label>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={1}
+                        max={MAX}
+                        value={amount}
+                        onChange={(e) => setClamped(Number(e.target.value))}
+                        aria-label="Cantidad en euros"
+                      />
+                      <span>€</span>
+                    </label>
+                    {!target && people.length > 1 && <small>En total: {eur(amount * people.length)}</small>}
+                  </div>
+                  <div className="bp-chips" aria-label="Sumar a la cantidad">
+                    {CHIPS.map((c, i) => (
+                      <button key={c} type="button" className="bp-chip" style={{ '--chip': ['#e9e1cf', '#2f7be0', '#c2332c', '#1b1b1f'][i] } as CSSProperties} onClick={() => setClamped(amount + c)}>
+                        +{c >= 1000 ? `${c / 1000}k` : c}
+                      </button>
+                    ))}
+                    <button type="button" className="bp-chip bp-chip--reset" onClick={() => setAmount(100)}>
+                      Borrar
+                    </button>
+                  </div>
+                  <textarea className="bp-text" value={gift} onChange={(e) => setGift(e.target.value.slice(0, 300))} rows={2} placeholder="Mensaje opcional («¡Por ganar el torneo!»)" />
+                  <Preview>
+                    <p className="bp-prev__from">La banca</p>
+                    <p className="bp-prev__big">
+                      ¡Has recibido <b>{eur(amount)}</b> de la banca!
+                    </p>
+                    {gift.trim() && <p className="bp-prev__small">«{gift.trim()}»</p>}
+                  </Preview>
+                  <button type="button" className={`bp-go bp-go--gold ${armed ? 'is-armed' : ''}`} disabled={busy || amount < 1 || count === 0} onClick={give}>
+                    {armed ? `Confirmar: ${eur(amount)} a cada uno (${count})` : `Dar ${eur(amount)} a ${targetName}`}
+                  </button>
+                </>
+              )}
+
+              {tab === 'mensaje' && (
+                <>
+                  <textarea className="bp-text" value={text} onChange={(e) => setText(e.target.value.slice(0, 300))} rows={4} placeholder="Escribe el mensaje de la banca…" />
+                  <div className="bp-templates">
+                    {TEMPLATES.map((t) => (
+                      <button key={t} type="button" onClick={() => setText(t)}>
+                        {t}
                       </button>
                     ))}
                   </div>
-                </div>
-              </>
-            )}
+                  <p className="bp-count">{text.length}/300</p>
+                  <Preview>
+                    <p className="bp-prev__from">{target ? 'Mensaje de la banca' : 'Mensaje de la banca para todos'}</p>
+                    <p className="bp-prev__big bp-prev__big--msg">{text.trim() || 'Tu mensaje aparecerá aquí.'}</p>
+                  </Preview>
+                  <button type="button" className="bp-go bp-go--teal" disabled={busy || !text.trim()} onClick={send}>
+                    Enviar a {targetName}
+                  </button>
+                </>
+              )}
 
-            {note && (
-              <p role="status" className={`bp-note ${note.ok ? 'is-ok' : 'is-err'}`}>
-                {note.text}
-              </p>
-            )}
-          </section>
-        </div>
+              {tab === 'abuso' && (
+                <>
+                  {active && (
+                    <div className="bp-live">
+                      <span className="bp-live__dot" aria-hidden="true" />
+                      <div>
+                        <b>{abuseText(active).big}</b>
+                        <small>
+                          <Clock size={12} /> Quedan {clock(active.hasta - Date.now())}
+                        </small>
+                      </div>
+                      <button type="button" disabled={busy} onClick={stopAbuse}>
+                        Desactivar
+                      </button>
+                    </div>
+                  )}
+                  <div className="bp-modes" role="radiogroup" aria-label="Qué activa">
+                    {MODES.map((m) => (
+                      <button key={m.id} type="button" role="radio" aria-checked={mode === m.id} className={`bp-mode bp-mode--${m.id}`} onClick={() => setMode(m.id)}>
+                        <b>{m.big}</b>
+                        <span>{m.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="bp-row">
+                    <span className="bp-label">Dónde</span>
+                    <div className="bp-seg" role="radiogroup">
+                      {(
+                        [
+                          ['todo', 'Todos los juegos'],
+                          ['poker', 'Solo póker'],
+                        ] as const
+                      ).map(([id, label]) => (
+                        <button key={id} type="button" role="radio" aria-checked={scope === id} onClick={() => setScope(id)}>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bp-row">
+                    <span className="bp-label">Cuánto dura</span>
+                    <div className="bp-seg" role="radiogroup">
+                      {ABUSE_MINUTES.map((m) => (
+                        <button key={m} type="button" role="radio" aria-checked={minutes === m} onClick={() => setMinutes(m)}>
+                          {m} min
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <ul className="bp-perks">
+                    {abusePerks({ modo: mode, ambito: scope }).map((p) => (
+                      <li key={p}>{p}</li>
+                    ))}
+                  </ul>
+                  <button type="button" className={`bp-go bp-go--abuse bp-go--${mode}`} disabled={busy} onClick={startAbuse}>
+                    <Zap size={18} /> {active ? 'CAMBIAR ADMIN ABUSE' : 'ACTIVAR ADMIN ABUSE'}
+                  </button>
+                </>
+              )}
 
-        {history.length > 0 && (
-          <footer className="bp__history">
-            <h3>Últimos movimientos</h3>
-            <ul>
-              {history.map((h) => (
-                <li key={h.id}>
-                  <span className={`bp-hist__icon bp-hist__icon--${h.tipo}`} aria-hidden="true">
-                    {h.tipo === 'dinero' ? '€' : h.tipo === 'hacienda_todos' ? 'H' : '✉'}
-                  </span>
-                  <span className="bp-hist__what">
-                    {h.tipo === 'hacienda_todos' ? (
-                      <>
-                        Hacienda: <b>−{eur(h.importe ?? 0)}</b> a {h.para ?? '—'}
-                      </>
-                    ) : (
-                      <>
-                        {h.tipo === 'dinero' ? <b>{eur(h.importe ?? 0)}</b> : <q>{h.texto}</q>} → {h.para ?? 'todos'}
-                      </>
+              {tab === 'bote' && (
+                <>
+                  <div className={`bp-live ${potOpen ? '' : 'bp-live--off'}`}>
+                    <span className="bp-live__dot" aria-hidden="true" />
+                    <div>
+                      <b>{potOpen ? 'BOTE ABIERTO' : 'BOTE CERRADO'}</b>
+                      <small>
+                        {bote ? `En la jaula: ${eur(bote.pot)}` : 'Cargando…'}
+                        {potOpen && (
+                          <>
+                            {' · '}
+                            <Clock size={12} /> {potOpen.hasta ? `Quedan ${hours(potOpen.hasta - Date.now())}` : 'Sin límite'}
+                            {potOpen.una ? ' · se cierra al salir' : ''}
+                          </>
+                        )}
+                      </small>
+                    </div>
+                    {potOpen && (
+                      <button type="button" disabled={busy} onClick={closePot}>
+                        Cerrar
+                      </button>
                     )}
-                  </span>
-                  <small>{ago(h.at)}</small>
-                </li>
-              ))}
-            </ul>
-          </footer>
-        )}
+                  </div>
+                  <p className="bp-muted">
+                    Mientras el bote está cerrado nadie se lo lleva, ni con la bola dorada ni cantando bingo antes de la bola 66:
+                    la jaula sigue creciendo. Lo que decidas vale desde la próxima partida que cierre la venta; la que ya se
+                    está jugando sigue como empezó.
+                  </p>
+                  <div className="bp-row">
+                    <span className="bp-label">Abierto durante</span>
+                    <div className="bp-seg" role="radiogroup">
+                      {POT_MINUTES.map((m) => (
+                        <button key={String(m)} type="button" role="radio" aria-checked={potFor === m} onClick={() => setPotFor(m)}>
+                          {potMinutes(m)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <label className="bp-check-row">
+                    <input type="checkbox" checked={potOnce} onChange={(e) => setPotOnce(e.target.checked)} />
+                    Cerrarlo en cuanto alguien se lo lleve (así no sale varias veces seguidas)
+                  </label>
+                  <button type="button" className="bp-go bp-go--gold" disabled={busy} onClick={openPot}>
+                    <Trophy size={18} /> {potOpen ? 'Volver a abrir con estas opciones' : 'Abrir el bote'}
+                  </button>
+                  {bote && bote.botes.length > 0 && (
+                    <ul className="bp-perks">
+                      {bote.botes.map((b) => (
+                        <li key={b.round}>
+                          {eur(b.jackpot)} para {b.bingo.join(', ') || '—'}
+                          {b.golden ? ' (bola dorada)' : ''}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              )}
+
+              {tab === 'hacienda' && (
+                <>
+                  <p className="bp-muted">
+                    Hacienda ya cobra sola: al pasar de 100.000 €, 200.000 €… cada uno declara (o se la juega declarando de menos), y
+                    a quien pasa de 100.000 € le pueden caer inspecciones sorpresa. Con la redada vas tú a por todos los que pasen
+                    de cierta cantidad. Todo va a la jaula del bingo; a quien está sentado en una mesa no se le cobra.
+                  </p>
+                  <div className="bp-row">
+                    <span className="bp-label">Cuánto se lleva</span>
+                    <div className="bp-seg" role="radiogroup">
+                      {RAID_PCTS.map((p) => (
+                        <button key={p} type="button" role="radio" aria-checked={raidPct === p} onClick={() => setRaidPct(p)}>
+                          {p} %
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bp-row">
+                    <span className="bp-label">A quien tenga</span>
+                    <div className="bp-seg" role="radiogroup">
+                      {RAID_FLOORS.map((f) => (
+                        <button key={f} type="button" role="radio" aria-checked={raidFloor === f} onClick={() => setRaidFloor(f)}>
+                          {eur(f)} o más
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <ul className="bp-perks">
+                    {targets.length === 0 ? (
+                      <li>Ahora mismo nadie llega a {eur(raidFloor)}.</li>
+                    ) : (
+                      targets.map((p) => (
+                        <li key={p.id}>
+                          {p.name}: −{eur(Math.floor(((p.balance ?? 0) * raidPct) / 100))}
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                  <button type="button" className="bp-go bp-go--hot" disabled={busy || targets.length === 0} onClick={raid}>
+                    <Landmark size={18} />{' '}
+                    {armed ? `¿Seguro? Pulsa otra vez (${eur(raidTotal)})` : `Mandar a Hacienda (${targets.length})`}
+                  </button>
+                </>
+              )}
+
+              {tab === 'cuentas' && (
+                <>
+                  <p className="bp-muted">Quien se registra no puede jugar hasta que aceptes su cuenta.</p>
+                  {pending.length === 0 ? (
+                    <p className="bp-muted">No hay cuentas esperando.</p>
+                  ) : (
+                    <ul className="bp-accounts">
+                      {pending.map((p) => (
+                        <li key={p.id}>
+                          <Face person={{ name: p.name, avatar: null }} />
+                          <span className="bp-accounts__who">
+                            <b>{p.name}</b>
+                            <small>
+                              {p.email} · {ago(p.at)}
+                            </small>
+                          </span>
+                          <button type="button" className="bp-accounts__no" disabled={busy} onClick={() => decide(p, false)}>
+                            Rechazar
+                          </button>
+                          <button type="button" className="bp-accounts__ok" disabled={busy} onClick={() => decide(p, true)}>
+                            <Check size={14} /> Aceptar
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              )}
+
+              {tab === 'usuarios' && (
+                <>
+                  <p className="bp-muted">
+                    Al poner una temporal se le cierran las sesiones abiertas y, al entrar con ella, tendrá que elegir otra antes de jugar.
+                  </p>
+                  <label className="bp-search">
+                    <Search size={14} />
+                    <input value={userQuery} onChange={(e) => setUserQuery(e.target.value)} placeholder="Buscar por nombre o email…" />
+                  </label>
+                  {users === null ? (
+                    <p className="bp-muted">Cargando…</p>
+                  ) : (
+                    <ul className="bp-users">
+                      {shownUsers.map((u) => (
+                        <li key={u.id}>
+                          <div className="bp-users__row">
+                            <Face person={u} />
+                            <span className="bp-users__who">
+                              <b>
+                                {u.name}
+                                {u.master && <em className="bp-tag bp-tag--master">Master</em>}
+                                {u.estado !== 'aprobado' && <em className={`bp-tag bp-tag--${u.estado}`}>{u.estado}</em>}
+                                {u.temporal && <em className="bp-tag bp-tag--temp">Temporal</em>}
+                              </b>
+                              <a href={`mailto:${u.email}`}>{u.email}</a>
+                              <small>{u.acceso ? `Último acceso ${ago(u.acceso)}` : 'Nunca ha entrado'}</small>
+                            </span>
+                            {!u.master && (
+                              <button
+                                type="button"
+                                className={`bp-users__reset ${resetFor === u.id ? 'is-armed' : ''}`}
+                                disabled={busy}
+                                onClick={() => resetPassword(u)}
+                              >
+                                <KeyRound size={14} />
+                                {resetFor === u.id ? '¿Seguro? Pulsa otra vez' : 'Contraseña temporal'}
+                              </button>
+                            )}
+                          </div>
+                          {temp?.id === u.id && (
+                            <div className="bp-temp" role="status">
+                              <span>Contraseña temporal de {u.name}:</span>
+                              <code>{temp.password}</code>
+                              <button type="button" onClick={copyTemp}>
+                                {temp.copied ? <Check size={14} /> : <Copy size={14} />}
+                                {temp.copied ? 'Copiada' : 'Copiar'}
+                              </button>
+                              <small>Pásasela por privado. No se vuelve a mostrar; al entrar, tendrá que cambiarla.</small>
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                      {shownUsers.length === 0 && <li className="bp-muted">Nadie con ese nombre o email.</li>}
+                    </ul>
+                  )}
+                </>
+              )}
+
+              {tab === 'tema' && (
+                <>
+                  <p className="bp-muted">
+                    El tema de Halloween se pone solo del 27/10 al 1/11 (hora de Canarias){enFechas() ? ' y ahora está en fechas' : ''}.
+                    Aquí puedes verlo antes o quitarlo, pero solo en este navegador: a los demás les sigue mandando la fecha. Solo
+                    cambia el aspecto, no los juegos.
+                  </p>
+                  <div className="bp-row">
+                    <span className="bp-label">Halloween</span>
+                    <div className="bp-seg" role="radiogroup">
+                      {(
+                        [
+                          ['auto', 'Por fechas'],
+                          ['on', 'Encendido'],
+                          ['off', 'Apagado'],
+                        ] as const
+                      ).map(([id, label]) => (
+                        <button
+                          key={id}
+                          type="button"
+                          role="radio"
+                          aria-checked={tema === id}
+                          onClick={() => {
+                            setTema(id)
+                            setPreferencia(id)
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {note && (
+                <p role="status" className={`bp-note ${note.ok ? 'is-ok' : 'is-err'}`}>
+                  {note.text}
+                </p>
+              )}
+            </section>
+          </div>
+
+          <History history={history} className="bp__history--main" />
+        </section>
       </div>
     </div>,
     document.body,
