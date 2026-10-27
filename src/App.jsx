@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
-import { Aviso, Cargando, Entrada, NuevaPassword } from './entrada/Entrada'
+import { Aviso, Cargando, Entrada, NuevaPassword, Pendiente } from './entrada/Entrada'
 
 const Juegos = lazy(() => import('./juegos/Juegos'))
 
@@ -20,13 +20,7 @@ function Casino() {
   if (usuario.estado_acceso === 'rechazado') {
     return <Aviso titulo="Cuenta rechazada">El master no ha aceptado esta cuenta.</Aviso>
   }
-  if (usuario.estado_acceso !== 'aprobado') {
-    return (
-      <Aviso titulo="Cuenta pendiente" accion={{ texto: 'Ya me han aceptado', onClick: refresh }}>
-        Hola, {usuario.nombre}. El master tiene que aceptar tu cuenta antes de que puedas jugar.
-      </Aviso>
-    )
-  }
+  if (usuario.estado_acceso !== 'aprobado') return <Pendiente nombre={usuario.nombre} />
   return (
     <Suspense fallback={<Cargando />}>
       <Juegos />

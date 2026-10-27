@@ -1,5 +1,7 @@
 // Ilustraciones del selector de juegos: una mini escena en SVG por juego. Los colores y las animaciones (clases hs-*)
-// están en hub.css. Las cuatro de la Season 3 son más grandes (240×160) y las demás, de 160×90, para sus tarjetas.
+// están en scenes.css. Las cuatro de la Season 3 son más grandes (240×160) y las demás, de 160×90, para sus tarjetas.
+
+import './scenes.css'
 
 const rad = (deg) => (deg * Math.PI) / 180
 

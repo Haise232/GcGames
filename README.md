@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🎰 GcGames
+<img src="src/assets/logo.svg" width="120" alt="Logo de GcGames: una ficha de casino con el monograma Gc">
+
+# GcGames
 
 **Un casino online para jugar con tu gente: mesas en vivo, juegos para todos a la vez, gacha de cartas y una economía semanal con su propia Hacienda.**
 
@@ -105,7 +107,7 @@ flowchart LR
 │   └── engine/              # Motor de las mesas en vivo (blackjack y póker)
 ├── worker.mjs               # Entrada del Worker de Cloudflare
 ├── wrangler.jsonc           # Configuración del Worker (assets, Hyperdrive, variables)
-├── public/                  # Iconos y _headers (cabeceras de seguridad)
+├── public/                  # Iconos (salen de src/assets/logo.svg) y _headers (cabeceras de seguridad)
 ├── supabase/00_base.sql     # Tabla usuarios, alta automática y rol juegos_api
 ├── scripts/                 # Catálogo del gacha y copia de datos
 └── .github/workflows/       # Publicación automática

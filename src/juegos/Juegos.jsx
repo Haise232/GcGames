@@ -35,6 +35,7 @@ import BancaAvisos from './banca/BancaAvisos'
 import Tutorial, { TUTORIAL_KEY } from './Tutorial.jsx'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
+import Logo from '../Logo.jsx'
 import { delta, eur, until } from './money.js'
 import { useCountUp } from './useCountUp.js'
 import { POT_BALL } from './bingo.js'
@@ -556,7 +557,10 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome 
         {halloween && <Pumpkin className="hw-pumpkin" />}
         <div className="hub-top__brand">
           <small className="hub-top__eyebrow">{halloween ? 'Noche de Halloween' : 'Casino'}</small>
-          <h1>GcGames</h1>
+          <div className="hub-top__title">
+            <Logo className="hub-top__logo" />
+            <h1>GcGames</h1>
+          </div>
           <p className={`hub-status hub-status--${status.tone}`} role="status" aria-live="polite">
             <i aria-hidden="true" />
             {status.text}
