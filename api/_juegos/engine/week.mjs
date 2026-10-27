@@ -1,4 +1,4 @@
-// Copiado del proyecto de juegos (Rule) con scripts/export-topcode.mjs: no editar aquí.
+// Motor de las mesas (blackjack y póker), compartido por las salas en vivo.
 // La semana de juegos: empieza el lunes y se reinicia el domingo a las 23:59 (hora del instituto).
 // Todo se calcula en la zona horaria WEEK_TZ (por defecto Atlantic/Canary) aunque el servidor esté en otra.
 export const WEEK_TZ = process.env.WEEK_TZ || 'Atlantic/Canary'

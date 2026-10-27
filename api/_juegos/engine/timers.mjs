@@ -1,4 +1,4 @@
-// Copiado del proyecto de juegos (Rule) con scripts/export-topcode.mjs: no editar aquí.
+// Motor de las mesas (blackjack y póker), compartido por las salas en vivo.
 // Un temporizador por sala, con nombre, para que la sala se pueda guardar y retomar.
 // - realTimers (servidor Node con WebSocket): un setTimeout de verdad.
 // - storedTimers (funciones de Vercel): solo queda anotado en room.pending y lo dispara room.wake() cuando vence.

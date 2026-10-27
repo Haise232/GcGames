@@ -1,11 +1,11 @@
-// Copiado del proyecto de juegos (Rule) con scripts/export-topcode.mjs: no editar aquí.
-// Identidad de TopCode: el cliente manda su access token de Supabase y el servidor lo valida con el propio Supabase.
+// Motor de las mesas (blackjack y póker), compartido por las salas en vivo.
+// Identidad: el cliente manda su access token de Supabase y el servidor lo valida con el propio Supabase.
 // Una sola llamada a la RPC get_mi_perfil comprueba la firma del token (PostgREST la rechaza con 401 si no vale)
 // y devuelve el perfil, incluido si la cuenta está aprobada.
 const TTL_MS = 60000
 const MAX_CACHE = 2000
 
-// Foto de perfil de TopCode: solo URLs https razonables (se pintan en un <img> de los demás jugadores).
+// Foto de perfil: solo URLs https razonables (se pintan en un <img> de los demás jugadores).
 export function safeAvatar(url) {
   if (typeof url !== 'string' || url.length > 600) return null
   try {

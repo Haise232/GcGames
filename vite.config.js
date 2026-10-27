@@ -26,9 +26,9 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         injectRegister: 'script', // archivo aparte: la CSP no permite scripts en línea
         manifest: {
-          name: 'Juegos',
-          short_name: 'Juegos',
-          description: 'Casino de Juegos',
+          name: 'GcGames',
+          short_name: 'GcGames',
+          description: 'El casino de GcGames',
           lang: 'es',
           start_url: '/',
           scope: '/',

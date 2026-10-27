@@ -260,7 +260,7 @@ function Summon({ summon, busy, onDecide, onClose }) {
               <GachaCard card={result.card} big />
             </div>
             <p className="gacha-summon__name">{result.card.name}</p>
-            {mythic && <p className="gacha-summon__one">{fused ? `${result.card.fusion.join(' + ')} · ` : ''}1 de 1 · única en TopCode</p>}
+            {mythic && <p className="gacha-summon__one">{fused ? `${result.card.fusion.join(' + ')} · ` : ''}1 de 1 · única en GcGames</p>}
             {fused ? (
               <div className="gacha-decide">
                 <button type="button" className="hub-btn hub-btn--primary" onClick={onClose} autoFocus>
@@ -520,7 +520,7 @@ function Library({ data, catalog, onSell, onPawn, onRedeem, pawnRules, balance, 
 
   async function copy() {
     try {
-      await navigator.clipboard.writeText(`Mi biblioteca del gacha de TopCode: ${summary(counts)} (${cards.length} ${cards.length === 1 ? 'carta' : 'cartas'}, valen ${eur(worth)}).`)
+      await navigator.clipboard.writeText(`Mi biblioteca del gacha de GcGames: ${summary(counts)} (${cards.length} ${cards.length === 1 ? 'carta' : 'cartas'}, valen ${eur(worth)}).`)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
@@ -1285,7 +1285,7 @@ export default function Gacha({ onExit, juegos, initialTab = 'tirar' }) {
 
       {summon && <Summon summon={summon} busy={busy} onDecide={decide} onClose={() => setSummon(null)} />}
 
-      <footer className="gacha-foot">Imágenes enlazadas desde Wikipedia, Wikimedia Commons y las noticias de cada mod; los personajes son de sus compañías y los mods, de sus autores. Solo para TopCode, sin fines comerciales.</footer>
+      <footer className="gacha-foot">Imágenes enlazadas desde Wikipedia, Wikimedia Commons y las noticias de cada mod; los personajes son de sus compañías y los mods, de sus autores. Solo para GcGames, sin fines comerciales.</footer>
     </main>
   )
 }

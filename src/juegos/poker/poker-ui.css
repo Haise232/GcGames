@@ -1,5 +1,5 @@
 /* Escrito a mano (no generado), se carga después de poker.css: el aspecto de la mesa de póker.
-   Paño azul de TopCode, riel de nogal con filo de latón, placas legibles y el pie con altura automática.
+   Paño azul, riel de nogal con filo de latón, placas legibles y el pie con altura automática.
    Todo se ajusta desde aquí con `.juegos-root …` para no tocar poker.css (generado). */
 
 .juegos-root .poker {

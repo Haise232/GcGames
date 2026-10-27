@@ -324,7 +324,7 @@ export default function Tutorial({ onClose }) {
       )}
       <div key={i} className={`tut__card ${box ? 'is-pinned' : ''}`} style={cardStyle ?? undefined}>
         <div className="tut__art">{Art[step.art]}</div>
-        {step.hero && i === 0 && <p className="tut__kicker">Juegos de TopCode</p>}
+        {step.hero && i === 0 && <p className="tut__kicker">Bienvenido a GcGames</p>}
         <h2 id="tut-title">{step.title}</h2>
         <p>{step.text}</p>
         <div className="tut__dots" aria-label={`Paso ${i + 1} de ${steps.length}`}>

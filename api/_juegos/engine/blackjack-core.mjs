@@ -1,4 +1,4 @@
-// Copiado del proyecto de juegos (Rule) con scripts/export-topcode.mjs: no editar aquí.
+// Motor de las mesas (blackjack y póker), compartido por las salas en vivo.
 // Reglas puras del blackjack, sin DOM, sin Node y sin azar propio: las usan el modo solitario y el servidor de mesa.
 export const DECKS = 6
 export const DEALER_STANDS = 17

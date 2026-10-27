@@ -1,0 +1,24 @@
+// GcGames en Cloudflare: un Worker que sirve la web compilada (dist/) y la API (/api/juegos, worker.mjs).
+// Secretos (wrangler secret put): JUEGOS_DATABASE_URL y, si se quiere, JUEGOS_RULETA_SECRET.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "play",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-09-01",
+  // node:crypto, node:async_hooks y las conexiones TCP de pg; también rellena process.env con vars y secretos.
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  // Públicas: el navegador ya las lleva en el JS compilado.
+  "vars": {
+    "VITE_SUPABASE_URL": "https://qabvmkkexuszmykkmkxe.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhYnZta2tleHVzem15a2tta3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMTU4NjAsImV4cCI6MjEwODY5MTg2MH0.elxGC_JihZCq1zMeS_d0r8Fh42N7Y3-_I5L7RiGA7fo"
+  },
+  // Supabase de Juegos (pooler en modo sesión, rol juegos_api) a través de Hyperdrive.
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "17a6b2a67a4144afb70250e5d6f0025a" }],
+  "observability": { "enabled": true }
+}

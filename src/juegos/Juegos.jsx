@@ -555,8 +555,8 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome 
       <header className="hub-top">
         {halloween && <Pumpkin className="hw-pumpkin" />}
         <div className="hub-top__brand">
-          <small className="hub-top__eyebrow">{halloween ? 'Noche de Halloween' : 'Casino TopCode'}</small>
-          <h1>Juegos</h1>
+          <small className="hub-top__eyebrow">{halloween ? 'Noche de Halloween' : 'Casino'}</small>
+          <h1>GcGames</h1>
           <p className={`hub-status hub-status--${status.tone}`} role="status" aria-live="polite">
             <i aria-hidden="true" />
             {status.text}
@@ -801,7 +801,7 @@ function JuegosScreens() {
   if (juegos.conn === 'denied') {
     return (
       <Notice
-        title="Juegos"
+        title="GcGames"
         actions={
           <>
             <button type="button" className="primary" onClick={juegos.reconnect}>

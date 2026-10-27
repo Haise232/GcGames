@@ -1,4 +1,4 @@
-// Copiado del proyecto de juegos (Rule) con scripts/export-topcode.mjs: no editar aquí.
+// Motor de las mesas (blackjack y póker), compartido por las salas en vivo.
 // Una mesa de blackjack: asientos, fases, turnos y crupier. El servidor es la única autoridad.
 import { createShoe, dealerMustDraw, handValue, isNatural, settleHand } from './blackjack-core.mjs'
 import { realTimers, timerMethods } from './timers.mjs'

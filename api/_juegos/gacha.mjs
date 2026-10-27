@@ -15,10 +15,7 @@
 // (Hasta octubre de 2026 las cartas tenían poderes en los juegos; se quitaron porque casi nadie los usaba.)
 // Las cartas vienen de gacha-catalogo.json (lo genera scripts/gacha/importar.mjs).
 import { randomInt } from 'node:crypto'
-import { readFileSync } from 'node:fs'
-
-// vercel.json incluye el archivo en la función (includeFiles), por si el trazado de dependencias no lo ve.
-const catalogo = JSON.parse(readFileSync(new URL('./gacha-catalogo.json', import.meta.url), 'utf8'))
+import catalogo from './gacha-catalogo.json' with { type: 'json' }
 
 const HOUR = 3600000
 export const TABLE_PERIOD_MS = HOUR

@@ -8,7 +8,7 @@
 // Las imágenes no se descargan: se enlazan (la página del gacha cita la fuente).
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 
-const UA = 'TopCode-gacha/1.0 (https://github.com/Haise232/TopCode; proyecto de clase sin fines comerciales)'
+const UA = 'GcGames-gacha/1.0 (https://github.com/Haise232/GcGames; proyecto sin fines comerciales)'
 const EN = 'https://upload.wikimedia.org/wikipedia/en'
 
 // [id, nombre en la carta, serie, rareza, fuente, imagen fijada (opcional), encuadre (opcional)]. La fuente es el

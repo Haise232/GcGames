@@ -1,4 +1,4 @@
-// Copiado del proyecto de juegos (Rule) con scripts/export-topcode.mjs: no editar aquí.
+// Motor de las mesas (blackjack y póker), compartido por las salas en vivo.
 // Reglas puras del Texas Hold'em, sin DOM, sin Node y sin azar propio: las usan el servidor y la mesa del cliente.
 const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 const SUITS = ['spades', 'hearts', 'diamonds', 'clubs']

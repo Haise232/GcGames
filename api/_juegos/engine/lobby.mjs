@@ -1,4 +1,4 @@
-// Copiado del proyecto de juegos (Rule) con scripts/export-topcode.mjs: no editar aquí.
+// Motor de las mesas (blackjack y póker), compartido por las salas en vivo.
 // Mesas públicas: cualquiera con sesión entra sin código. Hay siempre una por juego y, si se llena, se abre otra.
 export const PUBLIC_SEATS = { blackjack: 7, poker: 6 }
 export const GAMES = Object.keys(PUBLIC_SEATS)

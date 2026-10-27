@@ -34,7 +34,7 @@ function Casino() {
   )
 }
 
-// Los enlaces de invitación de cuando Juegos estaba en TopCode (/juegos?juego=…&mesa=…) llevan a la misma mesa.
+// Los enlaces de invitación antiguos (/juegos?juego=…&mesa=…) llevan a la misma mesa.
 function Antiguo() {
   const { search } = useLocation()
   return <Navigate to={`/${search}`} replace />

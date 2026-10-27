@@ -128,7 +128,7 @@ export async function ping(topic, event = 'cambio') {
 }
 
 // Comprobación de la configuración, sin datos ni secretos: ¿la base de datos es del mismo proyecto de Supabase que
-// usa TopCode? ¿existen las tablas? ¿sale el aviso de Realtime?
+// usa el inicio de sesión? ¿existen las tablas? ¿sale el aviso de Realtime?
 export async function health(db, { sendPing = false } = {}) {
   const { url, anonKey } = supabaseEnv()
   const ref = /^https:\/\/([a-z0-9]+)\.supabase\.co$/.exec(url)?.[1] ?? null

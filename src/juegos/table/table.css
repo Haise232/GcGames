@@ -465,7 +465,7 @@
   }
 }
 
-/* Foto de TopCode junto al nombre del asiento. */
+/* Foto junto al nombre del asiento. */
 .juegos-root .pseat__name {
   display: inline-flex;
   align-items: center;

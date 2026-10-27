@@ -23,7 +23,7 @@ function Marco({ children }) {
       <div className="entrada__card">
         <header className="entrada__brand">
           <small>Casino</small>
-          <h1>Juegos</h1>
+          <h1>GcGames</h1>
         </header>
         {children}
       </div>
@@ -151,7 +151,7 @@ export function Entrada() {
       {modo === 'registro' && <p className="entrada__hint">Las cuentas nuevas las acepta el master antes de poder jugar.</p>}
       {modo === 'entrar' && (
         <>
-          <p className="entrada__hint">¿Jugabas en TopCode? Entra con el mismo email y contraseña: tu saldo y tus cartas siguen aquí.</p>
+          <p className="entrada__hint">¿Ya tenías cuenta? Entra con tu email y tu contraseña de siempre: tu saldo y tus cartas siguen aquí.</p>
           <button type="button" className="entrada__link" onClick={() => cambiar('olvido')}>
             He olvidado la contraseña
           </button>

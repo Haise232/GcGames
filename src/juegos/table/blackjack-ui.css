@@ -1,5 +1,5 @@
 /* Escrito a mano (no generado): el aspecto de la mesa de blackjack en vivo, con el mismo lenguaje que la de póker
-   (poker/poker-ui.css): paño azul de TopCode, riel de nogal con filo de latón, asientos con foto y anillo de tiempo,
+   (poker/poker-ui.css): paño azul, riel de nogal con filo de latón, asientos con foto y anillo de tiempo,
    placas legibles, banda de jugadas y el pie con la decisión. Todo con prefijo bj- para no depender del póker. */
 
 .juegos-root .bj {

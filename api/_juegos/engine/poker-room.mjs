@@ -1,4 +1,4 @@
-// Copiado del proyecto de juegos (Rule) con scripts/export-topcode.mjs: no editar aquí.
+// Motor de las mesas (blackjack y póker), compartido por las salas en vivo.
 // Una mesa de Texas Hold'em sin límite: ciegas, calles, botes laterales y enfrentamiento. El servidor es la única autoridad.
 // Las fichas de cada jugador son su saldo de la cuenta: cada apuesta se descuenta al ponerla y el bote se paga al final.
 import { awardPots, bestHand, buildPots, createDeck } from './poker-core.mjs'

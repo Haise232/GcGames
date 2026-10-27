@@ -253,7 +253,7 @@ export default function ElevatorView({
             <i className="pv-seam" />
             <div className="pv-back">
               <i className="pv-back__frame" />
-              <span className="pv-back__brand">Ascensores TopCode</span>
+              <span className="pv-back__brand">Ascensores GcGames</span>
               <Display floor={view} moving={moving} alarm={fallen} roof={roof} next={next} chance={chance} />
               <Cop where="wall" {...cop} />
             </div>
