@@ -6,49 +6,39 @@ import './tutorial.css'
 // Guía de Juegos: la primera vez que entras en la temporada se abre sola (y luego con el botón «Tutorial»). Cada paso
 // ilumina una zona del selector (data-tour="…") y la explica con un dibujo. Si la zona no existe (p. ej. la banca, que
 // solo ve el master), el paso se salta.
-export const TUTORIAL_KEY = 'juegos-tutorial-season3'
+export const TUTORIAL_KEY = 'juegos-tutorial-season4'
 export const START = 15000
 
 const Art = {
-  // Bienvenida: trofeo con «3» y estrellas.
-  season: (
+  // Season 4: sol que se pone en el mar, con una palmera.
+  island: (
     <svg viewBox="0 0 120 120" aria-hidden="true">
       <defs>
-        <linearGradient id="tut-gold" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#fff3b0" />
-          <stop offset="1" stopColor="#e0a21b" />
+        <linearGradient id="tut-sky" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#5a1f7a" />
+          <stop offset="0.6" stopColor="#ff6b5a" />
+          <stop offset="1" stopColor="#ffcf6b" />
         </linearGradient>
       </defs>
-      <path d="M36 22h48v18c0 18-10 30-24 30S36 58 36 40z" fill="url(#tut-gold)" />
-      <path d="M36 28H22c0 14 8 22 18 22M84 28h14c0 14-8 22-18 22" fill="none" stroke="#e0a21b" strokeWidth="6" />
-      <rect x="52" y="70" width="16" height="16" fill="#e0a21b" />
-      <rect x="38" y="86" width="44" height="12" rx="4" fill="url(#tut-gold)" />
-      <text x="60" y="56" textAnchor="middle" fontSize="28" fontWeight="900" fill="#7a4a06">3</text>
-      {[
-        [14, 18],
-        [104, 14],
-        [100, 70],
-        [16, 76],
-      ].map(([x, y], i) => (
-        <path key={i} className="tut-twinkle" style={{ animationDelay: `${i * 0.3}s` }} d={`M${x} ${y - 7}L${x + 2} ${y - 2}L${x + 7} ${y}L${x + 2} ${y + 2}L${x} ${y + 7}L${x - 2} ${y + 2}L${x - 7} ${y}L${x - 2} ${y - 2}Z`} fill="#fff6d6" />
-      ))}
+      <circle cx="60" cy="60" r="54" fill="url(#tut-sky)" />
+      <circle className="tut-pulse" cx="68" cy="70" r="24" fill="#ffe36e" />
+      <path d="M6 76 H114 A54 54 0 0 1 6 76 Z" fill="#16466e" />
+      <path d="M20 84 q8 -4 16 0 M50 92 q8 -4 16 0 M80 86 q8 -4 16 0" stroke="#8fe3ff" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <path d="M30 78 C 32 60, 36 46, 44 36" stroke="#1a0f2e" strokeWidth="5" fill="none" strokeLinecap="round" />
+      <path d="M44 36 c 10 -8 22 -6 28 4 c -8 -4 -16 -2 -28 -4 Z M44 36 c -10 -8 -22 -4 -26 6 c 8 -4 16 -4 26 -6 Z M44 36 c 2 -12 12 -18 22 -16 c -10 2 -16 8 -22 16 Z" fill="#1a0f2e" />
+      <text x="88" y="38" textAnchor="middle" fontSize="26" fontWeight="900" fill="#fff" stroke="#3a0f3e" strokeWidth="1.5">4</text>
     </svg>
   ),
-  // Novedades: etiqueta «NUEVO» con cuatro destellos.
-  news: (
+  // Pase: cofre con estrella encima.
+  pass: (
     <svg viewBox="0 0 120 120" aria-hidden="true">
       <g className="tut-bob">
-        <rect x="14" y="40" width="92" height="38" rx="8" fill="#8f6bff" stroke="#fff" strokeWidth="3" />
-        <text x="60" y="66" textAnchor="middle" fontSize="22" fontWeight="900" fill="#fff">NUEVO</text>
+        <rect x="22" y="56" width="76" height="44" rx="6" fill="#b5622a" stroke="#5a2a0e" strokeWidth="3" />
+        <path d="M22 56 C 22 34, 98 34, 98 56 Z" fill="#cf7a36" stroke="#5a2a0e" strokeWidth="3" />
+        <rect x="22" y="66" width="76" height="6" fill="#ffd25e" />
+        <rect x="53" y="60" width="14" height="14" rx="3" fill="#ffe8a0" stroke="#5a2a0e" strokeWidth="2.5" />
       </g>
-      {[
-        [20, 22],
-        [100, 24],
-        [96, 100],
-        [24, 98],
-      ].map(([x, y], i) => (
-        <path key={i} className="tut-twinkle" style={{ animationDelay: `${i * 0.3}s` }} d={`M${x} ${y - 8}L${x + 2} ${y - 2}L${x + 8} ${y}L${x + 2} ${y + 2}L${x} ${y + 8}L${x - 2} ${y + 2}L${x - 8} ${y}L${x - 2} ${y - 2}Z`} fill="#ffe08a" />
-      ))}
+      <path className="tut-twinkle" d="M60 6 L66 22 L82 24 L70 34 L74 50 L60 41 L46 50 L50 34 L38 24 L54 22 Z" fill="#ffe36e" stroke="#ff8a4c" strokeWidth="2" />
     </svg>
   ),
   // Torre y Atraco: baldosas de cristal que suben y la puerta de una cámara acorazada.
@@ -102,16 +92,6 @@ const Art = {
       <text x="26" y="86" textAnchor="middle" fontSize="18" fontWeight="900" fill="#3a434e">2</text>
       <text x="94" y="92" textAnchor="middle" fontSize="16" fontWeight="900" fill="#5a2c10">3</text>
       <path className="tut-bob" d="M52 30l4-10 4 8 4-8 4 10z" fill="#f2c14e" />
-    </svg>
-  ),
-  games: (
-    <svg viewBox="0 0 120 120" aria-hidden="true">
-      <circle className="tut-spin" cx="40" cy="44" r="24" fill="none" stroke="#e2463c" strokeWidth="10" strokeDasharray="8 6" />
-      <circle cx="40" cy="44" r="8" fill="#f2c14e" />
-      <path className="tut-rocket" d="M78 86 L96 30 L104 50 Z" fill="#f1e9d6" />
-      <circle cx="84" cy="96" r="6" fill="#ff8a3d" className="tut-flame" />
-      <ellipse cx="34" cy="96" rx="22" ry="7" fill="#3fbf75" />
-      <circle cx="34" cy="86" r="9" fill="#7cd36a" />
     </svg>
   ),
   elevator: (
@@ -169,52 +149,52 @@ const Art = {
 
 const STEPS = [
   {
-    art: 'season',
-    title: '¡Bienvenidos a la Season 3!',
-    text: `¡Ya estamos en la Season 3! Como siempre, cada domingo a las 23:59 todos volvéis a empezar con ${eur(START)}. Hay cuatro juegos nuevos (La Torre, El Atraco, La Subasta y el Puente de Cristal), la Ruleta vuelve a estar abierta y el bote del Bingo lo abre la banca. Te lo enseñamos en un minuto.`,
+    art: 'island',
+    title: '¡Bienvenidos a la Season 4: Islas!',
+    text: `El casino se ha ido de vacaciones a Canarias: todo tiene aspecto nuevo y llega el Pase de las Islas, con misiones cada día, un cofre gratis y premios en euros en cada nivel. Como siempre, cada domingo a las 23:59 todos volvéis a empezar con ${eur(START)}. Te lo enseñamos en un minuto.`,
     hero: true,
   },
   {
     target: 'me',
     art: 'money',
     title: 'Tu saldo de la semana',
-    text: `Aquí ves tu dinero. Empiezas con ${eur(START)} y lo usas en todos los juegos. Cada domingo a las 23:59 todos vuelven a ${eur(START)}.`,
+    text: `Aquí ves tu dinero, tu puesto y tu nivel del pase. Empiezas con ${eur(START)} y lo usas en todos los juegos. Cada domingo a las 23:59 todos vuelven a ${eur(START)}.`,
+  },
+  {
+    target: 'pase',
+    art: 'pass',
+    title: 'El Pase de las Islas',
+    text: 'Cada jugada te da experiencia y cada día tienes tres misiones nuevas que dan mucha más (y si haces las tres, un bonus en euros). Sube de nivel para cobrar premios y títulos. El pase dura toda la temporada: no se reinicia el domingo.',
+  },
+  {
+    target: 'pase',
+    art: 'gacha',
+    title: 'El cofre diario',
+    text: `Ábrelo gratis una vez al día. Si vuelves días seguidos la racha sube y el cofre da más: del día 1 al 7, de ${eur(300)} a ${eur(2100)}. Si te saltas un día, la racha empieza de nuevo.`,
   },
   {
     target: 'score',
     art: 'podium',
     title: 'La clasificación',
-    text: 'Quien más dinero tenga el domingo gana la semana. Toca aquí para ver el podio, tu puesto, cuánto te falta para subir y la gráfica de cada uno.',
+    text: 'Quien más dinero tenga el domingo gana la semana. Toca aquí para ver el podio, tu puesto, cuánto te falta para subir y la gráfica de cada uno. Ahora también se ve el nivel del pase de cada uno.',
   },
   {
-    target: 'season3',
-    art: 'news',
-    title: 'Nuevo en la Season 3',
-    text: 'Aquí están los cuatro juegos recién salidos: dos para jugar solo (La Torre y El Atraco) y dos en vivo con todos (La Subasta y el Puente de Cristal).',
-  },
-  {
-    target: 'season3',
-    art: 'solo3',
-    title: 'La Torre y El Atraco',
-    text: 'La Torre: elige dificultad, sube piso a piso por cristales buenos y cobra cuando quieras. El Atraco: baja a la cámara acorazada eligiendo ruta; tus cartas del gacha abren plantas más profundas (botín hasta ×250). Cada uno tiene su récord del día.',
-  },
-  {
-    target: 'season3',
+    target: 'round',
     art: 'live3',
-    title: 'Subasta y Puente, en vivo',
-    text: 'Subasta: sale una caja misteriosa (de madera a cósmica), todos ven quién va primero y para superarle hay que pujar más; si alguien puja al final, hay prórroga. El que más puja se la lleva (a los demás se les devuelve); dentro, de una piedra al jackpot ×20. Puente: cada 75 s todos cruzan 8 paneles a la vez, izquierda o derecha; quien llega más lejos se reparte el bote.',
-  },
-  {
-    target: 'solo',
-    art: 'games',
-    title: 'Juegos para jugar solo',
-    text: 'Ruleta (que vuelve a estar abierta), Cohete y Carrera son en vivo (la misma ronda para todos); Laberinto, Plinko y Rana, a tu ritmo. Cada uno tiene su botón de Ayuda arriba a la derecha.',
+    title: 'Todos a la vez',
+    text: 'Ascensor, Puente de Cristal, Subasta, Ruleta, Cohete y Carrera: la misma ronda para todo el casino cada pocos segundos. Las tarjetas con pegatina son las de tus misiones de hoy.',
   },
   {
     target: 'elevator',
     art: 'elevator',
-    title: 'El Ascensor, en vivo',
+    title: 'El Ascensor',
     text: 'Cada minuto, todos suben a la vez. En cada planta el premio crece y tú decides cuándo bajarte (o dejas puesta una planta). En una planta al azar se rompe el cable y quien sigue dentro lo pierde. El último en bajarse antes de la caída se lleva además el bonus.',
+  },
+  {
+    target: 'solo',
+    art: 'solo3',
+    title: 'A tu ritmo',
+    text: 'La Torre, El Atraco, Laberinto, Plinko y Rana: tú contra la casa, cuando quieras. Cada uno tiene su botón de Ayuda arriba a la derecha.',
   },
   {
     target: 'live',
@@ -225,8 +205,8 @@ const STEPS = [
   {
     target: 'gacha',
     art: 'gacha',
-    title: 'El gacha',
-    text: 'Colecciona cartas de personajes de juegos y mods míticos: coge gratis las que salen en la mesa o invoca pagando. Y si te quedas sin saldo, empeña una carta: el banco te presta dinero y la recuperas pagando. Y si juntas a Vergil con la Silla de plástico, o a Lady Dimitrescu con la Crema solar…',
+    title: 'Tu dinero a salvo',
+    text: 'Hacienda solo mira el saldo: guarda dinero en cartas del gacha, en calles de la Inmobiliaria o en la Cuenta en Suiza. Y si te quedas sin saldo, empeña una carta: el banco te presta dinero y la recuperas pagando.',
   },
   {
     target: 'bank',
@@ -237,7 +217,7 @@ const STEPS = [
   {
     art: 'go',
     title: '¡A jugar!',
-    text: 'Puedes volver a ver esta guía cuando quieras con el botón «Tutorial» de arriba. ¡Suerte en la Season 3!',
+    text: 'Abre tu primer cofre y mira tus misiones de hoy. Puedes volver a ver esta guía cuando quieras con el botón «Tutorial» de arriba. ¡Suerte en la Season 4!',
     hero: true,
   },
 ]

@@ -46,6 +46,10 @@ el domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el
   esconder dinero y **Hacienda**, que reclama su parte a los que más tienen.
 - **La banca**: el master puede dar dinero, mandar mensajes, activar el *Admin Abuse* (×2, ×3 o todo gratis), abrir el
   bote del bingo, lanzar redadas de Hacienda, aceptar las cuentas nuevas y dar contraseñas temporales.
+- **Season 4 · Islas**: todo el casino con aire tropical (atardecer en Canarias) y el **Pase de las Islas**: XP por
+  cada jugada, tres misiones nuevas cada día (con bonus si haces las tres), un cofre diario gratis con racha de hasta 7
+  días y 30 niveles con premios en euros y títulos que se ven en la clasificación. El pase dura toda la temporada
+  (`api/_juegos/pase.mjs`, tabla `juegos_pase`, que el servidor crea solo si falta).
 - App instalable en el móvil (PWA) y tema de Halloween en fechas.
 
 ## 🃏 Juegos

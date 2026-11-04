@@ -37,6 +37,8 @@ export function useJuegos() {
   const [lobby, setLobby] = useState(null)
   const [chat, setChat] = useState([])
   const [scores, setScores] = useState(null)
+  // Pase de la Season 4: lo último que mandó el servidor (llega con { t: 'pase' }).
+  const [pase, setPase] = useState(null)
   const [error, setError] = useState('')
   const [denied, setDenied] = useState('')
   const [attempt, setAttempt] = useState(0)
@@ -94,6 +96,13 @@ export function useJuegos() {
       if (body.me) setMe(body.me)
       if (body.lobby) setLobby(body.lobby)
       if (body.scores) setScores({ ...body.scores, at: Date.now() })
+      if (body.pase) setPase(body.pase)
+      // Lo que ganaste en el pase con esta jugada (misión, nivel, cofre…): lo enseña PaseToasts, esté donde esté.
+      if (body.paseEvent) {
+        window.dispatchEvent(new CustomEvent('juegos:pase', { detail: body.paseEvent }))
+        // Con una misión, un bonus o un nivel nuevo, el resumen del pase guardado ya no vale: se pide otra vez al volver.
+        if (body.paseEvent.done?.length || body.paseEvent.bonus || body.paseEvent.levelUp) setPase((p) => (p ? { ...p, stale: true } : p))
+      }
       if (body.error) showError(body.error.message)
       // Una respuesta vieja que llega tarde no pisa una mesa más nueva.
       if ('state' in body && n > appliedSeq.current) {
@@ -307,5 +316,5 @@ export function useJuegos() {
   // Para los juegos en solitario: devuelve la respuesta del servidor (o undefined si no hubo conexión).
   const request = useCallback((message) => call(message), [call])
 
-  return { conn, me, room, lobby, chat, scores, error, denied, send, request, leave, reconnect, bubbles, pending }
+  return { conn, me, room, lobby, chat, scores, pase, error, denied, send, request, leave, reconnect, bubbles, pending }
 }

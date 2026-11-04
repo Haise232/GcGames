@@ -1,0 +1,1490 @@
+/* Escrito a mano (no generado): Season 4 · Islas. Tema tropical de todo Juegos (atardecer en Canarias), la portada del
+   selector, el Pase de las Islas y sus avisos. La paleta va bajo .juegos-root.s4 (la clase la pone Juegos.jsx) y pisa
+   la de index.css y hub.css, así cambian a la vez el fondo, las mesas y cada juego. Lo nuevo (s4-*, is4-*) cuelga de
+   .juegos-root. Se carga después de las hojas de cada juego y antes de halloween.css, que gana cuando está encendido. */
+
+/* ============================== Paleta ============================== */
+.juegos-root.s4 {
+  --baize: #134e66;
+  --baize-deep: #071a2c;
+  --ivory: #fff6e8;
+  --muted: #a7cfd9;
+  --brass: #ffb547;
+  --bolt: #ffe36e;
+  --line: rgba(255, 246, 232, 0.7);
+  --display: 'Lilita One', 'Abril Fatface', system-ui, sans-serif;
+
+  --s4-coral: #ff6b5a;
+  --s4-mango: #ffb547;
+  --s4-sun: #ffe36e;
+  --s4-pink: #ff4f8b;
+  --s4-sea: #2ee6d0;
+  --s4-palm: #43d17c;
+  --s4-night: #0b1430;
+  --s4-sunset: linear-gradient(100deg, #ffe36e, #ff8a4c 45%, #ff4f8b);
+
+  --hub-line: rgba(143, 227, 255, 0.12);
+  --hub-line-hi: rgba(143, 227, 255, 0.32);
+  --hub-gold-hi: #fff4c2;
+  --hub-gold: #ffb547;
+  --hub-gold-lo: #e2562f;
+  --hub-panel: linear-gradient(160deg, rgba(20, 74, 98, 0.94), rgba(10, 28, 52, 0.96));
+
+  /* Cielo de noche arriba, laguna en medio y mar profundo abajo. */
+  background:
+    radial-gradient(1100px 520px at 85% -8%, rgba(255, 106, 90, 0.22), transparent 70%),
+    radial-gradient(900px 600px at -10% 40%, rgba(46, 230, 208, 0.12), transparent 70%),
+    linear-gradient(180deg, #1a1446 0%, #0d2b4a 38%, #082036 70%, #061629 100%) fixed;
+}
+
+/* Las cartas del gacha se quedan como siempre (como en Halloween): recuperan la paleta original. */
+.juegos-root.s4 :is(.gacha-card, .gacha-reveal, .gacha-summon) {
+  --baize: #14394f;
+  --baize-deep: #0c2737;
+  --brass: #c8a24b;
+  --bolt: #ffe27a;
+  --muted: #9db6c4;
+  --line: rgba(241, 233, 214, 0.7);
+  --display: 'Abril Fatface', Georgia, serif;
+}
+
+.juegos-root .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ============================== Selector ============================== */
+.juegos-root.s4 .app.hub::before {
+  background:
+    radial-gradient(520px 320px at 10% 18%, rgba(255, 138, 76, 0.12), transparent 70%),
+    radial-gradient(640px 420px at 94% 40%, rgba(255, 79, 139, 0.1), transparent 70%),
+    radial-gradient(560px 380px at 6% 78%, rgba(46, 230, 208, 0.1), transparent 70%);
+}
+
+/* --- Títulos de sección: un solecito en vez del rombo y una ola que se pierde a la derecha --- */
+.juegos-root.s4 .app.hub .hub-title {
+  font-size: clamp(26px, 2.6vw, 36px);
+  letter-spacing: 0.01em;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
+}
+.juegos-root.s4 .app.hub .hub-title::before {
+  width: 20px;
+  height: 20px;
+  rotate: 0deg;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #fff6b8, #ffb547 55%, #ff6b5a);
+  box-shadow:
+    0 0 0 4px rgba(255, 181, 71, 0.18),
+    0 0 18px rgba(255, 160, 70, 0.7);
+}
+.juegos-root.s4 .app.hub .hub-title::after {
+  height: 8px;
+  background: linear-gradient(90deg, rgba(143, 227, 255, 0.55), transparent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='8' viewBox='0 0 24 8'%3E%3Cpath d='M0 4 Q 6 0 12 4 T 24 4' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E") repeat-x left center / 24px 8px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='8' viewBox='0 0 24 8'%3E%3Cpath d='M0 4 Q 6 0 12 4 T 24 4' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E") repeat-x left center / 24px 8px;
+}
+.juegos-root.s4 .app.hub .hub-title small {
+  font-family: var(--sans);
+  color: rgba(167, 207, 217, 0.9);
+  text-shadow: none;
+}
+
+/* --- Portada: la escena del atardecer a todo el ancho, con el título y tu ficha encima --- */
+.juegos-root.s4 .hub-top.s4-hero {
+  min-height: clamp(320px, 40vw, 460px);
+  align-items: flex-end;
+  overflow: hidden;
+  padding: clamp(26px, 3.4vw, 46px);
+  border-radius: 32px;
+  background: #1b1150;
+  box-shadow:
+    0 0 0 2px rgba(255, 228, 160, 0.35),
+    0 30px 70px rgba(0, 0, 0, 0.5),
+    0 0 120px -30px rgba(255, 120, 80, 0.55);
+}
+.juegos-root.s4 .hub-top.s4-hero::before {
+  display: none;
+}
+/* Sombra de abajo para que el texto se lea sobre el mar. */
+.juegos-root.s4 .hub-top.s4-hero::after {
+  inset: 0;
+  z-index: -1;
+  border-radius: 0;
+  background: linear-gradient(180deg, transparent 30%, rgba(6, 14, 34, 0.25) 55%, rgba(6, 14, 34, 0.82) 100%);
+  box-shadow: none;
+}
+.juegos-root .s4-hero__scene {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root.s4 .s4-hero__brand {
+  gap: 8px;
+}
+.juegos-root .s4-hero__season {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px 6px 6px;
+  border-radius: 999px;
+  background: rgba(10, 14, 40, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255, 246, 232, 0.25);
+  backdrop-filter: blur(6px);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #fff6e8;
+}
+.juegos-root .s4-hero__season span {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--s4-sunset, linear-gradient(100deg, #ffe36e, #ff8a4c 45%, #ff4f8b));
+  color: #2a0f2e;
+  letter-spacing: 0.08em;
+  box-shadow: 0 0 18px rgba(255, 120, 80, 0.6);
+  animation: s4-pop 2.8s ease-in-out infinite;
+}
+@keyframes s4-pop {
+  50% {
+    scale: 1.07;
+  }
+}
+.juegos-root.s4 .s4-hero h1 {
+  font-family: 'Lilita One', var(--display);
+  font-size: clamp(64px, 9.4vw, 132px);
+  line-height: 0.9;
+  letter-spacing: 0.01em;
+  background: linear-gradient(180deg, #fffbe6 0%, #ffe36e 35%, #ff8a4c 70%, #ff4f8b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 0 #3a0f3e) drop-shadow(0 8px 0 rgba(20, 6, 30, 0.55)) drop-shadow(0 0 30px rgba(255, 140, 80, 0.45));
+}
+.juegos-root.s4 .s4-hero .hub-top__logo {
+  filter: drop-shadow(0 4px 0 #3a0f3e) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5));
+  animation: s4-bob 4s ease-in-out infinite;
+}
+@keyframes s4-bob {
+  50% {
+    translate: 0 -6px;
+    rotate: -4deg;
+  }
+}
+.juegos-root .s4-hero__tag {
+  margin: 0;
+  font-size: clamp(16px, 1.6vw, 21px);
+  font-weight: 700;
+  color: #fff6e8;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+.juegos-root.s4 .s4-hero .hub-status {
+  background: rgba(6, 14, 34, 0.55);
+  backdrop-filter: blur(6px);
+}
+.juegos-root.s4 .s4-hero .hub-top__who {
+  align-self: flex-end;
+}
+.juegos-root.s4 .s4-hero .hub-me {
+  border-color: rgba(255, 246, 232, 0.35);
+  background: rgba(10, 16, 40, 0.6);
+  backdrop-filter: blur(10px);
+}
+.juegos-root.s4 .s4-hero .hub-me > :first-child {
+  box-shadow:
+    0 0 0 3px #ffb547,
+    0 0 0 6px rgba(255, 79, 139, 0.45),
+    0 0 22px rgba(255, 140, 80, 0.6);
+}
+.juegos-root.s4 .s4-hero .hub-btn--ghost {
+  background: rgba(10, 16, 40, 0.55);
+  border-color: rgba(255, 246, 232, 0.25);
+  backdrop-filter: blur(6px);
+}
+
+/* Animaciones de la escena. */
+.juegos-root .is4-palm {
+  transform-box: fill-box;
+  transform-origin: 0% 100%;
+  animation: is4-sway 6s ease-in-out infinite;
+}
+.juegos-root .is4-leaf {
+  transform-box: view-box;
+  animation: is4-flutter 3.2s ease-in-out infinite;
+}
+@keyframes is4-sway {
+  50% {
+    rotate: 2.4deg;
+  }
+}
+@keyframes is4-flutter {
+  50% {
+    opacity: 0.92;
+    translate: 1px 2px;
+  }
+}
+.juegos-root .is4-sun {
+  animation: is4-sink 14s ease-in-out infinite alternate;
+}
+@keyframes is4-sink {
+  to {
+    translate: 0 14px;
+  }
+}
+.juegos-root .is4-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: is4-glow 4.5s ease-in-out infinite;
+}
+@keyframes is4-glow {
+  50% {
+    opacity: 0.7;
+    scale: 1.08;
+  }
+}
+.juegos-root .is4-stars circle {
+  animation: is4-twinkle 3s ease-in-out infinite;
+}
+@keyframes is4-twinkle {
+  50% {
+    opacity: 0.2;
+  }
+}
+.juegos-root .is4-clouds {
+  animation: is4-drift 40s linear infinite alternate;
+}
+@keyframes is4-drift {
+  to {
+    translate: 60px 0;
+  }
+}
+.juegos-root .is4-shimmer rect {
+  animation: is4-shim 2.4s ease-in-out infinite;
+}
+@keyframes is4-shim {
+  50% {
+    opacity: 0.25;
+    scale: 0.8 1;
+  }
+}
+.juegos-root .is4-shimmer rect {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.juegos-root .is4-wave {
+  animation: is4-wave 7s linear infinite;
+}
+.juegos-root .is4-wave--1 {
+  animation-duration: 10s;
+  animation-direction: reverse;
+}
+.juegos-root .is4-wave--2 {
+  animation-duration: 13s;
+}
+@keyframes is4-wave {
+  to {
+    translate: 100px 0;
+  }
+}
+.juegos-root .is4-boat {
+  animation: is4-sail 70s linear infinite;
+}
+@keyframes is4-sail {
+  from {
+    transform: translate(560px, 318px);
+  }
+  50% {
+    transform: translate(760px, 320px);
+  }
+  to {
+    transform: translate(560px, 318px);
+  }
+}
+.juegos-root .is4-birds {
+  animation: is4-fly 26s linear infinite;
+}
+@keyframes is4-fly {
+  from {
+    transform: translate(-120px, 120px);
+  }
+  to {
+    transform: translate(1300px, 70px);
+  }
+}
+
+/* ============================== Pase en el selector ============================== */
+.juegos-root .s4-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.4fr) minmax(0, 0.9fr);
+  gap: clamp(12px, 1.4vw, 18px);
+}
+.juegos-root .s4-strip > * {
+  min-width: 0;
+  border-radius: 24px;
+  background: var(--hub-panel);
+  box-shadow:
+    inset 0 0 0 1px rgba(143, 227, 255, 0.16),
+    0 14px 34px rgba(0, 0, 0, 0.35);
+}
+.juegos-root .s4-strip__level {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 20px;
+  border: 0;
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(255, 138, 76, 0.28), transparent 60%),
+    radial-gradient(100% 100% at 100% 100%, rgba(255, 79, 139, 0.22), transparent 60%),
+    linear-gradient(160deg, #2a1a5e, #12224a);
+  font: inherit;
+  color: var(--ivory);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    translate 0.25s,
+    box-shadow 0.25s;
+}
+.juegos-root .s4-strip__who {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.juegos-root .s4-strip__who small {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--s4-sun, #ffe36e);
+}
+.juegos-root .s4-strip__who b {
+  font-family: var(--display);
+  font-size: clamp(22px, 2vw, 28px);
+  font-weight: 400;
+  line-height: 1.05;
+}
+.juegos-root .s4-strip__go {
+  font-size: 13px;
+  font-weight: 700;
+  color: #8fe3ff;
+}
+.juegos-root .s4-strip__missions {
+  padding: 16px 18px;
+}
+.juegos-root .s4-strip__missions h3,
+.juegos-root .s4-panel h2 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 10px;
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 400;
+}
+.juegos-root .s4-strip__missions h3 span,
+.juegos-root .s4-panel h2 span {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.juegos-root .s4-strip__missions ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .s4-strip__missions .hub-skel {
+  height: 34px;
+}
+.juegos-root .s4-strip__bonus {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--s4-sun, #ffe36e);
+}
+.juegos-root .s4-strip__bonus.is-done {
+  color: var(--s4-palm, #43d17c);
+}
+.juegos-root .s4-strip__side {
+  display: grid;
+  align-content: stretch;
+  gap: 10px;
+  padding: 10px;
+  background: none;
+  box-shadow: none;
+}
+
+/* Anillo de nivel. */
+.juegos-root .s4-ring {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+}
+.juegos-root .s4-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 10px rgba(255, 120, 80, 0.45));
+}
+.juegos-root .s4-ring__fill {
+  transition: stroke-dashoffset 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.juegos-root .s4-ring__num {
+  display: grid;
+  justify-items: center;
+  line-height: 1;
+}
+.juegos-root .s4-ring__num small {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .s4-ring__num b {
+  font-family: var(--display);
+  font-size: 2.4em;
+  font-weight: 400;
+  color: #fff;
+  text-shadow: 0 3px 0 rgba(58, 15, 62, 0.8);
+}
+
+/* Barra de XP. */
+.juegos-root .s4-xp {
+  position: relative;
+  display: block;
+  height: 22px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.juegos-root .s4-xp--skel {
+  opacity: 0.5;
+}
+.juegos-root .s4-xp__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background:
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.18) 0 8px, transparent 8px 16px),
+    linear-gradient(90deg, #ffe36e, #ff8a4c 55%, #ff4f8b);
+  background-size:
+    32px 100%,
+    100% 100%;
+  box-shadow: 0 0 14px rgba(255, 120, 80, 0.6);
+  animation: s4-stripes 1.2s linear infinite;
+  transition: width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes s4-stripes {
+  to {
+    background-position:
+      32px 0,
+      0 0;
+  }
+}
+.juegos-root .s4-xp__text {
+  position: relative;
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 22px;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+/* Misiones. */
+.juegos-root .s4-mission {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.juegos-root .s4-mission__check {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 2px rgba(143, 227, 255, 0.4);
+  font-weight: 900;
+  color: #08261a;
+}
+.juegos-root .s4-mission.is-done .s4-mission__check {
+  background: var(--s4-palm, #43d17c);
+  box-shadow: 0 0 12px rgba(67, 209, 124, 0.7);
+  animation: s4-check 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+@keyframes s4-check {
+  from {
+    scale: 0.4;
+  }
+}
+.juegos-root .s4-mission__body {
+  display: grid;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+}
+.juegos-root .s4-mission__text {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+}
+.juegos-root .s4-mission--compact .s4-mission__text {
+  white-space: nowrap;
+}
+.juegos-root .s4-mission.is-done .s4-mission__text {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: rgba(67, 209, 124, 0.8);
+}
+.juegos-root .s4-mission__bar {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+}
+.juegos-root .s4-mission__bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2ee6d0, #8fe3ff);
+  transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.juegos-root .s4-mission.is-done .s4-mission__bar i {
+  background: var(--s4-palm, #43d17c);
+}
+.juegos-root .s4-mission__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.juegos-root .s4-mission__meta b {
+  color: var(--s4-sun, #ffe36e);
+}
+
+/* Cofre diario y premios por reclamar. */
+.juegos-root .s4-chestbtn,
+.juegos-root .s4-claimbtn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 72px;
+  padding: 10px 16px 10px 10px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--hub-panel);
+  box-shadow:
+    inset 0 0 0 1px rgba(143, 227, 255, 0.16),
+    0 10px 26px rgba(0, 0, 0, 0.3);
+  font: inherit;
+  color: var(--ivory);
+  text-align: left;
+  cursor: pointer;
+}
+.juegos-root .s4-chestbtn > span,
+.juegos-root .s4-claimbtn > span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.juegos-root .s4-chestbtn b,
+.juegos-root .s4-claimbtn b {
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+.juegos-root .s4-chestbtn small,
+.juegos-root .s4-claimbtn small {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.juegos-root .s4-chestbtn:disabled {
+  cursor: default;
+}
+.juegos-root .s4-chestbtn.is-ready {
+  background:
+    radial-gradient(90% 120% at 15% 50%, rgba(255, 227, 110, 0.35), transparent 60%),
+    linear-gradient(160deg, #7a2a54, #3a1a5e);
+  box-shadow:
+    0 0 0 2px #ffe36e,
+    0 0 34px -4px rgba(255, 200, 80, 0.75),
+    0 12px 28px rgba(0, 0, 0, 0.4);
+  animation: s4-call 2.2s ease-in-out infinite;
+}
+.juegos-root .s4-chestbtn.is-ready small {
+  color: #ffe9b8;
+}
+@keyframes s4-call {
+  50% {
+    box-shadow:
+      0 0 0 2px #ffe36e,
+      0 0 54px 2px rgba(255, 200, 80, 0.9),
+      0 12px 28px rgba(0, 0, 0, 0.4);
+  }
+}
+.juegos-root .s4-chest {
+  flex: none;
+  width: 58px;
+  height: auto;
+  overflow: visible;
+}
+.juegos-root .s4-chestbtn.is-ready .s4-chest {
+  animation: s4-shake 2.2s ease-in-out infinite;
+}
+@keyframes s4-shake {
+  0%,
+  70%,
+  100% {
+    rotate: 0deg;
+  }
+  76% {
+    rotate: -8deg;
+  }
+  82% {
+    rotate: 7deg;
+  }
+  88% {
+    rotate: -5deg;
+  }
+  94% {
+    rotate: 3deg;
+  }
+}
+.juegos-root .s4-chest__lid {
+  transform-box: fill-box;
+  transform-origin: 0% 100%;
+  transition: rotate 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.juegos-root .s4-chest.is-open .s4-chest__lid {
+  rotate: -28deg;
+  translate: -2px -4px;
+}
+.juegos-root .s4-chest__light {
+  animation: s4-light 1.4s ease-out both;
+}
+@keyframes s4-light {
+  from {
+    opacity: 0;
+    scale: 0.2;
+  }
+}
+.juegos-root .s4-chest__light {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.juegos-root .s4-chestbtn.is-opening .s4-chest {
+  animation: s4-burst 0.9s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+@keyframes s4-burst {
+  40% {
+    scale: 1.35;
+  }
+}
+.juegos-root .s4-claimbtn {
+  background: linear-gradient(160deg, #0e6a5a, #0b3a4a);
+  box-shadow:
+    0 0 0 2px var(--s4-sea, #2ee6d0),
+    0 0 26px -6px rgba(46, 230, 208, 0.8);
+}
+.juegos-root .s4-claimbtn > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  font-size: 30px;
+  animation: s4-bob 2.6s ease-in-out infinite;
+}
+
+/* Pegatina de misión en las tarjetas de juego. */
+.juegos-root .s4-sticker {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 4;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--s4-sunset, linear-gradient(100deg, #ffe36e, #ff8a4c 45%, #ff4f8b));
+  box-shadow:
+    0 0 0 2px rgba(10, 16, 40, 0.85),
+    0 6px 16px rgba(255, 100, 80, 0.5);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+  color: #2a0f2e;
+  rotate: 4deg;
+  animation: s4-sticker 2.6s ease-in-out infinite;
+}
+.juegos-root .s4-sticker.is-done {
+  background: var(--s4-palm, #43d17c);
+  color: #062615;
+  animation: none;
+}
+@keyframes s4-sticker {
+  50% {
+    rotate: -3deg;
+    scale: 1.06;
+  }
+}
+
+/* --- Tarjetas de juego: más redondas, borde de colores y un poco de giro al pasar --- */
+.juegos-root.s4 .hub-card {
+  border-radius: 26px;
+  border-width: 2px;
+  background:
+    radial-gradient(120% 70% at 50% 100%, rgba(var(--tint), 0.22), transparent 70%),
+    linear-gradient(180deg, rgba(22, 52, 84, 0.97), rgba(10, 24, 46, 0.98));
+}
+.juegos-root.s4 .hub-card__art::after {
+  background: linear-gradient(transparent, rgba(10, 24, 46, 0.9));
+}
+.juegos-root.s4 .hub-card__name {
+  font-size: clamp(23px, 1.9vw, 28px);
+  letter-spacing: 0.01em;
+}
+.juegos-root.s4 .hub-card__cta {
+  border-width: 2px;
+}
+.juegos-root.s4 .hub-btn--primary,
+.juegos-root.s4 .hub-bank {
+  border-color: transparent;
+  background: linear-gradient(180deg, #ffe36e, #ff8a4c);
+  color: #2a0f2e;
+  box-shadow: 0 6px 18px -4px rgba(255, 120, 70, 0.6);
+}
+.juegos-root.s4 .hub-bank span {
+  background: #2a0f2e;
+  color: #ffe36e;
+}
+.juegos-root.s4 .hub-live,
+.juegos-root.s4 .hub-score,
+.juegos-root.s4 .hub-bingo {
+  border-radius: 26px;
+}
+.juegos-root.s4 .s4-round {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+/* A tu ritmo: dos grandes arriba y tres abajo. */
+.juegos-root.s4 .s4-pace > li {
+  grid-column: span 4;
+}
+.juegos-root.s4 .s4-pace > li:nth-child(-n + 2) {
+  grid-column: span 6;
+}
+.juegos-root.s4 .s4-pace > li:nth-child(-n + 2) .hub-card__art {
+  aspect-ratio: 16 / 7;
+}
+
+@media (hover: hover) {
+  .juegos-root.s4 .hub-card:not(:disabled):hover {
+    translate: 0 -8px;
+    rotate: -0.6deg;
+  }
+  .juegos-root.s4 .hub-card:not(:disabled):hover .hub-card__cta {
+    background: linear-gradient(180deg, #ffe36e, #ff8a4c);
+    color: #2a0f2e;
+  }
+  .juegos-root .s4-strip__level:not(:disabled):hover {
+    translate: 0 -4px;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 200, 120, 0.5),
+      0 22px 44px rgba(0, 0, 0, 0.45),
+      0 0 40px -10px rgba(255, 120, 80, 0.6);
+  }
+  .juegos-root .s4-chestbtn.is-ready:hover,
+  .juegos-root .s4-claimbtn:hover {
+    translate: 0 -3px;
+  }
+  .juegos-root.s4 .hub-btn--primary:not(:disabled):hover {
+    background: linear-gradient(180deg, #fff09a, #ff9a5c);
+  }
+}
+
+/* ============================== Botones del pase ============================== */
+.juegos-root .s4-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #2ee6d0, #14a3a0);
+  box-shadow:
+    0 4px 0 #0b5a5a,
+    0 10px 20px -6px rgba(46, 230, 208, 0.6);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  color: #062626;
+  cursor: pointer;
+  transition:
+    translate 0.12s,
+    box-shadow 0.12s;
+}
+.juegos-root .s4-btn:active:not(:disabled) {
+  translate: 0 3px;
+  box-shadow:
+    0 1px 0 #0b5a5a,
+    0 6px 14px -6px rgba(46, 230, 208, 0.6);
+}
+.juegos-root .s4-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.juegos-root .s4-btn--sm {
+  flex: none;
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  border-radius: 11px;
+}
+.juegos-root .s4-btn--hot {
+  background: linear-gradient(180deg, #ffe36e, #ff8a4c);
+  box-shadow:
+    0 4px 0 #a2381c,
+    0 10px 24px -6px rgba(255, 120, 70, 0.7);
+  color: #2a0f2e;
+  animation: s4-pop 2.4s ease-in-out infinite;
+}
+.juegos-root .s4-btn:focus-visible,
+.juegos-root .s4-chestbtn:focus-visible,
+.juegos-root .s4-claimbtn:focus-visible,
+.juegos-root .s4-strip__level:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+/* ============================== Pantalla del pase ============================== */
+.juegos-root .app.s4-pase {
+  --accent: #ff8a4c;
+  --accent-rgb: 255, 138, 76;
+  height: auto;
+  min-height: 100svh;
+  gap: clamp(16px, 2.4vh, 26px);
+  overflow: visible;
+}
+.juegos-root .s4-pase__hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: flex-end;
+  min-height: clamp(240px, 30vw, 340px);
+  overflow: hidden;
+  padding: clamp(18px, 2.6vw, 34px);
+  border-radius: 30px;
+  box-shadow:
+    0 0 0 2px rgba(255, 228, 160, 0.3),
+    0 24px 60px rgba(0, 0, 0, 0.45);
+}
+.juegos-root .s4-pase__scene {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .s4-pase__hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(6, 14, 34, 0.85), rgba(6, 14, 34, 0.35) 60%, transparent);
+}
+.juegos-root .s4-pase__me {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2vw, 26px);
+  width: min(100%, 640px);
+}
+.juegos-root .s4-pase__me > div {
+  display: grid;
+  flex: 1;
+  gap: 8px;
+  min-width: 0;
+}
+.juegos-root .s4-pase__me small {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--s4-sun, #ffe36e);
+}
+.juegos-root .s4-pase__me h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 400;
+  line-height: 1;
+  text-shadow: 0 4px 0 rgba(58, 15, 62, 0.8);
+}
+.juegos-root .s4-pase__me p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffe9d6;
+}
+.juegos-root .s4-pase__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: clamp(14px, 1.8vw, 22px);
+  align-items: start;
+}
+.juegos-root .s4-panel {
+  min-width: 0;
+  padding: clamp(16px, 1.8vw, 24px);
+  border-radius: 26px;
+  background: var(--hub-panel, linear-gradient(160deg, rgba(20, 74, 98, 0.94), rgba(10, 28, 52, 0.96)));
+  box-shadow:
+    inset 0 0 0 1px rgba(143, 227, 255, 0.16),
+    0 14px 34px rgba(0, 0, 0, 0.35);
+}
+.juegos-root .s4-panel h2 {
+  font-size: clamp(22px, 2vw, 28px);
+}
+.juegos-root .s4-chestbtn--big {
+  min-height: 104px;
+  padding: 14px 20px 14px 14px;
+}
+.juegos-root .s4-chestbtn--big .s4-chest {
+  width: 84px;
+}
+.juegos-root .s4-chestbtn--big b {
+  font-size: 24px;
+}
+.juegos-root .s4-streak {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .s4-streak__day {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 8px 2px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+.juegos-root .s4-streak__day small {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.juegos-root .s4-streak__day b {
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.juegos-root .s4-streak__day i {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--s4-palm, #43d17c);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  color: #062615;
+}
+.juegos-root .s4-streak__day.is-done {
+  background: rgba(67, 209, 124, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(67, 209, 124, 0.5);
+}
+.juegos-root .s4-streak__day.is-now {
+  background: linear-gradient(180deg, rgba(255, 227, 110, 0.3), rgba(255, 138, 76, 0.2));
+  box-shadow:
+    inset 0 0 0 2px #ffe36e,
+    0 0 18px rgba(255, 200, 80, 0.5);
+}
+.juegos-root .s4-missions {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .s4-missions .s4-mission {
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.juegos-root .s4-missions .s4-mission__text {
+  font-size: 15px;
+}
+.juegos-root .s4-bonus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, rgba(255, 227, 110, 0.18), rgba(255, 79, 139, 0.12));
+  box-shadow: inset 0 0 0 1px rgba(255, 227, 110, 0.4);
+  font-size: 14px;
+  font-weight: 700;
+}
+.juegos-root .s4-bonus > span {
+  font-size: 20px;
+  color: var(--s4-sun, #ffe36e);
+}
+.juegos-root .s4-bonus.is-done {
+  background: rgba(67, 209, 124, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(67, 209, 124, 0.5);
+}
+.juegos-root .s4-bonus.is-done > span {
+  color: var(--s4-palm, #43d17c);
+}
+.juegos-root .s4-plays,
+.juegos-root .s4-loading {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.juegos-root .s4-plays b {
+  color: var(--ivory);
+}
+
+/* Camino de premios: una fila de islas que se desplaza en horizontal. */
+.juegos-root .s4-road__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.juegos-root .s4-road__head h2 {
+  margin: 0;
+}
+.juegos-root .s4-road__track {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 26px 6px 16px;
+  overflow-x: auto;
+  list-style: none;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(143, 227, 255, 0.4) transparent;
+}
+.juegos-root .s4-node {
+  position: relative;
+  display: grid;
+  flex: none;
+  justify-items: center;
+  align-content: start;
+  gap: 6px;
+  width: 116px;
+  padding: 12px 8px 14px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.24);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  scroll-snap-align: center;
+  text-align: center;
+}
+/* Hilo de cuerda que une los niveles. */
+.juegos-root .s4-node::before {
+  content: '';
+  position: absolute;
+  top: 46px;
+  left: -14px;
+  width: 16px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(143, 227, 255, 0.25);
+}
+.juegos-root .s4-node:first-child::before {
+  display: none;
+}
+.juegos-root .s4-node__lv {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .s4-node__orb {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.15);
+  font-size: 18px;
+  font-weight: 900;
+}
+.juegos-root .s4-node__eur {
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.juegos-root .s4-node__title {
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--s4-sun, #ffe36e);
+}
+.juegos-root .s4-node--big {
+  width: 140px;
+  background: linear-gradient(180deg, rgba(255, 138, 76, 0.18), rgba(255, 79, 139, 0.1));
+  box-shadow: inset 0 0 0 1px rgba(255, 180, 120, 0.35);
+}
+.juegos-root .s4-node--big .s4-node__orb {
+  width: 56px;
+  height: 56px;
+  font-size: 24px;
+  color: #ffe36e;
+}
+.juegos-root .s4-node.is-locked {
+  opacity: 0.55;
+}
+.juegos-root .s4-node.is-next {
+  box-shadow:
+    inset 0 0 0 2px rgba(143, 227, 255, 0.6),
+    0 0 20px -4px rgba(143, 227, 255, 0.5);
+}
+.juegos-root .s4-node.is-ready {
+  background: linear-gradient(180deg, rgba(255, 227, 110, 0.3), rgba(255, 138, 76, 0.18));
+  box-shadow:
+    inset 0 0 0 2px #ffe36e,
+    0 0 26px -4px rgba(255, 200, 80, 0.8);
+  animation: s4-pop 2.4s ease-in-out infinite;
+}
+.juegos-root .s4-node.is-ready .s4-node__orb {
+  background: radial-gradient(circle at 40% 35%, #fff6b8, #ffb547 60%, #ff6b5a);
+  color: #2a0f2e;
+}
+.juegos-root .s4-node.is-claimed .s4-node__orb {
+  background: var(--s4-palm, #43d17c);
+  color: #062615;
+}
+.juegos-root .s4-node.is-claimed .s4-node__eur {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+/* ============================== Avisos del pase ============================== */
+.juegos-root .s4-toasts {
+  position: fixed;
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 9000;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(440px, calc(100vw - 32px));
+  translate: -50% 0;
+  pointer-events: none;
+}
+.juegos-root .s4-toast {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px 12px 12px;
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(30, 40, 90, 0.97), rgba(12, 22, 50, 0.97));
+  box-shadow:
+    0 0 0 2px var(--s4-sea, #2ee6d0),
+    0 18px 40px rgba(0, 0, 0, 0.5);
+  color: #fff6e8;
+  animation:
+    s4-toast-in 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) both,
+    s4-toast-out 0.4s ease-in 3.8s forwards;
+}
+.juegos-root .s4-toast--big {
+  overflow: visible;
+  padding: 18px 20px 18px 16px;
+  background:
+    radial-gradient(100% 140% at 0% 0%, rgba(255, 227, 110, 0.35), transparent 60%),
+    linear-gradient(160deg, #6a1f5e, #2a1a5e);
+  box-shadow:
+    0 0 0 3px #ffe36e,
+    0 0 60px rgba(255, 160, 80, 0.6),
+    0 20px 46px rgba(0, 0, 0, 0.55);
+  animation:
+    s4-toast-in 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) both,
+    s4-toast-out 0.5s ease-in 4.7s forwards;
+}
+.juegos-root .s4-toast--bonus,
+.juegos-root .s4-toast--chest,
+.juegos-root .s4-toast--claim {
+  box-shadow:
+    0 0 0 2px #ffe36e,
+    0 0 30px -6px rgba(255, 200, 80, 0.7),
+    0 18px 40px rgba(0, 0, 0, 0.5);
+}
+@keyframes s4-toast-in {
+  from {
+    opacity: 0;
+    translate: 0 30px;
+    scale: 0.85;
+  }
+}
+@keyframes s4-toast-out {
+  to {
+    opacity: 0;
+    translate: 0 16px;
+  }
+}
+.juegos-root .s4-toast__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: var(--s4-palm, #43d17c);
+  font-size: 22px;
+  font-weight: 900;
+  color: #062615;
+}
+.juegos-root .s4-toast--bonus .s4-toast__icon,
+.juegos-root .s4-toast--chest .s4-toast__icon,
+.juegos-root .s4-toast--claim .s4-toast__icon {
+  background: linear-gradient(180deg, #ffe36e, #ff8a4c);
+  color: #2a0f2e;
+}
+.juegos-root .s4-toast--big .s4-toast__icon {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #fff6b8, #ffb547 55%, #ff4f8b);
+  font-family: var(--display);
+  font-size: 32px;
+  font-weight: 400;
+  color: #2a0f2e;
+  box-shadow: 0 0 24px rgba(255, 180, 80, 0.8);
+  animation: s4-pop 1.2s ease-in-out infinite;
+}
+.juegos-root .s4-toast__body {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+.juegos-root .s4-toast__body b {
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+.juegos-root .s4-toast--big .s4-toast__body b {
+  font-size: 28px;
+}
+.juegos-root .s4-toast__body span {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #cfe7ef;
+}
+.juegos-root .s4-toast__xp {
+  flex: none;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 227, 110, 0.18);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 900;
+  color: #ffe36e;
+}
+.juegos-root .s4-toast__confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.juegos-root .s4-toast__confetti i {
+  position: absolute;
+  left: calc(8% + var(--k) * 5%);
+  top: 50%;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  background: hsl(calc(var(--k) * 47deg) 95% 62%);
+  animation: s4-confetti 1.6s cubic-bezier(0.2, 0.7, 0.4, 1) both;
+  animation-delay: calc(var(--k) * 25ms);
+}
+@keyframes s4-confetti {
+  from {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  to {
+    opacity: 0;
+    translate: calc((var(--k) - 9) * 9px) -150px;
+    rotate: calc(var(--k) * 80deg);
+  }
+}
+.juegos-root .s4-xppop {
+  justify-self: end;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffe36e, #ff8a4c);
+  box-shadow: 0 8px 20px rgba(255, 120, 70, 0.5);
+  font-size: 14px;
+  font-weight: 900;
+  color: #2a0f2e;
+  animation: s4-xp 1.6s ease-out both;
+}
+@keyframes s4-xp {
+  0% {
+    opacity: 0;
+    translate: 0 14px;
+    scale: 0.7;
+  }
+  15% {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1.1;
+  }
+  25% {
+    scale: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 -18px;
+  }
+}
+
+/* ============================== Pantallas estrechas ============================== */
+@media (max-width: 1100px) {
+  .juegos-root .s4-strip {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .juegos-root .s4-strip__side {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    padding: 0;
+  }
+  .juegos-root.s4 .s4-round {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .juegos-root.s4 .s4-pace > li,
+  .juegos-root.s4 .s4-pace > li:nth-child(-n + 2) {
+    grid-column: auto;
+  }
+  .juegos-root .s4-pase__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .juegos-root .s4-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  /* Todos a la vez: el carrusel horizontal del selector (hub.css), sin las columnas de arriba. */
+  .juegos-root.s4 .s4-round {
+    grid-template-columns: none;
+  }
+  .juegos-root.s4 .hub-top.s4-hero {
+    min-height: 0;
+    padding: 150px 18px 20px;
+    border-radius: 24px;
+  }
+  .juegos-root.s4 .hub-top.s4-hero::after {
+    background: linear-gradient(180deg, transparent 15%, rgba(6, 14, 34, 0.5) 40%, rgba(6, 14, 34, 0.92) 70%);
+  }
+  .juegos-root.s4 .s4-hero h1 {
+    font-size: 60px;
+  }
+  .juegos-root .s4-hero__season {
+    font-size: 11px;
+  }
+  .juegos-root .s4-strip__level {
+    gap: 14px;
+    padding: 14px;
+  }
+  .juegos-root .s4-strip__level .s4-ring {
+    width: 76px !important;
+    height: 76px !important;
+  }
+  .juegos-root .s4-pase__me {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .juegos-root .s4-pase__hero::after {
+    background: linear-gradient(180deg, rgba(6, 14, 34, 0.3), rgba(6, 14, 34, 0.9) 55%);
+  }
+  .juegos-root .s4-pase__hero {
+    padding-top: 110px;
+  }
+  .juegos-root .s4-streak {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .juegos-root .s4-missions .s4-mission {
+    flex-wrap: wrap;
+  }
+  .juegos-root .s4-missions .s4-btn--sm {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root :is(.is4-palm, .is4-leaf, .is4-sun, .is4-halo, .is4-stars circle, .is4-clouds, .is4-shimmer rect, .is4-wave, .is4-boat, .is4-birds),
+  .juegos-root :is(.s4-hero__season span, .s4-hero .hub-top__logo, .s4-xp__fill, .s4-chestbtn, .s4-chest, .s4-sticker, .s4-btn--hot, .s4-node, .s4-claimbtn span, .s4-toast__icon) {
+    animation: none !important;
+  }
+  .juegos-root .is4-boat {
+    transform: translate(640px, 318px);
+  }
+  .juegos-root .is4-birds {
+    transform: translate(300px, 90px);
+  }
+}
+
+/* Nivel del pase junto al nombre, en la clasificación. */
+.juegos-root .s4-lvl {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: linear-gradient(100deg, #ffe36e, #ff8a4c 50%, #ff4f8b);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1.4;
+  vertical-align: 2px;
+  color: #2a0f2e;
+}

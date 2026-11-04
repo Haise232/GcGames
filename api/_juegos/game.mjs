@@ -22,6 +22,7 @@ import { SUIZA_ERRORS, createSuiza } from './suiza.mjs'
 import { abuseExtra, abuseLuck, createBanca } from './banca.mjs'
 import { createHacienda, jailedUntil } from './hacienda.mjs'
 import { safeAvatar, shortName } from './engine/names.mjs'
+import { PASE_ERRORS, PASE_SQL, createPase } from './pase.mjs'
 
 export const STARTING_BALANCE = 15000 // Season 2
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -81,6 +82,7 @@ export const ERRORS = {
   ...ELEVATOR_ERRORS,
   ...INMO_ERRORS,
   ...SUIZA_ERRORS,
+  ...PASE_ERRORS,
 }
 
 export class JuegosError extends Error {
@@ -299,9 +301,12 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       // Cada consulta es un viaje a la base de datos y esto va antes de la primera respuesta de cada arranque: se mira
       // de una vez si queda algo que devolver y solo entonces se hacen las devoluciones (casi siempre no queda nada).
       const { rows } = await db.query(
-        `select to_regclass('public.juegos_bingo') is not null as ok, to_regclass('public.juegos_duelos') is not null as duelos`,
+        `select to_regclass('public.juegos_bingo') is not null as ok, to_regclass('public.juegos_duelos') is not null as duelos,
+                to_regclass('public.juegos_pase') is not null as pase`,
       )
       if (!rows[0].ok) await db.query(SCHEMA_SQL)
+      // El pase de la Season 4 llegó después: en una base de datos de antes se crea su tabla (supabase/migracion_juegos_pase.sql).
+      if (!rows[0].pase) await db.query(PASE_SQL)
       const pending = (
         await db.query(
           `with meta as (insert into public.juegos_meta (id, semana) values (1, $1) on conflict (id) do nothing)
@@ -593,7 +598,8 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       ),
       db.query(`select semana_pasada from public.juegos_meta where id = 1`),
     ])
-    const assets = await assetsOf(rows.rows.map((r) => r.usuario_id))
+    const ids = rows.rows.map((r) => r.usuario_id)
+    const [assets, passLevels] = await Promise.all([assetsOf(ids), pase.levels(ids)])
     const players = rows.rows.map((r, i) => {
       let last = STARTING_BALANCE
       const days = readDays(r.dias).map((value, d) => {
@@ -601,7 +607,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         if (value !== null) last = value
         return last
       })
-      return { id: r.usuario_id, rank: i + 1, name: r.name, avatar: r.avatar, balance: r.balance, days, assets: assets.get(r.usuario_id) }
+      return { id: r.usuario_id, rank: i + 1, name: r.name, avatar: r.avatar, balance: r.balance, days, assets: assets.get(r.usuario_id), pase: passLevels.get(r.usuario_id) ?? 0 }
     })
     return {
       week: { key: week.key, day: week.day, resetAt: week.resetAt },
@@ -717,6 +723,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         // Lo que se pierde contra el casino va a la jaula del bingo. El Admin Abuse no lo resta: con «gratis» la banca
         // te devuelve lo perdido, pero la jaula crece igual.
         await bingo.feed(q, -settled.net)
+        out.settled = settled
       }
       // Toda jugada cuenta para el Score, también la que te deja igual (entras en la clasificación y se anota el día).
       if (out.played || out.delta) accounts.adjust(user.id, out.delta)
@@ -796,6 +803,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
     await q(`update public.juegos_cuentas set saldo = $2, dias = $3::bigint[], jugado = $4 where usuario_id = $1`, [userId, acc.balance, pgArray(acc.days), acc.played])
     return acc.balance
   }
+  const pase = createPase({ db, now, secret, move })
   const gacha = createGacha({ db, ping, now, charge, jaula: (q, amount) => bingo.feed(q, amount) })
 
   // Jugadores con apuesta en una ronda de la ruleta o el cohete en vivo (la ronda se queda anotada aunque ya se haya pagado).
@@ -970,6 +978,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         if (out.error) reply.error = { code: out.error, message: ERRORS[out.error] }
         else reply.solo = out.result
         if (out.abuse) reply.abuse = out.abuse
+        if (out.settled) reply.paseEvent = await pase.record(user.id, live.game, { win: out.settled.net > 0 })
         me.balance = (await db.query(`select saldo from public.juegos_cuentas where usuario_id = $1`, [user.id])).rows[0].saldo
         if (reply.solo) await liveExtras(live.game, msg, reply)
         return reply
@@ -982,6 +991,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         const out = await playSolo(user, msg)
         if (out.error) reply.error = { code: out.error, message: ERRORS[out.error] }
         else reply.solo = out.result
+        if (out.settled) reply.paseEvent = await pase.record(user.id, SOLO_GAMES[msg.t], { win: out.settled.net > 0 })
         if ((msg.t === 'solo_tower' || msg.t === 'solo_heist') && reply.solo) reply.solo.ranking = await dayRanking(SOLO_GAMES[msg.t], user.id)
         if (out.abuse) reply.abuse = out.abuse
         me.balance = (await db.query(`select saldo from public.juegos_cuentas where usuario_id = $1`, [user.id])).rows[0].saldo
@@ -990,21 +1000,25 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       case 'bingo': {
         await bingo.handle(user, msg, reply)
         if (reply.error) reply.error.message = ERRORS[reply.error.code] ?? 'Error.'
+        else if (msg.a === 'buy') reply.paseEvent = await pase.record(user.id, 'bingo')
         return reply
       }
       case 'bridge': {
         await glass.handle(user, msg, reply)
         if (reply.error) reply.error.message = ERRORS[reply.error.code] ?? 'Error.'
+        else if (msg.a === 'join') reply.paseEvent = await pase.record(user.id, 'bridge')
         return reply
       }
       case 'auction': {
         await auction.handle(user, msg, reply)
         if (reply.error) reply.error.message = ERRORS[reply.error.code] ?? 'Error.'
+        else if (msg.a === 'bid') reply.paseEvent = await pase.record(user.id, 'auction')
         return reply
       }
       case 'elevator': {
         await lift.handle(user, msg, reply)
         if (reply.error) reply.error.message = ERRORS[reply.error.code] ?? 'Error.'
+        else if (msg.a === 'join') reply.paseEvent = await pase.record(user.id, 'elevator')
         return reply
       }
       case 'inmo': {
@@ -1026,7 +1040,14 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
           delete out.error
         }
         reply.gacha = out
+        if (msg.a === 'tirar' && out.result && !reply.error) reply.paseEvent = await pase.record(user.id, 'gacha')
         if (out.result || reply.error) me.balance = (await db.query(`select saldo from public.juegos_cuentas where usuario_id = $1`, [user.id])).rows[0].saldo
+        return reply
+      }
+      case 'pase': {
+        await pase.handle(user, msg, reply)
+        if (reply.error) reply.error.message = PASE_ERRORS[reply.error.code] ?? ERRORS[reply.error.code] ?? 'Error.'
+        if (msg.a !== 'estado') me.balance = (await db.query(`select saldo from public.juegos_cuentas where usuario_id = $1`, [user.id])).rows[0].saldo
         return reply
       }
       case 'chat_poll':
@@ -1043,6 +1064,10 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         }
         const quiet = msg.t === 'view' || msg.t === 'tick'
         const outcome = (quiet && (await peekTable(account.mesa, user))) || (await withTable(account.mesa, user, (room, session) => action(room, session, msg)))
+        // Pase: una mano de blackjack o una partida de ajedrez (al confirmar «listo») o una jugada de póker.
+        const tableGame = outcome.view?.game
+        const counts = (msg.t === 'ready' && (tableGame === 'blackjack' || tableGame === 'chess')) || (msg.t === 'action' && tableGame === 'poker')
+        if (counts && !outcome.error) reply.paseEvent = await pase.record(user.id, tableGame)
         if (msg.t === 'leave_room') {
           reply.state = null
           ;[reply.lobby] = await Promise.all([lobby(user), outcome.sent])

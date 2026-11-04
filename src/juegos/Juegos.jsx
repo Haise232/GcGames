@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 // Fuentes de juegos, servidas por la propia app.
 import '@fontsource/abril-fatface/latin.css'
 import '@fontsource-variable/instrument-sans/index.css'
+import '@fontsource/lilita-one/latin.css'
 // Primero los estilos base y después los de cada juego, para que las reglas de un juego (por ejemplo, las de pantallas
 // estrechas) puedan cambiar las comunes. Al revés, App.css las pisaba y algunas pantallas no se adaptaban al móvil.
 import './reset.css'
@@ -46,6 +47,12 @@ import './responsive.css'
 import './hub.css'
 // Cabecera común (volver, sonido, ayuda y título) y el fondo de cada juego: después de las hojas de cada juego.
 import './chrome.css'
+// Season 4 («Islas»): la portada, el pase y el tema tropical (todo .juegos-root.s4), después de las hojas de cada juego.
+import './season4/season4.css'
+import IslandScene from './season4/IslandScene.jsx'
+import PaseStrip from './season4/PaseStrip.jsx'
+import Pase from './season4/Pase.jsx'
+import PaseToasts from './season4/PaseToasts.jsx'
 // Tema de Halloween: el último, para que sus reglas (todas bajo .juegos-root.halloween) ganen a las de cada juego.
 import './halloween.css'
 import { useHalloween } from './halloween.js'
@@ -61,7 +68,7 @@ const LIVE = {
 }
 
 // Cada juego lleva su mini escena (HubArt.jsx), un color (--tint, en r, g, b) para el brillo de su tarjeta y una frase corta.
-const SOLO = [
+const ALL_GAMES = [
   {
     id: 'elevator',
     name: 'Ascensor',
@@ -122,10 +129,6 @@ const SOLO = [
     tint: '124, 207, 74',
     art: <FrogScene />,
   },
-]
-
-// Lo nuevo de la Season 3, en el escaparate de arriba del todo.
-const SEASON3 = [
   {
     id: 'tower',
     name: 'La Torre',
@@ -161,6 +164,12 @@ const SEASON3 = [
     art: <BridgeScene />,
   },
 ]
+
+// Season 4: los juegos se agrupan por cómo se juegan. Primero los de ronda común (todos a la vez, con la gente) y luego
+// los de a tu ritmo.
+const byId = Object.fromEntries(ALL_GAMES.map((g) => [g.id, g]))
+const ROUND_GAMES = ['elevator', 'bridge', 'auction', 'roulette', 'crash', 'race'].map((id) => byId[id])
+const PACE_GAMES = ['tower', 'heist', 'dungeon', 'plinko', 'frog'].map((id) => byId[id])
 
 // La Inmobiliaria, destacada arriba del todo: un trozo de tablero con sus casas y un hotel.
 function InmoBanner({ onOpen }) {
@@ -490,7 +499,7 @@ function LiveGame({ game, tables, loaded, online, onJoin }) {
 }
 
 // Tarjeta de un juego: la escena, la píldora (en vivo / nuevo), el nombre y una frase. big: las de la Season 3 del escaparate.
-function GameCard({ game, big = false, connected, onPick }) {
+function GameCard({ game, big = false, connected, onPick, mission }) {
   const { id, name, kind, blurb, art, live, tint } = game
   return (
     <button type="button" className={`hub-card hub-card--${id} ${big ? 'hub-card--big' : ''}`} style={{ '--tint': tint }} disabled={!connected} onClick={() => onPick(id)}>
@@ -501,6 +510,11 @@ function GameCard({ game, big = false, connected, onPick }) {
         {live && <em className="hub-pill">En vivo</em>}
         {big && !live && <em className="hub-pill hub-pill--new">Nuevo</em>}
       </span>
+      {mission && (
+        <em className={`s4-sticker ${mission.done ? 'is-done' : ''}`} title={mission.text}>
+          {mission.done ? '✓ Misión hecha' : `Misión ${mission.progress}/${mission.goal}`}
+        </em>
+      )}
       <span className="hub-card__body">
         <span className="hub-card__kind">{kind}</span>
         <span className="hub-card__name">{name}</span>
@@ -513,7 +527,7 @@ function GameCard({ game, big = false, connected, onPick }) {
   )
 }
 
-export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome }) {
+export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome, onPase }) {
   const { me, lobby, conn, scores, send } = juegos
   const master = useAuth().usuario?.es_superadmin === true
   const [bank, setBank] = useState(false)
@@ -522,7 +536,7 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome 
   const connected = conn === 'open' && Boolean(me)
   const balance = useCountUp(me?.balance ?? 0, 900)
   const { mine, count } = standing(scores, me)
-  // La guía se abre sola la primera vez que entras en la Season 3 (cuando ya está pintado el selector).
+  // La guía se abre sola la primera vez que entras en la Season 4 (cuando ya está pintado el selector).
   const hubReady = Boolean(me && lobby)
   useEffect(() => {
     if (!hubReady) return
@@ -551,6 +565,8 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome 
   else if (conn === 'connecting' || (connected && !lobby)) status = { tone: 'wait', text: 'Conectando…' }
 
   const halloween = useHalloween()
+  // Misión del día de ese juego (si la hay), para la pegatina de su tarjeta.
+  const missionFor = (id) => juegos.pase?.missions.find((m) => m.game === id)
 
   return (
     <main className="app app--lobby hub">
@@ -561,15 +577,19 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome 
         </Suspense>
       )}
       {tour && <Tutorial onClose={() => setTour(false)} />}
-      {/* Marquesina: las bombillas del borde las pinta el CSS. */}
-      <header className="hub-top">
+      {/* Portada de la Season 4: atardecer en las islas, con tu ficha y los botones encima. */}
+      <header className="hub-top s4-hero">
+        <IslandScene className="s4-hero__scene" />
         {halloween && <Pumpkin className="hw-pumpkin" />}
-        <div className="hub-top__brand">
-          <small className="hub-top__eyebrow">{halloween ? 'Noche de Halloween' : 'Casino'}</small>
+        <div className="hub-top__brand s4-hero__brand">
+          <small className="s4-hero__season">
+            <span>Season 4</span> Islas
+          </small>
           <div className="hub-top__title">
             <Logo className="hub-top__logo" />
             <h1>GcGames</h1>
           </div>
+          <p className="s4-hero__tag">{halloween ? 'Noche de Halloween en las islas' : 'Siempre es verano en el casino'}</p>
           <p className={`hub-status hub-status--${status.tone}`} role="status" aria-live="polite">
             <i aria-hidden="true" />
             {status.text}
@@ -585,6 +605,7 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome 
                 {mine && (
                   <em className="hub-me__rank">
                     Puesto {mine.rank} de {count}
+                    {juegos.pase && ` · Nivel ${juegos.pase.level}`}
                   </em>
                 )}
               </span>
@@ -610,6 +631,13 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome 
           </div>
         </div>
       </header>
+
+      <section aria-labelledby="pase-title" data-tour="pase">
+        <h2 id="pase-title" className="hub-title">
+          Pase de las Islas <small>misiones cada día, cofre gratis y premios en cada nivel</small>
+        </h2>
+        <PaseStrip juegos={juegos} online={connected} onOpen={onPase} />
+      </section>
 
       {!waClosed && (
         <aside className="hub-wa-banner" aria-label="Grupo de WhatsApp de Juegos">
@@ -641,6 +669,58 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome 
         </aside>
       )}
 
+      <div className="hub-feature">
+        <section aria-labelledby="bingo-title">
+          <h2 id="bingo-title" className="hub-title">
+            Bingo <small>el bote de todo el casino</small>
+          </h2>
+          <BingoBanner info={lobby?.bingo} online={connected} onOpen={() => onPick('bingo')} />
+        </section>
+        <section aria-labelledby="score-title" data-tour="score">
+          <h2 id="score-title" className="hub-title">
+            Clasificación <small>se reinicia el domingo a las 23:59</small>
+          </h2>
+          <ScoreCard scores={scores} me={me} resetAt={lobby?.resetAt} online={online} onOpen={onScore} />
+        </section>
+      </div>
+
+      <section aria-labelledby="round-title" data-tour="round">
+        <h2 id="round-title" className="hub-title">
+          Todos a la vez <small>la misma ronda para todo el casino</small>
+        </h2>
+        <ul className="hub-showcase s4-round">
+          {ROUND_GAMES.map((game, i) => (
+            <li key={game.id} style={{ '--i': i }} data-tour={game.id === 'elevator' ? 'elevator' : undefined}>
+              <GameCard game={game} big connected={connected} onPick={onPick} mission={missionFor(game.id)} />
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section aria-labelledby="solo-title" data-tour="solo">
+        <h2 id="solo-title" className="hub-title">
+          A tu ritmo <small>tú contra la casa, cuando quieras</small>
+        </h2>
+        <ul className="hub-games s4-pace">
+          {PACE_GAMES.map((game, i) => (
+            <li key={game.id} style={{ '--i': i }}>
+              <GameCard game={game} connected={connected} onPick={onPick} mission={missionFor(game.id)} />
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="hub-live-sec" aria-labelledby="live-title" data-tour="live">
+        <h2 id="live-title" className="hub-title">
+          Mesas en vivo <small>con la gente del casino</small>
+        </h2>
+        <div className="hub-cards">
+          {Object.keys(LIVE).map((game) => (
+            <LiveGame key={game} game={game} tables={tablesOf(game)} loaded={Boolean(lobby)} online={online} onJoin={onJoin} />
+          ))}
+        </div>
+      </section>
+
       {/* Las tres formas de guardar el dinero lejos de Hacienda, juntas: las cartas, las propiedades y Suiza. */}
       <section aria-labelledby="money-title" data-tour="gacha">
         <h2 id="money-title" className="hub-title">
@@ -657,58 +737,6 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome 
             <SuizaBanner onOpen={() => onPick('suiza')} />
           </li>
         </ul>
-      </section>
-
-      <section aria-labelledby="s3-title" data-tour="season3">
-        <h2 id="s3-title" className="hub-title">
-          Nuevo en la Season 3 <small>juegos recién salidos</small>
-        </h2>
-        <ul className="hub-showcase">
-          {SEASON3.map((game, i) => (
-            <li key={game.id} style={{ '--i': i }}>
-              <GameCard game={game} big connected={connected} onPick={onPick} />
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <div className="hub-feature">
-        <section aria-labelledby="bingo-title">
-          <h2 id="bingo-title" className="hub-title">
-            Bingo <small>el bote de todo el casino</small>
-          </h2>
-          <BingoBanner info={lobby?.bingo} online={connected} onOpen={() => onPick('bingo')} />
-        </section>
-        <section aria-labelledby="score-title" data-tour="score">
-          <h2 id="score-title" className="hub-title">
-            Clasificación <small>se reinicia el domingo a las 23:59</small>
-          </h2>
-          <ScoreCard scores={scores} me={me} resetAt={lobby?.resetAt} online={online} onOpen={onScore} />
-        </section>
-      </div>
-
-      <section aria-labelledby="solo-title" data-tour="solo">
-        <h2 id="solo-title" className="hub-title">
-          Para jugar solo <small>con tu saldo de la semana</small>
-        </h2>
-        <ul className="hub-games">
-          {SOLO.map((game, i) => (
-            <li key={game.id} style={{ '--i': i }} data-tour={game.id === 'elevator' ? 'elevator' : undefined}>
-              <GameCard game={game} connected={connected} onPick={onPick} />
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="hub-live-sec" aria-labelledby="live-title" data-tour="live">
-        <h2 id="live-title" className="hub-title">
-          Mesas en vivo <small>con la gente del casino</small>
-        </h2>
-        <div className="hub-cards">
-          {Object.keys(LIVE).map((game) => (
-            <LiveGame key={game} game={game} tables={tablesOf(game)} loaded={Boolean(lobby)} online={online} onJoin={onJoin} />
-          ))}
-        </div>
       </section>
     </main>
   )
@@ -776,7 +804,7 @@ function Notice({ title, children, actions }) {
 
 // Pantalla en la que estabas, para que al recargar la página vuelvas al mismo juego (las mesas ya las recuerda el servidor).
 const SCREEN_KEY = 'juegos-pantalla'
-const KEEP = new Set(['bingo', 'roulette', 'crash', 'dungeon', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'bridge'])
+const KEEP = new Set(['pase', 'bingo', 'roulette', 'crash', 'dungeon', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'bridge'])
 function savedScreen() {
   try {
     const screen = sessionStorage.getItem(SCREEN_KEY)
@@ -808,6 +836,11 @@ function JuegosScreens() {
     }
   }, [view.screen])
   const exit = () => setView({ screen: 'lobby' })
+  // «Ir a …» de una misión del pase: las mesas se buscan como desde el selector; lo demás es su pantalla.
+  const go = (game) => {
+    if (Object.hasOwn(LIVE, game)) setView({ screen: 'join', game, as: 'player' })
+    else setView({ screen: game })
+  }
   // Salir de Juegos es cerrar la sesión: vuelve a la pantalla de entrada.
   const home = () => supabase.auth.signOut()
 
@@ -849,7 +882,7 @@ function JuegosScreens() {
         chat={juegos.chat}
         bubbles={juegos.bubbles}
         pending={juegos.pending}
-      />,
+      />
     )
   }
 
@@ -871,6 +904,7 @@ function JuegosScreens() {
   if (screen === 'gacha') return (<Gacha onExit={exit} juegos={juegos} initialTab={view.tab} />)
   if (screen === 'join') return (<Joining juegos={juegos} request={view} onExit={exit} />)
   if (screen === 'score') return (<Scoreboard juegos={juegos} onExit={exit} />)
+  if (screen === 'pase') return (<Pase juegos={juegos} onExit={exit} onGo={go} />)
   return (
     <GameSelector
       juegos={juegos}
@@ -879,7 +913,8 @@ function JuegosScreens() {
       onScore={() => setView({ screen: 'score' })}
       onGacha={(tab) => setView({ screen: 'gacha', tab })}
       onHome={home}
-    />,
+      onPase={() => setView({ screen: 'pase' })}
+    />
   )
 }
 
@@ -889,9 +924,10 @@ export default function Juegos() {
   // cambiarlo desde el panel de la banca.
   const halloween = useHalloween()
   return (
-    <div className={halloween ? 'juegos-root halloween' : 'juegos-root'}>
+    <div className={halloween ? 'juegos-root s4 halloween' : 'juegos-root s4'}>
       <JuegosScreens />
       <BancaAvisos />
+      <PaseToasts />
     </div>
   )
 }

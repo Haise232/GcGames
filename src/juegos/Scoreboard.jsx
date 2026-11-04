@@ -202,6 +202,7 @@ function Podium({ players, starting, onPick }) {
               <span className="sb-podium__name">
                 {p.name}
                 {p.me && <small> · tú</small>}
+                {p.pase > 0 && <i className="s4-lvl">Nv {p.pase}</i>}
               </span>
               <b className="sb-podium__money">{eur(p.balance)}</b>
               <small className={p.balance >= starting ? 'up' : 'down'}>{delta(p.balance - starting)}</small>
@@ -351,6 +352,11 @@ function Scoreboard({ juegos, onExit }) {
                         <span>
                           {p.name}
                           {p.me && <small> · tú</small>}
+                          {p.pase > 0 && (
+                            <i className="s4-lvl" title={`Nivel ${p.pase} del Pase de las Islas`}>
+                              Nv {p.pase}
+                            </i>
+                          )}
                         </span>
                         {today !== 0 && <em className={today > 0 ? 'up' : 'down'}>hoy {delta(today)}</em>}
                       </span>
