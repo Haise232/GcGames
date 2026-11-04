@@ -332,7 +332,7 @@ function Bingo({ onExit, juegos }) {
                 cartón entero se lleva el {BINGO_PCT}%. Si hay empate se reparte.
               </p>
               <p>
-                <b>El bote:</b> el {POT_PCT}% de cada cartón y todo lo que se pierde en el resto del casino (Plinko, Cohete, Rana, Laberinto,
+                <b>El bote:</b> el {POT_PCT}% de cada cartón y todo lo que se pierde en el resto del casino (Plinko, Cohete, Rana, Pez Gordo,
                 Carrera y Blackjack) va a la jaula, y también lo que cobra Hacienda a quien pasa de 100.000 €. Se la lleva quien cante bingo con la bola {POT_BALL} o antes, o justo con la{' '}
                 <b>bola dorada</b>: una de las 90, distinta en cada partida, que brilla al salir (~1 partida de cada 90).
               </p>

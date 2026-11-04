@@ -11,19 +11,19 @@ import './index.css'
 import './App.css'
 import Roulette from './Roulette.jsx'
 import Crash from './Crash.jsx'
-import Dungeon from './Dungeon.jsx'
 import Plinko from './Plinko.jsx'
 import Frog from './Frog.jsx'
 import Race from './Race.jsx'
 import Tower from './Tower.jsx'
 import Heist from './Heist.jsx'
 import Auction from './Auction.jsx'
-import Bridge from './Bridge.jsx'
+import Pez from './Pez.jsx'
+import { FishScene } from './season4/FishArt.jsx'
 import Bingo from './Bingo.jsx'
 import BingoCage from './BingoCage.jsx'
 import Gacha from './Gacha.jsx'
 import GachaShowcase from './GachaShowcase.jsx'
-import { AuctionScene, BridgeScene, CrashScene, DungeonScene, ElevatorScene, FrogScene, HeistScene, PlinkoScene, RaceScene, RouletteScene, TowerScene } from './HubArt.jsx'
+import { AuctionScene, CrashScene, ElevatorScene, FrogScene, HeistScene, PlinkoScene, RaceScene, RouletteScene, TowerScene } from './HubArt.jsx'
 import Elevator from './Elevator.jsx'
 import Inmobiliaria from './Inmobiliaria.jsx'
 import Suiza, { SuizaBanner } from './Suiza.jsx'
@@ -106,12 +106,13 @@ const ALL_GAMES = [
     art: <RaceScene />,
   },
   {
-    id: 'dungeon',
-    name: 'Laberinto',
-    kind: 'Memoria',
-    blurb: 'Mira dónde está el cofre, síguelo mientras las puertas se barajan y llega al tesoro.',
-    tint: '242, 201, 76',
-    art: <DungeonScene />,
+    id: 'fish',
+    name: 'Pez Gordo',
+    kind: 'Come y crece',
+    blurb: 'Come plancton y peces más pequeños, hazte enorme y que no te coma un tiburón. Cuanto más pesas, más cobras al salir del agua.',
+    tint: '46, 230, 208',
+    isNew: true,
+    art: <FishScene />,
   },
   {
     id: 'plinko',
@@ -154,22 +155,13 @@ const ALL_GAMES = [
     tint: '177, 132, 255',
     art: <AuctionScene />,
   },
-  {
-    id: 'bridge',
-    name: 'El Puente de Cristal',
-    kind: 'Todos a la vez',
-    blurb: 'Todos cruzan a la vez: izquierda o derecha. Un cristal aguanta, el otro no. Los que llegan más lejos se llevan el bote.',
-    live: true,
-    tint: '111, 180, 240',
-    art: <BridgeScene />,
-  },
 ]
 
 // Season 4: los juegos se agrupan por cómo se juegan. Primero los de ronda común (todos a la vez, con la gente) y luego
 // los de a tu ritmo.
 const byId = Object.fromEntries(ALL_GAMES.map((g) => [g.id, g]))
-const ROUND_GAMES = ['elevator', 'bridge', 'auction', 'roulette', 'crash', 'race'].map((id) => byId[id])
-const PACE_GAMES = ['tower', 'heist', 'dungeon', 'plinko', 'frog'].map((id) => byId[id])
+const ROUND_GAMES = ['elevator', 'auction', 'roulette', 'crash', 'race'].map((id) => byId[id])
+const PACE_GAMES = ['fish', 'tower', 'heist', 'plinko', 'frog'].map((id) => byId[id])
 
 // La Inmobiliaria, destacada arriba del todo: un trozo de tablero con sus casas y un hotel.
 function InmoBanner({ onOpen }) {
@@ -500,7 +492,7 @@ function LiveGame({ game, tables, loaded, online, onJoin }) {
 
 // Tarjeta de un juego: la escena, la píldora (en vivo / nuevo), el nombre y una frase. big: las de la Season 3 del escaparate.
 function GameCard({ game, big = false, connected, onPick, mission }) {
-  const { id, name, kind, blurb, art, live, tint } = game
+  const { id, name, kind, blurb, art, live, tint, isNew } = game
   return (
     <button type="button" className={`hub-card hub-card--${id} ${big ? 'hub-card--big' : ''}`} style={{ '--tint': tint }} disabled={!connected} onClick={() => onPick(id)}>
       <span className="hub-card__art" aria-hidden="true">
@@ -508,7 +500,7 @@ function GameCard({ game, big = false, connected, onPick, mission }) {
       </span>
       <span className="hub-card__tags">
         {live && <em className="hub-pill">En vivo</em>}
-        {big && !live && <em className="hub-pill hub-pill--new">Nuevo</em>}
+        {(isNew || (big && !live)) && <em className="hub-pill hub-pill--new">Nuevo</em>}
       </span>
       {mission && (
         <em className={`s4-sticker ${mission.done ? 'is-done' : ''}`} title={mission.text}>
@@ -804,7 +796,7 @@ function Notice({ title, children, actions }) {
 
 // Pantalla en la que estabas, para que al recargar la página vuelvas al mismo juego (las mesas ya las recuerda el servidor).
 const SCREEN_KEY = 'juegos-pantalla'
-const KEEP = new Set(['pase', 'bingo', 'roulette', 'crash', 'dungeon', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'bridge'])
+const KEEP = new Set(['pase', 'bingo', 'roulette', 'crash', 'fish', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction'])
 function savedScreen() {
   try {
     const screen = sessionStorage.getItem(SCREEN_KEY)
@@ -815,7 +807,7 @@ function savedScreen() {
 }
 
 function JuegosScreens() {
-  // screen: lobby | bingo | roulette | crash | dungeon | plinko | frog | race | elevator | gacha | join | score
+  // screen: lobby | pase | bingo | roulette | crash | fish | plinko | frog | race | elevator | gacha | join | score
   const [params, setParams] = useSearchParams()
   // Enlace de invitación (/?juego=poker&mesa=ABCD): entra directamente a esa mesa, o a la mejor si ya no existe.
   const [view, setView] = useState(() => {
@@ -890,14 +882,13 @@ function JuegosScreens() {
   if (screen === 'bingo') return (<Bingo onExit={exit} juegos={juegos} />)
   if (screen === 'roulette') return (<Roulette onExit={exit} juegos={juegos} />)
   if (screen === 'crash') return (<Crash onExit={exit} juegos={juegos} />)
-  if (screen === 'dungeon') return (<Dungeon onExit={exit} juegos={juegos} />)
+  if (screen === 'fish') return (<Pez onExit={exit} juegos={juegos} />)
   if (screen === 'plinko') return (<Plinko onExit={exit} juegos={juegos} />)
   if (screen === 'frog') return (<Frog onExit={exit} juegos={juegos} />)
   if (screen === 'race') return (<Race onExit={exit} juegos={juegos} />)
   if (screen === 'tower') return (<Tower onExit={exit} juegos={juegos} />)
   if (screen === 'heist') return (<Heist onExit={exit} juegos={juegos} />)
   if (screen === 'auction') return (<Auction onExit={exit} juegos={juegos} />)
-  if (screen === 'bridge') return (<Bridge onExit={exit} juegos={juegos} />)
   if (screen === 'elevator') return (<Elevator onExit={exit} juegos={juegos} />)
   if (screen === 'inmo') return (<Inmobiliaria onExit={exit} juegos={juegos} />)
   if (screen === 'suiza') return (<Suiza onExit={exit} juegos={juegos} />)

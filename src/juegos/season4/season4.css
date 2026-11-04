@@ -23,6 +23,14 @@
   --s4-night: #0b1430;
   --s4-sunset: linear-gradient(100deg, #ffe36e, #ff8a4c 45%, #ff4f8b);
 
+  /* Rarezas del gacha con colores de la isla: arena, laguna, atardecer, sol y el arcoíris tropical. */
+  --r-comun: #e9cf98;
+  --r-rara: #2ee6d0;
+  --r-epica: #ff5fa2;
+  --r-mitica: #ffb547;
+  --r-unica: #ff3b5c;
+  --rainbow: linear-gradient(120deg, #ff6b5a, #ffb547, #ffe36e, #43d17c, #2ee6d0, #4da3ff, #ff4f8b, #ff6b5a);
+
   --hub-line: rgba(143, 227, 255, 0.12);
   --hub-line-hi: rgba(143, 227, 255, 0.32);
   --hub-gold-hi: #fff4c2;
@@ -35,17 +43,6 @@
     radial-gradient(1100px 520px at 85% -8%, rgba(255, 106, 90, 0.22), transparent 70%),
     radial-gradient(900px 600px at -10% 40%, rgba(46, 230, 208, 0.12), transparent 70%),
     linear-gradient(180deg, #1a1446 0%, #0d2b4a 38%, #082036 70%, #061629 100%) fixed;
-}
-
-/* Las cartas del gacha se quedan como siempre (como en Halloween): recuperan la paleta original. */
-.juegos-root.s4 :is(.gacha-card, .gacha-reveal, .gacha-summon) {
-  --baize: #14394f;
-  --baize-deep: #0c2737;
-  --brass: #c8a24b;
-  --bolt: #ffe27a;
-  --muted: #9db6c4;
-  --line: rgba(241, 233, 214, 0.7);
-  --display: 'Abril Fatface', Georgia, serif;
 }
 
 .juegos-root .sr-only {
@@ -785,7 +782,17 @@
   border-radius: 26px;
 }
 .juegos-root.s4 .s4-round {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+/* Todos a la vez: dos grandes arriba (Ascensor y Subasta) y tres abajo. */
+.juegos-root.s4 .s4-round > li {
+  grid-column: span 4;
+}
+.juegos-root.s4 .s4-round > li:nth-child(-n + 2) {
+  grid-column: span 6;
+}
+.juegos-root.s4 .s4-round > li:nth-child(-n + 2) .hub-card__art {
+  aspect-ratio: 16 / 7;
 }
 /* A tu ritmo: dos grandes arriba y tres abajo. */
 .juegos-root.s4 .s4-pace > li {
@@ -1400,6 +1407,13 @@
   .juegos-root.s4 .s4-round {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .juegos-root.s4 .s4-round > li,
+  .juegos-root.s4 .s4-round > li:nth-child(-n + 2) {
+    grid-column: auto;
+  }
+  .juegos-root.s4 .s4-round > li:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
   .juegos-root.s4 .s4-pace > li,
   .juegos-root.s4 .s4-pace > li:nth-child(-n + 2) {
     grid-column: auto;
@@ -1417,6 +1431,14 @@
   /* Todos a la vez: el carrusel horizontal del selector (hub.css), sin las columnas de arriba. */
   .juegos-root.s4 .s4-round {
     grid-template-columns: none;
+  }
+  .juegos-root.s4 .s4-round > li,
+  .juegos-root.s4 .s4-round > li:last-child:nth-child(odd) {
+    grid-column: auto;
+  }
+  .juegos-root.s4 .s4-round .hub-card__art,
+  .juegos-root.s4 .s4-round > li:nth-child(-n + 2) .hub-card__art {
+    aspect-ratio: 3 / 2;
   }
   .juegos-root.s4 .hub-top.s4-hero {
     min-height: 0;
@@ -1487,4 +1509,208 @@
   line-height: 1.4;
   vertical-align: 2px;
   color: #2a0f2e;
+}
+
+/* ============================== Cartas del gacha: edición Islas ==============================
+   Cada rareza tiene su marco de la isla (común: arena; rara: laguna; épica: atardecer; legendaria: sol; mítica: el
+   arcoíris tropical). La placa del nombre es el mar, con una ola encima y una palmera de sello. El dorso de la
+   invocación es un atardecer. Solo cambia el aspecto: los colores salen de las variables --r-* de arriba. */
+.juegos-root.s4 .gacha-card {
+  --frame: linear-gradient(145deg, #fff3d6, #d9b277 48%, #f6deaa);
+  --sea-hi: #1c5f7e;
+  --sea-lo: #0a2740;
+  border-radius: 16px;
+}
+/* Arena: puntitos de granos sobre el marco. */
+.juegos-root.s4 .gacha-card--comun {
+  background:
+    radial-gradient(circle, rgba(120, 80, 30, 0.22) 1px, transparent 1.4px) 0 0 / 6px 6px,
+    var(--frame);
+}
+.juegos-root.s4 .gacha-card--rara {
+  --frame: linear-gradient(145deg, #d4fff7, #12b5a5 46%, #78eedd);
+  --sea-hi: #0f6b72;
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.38),
+    0 0 14px rgba(46, 230, 208, 0.35);
+}
+.juegos-root.s4 .gacha-card--epica {
+  --frame: linear-gradient(145deg, #ffd6ea, #e0407f 42%, #7d3fd9 78%, #ffa3c9);
+  --sea-hi: #4a1f6e;
+  --sea-lo: #1a0f36;
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(255, 95, 162, 0.5);
+}
+.juegos-root.s4 .gacha-card--mitica {
+  --frame: linear-gradient(145deg, #fff8c4, #ffb547 34%, #ff6b5a 58%, #ffe36e 82%);
+  --sea-hi: #6a2a3e;
+  --sea-lo: #2a0f2e;
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.4),
+    0 0 26px rgba(255, 170, 70, 0.6);
+}
+.juegos-root.s4 .gacha-card--unica {
+  --sea-hi: #3a1a5e;
+  --sea-lo: #12102e;
+}
+/* Rayos de sol que giran detrás del arte de las legendarias (se ven por el marco). */
+.juegos-root.s4 .gacha-card--mitica:not(.gacha-card--mini)::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  z-index: 0;
+  pointer-events: none;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.35) 0 8deg, transparent 8deg 20deg);
+  animation: s4-rays 14s linear infinite;
+}
+.juegos-root.s4 .gacha-card > * {
+  position: relative;
+  z-index: 1;
+}
+@keyframes s4-rays {
+  to {
+    rotate: 360deg;
+  }
+}
+.juegos-root.s4 .gacha-card__img {
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(180deg, #2a1a5e, #0d2b4a);
+}
+.juegos-root.s4 .gacha-card--mini .gacha-card__img {
+  border-radius: 7px;
+}
+/* El arte se funde con un poco de luz de atardecer arriba y el mar abajo. */
+.juegos-root.s4 .gacha-card__img::before {
+  background: linear-gradient(180deg, rgba(255, 140, 90, 0.18), transparent 24%, transparent 66%, color-mix(in srgb, var(--sea-hi) 80%, transparent));
+}
+/* Foil holográfico con los colores de la isla. */
+.juegos-root.s4 .gacha-card--epica .gacha-card__img::after,
+.juegos-root.s4 .gacha-card--mitica .gacha-card__img::after,
+.juegos-root.s4 .gacha-card--unica .gacha-card__img::after {
+  background:
+    linear-gradient(115deg, transparent 22%, rgba(255, 250, 230, 0.75) 40%, transparent 54%),
+    repeating-linear-gradient(115deg, #ff6b5a 0 6%, #ffe36e 6% 12%, #43d17c 12% 18%, #2ee6d0 18% 24%, #ff4f8b 24% 30%);
+  background-size:
+    320% 100%,
+    260% 260%;
+  background-position:
+    var(--mx, 25%) 0,
+    var(--mx, 35%) var(--my, 35%);
+}
+/* Placa del nombre: el mar, con una ola de espuma arriba y una palmera de sello en la esquina. */
+.juegos-root.s4 .gacha-card figcaption {
+  position: relative;
+  padding-top: 11px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M14 38 C 15 28, 17 20, 22 13' stroke='white' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M22 13 c 5 -5 12 -4 15 1 c -5 -2 -10 -1 -15 -1 Z M22 13 c -5 -5 -12 -3 -15 2 c 5 -2 10 -2 15 -2 Z M22 13 c 1 -6 6 -9 11 -8 c -5 1 -8 4 -11 8 Z M22 13 c -2 -6 -7 -8 -11 -6 c 5 1 8 3 11 6 Z' fill='white'/%3E%3C/svg%3E") right 6px bottom 6px / 26px 26px no-repeat,
+    linear-gradient(180deg, var(--sea-hi), var(--sea-lo));
+  background-blend-mode: soft-light, normal;
+}
+.juegos-root.s4 .gacha-card figcaption::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: linear-gradient(90deg, rgba(200, 245, 255, 0.85), rgba(255, 255, 255, 0.95), rgba(200, 245, 255, 0.85));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='10' viewBox='0 0 20 10'%3E%3Cpath d='M0 6 Q 5 1 10 6 T 20 6 V 10 H 0 Z' fill='black'/%3E%3C/svg%3E") repeat-x left top / 20px 10px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='10' viewBox='0 0 20 10'%3E%3Cpath d='M0 6 Q 5 1 10 6 T 20 6 V 10 H 0 Z' fill='black'/%3E%3C/svg%3E") repeat-x left top / 20px 10px;
+  opacity: 0.55;
+  animation: s4-foam 6s linear infinite;
+}
+@keyframes s4-foam {
+  to {
+    -webkit-mask-position: 20px 0;
+    mask-position: 20px 0;
+  }
+}
+.juegos-root.s4 .gacha-card figcaption b {
+  letter-spacing: 0.01em;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+.juegos-root.s4 .gacha-card figcaption small {
+  color: #bfe6ef;
+}
+.juegos-root.s4 .gacha-card__tags em {
+  color: #2a0f2e;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+.juegos-root.s4 .gacha-card__price {
+  color: #ffe36e;
+}
+/* Sello de estrellas: una pastilla de atardecer. */
+.juegos-root.s4 .gacha-card__seal {
+  border: 0;
+  background: linear-gradient(180deg, rgba(42, 15, 46, 0.85), rgba(10, 20, 50, 0.85));
+  box-shadow: inset 0 0 0 1.5px var(--edge);
+}
+
+/* Dorso de la invocación: el sol rayado poniéndose en el mar, con una palmera. */
+.juegos-root.s4 .gacha-summon__back {
+  border: 4px solid #ffe3b0;
+  border-radius: 18px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150' preserveAspectRatio='xMidYMid slice'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%231b1150'/%3E%3Cstop offset='.5' stop-color='%23d9467a'/%3E%3Cstop offset='1' stop-color='%23ffcf6b'/%3E%3C/linearGradient%3E%3ClinearGradient id='u' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23fff6b8'/%3E%3Cstop offset='1' stop-color='%23ff5f6d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='150' fill='url(%23s)'/%3E%3Ccircle cx='50' cy='95' r='30' fill='url(%23u)'/%3E%3Cg fill='%23d9467a'%3E%3Crect x='18' y='86' width='64' height='2'/%3E%3Crect x='18' y='91' width='64' height='3'/%3E%3C/g%3E%3Crect y='95' width='100' height='55' fill='%2316466e'/%3E%3Cg stroke='%23ffd27a' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M32 101 H68'/%3E%3Cpath d='M38 108 H62'/%3E%3Cpath d='M43 115 H57'/%3E%3C/g%3E%3Cpath d='M8 150 C 10 128, 14 112, 22 100' stroke='%231a0f2e' stroke-width='3.4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M22 100 c 8 -7 18 -6 22 2 c -7 -3 -14 -2 -22 -2 Z M22 100 c -8 -7 -18 -4 -21 4 c 7 -3 14 -3 21 -4 Z M22 100 c 1 -9 9 -13 16 -11 c -7 1 -12 5 -16 11 Z M22 100 c -3 -8 -10 -11 -16 -8 c 7 1 12 4 16 8 Z' fill='%231a0f2e'/%3E%3Ctext x='50' y='42' text-anchor='middle' font-family='Arial Black, sans-serif' font-size='22' font-weight='900' fill='%23fff6e8' fill-opacity='.9'%3EGc%3C/text%3E%3C/svg%3E") center / cover no-repeat,
+    #1b1150;
+  box-shadow:
+    inset 0 0 0 2px rgba(42, 15, 46, 0.6),
+    0 0 40px color-mix(in srgb, var(--glow) 45%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root.s4 .gacha-card--mitica::before,
+  .juegos-root.s4 .gacha-card figcaption::before {
+    animation: none;
+  }
+}
+
+/* Escena de Pez Gordo (FishArt.jsx). */
+.juegos-root .pzs-shark {
+  animation: pzs-shark 9s linear infinite;
+}
+@keyframes pzs-shark {
+  from {
+    transform: translate(-90px, 40px);
+  }
+  to {
+    transform: translate(260px, 30px);
+  }
+}
+.juegos-root .pzs-me {
+  animation: pzs-bob 2.4s ease-in-out infinite;
+}
+@keyframes pzs-bob {
+  50% {
+    translate: 0 -4px;
+  }
+}
+.juegos-root .pzs-small {
+  animation: pzs-flee 2.4s ease-in-out infinite;
+}
+@keyframes pzs-flee {
+  50% {
+    translate: 8px -3px;
+  }
+}
+.juegos-root .pzs-plankton circle {
+  animation: is4-twinkle 2.2s ease-in-out infinite;
+}
+.juegos-root .pzs-bubbles {
+  animation: pzs-rise 2.8s ease-in infinite;
+}
+@keyframes pzs-rise {
+  to {
+    translate: 0 -24px;
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root :is(.pzs-shark, .pzs-me, .pzs-small, .pzs-plankton circle, .pzs-bubbles) {
+    animation: none;
+  }
+  .juegos-root .pzs-shark {
+    transform: translate(40px, 36px);
+  }
 }

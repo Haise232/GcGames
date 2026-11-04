@@ -1,5 +1,5 @@
 // Ilustraciones del selector de juegos: una mini escena en SVG por juego. Los colores y las animaciones (clases hs-*)
-// están en scenes.css. Las cuatro de la Season 3 son más grandes (240×160) y las demás, de 160×90, para sus tarjetas.
+// están en scenes.css. Las de la Season 3 son más grandes (240×160) y las demás, de 160×90, para sus tarjetas.
 
 import './scenes.css'
 
@@ -220,70 +220,6 @@ export function AuctionScene() {
   )
 }
 
-export function BridgeScene() {
-  const rows = [0, 1, 2, 3, 4]
-  // Perspectiva: las filas lejanas son más pequeñas y suben. Cada fila tiene un cristal que aguanta y otro que no.
-  const bad = { 1: 1, 2: 0, 3: 1 }
-  return (
-    <svg className="hub-scene" viewBox="0 0 240 160" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <linearGradient id="hs-br-glass" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#e4f6ff" stopOpacity="0.95" />
-          <stop offset="1" stopColor="#6fb4f0" stopOpacity="0.55" />
-        </linearGradient>
-        <linearGradient id="hs-br-mist" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#8d6cff" stopOpacity="0" />
-          <stop offset="1" stopColor="#b79bff" stopOpacity="0.55" />
-        </linearGradient>
-        <radialGradient id="hs-br-goal" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#ffe9a0" stopOpacity="0.95" />
-          <stop offset="1" stopColor="#ffd25e" stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <rect x="0" y="108" width="240" height="52" fill="url(#hs-br-mist)" />
-      <ellipse cx="60" cy="150" rx="70" ry="12" fill="#b79bff" opacity="0.25" className="hs-br-mist" />
-      <ellipse cx="190" cy="154" rx="60" ry="10" fill="#b79bff" opacity="0.2" className="hs-br-mist" />
-      {/* Meta al fondo. */}
-      <circle cx="120" cy="22" r="26" fill="url(#hs-br-goal)" className="hs-halo" />
-      <path d="M96 40 V24 A24 24 0 0 1 144 24 V40 Z" fill="#241a5c" stroke="#ffd25e" strokeOpacity="0.8" strokeWidth="1.6" />
-      <path d="M106 40 V26 A14 14 0 0 1 134 26 V40 Z" fill="#ffe9a0" opacity="0.9" />
-      {/* Cables a los lados. */}
-      <path d="M30 150 L98 40 M210 150 L142 40" stroke="#c9b8ff" strokeOpacity="0.35" strokeWidth="1.2" fill="none" />
-      {rows
-        .slice()
-        .reverse()
-        .map((i) => {
-          const w = 46 - i * 6
-          const h = 20 - i * 2.4
-          const gap = 7 - i * 0.9
-          const y = 134 - i * 21
-          return [0, 1].map((side) => {
-            const x = side === 0 ? 120 - gap / 2 - w : 120 + gap / 2
-            const isBad = bad[i] === side
-            return (
-              <g key={`${i}-${side}`} className={isBad ? `hs-br-bad hs-br-bad--${i}` : undefined}>
-                <rect x={x} y={y} width={w} height={h} rx="3" fill={isBad ? '#d4504a' : 'url(#hs-br-glass)'} fillOpacity={isBad ? 0.75 : 1} stroke="#fff" strokeOpacity={isBad ? 0.25 : 0.6} />
-                {isBad ? (
-                  <path d={`M${x + w * 0.2} ${y} L${x + w * 0.45} ${y + h * 0.45} L${x + w * 0.3} ${y + h * 0.65} L${x + w * 0.6} ${y + h}`} fill="none" stroke="#fff" strokeOpacity="0.85" strokeWidth="1.2" />
-                ) : (
-                  <path d={`M${x + w * 0.14} ${y + h * 0.25} H${x + w * 0.5}`} stroke="#fff" strokeOpacity="0.7" strokeWidth="1.5" strokeLinecap="round" />
-                )}
-              </g>
-            )
-          })
-        })}
-      <g className="hs-br-hero">
-        <ellipse cx="86" cy="135" rx="7" ry="2.2" fill="#000" opacity="0.3" />
-        <circle cx="86" cy="124" r="7" fill="#ffd25e" stroke="#fff4c0" strokeWidth="1.5" />
-        <circle cx="84" cy="122.5" r="1.4" fill="#2a1a00" />
-        <circle cx="88.5" cy="122.5" r="1.4" fill="#2a1a00" />
-      </g>
-    </svg>
-  )
-}
-
-// ---------- Para jugar solo ----------
-
 // Ascensor: el hueco con los cables, la cabina subiendo con luz dentro y el indicador de planta encima.
 export function ElevatorScene() {
   return (
@@ -448,62 +384,6 @@ export function RaceScene() {
           <rect key={i} x={(i % 4) * 4 + 1} y={Math.floor(i / 4) * 4} width="4" height="4" fill={(i + Math.floor(i / 4)) % 2 ? '#f1e9d6' : '#16161b'} />
         ))}
       </g>
-    </svg>
-  )
-}
-
-export function DungeonScene() {
-  const door = (c, k) => <path key={k} d={`M${c - 14} 76 V38 a14 14 0 0 1 28 0 V76 Z`} />
-  return (
-    <svg className="hub-scene" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <linearGradient id="hs-dg-gold" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#fff4c0" />
-          <stop offset="1" stopColor="#f2b53c" />
-        </linearGradient>
-        <linearGradient id="hs-dg-rays" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0" stopColor="#ffe9a0" stopOpacity="0.5" />
-          <stop offset="1" stopColor="#ffe9a0" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {/* Ladrillos del muro. */}
-      <g stroke="#000" strokeOpacity="0.18" fill="none">
-        {[14, 28, 42, 56, 70].map((y) => (
-          <path key={y} d={`M0 ${y} H160`} />
-        ))}
-        {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-          <path key={i} d={`M${i * 22 + (i % 2) * 10} 0 V76`} />
-        ))}
-      </g>
-      <rect x="0" y="76" width="160" height="14" fill="#15110f" />
-      {/* Puerta abierta con el tesoro. */}
-      <g>
-        <path d="M66 76 V38 a14 14 0 0 1 28 0 V76 Z" fill="url(#hs-dg-gold)" />
-        <path d="M66 76 L52 90 H108 L94 76 Z" fill="url(#hs-dg-rays)" />
-        <rect x="73" y="62" width="14" height="10" rx="1.5" fill="#8a4f20" stroke="#3b2008" />
-        <path d="M73 64 a7 5 0 0 1 14 0" fill="#a8652a" stroke="#3b2008" />
-        <rect x="78.5" y="64" width="3" height="4" fill="#ffd25e" />
-        <path d={spark(80, 50, 5)} fill="#fff" className="hs-twinkle" />
-      </g>
-      <g className="hs-door hs-door--l">
-        <g fill="#7a4a24" stroke="#3b2008">
-          {door(34, 'l')}
-        </g>
-        <circle cx="42" cy="58" r="1.8" fill="#c8a24b" />
-      </g>
-      <g className="hs-door hs-door--r">
-        <g fill="#7a4a24" stroke="#3b2008">
-          {door(126, 'r')}
-        </g>
-        <circle cx="118" cy="58" r="1.8" fill="#c8a24b" />
-      </g>
-      {[12, 148].map((x) => (
-        <g key={x}>
-          <rect x={x - 1.5} y="44" width="3" height="10" fill="#4b2517" />
-          <ellipse cx={x} cy="40" rx="4" ry="6.5" fill="#ff9a2e" className="hs-flame2" />
-          <ellipse cx={x} cy="41" rx="2" ry="3.6" fill="#fff4c0" className="hs-flame2" />
-        </g>
-      ))}
     </svg>
   )
 }

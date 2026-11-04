@@ -151,7 +151,7 @@ const STEPS = [
   {
     art: 'island',
     title: '¡Bienvenidos a la Season 4: Islas!',
-    text: `El casino se ha ido de vacaciones a Canarias: todo tiene aspecto nuevo y llega el Pase de las Islas, con misiones cada día, un cofre gratis y premios en euros en cada nivel. Como siempre, cada domingo a las 23:59 todos volvéis a empezar con ${eur(START)}. Te lo enseñamos en un minuto.`,
+    text: `El casino se ha ido de vacaciones a Canarias: todo tiene aspecto nuevo, llega Pez Gordo y el Pase de las Islas, con misiones cada día, un cofre gratis y premios en euros en cada nivel. Como siempre, cada domingo a las 23:59 todos volvéis a empezar con ${eur(START)}. Te lo enseñamos en un minuto.`,
     hero: true,
   },
   {
@@ -182,7 +182,7 @@ const STEPS = [
     target: 'round',
     art: 'live3',
     title: 'Todos a la vez',
-    text: 'Ascensor, Puente de Cristal, Subasta, Ruleta, Cohete y Carrera: la misma ronda para todo el casino cada pocos segundos. Las tarjetas con pegatina son las de tus misiones de hoy.',
+    text: 'Ascensor, Subasta, Ruleta, Cohete y Carrera: la misma ronda para todo el casino cada pocos segundos. Las tarjetas con pegatina son las de tus misiones de hoy.',
   },
   {
     target: 'elevator',
@@ -193,8 +193,8 @@ const STEPS = [
   {
     target: 'solo',
     art: 'solo3',
-    title: 'A tu ritmo',
-    text: 'La Torre, El Atraco, Laberinto, Plinko y Rana: tú contra la casa, cuando quieras. Cada uno tiene su botón de Ayuda arriba a la derecha.',
+    title: 'A tu ritmo, y Pez Gordo',
+    text: 'Nuevo: Pez Gordo. Come plancton y peces más pequeños para crecer, huye de los tiburones y sal del agua cuando quieras: cuanto más pesas, más cobras. Y además La Torre, El Atraco, Plinko y Rana. Cada uno tiene su botón de Ayuda arriba a la derecha.',
   },
   {
     target: 'live',

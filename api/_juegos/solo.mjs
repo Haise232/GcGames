@@ -1,10 +1,10 @@
-// Juegos en solitario (ruleta, cohete, laberinto, Plinko, la rana y la carrera de coches) con el saldo semanal: el servidor sortea
+// Juegos en solitario (ruleta, cohete, Plinko, la rana, la carrera de coches, la Torre, el Atraco y Pez Gordo) con el saldo semanal: el servidor sortea
 // con randomInt y aplica las mismas reglas puras que pinta la pantalla (src/juegos/*.js), así el
 // navegador no puede elegir su resultado. Cada función devuelve { error } o el resultado con `delta`, lo que cambia
 // el saldo, y `saved`, lo que hay que guardar para la siguiente jugada (racha y apuesta de la ruleta y del cohete).
 import { createHmac } from 'node:crypto'
 import * as roulette from '../../src/juegos/roulette.js'
-import * as dungeon from '../../src/juegos/dungeon.js'
+import * as pez from '../../src/juegos/pez.js'
 import * as plinko from '../../src/juegos/plinko.js'
 import * as crash from '../../src/juegos/crash.js'
 import * as frog from '../../src/juegos/frog.js'
@@ -15,7 +15,7 @@ import { cardView } from './gacha.mjs'
 
 export const SOLO_GAMES = {
   solo_roulette: 'roulette',
-  solo_dungeon: 'dungeon',
+  solo_fish: 'fish',
   solo_plinko: 'plinko',
   solo_crash: 'crash',
   solo_frog: 'frog',
@@ -590,78 +590,47 @@ export async function heistPlay(msg, balance, saved, rand, ctx) {
   return { delta: 0, played: true, saved: state, result: heistView(state, balance, { ev: 'down' }) }
 }
 
-// --- Laberinto: como la rana, la apuesta queda en juego (ya salió del saldo) como botín. Cada sala la sortea el
-// servidor al entrar (dungeon.layout: qué hay detrás de cada puerta y cómo se barajan) y la pantalla la anima; el
-// jugador elige una posición y aquí se mira qué quedó en ella. Si el cofre es un mímico se decide al abrirlo, así que
-// no se puede saber antes. saved: { bet, pot, room, week, maze, last } con bet > 0 mientras hay una partida en marcha;
-// maze ({ doors, swaps, at }) es la sala que se está jugando (null entre sala y sala) y last, la última partida
-// liquidada (para el aviso y el gacha).
-function dungeonView(state, balance, extra = {}) {
+// --- Pez Gordo: la apuesta sale del saldo al empezar y la partida se juega en el navegador con una semilla que da el
+// servidor. Al acabar (te comen, sales del agua o se acaba el tiempo) llegan tus movimientos y aquí se repite la
+// partida entera (pez.simulate) para saber cuánto pesabas de verdad: el navegador no puede inventarse el resultado. No
+// se admiten más pasos de los que han dado tiempo a jugarse desde que empezó. saved: { bet, seed, at, week, last, best }
+// con bet > 0 mientras hay una partida en marcha; best es el mejor cobro del día (para la clasificación).
+const FISH_GRACE_MS = 1500
+
+function fishView(state, balance, extra = {}) {
   const live = state.bet > 0
-  const maze = live && state.maze ? { doors: state.maze.doors, swaps: state.maze.swaps } : null
-  return { bet: live ? state.bet : 0, pot: live ? state.pot : 0, room: live ? state.room : 0, maze, last: state.last ?? null, balance, ev: null, ...extra }
+  return { bet: live ? state.bet : 0, seed: live ? state.seed : null, at: live ? state.at : null, last: state.last ?? null, best: state.best ?? null, balance, ev: null, ...extra }
 }
 
-// Con suerte del Admin Abuse (luck 2 o 3), las puertas se cambian de sitio menos veces y hay menos mímicos.
-const newMaze = (room, rand, now, luck = 1) => {
-  const maze = dungeon.layout(room, rand)
-  return { ...maze, swaps: maze.swaps.slice(0, Math.ceil(maze.swaps.length / luck)), at: now }
-}
-
-// msg.a: «sync», «start» (bet), «go» (entrar en la sala siguiente), «open» (door: 0, 1, 2 o -1 si se acabó el tiempo)
-// o «cash» (salir con el botín, solo entre sala y sala).
-export function dungeonPlay(msg, balance, saved, rand, ctx) {
+// msg.a: «sync», «start» (bet) o «end» (inputs: [[paso, dx, dy], …], tick: el paso en que acabó, cash: si saliste del
+// agua; sin cash, te comieron).
+export function fishPlay(msg, balance, saved, rand, ctx) {
   let state = saved && saved.week === ctx.week ? { ...saved } : { last: saved?.last ?? null }
+  if (state.best && state.best.day !== ctx.day) state.best = null
   const live = state.bet > 0
-  const settle = (paid, end) => {
-    state = { ...state, bet: 0, pot: 0, maze: null, last: { round: ctx.now, stake: state.bet, payout: paid, net: paid - state.bet, room: state.room, end } }
-    return paid
-  }
-  if (msg.a === 'sync') {
-    // Al recargar a mitad de sala no se vuelven a enseñar las puertas: quedan cerradas y solo falta elegir.
-    const view = dungeonView(state, balance)
-    if (view.maze) view.maze = { doors: null, swaps: [], left: Math.max(0, state.maze.at + dungeon.roomMs(state.room) - ctx.now) }
-    return { delta: 0, played: false, saved: null, result: view }
-  }
+  if (msg.a === 'sync') return { delta: 0, played: false, saved: null, result: fishView(state, balance, { now: ctx.now }) }
   if (msg.a === 'start') {
     if (live) return { error: 'BAD_PHASE' }
-    if (!dungeon.validBet(msg.bet)) return { error: 'BAD_MESSAGE' }
+    if (!pez.validBet(msg.bet)) return { error: 'BAD_MESSAGE' }
     if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
-    state = { ...state, bet: msg.bet, pot: msg.bet, room: 0, week: ctx.week, maze: newMaze(0, rand, ctx.now, ctx.luck) }
-    return { delta: -msg.bet, played: true, saved: state, result: dungeonView(state, balance - msg.bet, { ev: 'start' }) }
+    state = { ...state, bet: msg.bet, seed: rand(4294967296), at: ctx.now, week: ctx.week }
+    return { delta: -msg.bet, played: true, saved: state, result: fishView(state, balance - msg.bet, { ev: 'start', now: ctx.now }) }
   }
+  if (msg.a !== 'end') return { error: 'BAD_MESSAGE' }
   if (!live) return { error: 'BAD_PHASE' }
-  if (msg.a === 'go') {
-    if (state.maze) return { error: 'BAD_PHASE' }
-    state = { ...state, maze: newMaze(state.room, rand, ctx.now, ctx.luck) }
-    return { delta: 0, played: true, saved: state, result: dungeonView(state, balance, { ev: 'go' }) }
-  }
-  if (msg.a === 'cash') {
-    if (state.maze) return { error: 'BAD_PHASE' }
-    const paid = settle(state.pot, 'cash')
-    return { delta: paid, played: true, saved: state, result: dungeonView(state, balance + paid, { ev: 'cash' }) }
-  }
-  if (msg.a !== 'open' || !dungeon.validDoor(msg.door) || !state.maze) return { error: msg.a === 'open' && !state.maze ? 'BAD_PHASE' : 'BAD_MESSAGE' }
-  const room = state.room
-  const doors = dungeon.shuffled(state.maze.doors, state.maze.swaps)
-  // Sin elegir a tiempo (o demasiado tarde para ser de verdad), una puerta al azar.
-  const late = ctx.now > state.maze.at + dungeon.roomMs(room) + dungeon.LATE_MS
-  const pick = msg.door < 0 || late ? rand(dungeon.DOORS) : msg.door
-  let kind = doors[pick]
-  if (kind === 'chest' && rand(100 * (ctx.luck ?? 1)) < dungeon.ROOMS[room].mimic) kind = 'mimic'
-  const shown = doors.map((d, i) => (i === pick ? kind : d))
-  const extra = { ev: kind, doors: shown, pick, at: room, timeout: msg.door < 0 || late }
-  if (dungeon.loses(kind)) {
-    settle(0, kind)
-    return { delta: 0, played: true, saved: state, result: dungeonView(state, balance, extra) }
-  }
-  const pot = kind === 'chest' ? dungeon.grow(state.pot, room) : state.pot
-  state = { ...state, pot, room: room + 1, maze: null }
-  if (state.room >= dungeon.DEPTH) {
-    const paid = settle(pot, 'treasure')
-    return { delta: paid, played: true, saved: state, result: dungeonView(state, balance + paid, extra) }
-  }
-  return { delta: 0, played: true, saved: state, result: dungeonView(state, balance, extra) }
+  const inputs = msg.inputs ?? []
+  if (!pez.validInputs(inputs) || !Number.isSafeInteger(msg.tick) || msg.tick < 0) return { error: 'BAD_MESSAGE' }
+  const allowed = Math.min(pez.MAX_TICKS, Math.floor((ctx.now - state.at + FISH_GRACE_MS) / pez.TICK_MS))
+  const tick = Math.min(msg.tick, allowed)
+  const run = pez.simulate(state.seed, inputs, tick)
+  const out = run.alive && (msg.cash === true || run.tick >= pez.MAX_TICKS)
+  const paid = out ? pez.payout(state.bet, run.mass) : 0
+  const mult = out ? pez.multOf(run.mass) : 0
+  const mass = Math.round(run.mass)
+  if (paid > 0 && (!state.best || mult > state.best.mult)) state.best = { day: ctx.day, mult, payout: paid, mode: String(mass) }
+  const last = { round: ctx.now, stake: state.bet, payout: paid, net: paid - state.bet, mult, mass, tick: run.tick, eatenBy: run.eatenBy }
+  state = { ...state, bet: 0, seed: null, at: null, last }
+  return { delta: paid, played: true, saved: state, result: fishView(state, balance + paid, { ev: out ? 'cash' : 'eaten' }) }
 }
 
-export const SOLO_PLAY = { roulette: rouletteLive, dungeon: dungeonPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay }
+export const SOLO_PLAY = { roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay }

@@ -49,19 +49,23 @@ el domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el
 - **Season 4 · Islas**: todo el casino con aire tropical (atardecer en Canarias) y el **Pase de las Islas**: XP por
   cada jugada, tres misiones nuevas cada día (con bonus si haces las tres), un cofre diario gratis con racha de hasta 7
   días y 30 niveles con premios en euros y títulos que se ven en la clasificación. El pase dura toda la temporada
-  (`api/_juegos/pase.mjs`, tabla `juegos_pase`, que el servidor crea solo si falta).
+  (`api/_juegos/pase.mjs`, tabla `juegos_pase`, que el servidor crea solo si falta). Las cartas del gacha también se
+  visten de isla (arena, laguna, atardecer, sol y arcoíris tropical).
+- **Pez Gordo** (Season 4): come plancton y peces más pequeños para crecer y sal del agua cuando quieras; cuanto más
+  pesas, más cobras, y si te comen pierdes la apuesta. La partida es una simulación determinista (`src/juegos/pez.js`):
+  el navegador manda los movimientos y el servidor la repite para pagar. Sustituye al Laberinto y al Puente de Cristal,
+  que se retiraron (lo que quedara a medias se devuelve o se paga solo).
 - App instalable en el móvil (PWA) y tema de Halloween en fechas.
 
 ## 🃏 Juegos
 
 | En vivo (mesas) | Para todos a la vez | En solitario | Economía |
 |---|---|---|---|
-| Blackjack | Ruleta (cada 25 s) | Laberinto | Gacha de cartas |
+| Blackjack | Ruleta (cada 25 s) | Pez Gordo | Gacha de cartas |
 | Póker | Cohete (cada 30 s) | Plinko | Inmobiliaria |
 | Ajedrez | Carrera (cada 55 s) | Rana | Cuenta en Suiza |
 | | Ascensor | La Torre | Hacienda |
 | | La Subasta | El Atraco | Duelos |
-| | El Puente de Cristal | | |
 | | Bingo | | |
 
 ## ⚙️ Cómo funciona

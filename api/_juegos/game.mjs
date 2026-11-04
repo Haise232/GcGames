@@ -24,6 +24,12 @@ import { createHacienda, jailedUntil } from './hacienda.mjs'
 import { safeAvatar, shortName } from './engine/names.mjs'
 import { PASE_ERRORS, PASE_SQL, createPase } from './pase.mjs'
 
+const FISH_CHECK_SQL = `
+alter table public.juegos_solo drop constraint if exists juegos_solo_juego_check;
+alter table public.juegos_solo add constraint juegos_solo_juego_check
+  check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish'));
+`
+
 export const STARTING_BALANCE = 15000 // Season 2
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 const MAX_PUBLIC_PER_GAME = 6
@@ -310,7 +316,8 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       const pending = (
         await db.query(
           `with meta as (insert into public.juegos_meta (id, semana) values (1, $1) on conflict (id) do nothing)
-           select exists(select 1 from public.juegos_solo where juego in ('blackjack', 'bribe', 'wheel')) as solo,
+           select exists(select 1 from public.juegos_solo where juego in ('blackjack', 'bribe', 'wheel', 'dungeon')) as solo,
+                  coalesce((select pg_get_constraintdef(oid) like '%fish%' from pg_constraint where conname = 'juegos_solo_juego_check'), true) as fish,
                   ${rows[0].duelos ? `exists(select 1 from public.juegos_duelos where estado = 'abierto')` : 'false'} as duelos`,
           [weekOf(now()).key],
         )
@@ -319,7 +326,11 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         await refundSoloBlackjack()
         await refundRetired('bribe', (estado) => (estado?.bet > 0 ? estado.bet : 0))
         await refundRetired('wheel', (estado) => (estado?.bets ?? []).reduce((sum, b) => sum + (b.amount ?? 0), 0))
+        // El Laberinto se retiró en la Season 4 (lo sustituye Pez Gordo): se devuelve el botín de la partida a medias.
+        await refundRetired('dungeon', (estado) => (estado?.bet > 0 ? Math.max(estado.bet, estado.pot ?? 0) : 0))
       }
+      // Pez Gordo guarda su partida en juegos_solo: en una base de datos de antes se amplía el check (migracion_juegos_pez.sql).
+      if (!pending.fish) await db.query(FISH_CHECK_SQL)
       if (pending.duelos) await refundDuels()
     })().catch((error) => {
       schemaReady = null
@@ -548,6 +559,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
   const sharedLobby = memo(LOBBY_MEMO_MS, async () => {
     const t = now()
     await bingo.settleDue()
+    await glass.settleDue() // partidas del Puente (retirado) que quedaran por pagar
     const [tables, online, jackpot] = await Promise.all([
       db.query(`select codigo, juego, etiqueta, numero, estado from public.juegos_mesas order by juego, numero`),
       db.query(`select count(*)::int as n from public.juegos_cuentas where visto > now() - make_interval(secs => $1::int)`, [ONLINE_MS / 1000]),
@@ -983,7 +995,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         if (reply.solo) await liveExtras(live.game, msg, reply)
         return reply
       }
-      case 'solo_dungeon':
+      case 'solo_fish':
       case 'solo_plinko':
       case 'solo_frog':
       case 'solo_tower':
@@ -992,7 +1004,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         if (out.error) reply.error = { code: out.error, message: ERRORS[out.error] }
         else reply.solo = out.result
         if (out.settled) reply.paseEvent = await pase.record(user.id, SOLO_GAMES[msg.t], { win: out.settled.net > 0 })
-        if ((msg.t === 'solo_tower' || msg.t === 'solo_heist') && reply.solo) reply.solo.ranking = await dayRanking(SOLO_GAMES[msg.t], user.id)
+        if ((msg.t === 'solo_tower' || msg.t === 'solo_heist' || msg.t === 'solo_fish') && reply.solo) reply.solo.ranking = await dayRanking(SOLO_GAMES[msg.t], user.id)
         if (out.abuse) reply.abuse = out.abuse
         me.balance = (await db.query(`select saldo from public.juegos_cuentas where usuario_id = $1`, [user.id])).rows[0].saldo
         return reply
@@ -1004,6 +1016,8 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         return reply
       }
       case 'bridge': {
+        // El Puente de Cristal se retiró en la Season 4: ya no se puede entrar, pero las partidas que quedaran se pagan.
+        if (msg.a === 'join') throw new JuegosError('BAD_MESSAGE')
         await glass.handle(user, msg, reply)
         if (reply.error) reply.error.message = ERRORS[reply.error.code] ?? 'Error.'
         else if (msg.a === 'join') reply.paseEvent = await pase.record(user.id, 'bridge')

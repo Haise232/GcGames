@@ -4,7 +4,8 @@ import '@fontsource/abril-fatface/latin.css'
 import '@fontsource-variable/instrument-sans/index.css'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
-import { BridgeScene, CrashScene, RaceScene, RouletteScene } from '../juegos/HubArt.jsx'
+import { CrashScene, RaceScene, RouletteScene } from '../juegos/HubArt.jsx'
+import { FishScene } from '../juegos/season4/FishArt.jsx'
 import PlayingCard from '../juegos/PlayingCard.jsx'
 import Logo from '../Logo.jsx'
 import './entrada.css'
@@ -77,12 +78,12 @@ function Escaparate({ compacto = false }) {
 
       {/* .juegos-root: las escenas y las cartas del casino solo se pintan dentro de su contenedor. */}
       <div className="gc-show__stage juegos-root" aria-hidden="true">
-        <figure className="gc-tile gc-tile--big" style={{ '--bg': 'linear-gradient(#0f2a3a, #07131c)' }}>
-          <BridgeScene />
+        <figure className="gc-tile gc-tile--big" style={{ '--bg': 'linear-gradient(#1b8fa8, #06223d)' }}>
+          <FishScene />
           <figcaption>
-            <span className="gc-live">En vivo</span>
-            <b>El Puente de Cristal</b>
-            <small>Todos cruzan a la vez</small>
+            <span className="gc-live">Nuevo</span>
+            <b>Pez Gordo</b>
+            <small>Come, crece y que no te coman</small>
           </figcaption>
         </figure>
         {PREVIEW.map((g) => (
