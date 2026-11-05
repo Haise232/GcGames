@@ -534,3 +534,32 @@ export function playSmash() {
   tone(ac, { freq: 120, to: 38, at: 0.02, dur: 0.55, type: 'sawtooth', peak: 0.14 })
   tone(ac, { freq: 70, to: 30, at: 0.08, dur: 0.6, type: 'square', peak: 0.05 })
 }
+
+// ---- Buceo de Perlas ----
+// Burbujas al bajar un tramo: unos «blup» que suben.
+export function playBubbles() {
+  const ac = audio()
+  if (!ac) return
+  ;[0, 0.09, 0.2, 0.27].forEach((at, i) => tone(ac, { freq: 260 + i * 70, to: 520 + i * 90, at, dur: 0.07, type: 'sine', peak: 0.06 }))
+}
+
+// Perla: un tintineo de cristal; la negra, más grave y con un eco que brilla.
+export function playPearl(black = false) {
+  const ac = audio()
+  if (!ac) return
+  if (black) {
+    ;[523, 659, 784, 1047, 1319].forEach((freq, i) => tone(ac, { freq, at: i * 0.06, dur: 0.5, type: 'sine', peak: 0.07 }))
+    tone(ac, { freq: 131, to: 98, dur: 0.8, type: 'triangle', peak: 0.12 })
+    return
+  }
+  tone(ac, { freq: 1568, dur: 0.35, type: 'sine', peak: 0.07 })
+  tone(ac, { freq: 2093, at: 0.07, dur: 0.4, type: 'sine', peak: 0.05 })
+}
+
+// Sin aire: un último burbujeo que se apaga.
+export function playGasp() {
+  const ac = audio()
+  if (!ac) return
+  tone(ac, { freq: 420, to: 120, dur: 0.5, type: 'sine', peak: 0.09 })
+  tone(ac, { freq: 300, to: 90, at: 0.3, dur: 0.6, type: 'triangle', peak: 0.07 })
+}
