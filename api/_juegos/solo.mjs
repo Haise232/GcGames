@@ -6,6 +6,7 @@ import { createHmac } from 'node:crypto'
 import * as roulette from '../../src/juegos/roulette/roulette.js'
 import * as pez from '../../src/juegos/fish/pez.js'
 import * as arena from '../../src/juegos/dig/arena.js'
+import * as dive from '../../src/juegos/dive/dive.js'
 import * as plinko from '../../src/juegos/plinko/plinko.js'
 import * as crash from '../../src/juegos/crash/crash.js'
 import * as frog from '../../src/juegos/frog/frog.js'
@@ -18,6 +19,7 @@ export const SOLO_GAMES = {
   solo_roulette: 'roulette',
   solo_fish: 'fish',
   solo_dig: 'dig',
+  solo_dive: 'dive',
   solo_plinko: 'plinko',
   solo_crash: 'crash',
   solo_frog: 'frog',
@@ -689,4 +691,68 @@ export function digPlay(msg, balance, saved, rand, ctx) {
   return { delta: 0, played: true, saved: state, result: digView(state, balance, { ev: 'loot', cell: msg.cell }) }
 }
 
-export const SOLO_PLAY = { roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay, dig: digPlay }
+// --- Buceo de Perlas: bajas tramo a tramo abriendo ostras (dive.js). Cada tramo se sortea al bajarlo. saved: { bet, zone,
+// week, depth, mult, pearls, last, best } con bet > 0 mientras hay una inmersión en marcha; pearls son las perlas de cada
+// tramo (para pintarlas) y mult lo que llevas (con 4 decimales).
+function diveView(state, balance, extra = {}) {
+  const live = state.bet > 0
+  return {
+    bet: live ? state.bet : 0,
+    zone: live ? state.zone : null,
+    depth: live ? state.depth : 0,
+    mult: live ? state.mult : 0,
+    pearls: live ? (state.pearls ?? []) : [],
+    last: state.last ?? null,
+    best: state.best ?? null,
+    balance,
+    ev: null,
+    ...extra,
+  }
+}
+
+// msg.a: «sync», «start» (bet, zone), «dive» (bajar un tramo) o «cash» (subir y cobrar).
+export function divePlay(msg, balance, saved, rand, ctx) {
+  let state = saved && saved.week === ctx.week ? { ...saved } : { last: saved?.last ?? null }
+  if (state.best && state.best.day !== ctx.day) state.best = null
+  const live = state.bet > 0
+  const settle = (lost) => {
+    const paid = lost ? 0 : dive.payout(state.bet, state.mult)
+    const mult = lost ? 0 : dive.shownMult(state.mult)
+    const last = { round: ctx.now, stake: state.bet, zone: state.zone, depth: state.depth, pearls: state.pearls, lost, mult, payout: paid, net: paid - state.bet }
+    if (paid > 0 && (!state.best || mult > state.best.mult)) state.best = { day: ctx.day, mult, payout: paid, mode: state.zone }
+    state = { ...state, bet: 0, depth: 0, mult: 0, pearls: [], last }
+    return paid
+  }
+  if (msg.a === 'sync') return { delta: 0, played: false, saved: null, result: diveView(state, balance) }
+  if (msg.a === 'start') {
+    if (live) return { error: 'BAD_PHASE' }
+    if (!dive.validBet(msg.bet) || !dive.validZone(msg.zone)) return { error: 'BAD_MESSAGE' }
+    if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
+    state = { ...state, bet: msg.bet, zone: msg.zone, depth: 0, mult: 0, pearls: [], week: ctx.week }
+    return { delta: -msg.bet, played: true, saved: state, result: diveView(state, balance - msg.bet, { ev: 'start' }) }
+  }
+  if (!live) return { error: 'BAD_PHASE' }
+  if (msg.a === 'cash') {
+    if (state.depth < 1) return { error: 'BAD_PHASE' }
+    const paid = settle(false)
+    return { delta: paid, played: true, saved: state, result: diveView(state, balance + paid, { ev: 'cash' }) }
+  }
+  if (msg.a !== 'dive') return { error: 'BAD_MESSAGE' }
+  // Con suerte del Admin Abuse (ctx.luck 2 o 3), el tramo se sortea tantas veces y vale el primero sin tiburón ni ahogo.
+  let kind = dive.diveRoll(state.zone, rand)
+  for (let i = 1; i < (ctx.luck ?? 1) && dive.isLoss(kind); i++) kind = dive.diveRoll(state.zone, rand)
+  if (dive.isLoss(kind)) {
+    state = { ...state, depth: state.depth + 1, pearls: [...state.pearls, kind] }
+    settle(true)
+    return { delta: 0, played: true, saved: state, result: diveView(state, balance, { ev: kind }) }
+  }
+  state = { ...state, depth: state.depth + 1, mult: dive.nextMult(state.zone, state.mult, kind === 'black'), pearls: [...state.pearls, kind] }
+  // Sin aire para otro tramo o en el tope del premio: subes y cobras solo.
+  if (state.depth >= dive.MAX_DEPTH || state.mult >= dive.MAX_MULT) {
+    const paid = settle(false)
+    return { delta: paid, played: true, saved: state, result: diveView(state, balance + paid, { ev: 'top', kind }) }
+  }
+  return { delta: 0, played: true, saved: state, result: diveView(state, balance, { ev: 'pearl', kind }) }
+}
+
+export const SOLO_PLAY = { roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay, dig: digPlay, dive: divePlay }

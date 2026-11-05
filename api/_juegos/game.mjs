@@ -27,7 +27,7 @@ import { PASE_ERRORS, PASE_SQL, createPase } from './pase.mjs'
 const SOLO_CHECK_SQL = `
 alter table public.juegos_solo drop constraint if exists juegos_solo_juego_check;
 alter table public.juegos_solo add constraint juegos_solo_juego_check
-  check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish', 'dig'));
+  check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish', 'dig', 'dive', 'regatta'));
 `
 
 export const STARTING_BALANCE = 15000 // Season 2
@@ -317,7 +317,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         await db.query(
           `with meta as (insert into public.juegos_meta (id, semana) values (1, $1) on conflict (id) do nothing)
            select exists(select 1 from public.juegos_solo where juego in ('blackjack', 'bribe', 'wheel', 'dungeon')) as solo,
-                  coalesce((select pg_get_constraintdef(oid) like '%''dig''%' from pg_constraint where conname = 'juegos_solo_juego_check'), true) as solo_check,
+                  coalesce((select pg_get_constraintdef(oid) like '%''regatta''%' from pg_constraint where conname = 'juegos_solo_juego_check'), true) as solo_check,
                   ${rows[0].duelos ? `exists(select 1 from public.juegos_duelos where estado = 'abierto')` : 'false'} as duelos`,
           [weekOf(now()).key],
         )
@@ -999,6 +999,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       }
       case 'solo_fish':
       case 'solo_dig':
+      case 'solo_dive':
       case 'solo_plinko':
       case 'solo_frog':
       case 'solo_tower':
@@ -1007,7 +1008,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         if (out.error) reply.error = { code: out.error, message: ERRORS[out.error] }
         else reply.solo = out.result
         if (out.settled) reply.paseEvent = await pase.record(user.id, SOLO_GAMES[msg.t], { win: out.settled.net > 0 })
-        if (['solo_tower', 'solo_heist', 'solo_fish', 'solo_dig'].includes(msg.t) && reply.solo) reply.solo.ranking = await dayRanking(SOLO_GAMES[msg.t], user.id)
+        if (['solo_tower', 'solo_heist', 'solo_fish', 'solo_dig', 'solo_dive'].includes(msg.t) && reply.solo) reply.solo.ranking = await dayRanking(SOLO_GAMES[msg.t], user.id)
         if (out.abuse) reply.abuse = out.abuse
         me.balance = (await db.query(`select saldo from public.juegos_cuentas where usuario_id = $1`, [user.id])).rows[0].saldo
         return reply

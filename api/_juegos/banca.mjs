@@ -44,7 +44,7 @@ const HIDDEN_TTL_MS = 3000 // igual con los juegos ocultos
 // Los juegos que se pueden quitar del selector (los ids de Juegos.jsx).
 export const HIDEABLE = [
   'elevator', 'auction', 'roulette', 'crash', 'race',
-  'fish', 'dig', 'tower', 'heist', 'plinko', 'frog',
+  'fish', 'dig', 'dive', 'tower', 'heist', 'plinko', 'frog',
   'blackjack', 'poker', 'chess',
   'bingo', 'gacha', 'inmo', 'suiza',
 ]

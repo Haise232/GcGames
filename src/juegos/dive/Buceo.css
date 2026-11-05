@@ -1,0 +1,297 @@
+/* Escrito a mano (no generado): Buceo de Perlas (Buceo.jsx). El mar en vertical (SVG de fondo) con una columna de diez
+   tramos, cada uno con su ostra, y el buzo que baja por un lado. El panel de la derecha reutiliza el de Tesoro en la
+   Arena (ar-*, dig/Arena.css). En el móvil, el panel va debajo. */
+.juegos-root .bz-app {
+  --accent: #2ee6d0;
+  --accent-rgb: 46, 230, 208;
+}
+.juegos-root .bz-app::before {
+  background:
+    radial-gradient(50% 40% at 50% 0%, rgba(46, 230, 208, 0.18), transparent 70%),
+    radial-gradient(circle, rgba(200, 246, 255, 0.06) 2px, transparent 3px) 0 0 / 60px 90px,
+    linear-gradient(180deg, #0b2a4a, #071a34 60%, #040e22);
+}
+
+/* ---------- El mar ---------- */
+.juegos-root .bz-stage {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+  padding: 14px clamp(12px, 3vw, 40px);
+  overflow: hidden;
+  border-radius: 26px;
+  background: #0b4a6a;
+  box-shadow:
+    0 0 0 2px rgba(46, 230, 208, 0.3),
+    0 20px 50px rgba(0, 0, 0, 0.45);
+  isolation: isolate;
+}
+.juegos-root .bz-stage.is-shake {
+  animation: ar-shake 0.45s ease-in-out;
+}
+.juegos-root .bz-stage .ar-top {
+  padding-top: 40px;
+}
+.juegos-root .bz-sea {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .bz-sea rect:last-child {
+  transition: opacity 0.6s;
+}
+.juegos-root .bz-rays {
+  animation: bz-rays 6s ease-in-out infinite alternate;
+}
+@keyframes bz-rays {
+  to {
+    opacity: 0.55;
+    translate: 12px 0;
+  }
+}
+.juegos-root .bz-weed {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: bz-weed 3.4s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * -0.8s);
+}
+@keyframes bz-weed {
+  from {
+    rotate: -4deg;
+  }
+  to {
+    rotate: 4deg;
+  }
+}
+.juegos-root .bz-fish {
+  animation: bz-fish 14s linear infinite;
+}
+@keyframes bz-fish {
+  from {
+    translate: -60px 0;
+  }
+  to {
+    translate: 60px 0;
+  }
+}
+.juegos-root .bz-surface {
+  animation: ar-wave 4s ease-in-out infinite alternate;
+}
+
+/* Aire que queda: una barrita que se vacía. */
+.juegos-root .bz-air b {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.juegos-root .bz-air__bar {
+  position: relative;
+  width: 46px;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.15);
+}
+.juegos-root .bz-air__bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: calc(var(--air) * 100%);
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2ee6d0, #8fe3ff);
+  transition: width 0.4s;
+}
+.juegos-root .bz-air.is-low .bz-air__bar::after {
+  background: linear-gradient(90deg, #ff4f6a, #ffb547);
+  animation: bz-blink 0.8s ease-in-out infinite alternate;
+}
+@keyframes bz-blink {
+  to {
+    opacity: 0.4;
+  }
+}
+
+/* ---------- Los tramos ---------- */
+.juegos-root .bz-column {
+  display: grid;
+  grid-template-rows: repeat(var(--n), minmax(0, 1fr));
+  width: min(100%, 520px);
+  min-height: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0 0 0 64px;
+  list-style: none;
+}
+.juegos-root .bz-step {
+  display: grid;
+  grid-template-columns: 52px auto 1fr;
+  align-items: center;
+  gap: 10px;
+  min-height: 0;
+  border-bottom: 1px dashed rgba(200, 246, 255, 0.16);
+}
+.juegos-root .bz-step__m {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(200, 246, 255, 0.7);
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .bz-step__shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-height: 0;
+}
+.juegos-root .bz-oyster {
+  height: min(100%, 52px);
+  width: auto;
+  opacity: 0.75;
+  filter: saturate(0.7) drop-shadow(0 3px 2px rgba(0, 0, 0, 0.3));
+  transition:
+    opacity 0.3s,
+    filter 0.3s;
+}
+.juegos-root .bz-oyster.is-open {
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(255, 246, 240, 0.55));
+}
+.juegos-root .bz-oyster__lid {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.juegos-root .bz-oyster.is-fresh .bz-oyster__lid {
+  animation: bz-lid 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes bz-lid {
+  from {
+    scale: 1 0.2;
+  }
+}
+.juegos-root .bz-oyster.is-fresh .bz-pearl {
+  animation: bz-pearl 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes bz-pearl {
+  from {
+    scale: 0;
+  }
+}
+.juegos-root .bz-oyster.is-black.is-open {
+  filter: drop-shadow(0 0 8px rgba(190, 140, 255, 0.9));
+}
+.juegos-root .bz-step__mult {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c8f6ff;
+  white-space: nowrap;
+}
+.juegos-root .bz-step.is-black .bz-step__mult {
+  color: #e0c4ff;
+}
+.juegos-root .bz-step.is-loss {
+  background: linear-gradient(90deg, rgba(255, 79, 106, 0.28), transparent 80%);
+}
+.juegos-root .bz-step__air {
+  position: absolute;
+  left: 50px;
+  font-size: 22px;
+}
+.juegos-root .bz-shark {
+  height: min(100%, 46px);
+  width: auto;
+  animation: bz-shark 0.6s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+@keyframes bz-shark {
+  from {
+    translate: 60px 0;
+    opacity: 0;
+  }
+}
+
+/* El buzo baja por la izquierda de la columna, a la altura del tramo en el que está. */
+.juegos-root .bz-diver-slot {
+  position: absolute;
+  top: calc(110px + var(--at) * (100% - 110px - 70px));
+  left: max(12px, calc(50% - 260px - 4px));
+  width: 64px;
+  transition: top 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+.juegos-root .bz-diver {
+  width: 100%;
+  height: auto;
+  animation: bz-bob 2.4s ease-in-out infinite alternate;
+}
+@keyframes bz-bob {
+  to {
+    translate: 0 6px;
+  }
+}
+.juegos-root .bz-bubbles {
+  animation: bz-bubbles 1.6s ease-in infinite;
+}
+@keyframes bz-bubbles {
+  to {
+    translate: 0 -12px;
+    opacity: 0;
+  }
+}
+.juegos-root .bz-diver.is-lost {
+  animation: none;
+  rotate: 25deg;
+  opacity: 0.7;
+}
+
+/* ---------- Panel ---------- */
+.juegos-root .bz-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  display: grid;
+  gap: 10px;
+}
+.juegos-root .bz-actions .ar-go {
+  position: static;
+}
+.juegos-root .bz-down {
+  background: linear-gradient(180deg, #8fe3ff, #2ea0d8);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 6px 0 #135a8a,
+    0 12px 30px rgba(46, 160, 216, 0.4);
+  color: #04223a;
+}
+
+@media (max-width: 860px) {
+  .juegos-root .app.bz-app {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+  .juegos-root .bz-stage {
+    grid-template-rows: auto auto auto auto;
+  }
+  .juegos-root .bz-column {
+    height: 460px;
+    padding-left: 54px;
+  }
+  .juegos-root .bz-diver-slot {
+    top: calc(110px + var(--at) * 400px);
+    left: 4px;
+    width: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .bz-diver-slot {
+    transition: none;
+  }
+}

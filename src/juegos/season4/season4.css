@@ -1812,6 +1812,50 @@
   }
 }
 
+/* Escena de Buceo de Perlas (DiveArt.jsx). */
+.juegos-root .dvs-rays {
+  animation: dvs-rays 5s ease-in-out infinite alternate;
+}
+@keyframes dvs-rays {
+  to {
+    opacity: 0.5;
+    translate: 8px 0;
+  }
+}
+.juegos-root .dvs-weed {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: dvs-weed 3s ease-in-out infinite alternate;
+}
+@keyframes dvs-weed {
+  from {
+    rotate: -5deg;
+  }
+  to {
+    rotate: 5deg;
+  }
+}
+.juegos-root .dvs-shine {
+  animation: ars-shine 2s ease-in-out infinite alternate;
+}
+.juegos-root .dvs-diver {
+  animation: dvs-sink 3.2s ease-in-out infinite alternate;
+}
+@keyframes dvs-sink {
+  to {
+    translate: -6px 10px;
+  }
+}
+.juegos-root .dvs-bubbles {
+  animation: dvs-bubbles 1.8s ease-in infinite;
+}
+@keyframes dvs-bubbles {
+  to {
+    translate: 0 -16px;
+    opacity: 0;
+  }
+}
+
 /* Escena de Tesoro en la Arena (ArenaArt.jsx). */
 .juegos-root .ars-wave {
   animation: ars-wave 4s ease-in-out infinite alternate;
@@ -1872,7 +1916,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .juegos-root :is(.ars-wave, .ars-shine, .ars-chest, .ars-spark, .ars-crab, .ars-claw) {
+  .juegos-root :is(.ars-wave, .ars-shine, .ars-chest, .ars-spark, .ars-crab, .ars-claw, .dvs-rays, .dvs-weed, .dvs-shine, .dvs-diver, .dvs-bubbles) {
     animation: none;
   }
 }
