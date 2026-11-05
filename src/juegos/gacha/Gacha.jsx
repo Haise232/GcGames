@@ -975,7 +975,8 @@ function Rules({ prices }) {
       <p>
         <b>Fusiones:</b> si juntas en tu biblioteca a <b>Monkey D. Luffy</b> (legendaria) y a <b>Usopp</b> (común), al momento
         se convierten en la mítica <b>Los Sombrero de Paja</b>; y a <b>Pikachu</b> (rara) con <b>Ash Ketchum</b> (común), en
-        la mítica <b>Ash y Pikachu</b>. Las dos cartas vuelven a quedar libres.
+        la mítica <b>Ash y Pikachu</b>; y si consigues a <b>Magna Swing</b> (común) y a <b>Dante Zogratis</b> (épica), te llevas la
+        mítica <b>Magna God: el que derrotó a Dante</b>. Las dos cartas vuelven a quedar libres.
         Las de fusión no salen nunca en la mesa ni en las tiradas: hay una de cada y solo se consiguen así.
       </p>
       <p>
@@ -1005,7 +1006,7 @@ function Rules({ prices }) {
       </table>
       <p className="gacha-note">
         Las cartas son personajes de anime: Dragon Ball, One Piece, Naruto, Jujutsu Kaisen, Death Note, Kimetsu no Yaiba,
-        Chainsaw Man, Evangelion, Pokémon… En lo más alto, Son Goku. La rareza sale de lo famoso que es cada uno. Tu biblioteca no se reinicia el domingo; tu saldo, sí.
+        Chainsaw Man, Evangelion, Pokémon, Black Clover (con Asta, Yuno y los demonios)… En lo más alto, Son Goku. La rareza sale de lo famoso que es cada uno. Tu biblioteca no se reinicia el domingo; tu saldo, sí.
       </p>
     </Help>
   )

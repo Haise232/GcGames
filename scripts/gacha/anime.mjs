@@ -115,6 +115,40 @@ const FUSIONES = {
   'fusion:dimitrescu-crema': ['Ash y Pikachu', 'Pokémon', 'Pokémon the Movie: I Choose You!'],
 }
 
+// Cartas nuevas (no tenían puesto antes), con su valor a mano: [id, nombre, serie, rareza, fuente, valor]. La fuente es
+// un artículo de la Wikipedia inglesa o, con «fandom:», una página de la wiki de Black Clover (allí están los demonios).
+const EXTRA = [
+  ['anime:asta', 'Asta', 'Black Clover', 'mitica', 'Asta (Black Clover)', 900],
+  ['anime:yuno', 'Yuno', 'Black Clover', 'mitica', 'fandom:Yuno Grinberryall', 860],
+  ['anime:lucifero', 'Lucifero', 'Black Clover', 'mitica', 'fandom:Lucifero', 820],
+  ['anime:dante', 'Dante Zogratis', 'Black Clover', 'epica', 'fandom:Dante Zogratis', 300],
+  ['anime:liebe', 'Liebe', 'Black Clover', 'epica', 'fandom:Liebe', 290],
+  ['anime:zagred', 'Zagred', 'Black Clover', 'epica', 'fandom:Zagred', 270],
+  ['anime:megicula', 'Megicula', 'Black Clover', 'epica', 'fandom:Megicula', 260],
+  ['anime:beelzebub', 'Beelzebub', 'Black Clover', 'epica', 'fandom:Beelzebub', 240],
+  ['anime:lilith', 'Lilith', 'Black Clover', 'rara', 'fandom:Lilith', 110],
+  ['anime:sylph', 'Sylph', 'Black Clover', 'rara', 'fandom:Sylph', 105],
+  ['anime:nahamah', 'Nahamah', 'Black Clover', 'rara', 'fandom:Nahamah', 100],
+  ['anime:magna', 'Magna Swing', 'Black Clover', 'comun', 'fandom:Magna Swing', 45],
+]
+
+// Fusiones nuevas: [id, nombre, serie, [ids de las dos cartas], fuente, valor].
+const EXTRA_FUSIONES = [['fusion:magna-dante', 'Magna God: el que derrotó a Dante', 'Black Clover', ['anime:magna', 'anime:dante'], 'fandom:Magna Swing vs. Dante Zogratis', 3000]]
+
+// Imágenes de la wiki de Black Clover (Fandom). Devuelve un Map título → { title, img, src }.
+async function fandom(titles) {
+  const found = new Map()
+  const url =
+    'https://blackclover.fandom.com/api.php?action=query&format=json&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=400' +
+    `&titles=${encodeURIComponent(titles.join('|'))}`
+  const body = await (await fetch(url, { headers: { 'user-agent': UA } })).json()
+  for (const p of Object.values(body.query.pages)) {
+    if (p.missing !== undefined || !p.thumbnail) continue
+    found.set(p.title, { title: p.title, img: p.thumbnail.source, src: `https://blackclover.fandom.com/wiki/${encodeURIComponent(p.title.replaceAll(' ', '_'))}` })
+  }
+  return found
+}
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // Imagen principal (también las no libres) de cada artículo. Devuelve un Map título pedido → { title, img }.
@@ -139,21 +173,37 @@ async function pages(titles) {
 
 const file = new URL('../../api/_juegos/gacha-catalogo.json', import.meta.url)
 const catalogo = JSON.parse(await readFile(file, 'utf8'))
-const drawable = catalogo.cartas.filter((c) => !c.fusion).sort((a, b) => a.rank - b.rank)
+const extraIds = new Set([...EXTRA.map(([id]) => id), ...EXTRA_FUSIONES.map(([id]) => id)])
+const base = catalogo.cartas.filter((c) => !extraIds.has(c.id))
+const drawable = base.filter((c) => !c.fusion).sort((a, b) => a.rank - b.rank)
 if (drawable.length !== ANIME.length) throw new Error(`Hay ${drawable.length} cartas y ${ANIME.length} personajes`)
 
-const found = await pages([...ANIME.map(([, , a]) => a), ...Object.values(FUSIONES).map(([, , a]) => a)])
+const isFandom = (source) => source.startsWith('fandom:')
+const wikiSources = [...ANIME.map(([, , a]) => a), ...Object.values(FUSIONES).map(([, , a]) => a), ...[...EXTRA, ...EXTRA_FUSIONES].map((e) => e[4]).filter((a) => !isFandom(a))]
+const found = await pages(wikiSources)
+const fan = await fandom([...EXTRA, ...EXTRA_FUSIONES].map((e) => e[4]).filter(isFandom).map((a) => a.slice(7)))
+const imageOf = (source, name) => {
+  const page = isFandom(source) ? fan.get(source.slice(7)) : found.get(source)
+  if (!page?.img) throw new Error(`Sin imagen: ${name} (${source})`)
+  return { img: page.img, src: page.src ?? `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title.replaceAll(' ', '_'))}` }
+}
 const apply = (c, [name, series, article]) => {
-  const page = found.get(article)
-  if (!page?.img) throw new Error(`Sin imagen: ${name} (${article})`)
   const { img: _img, src: _src, pos: _pos, pop: _pop, look: _look, quote: _quote, ...rest } = c
-  return { ...rest, name, series, img: page.img, src: `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title.replaceAll(' ', '_'))}`, cat: c.fusion ? 'fusion' : 'anime' }
+  return { ...rest, name, series, ...imageOf(article, name), cat: c.fusion ? 'fusion' : 'anime' }
 }
-const byId = new Map(drawable.map((c, i) => [c.id, apply(c, ANIME[i])]))
-for (const c of catalogo.cartas.filter((c) => c.fusion)) {
+const cards = drawable.map((c, i) => apply(c, ANIME[i]))
+for (const [id, name, series, rarity, source, value] of EXTRA) cards.push({ id, name, series, rarity, ...imageOf(source, name), cat: 'anime', value })
+const fusions = base.filter((c) => c.fusion).map((c) => {
   if (!FUSIONES[c.id]) throw new Error(`Falta la fusión ${c.id}`)
-  byId.set(c.id, apply(c, FUSIONES[c.id]))
-}
-const cartas = catalogo.cartas.map((c) => byId.get(c.id))
+  return apply(c, FUSIONES[c.id])
+})
+for (const [id, name, series, from, source, value] of EXTRA_FUSIONES) fusions.push({ id, name, series, rarity: 'unica', ...imageOf(source, name), cat: 'fusion', value, fusion: from })
+
+// Puestos: por rareza y, dentro de cada una, de más a menos valor; las fusiones, al final.
+const ORDER = ['unica', 'mitica', 'epica', 'rara', 'comun']
+cards.sort((a, b) => ORDER.indexOf(a.rarity) - ORDER.indexOf(b.rarity) || b.value - a.value)
+const cartas = [...cards, ...fusions].map((c, i) => ({ ...c, rank: i + 1 }))
+const ids = new Set(cartas.map((c) => c.id))
+for (const f of fusions) for (const part of f.fusion) if (!ids.has(part)) throw new Error(`Fusión ${f.id}: falta ${part}`)
 await writeFile(file, JSON.stringify({ generado: new Date().toISOString(), tema: 'anime', cartas }))
-console.log(`${cartas.length} cartas de anime`)
+console.log(`${cartas.length} cartas de anime (${EXTRA.length} de Black Clover y ${fusions.length} fusiones)`)
