@@ -12,7 +12,7 @@ import './Inmobiliaria.css'
 
 // La Inmobiliaria (reglas en inmo.js, servidor en api/_juegos/inmobiliaria.mjs): propiedades para todos, en dos sitios.
 // La ciudad: alrededor, las 40 casillas; en el centro, la ciudad que se va construyendo entre todos. Las 7 islas: el mapa
-// del archipiélago y las doce propiedades de cada isla. Al lado, tu cartera y la ficha de la propiedad que tocas, con
+// del archipiélago y, al tocar una, su tablero de 24 propiedades con la ciudad de la isla en el centro. Al lado, tu cartera y la ficha de la propiedad que tocas, con
 // comprar, poner casas y hotel (o mejorarla, en las islas) o venderla.
 
 const REFRESH_MS = 60000 // respaldo de Realtime, solo con la pestaña visible
@@ -272,7 +272,7 @@ export default function Inmobiliaria({ onExit, juegos }) {
   const { data, offset, load } = useInmo(juegos.request)
   const [selected, setSelected] = useState(null)
   const [view, setView] = useState('ciudad')
-  const [island, setIsland] = useState('grancanaria')
+  const [island, setIsland] = useState(null) // null: el mapa del archipiélago; si no, el tablero de esa isla
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState(null)
   const [sound, setSound] = useState(() => !isMuted())
@@ -419,8 +419,8 @@ export default function Inmobiliaria({ onExit, juegos }) {
                 <b>Hacienda no ve las propiedades</b>, solo tu saldo: son una forma de guardar el dinero. Lo que cobras de alquiler sí es efectivo.
               </p>
               <p>
-                Y fuera del tablero, <b>las 7 islas</b>: {ISLANDS.length} propiedades más, doce en cada isla, de una casa cueva en Artenara a la Isla de
-                Lobos entera. Se compran igual y no llevan casas: cada una se mejora {MAX_ISLA_LEVEL} veces (una piscina, una estrella Michelin, una
+                Y fuera del tablero, <b>las 7 islas</b>: {ISLANDS.length} propiedades más, 24 en cada isla, de una casa cueva en Artenara a la Isla de
+                Lobos entera. Toca una isla en el mapa y se abre su tablero, con la ciudad de la isla en el centro. Se compran igual y no llevan casas: cada una se mejora {MAX_ISLA_LEVEL} veces (una piscina, una estrella Michelin, una
                 flota de barcos…), cada mejora por el {ISLA_UPGRADE * 100} % de su precio. Cuantas más tengas de una misma isla, más rinden todas:
                 con {ISLA_TIERS.map(([n, k]) => `${n}, ×${k.toLocaleString('es-ES')}`).join('; con ')}, y con la isla entera, el doble.
               </p>
@@ -440,7 +440,18 @@ export default function Inmobiliaria({ onExit, juegos }) {
               ['ciudad', '🏙️ La ciudad'],
               ['islas', '🏝️ Las 7 islas'],
             ].map(([key, label]) => (
-              <button key={key} type="button" role="tab" aria-selected={view === key} className={view === key ? 'is-on' : undefined} onClick={() => setView(key)}>
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={view === key}
+                className={view === key ? 'is-on' : undefined}
+                onClick={() => {
+                  // Volver a tocar «Las 7 islas» desde una isla lleva al mapa.
+                  if (key === 'islas' && view === 'islas') setIsland(null)
+                  setView(key)
+                }}
+              >
                 {label}
               </button>
             ))}

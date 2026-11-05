@@ -50,7 +50,7 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 - **Rondas para todos a la vez**: ruleta, cohete, carrera, ascensor, subasta y bingo. Todo el casino ve la misma ronda.
 - **Juegos en solitario** contra la casa, que sortea el servidor: nadie puede hacer trampas desde el navegador.
 - **Score** semanal con la evolución día a día y lo que cada uno tiene fuera del saldo (cartas, inmuebles, Suiza).
-- **Economía**: gacha de cartas coleccionables de Black Clover (con uniones que se forman juntando dos cartas y casa de empeños), una Inmobiliaria con tablero y 84 propiedades en las 7 islas, una Cuenta en Suiza
+- **Economía**: gacha de cartas coleccionables de Black Clover (con uniones que se forman juntando dos cartas y casa de empeños), una Inmobiliaria con tablero y 168 propiedades en las 7 islas (cada una con su tablero y su ciudad), una Cuenta en Suiza
   para esconder dinero y **Hacienda**, que reclama su parte a los que más tienen.
 - **La banca**: el master puede dar dinero, mandar avisos, activar el *Admin Abuse* (×2, ×3 o todo gratis), abrir el
   bote del bingo, lanzar redadas de Hacienda, aceptar cuentas nuevas y dar contraseñas temporales.

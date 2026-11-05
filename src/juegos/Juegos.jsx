@@ -206,7 +206,7 @@ function InmoBanner({ onOpen }) {
       <span>
         <span className="im-banner__new">Nuevo</span>
         <h3>Inmobiliaria</h3>
-        <p>Compra calles de Canarias, pon casas y hoteles y cobra alquiler cada hora. Y en las 7 islas, 84 propiedades más: hoteles, bodegas, plataneras, barcos…</p>
+        <p>Compra calles de Canarias, pon casas y hoteles y cobra alquiler cada hora. Y en las 7 islas, 168 propiedades más, cada isla con su tablero y su ciudad: hoteles, bodegas, plataneras, barcos…</p>
         <span className="im-banner__cta">Ver el tablero</span>
       </span>
       <svg viewBox="0 0 200 110" aria-hidden="true">

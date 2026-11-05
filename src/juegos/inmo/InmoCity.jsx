@@ -27,10 +27,10 @@ const ROADS = [3, 7]
 const RUNWAY = { 25: [-0.4, 2.4], 35: [6.6, 9.4] }
 
 // Proyección: el centro de la casilla (r, c) a z de altura, en unidades del viewBox.
-const pt = (r, c, z = 0) => [(c - r) * 32, (c + r) * 16 + 16 - z]
-const f1 = (n) => Math.round(n * 10) / 10
-const poly = (...ps) => ps.map(([x, y]) => `${f1(x)},${f1(y)}`).join(' ')
-const rhomb = (r, c, s = 1, z = 0) => {
+export const pt = (r, c, z = 0) => [(c - r) * 32, (c + r) * 16 + 16 - z]
+export const f1 = (n) => Math.round(n * 10) / 10
+export const poly = (...ps) => ps.map(([x, y]) => `${f1(x)},${f1(y)}`).join(' ')
+export const rhomb = (r, c, s = 1, z = 0) => {
   const [x, y] = pt(r, c, z)
   return poly([x, y - 16 * s], [x + 32 * s, y], [x, y + 16 * s], [x - 32 * s, y])
 }
@@ -38,8 +38,8 @@ const rhomb = (r, c, s = 1, z = 0) => {
 const stripC = (r, c0, c1, half) => poly(pt(r - half, c0), pt(r - half, c1), pt(r + half, c1), pt(r + half, c0))
 const stripR = (c, r0, r1, half) => poly(pt(r0, c - half), pt(r1, c - half), pt(r1, c + half), pt(r0, c + half))
 // En porcentaje del cuadro (el viewBox es cuadrado), para colocar el HTML encima.
-const VB = { x: -330, y: -282, size: 660 }
-const pct = ([x, y]) => ({ left: `${((x - VB.x) / VB.size) * 100}%`, top: `${((y - VB.y) / VB.size) * 100}%` })
+export const VB = { x: -330, y: -282, size: 660 }
+export const pct = ([x, y]) => ({ left: `${((x - VB.x) / VB.size) * 100}%`, top: `${((y - VB.y) / VB.size) * 100}%` })
 
 function groundOf(r, c) {
   if (r === 9) return 'sand'
@@ -52,7 +52,7 @@ function groundOf(r, c) {
 
 // Un prisma de base ac × ar (medias casillas) y altura h: las dos caras de delante y el techo. Las ventanas son un
 // patrón sobre cada cara, inclinado con la misma matriz que la cara.
-function Box({ r, c, ac, ar = ac, h, z = 0, color, top, win }) {
+export function Box({ r, c, ac, ar = ac, h, z = 0, color, top, win }) {
   const at = (dc, dr, up) => pt(r + dr, c + dc, z + up)
   const [W, S, E] = [at(-ac, ar, 0), at(ac, ar, 0), at(ac, -ar, 0)]
   const [Nt, Wt, St, Et] = [at(-ac, -ar, h), at(-ac, ar, h), at(ac, ar, h), at(ac, -ar, h)]
@@ -72,7 +72,7 @@ function Box({ r, c, ac, ar = ac, h, z = 0, color, top, win }) {
 }
 
 // Tejado a cuatro aguas sobre una base ac × ar a la altura z.
-function Roof({ r, c, ac, ar = ac, z, h, color }) {
+export function Roof({ r, c, ac, ar = ac, z, h, color }) {
   const at = (dc, dr) => pt(r + dr, c + dc, z)
   const [N, E, S, W] = [at(-ac, -ar), at(ac, -ar), at(ac, ar), at(-ac, ar)]
   const A = pt(r, c, z + h)
@@ -86,9 +86,9 @@ function Roof({ r, c, ac, ar = ac, z, h, color }) {
   )
 }
 
-const line = (a, b, cls, w) => <line className={cls} x1={f1(a[0])} y1={f1(a[1])} x2={f1(b[0])} y2={f1(b[1])} strokeWidth={w} />
+export const line = (a, b, cls, w) => <line className={cls} x1={f1(a[0])} y1={f1(a[1])} x2={f1(b[0])} y2={f1(b[1])} strokeWidth={w} />
 
-function Tree({ r, c, s = 1 }) {
+export function Tree({ r, c, s = 1 }) {
   const [x, y] = pt(r, c)
   return (
     <g className="im-tree" style={{ '--sw': `${(r * 7 + c * 3) % 5}` }}>
@@ -102,7 +102,7 @@ function Tree({ r, c, s = 1 }) {
   )
 }
 
-function Palm({ r, c }) {
+export function Palm({ r, c }) {
   const [x, y] = pt(r, c)
   const top = [x + 3, y - 20]
   return (
@@ -120,7 +120,7 @@ function Palm({ r, c }) {
   )
 }
 
-function Umbrella({ r, c, color }) {
+export function Umbrella({ r, c, color }) {
   const [x, y] = pt(r, c)
   return (
     <g>
@@ -131,7 +131,7 @@ function Umbrella({ r, c, color }) {
   )
 }
 
-function Lamp({ r, c }) {
+export function Lamp({ r, c }) {
   const [x, y] = pt(r, c)
   return (
     <g>
@@ -143,7 +143,7 @@ function Lamp({ r, c }) {
 }
 
 // Cartel de «Se vende» sobre un solar sin dueño.
-function ForSale({ r, c }) {
+export function ForSale({ r, c }) {
   const [x, y] = pt(r + 0.18, c - 0.18)
   return (
     <g className="im-s">
@@ -431,7 +431,7 @@ function Takeoff({ i }) {
     </g>
   )
 }
-const PlaneShape = () => (
+export const PlaneShape = () => (
   <g>
     <path d="M-9 0 L7 -1.2 Q10 0 7 1.2 Z" fill="#f4f6f8" />
     <path d="M-1 0 L-5 -7 L-2 -7 L3 0 L-2 7 L-5 7 Z" fill="#dfe5ea" />
@@ -440,12 +440,12 @@ const PlaneShape = () => (
 )
 
 // La hora de Canarias, para pintar el cielo y encender las ventanas.
-function canaryHour(t = Date.now()) {
+export function canaryHour(t = Date.now()) {
   const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Atlantic/Canary', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' }).formatToParts(new Date(t))
   const get = (type) => Number(parts.find((p) => p.type === type)?.value ?? 0)
   return get('hour') + get('minute') / 60
 }
-const phaseOf = (h) => (h < 7 || h >= 20 ? 'night' : h < 8.5 ? 'dawn' : h < 18.5 ? 'day' : 'dusk')
+export const phaseOf = (h) => (h < 7 || h >= 20 ? 'night' : h < 8.5 ? 'dawn' : h < 18.5 ? 'day' : 'dusk')
 const sunAt = (h) => {
   // De día el sol y de noche la luna, cada uno por su arco de un lado al otro del cielo.
   const day = h >= 7 && h < 20
@@ -455,8 +455,8 @@ const sunAt = (h) => {
 
 const STARS = Array.from({ length: 40 }, (_, k) => ({ x: ((k * 137) % 680) - 340, y: -320 + ((k * 89) % 360), r: 0.6 + (k % 3) * 0.4, d: (k % 7) * 0.4 }))
 
-// El cielo, las montañas del horizonte (el Teide al fondo) y el mar alrededor de la isla.
-const Backdrop = memo(function Backdrop({ hour }) {
+// El cielo, las montañas del horizonte (el Teide al fondo, o las de cada isla en `mount`) y el mar alrededor.
+export const Backdrop = memo(function Backdrop({ hour, mount = null }) {
   const sun = sunAt(hour)
   return (
     <g>
@@ -484,9 +484,13 @@ const Backdrop = memo(function Backdrop({ hour }) {
           </g>
         </g>
       ))}
-      <path className="im-mount" d="M-340 62 L-300 52 L-235 18 L-205 -6 L-190 -12 L-176 -5 L-140 22 L-80 50 L-30 62 Z" />
-      <path className="im-snow" d="M-205 -6 L-190 -12 L-176 -5 L-183 -2 L-190 -6 L-197 -1 Z" />
-      <path className="im-mount im-mount--far" d="M150 62 Q210 36 260 44 T340 50 L340 62 Z" />
+      {mount ?? (
+        <>
+          <path className="im-mount" d="M-340 62 L-300 52 L-235 18 L-205 -6 L-190 -12 L-176 -5 L-140 22 L-80 50 L-30 62 Z" />
+          <path className="im-snow" d="M-205 -6 L-190 -12 L-176 -5 L-183 -2 L-190 -6 L-197 -1 Z" />
+          <path className="im-mount im-mount--far" d="M150 62 Q210 36 260 44 T340 50 L340 62 Z" />
+        </>
+      )}
       <rect className="im-sea" x="-340" y="60" width="680" height="300" />
       <g className="im-waves">
         {Array.from({ length: 16 }, (_, k) => {
@@ -642,7 +646,7 @@ function Ship({ big }) {
 }
 
 // Polvo al construir o al derribar.
-function Dust({ r, c }) {
+export function Dust({ r, c }) {
   const [x, y] = pt(r, c)
   return (
     <g className="im-dust">
@@ -654,7 +658,7 @@ function Dust({ r, c }) {
 }
 
 // Una grúa torre que aparece mientras se levanta el edificio.
-function Crane({ r, c, h }) {
+export function Crane({ r, c, h }) {
   const top = h + 22
   const base = pt(r - 0.35, c + 0.35)
   const head = [base[0], base[1] - top]
@@ -669,6 +673,28 @@ function Crane({ r, c, h }) {
     </g>
   )
 }
+
+// El degradado del mar y las ventanas de cada tipo de edificio (también los usan las islas).
+export const CityDefs = () => (
+  <defs>
+    <linearGradient id="im-sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" className="im-sea-a" />
+      <stop offset="1" className="im-sea-b" />
+    </linearGradient>
+    <pattern id="im-w-res" width="8" height="10" patternUnits="userSpaceOnUse">
+      <rect className="im-win" x="2.5" y="2" width="3.2" height="4.6" />
+    </pattern>
+    <pattern id="im-w-tower" width="6" height="8" patternUnits="userSpaceOnUse">
+      <rect className="im-win" x="1.2" y="1.5" width="3.6" height="4.6" />
+    </pattern>
+    <pattern id="im-w-hotel" width="5" height="6" patternUnits="userSpaceOnUse">
+      <rect className="im-win" x="0.5" y="1" width="4" height="4" />
+    </pattern>
+    <pattern id="im-w-glass" width="6" height="12" patternUnits="userSpaceOnUse">
+      <rect className="im-win" x="0.5" y="0" width="5" height="12" />
+    </pattern>
+  </defs>
+)
 
 const RISE_MS = 2600
 const LABEL = { compra: 'Comprada', venta: 'Vendida', 1: '1 casa', 2: '2 casas', 3: '3 casas', 4: '4 casas', 5: 'Hotel' }
@@ -725,24 +751,7 @@ function InmoCity({ cells, selected, onSelect, ready = '', burst = 0 }) {
   return (
     <div className={`im-city is-${phase}`}>
       <svg className="im-city__svg" viewBox={`${VB.x} ${VB.y} ${VB.size} ${VB.size}`} preserveAspectRatio="xMidYMid meet" aria-label="La ciudad">
-        <defs>
-          <linearGradient id="im-sea" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" className="im-sea-a" />
-            <stop offset="1" className="im-sea-b" />
-          </linearGradient>
-          <pattern id="im-w-res" width="8" height="10" patternUnits="userSpaceOnUse">
-            <rect className="im-win" x="2.5" y="2" width="3.2" height="4.6" />
-          </pattern>
-          <pattern id="im-w-tower" width="6" height="8" patternUnits="userSpaceOnUse">
-            <rect className="im-win" x="1.2" y="1.5" width="3.6" height="4.6" />
-          </pattern>
-          <pattern id="im-w-hotel" width="5" height="6" patternUnits="userSpaceOnUse">
-            <rect className="im-win" x="0.5" y="1" width="4" height="4" />
-          </pattern>
-          <pattern id="im-w-glass" width="6" height="12" patternUnits="userSpaceOnUse">
-            <rect className="im-win" x="0.5" y="0" width="5" height="12" />
-          </pattern>
-        </defs>
+        <CityDefs />
         <Backdrop hour={hour} />
         <Ground owned={owned} runways={runways} />
         <g className="im-cars">
