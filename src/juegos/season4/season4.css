@@ -315,6 +315,76 @@
   }
 }
 
+/* ============================== Barra de secciones ==============================
+   Se queda pegada arriba al bajar por el selector; la sección que se está viendo va en dorado. */
+.juegos-root .hub-nav {
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  margin: 0 0 clamp(6px, 1vw, 12px);
+}
+.juegos-root .hub-nav ul {
+  display: flex;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 6px;
+  overflow-x: auto;
+  border: 1px solid rgba(143, 227, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(8, 22, 42, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  list-style: none;
+  scrollbar-width: none;
+}
+.juegos-root .hub-nav ul::-webkit-scrollbar {
+  display: none;
+}
+.juegos-root .hub-nav a {
+  display: block;
+  padding: 8px 16px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.juegos-root .hub-nav a:hover {
+  color: var(--ivory);
+}
+.juegos-root .hub-nav a[aria-current='true'] {
+  background: linear-gradient(180deg, #ffe36e, #ffb547);
+  color: #3a1604;
+}
+.juegos-root .hub-nav a:focus-visible {
+  outline: 2px solid var(--ivory);
+  outline-offset: 2px;
+}
+/* Al saltar desde la barra, la sección no queda tapada por ella. */
+.juegos-root .app.hub :is(section, div)[id^='hub-'] {
+  scroll-margin-top: 76px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .hub-nav a {
+    transition: none;
+  }
+}
+@media (max-width: 640px) {
+  .juegos-root .hub-nav {
+    top: 4px;
+    margin-inline: -4px;
+  }
+  .juegos-root .hub-nav a {
+    padding: 7px 12px;
+    font-size: 13px;
+  }
+}
+
 /* ============================== Pase en el selector ============================== */
 .juegos-root .s4-strip {
   display: grid;
@@ -784,25 +854,27 @@
 .juegos-root.s4 .s4-round {
   grid-template-columns: repeat(12, minmax(0, 1fr));
 }
-/* Todos a la vez: dos grandes arriba (Ascensor y Subasta) y tres abajo. */
-.juegos-root.s4 .s4-round > li {
-  grid-column: span 4;
+/* Todos a la vez: tres por fila. A tu ritmo: los nuevos de la temporada (is-big) de tres en fila y el resto de cuatro.
+   En pantalla ancha van en flex y crecen: si la banca oculta algún juego, la última fila se estira y no quedan huecos. */
+@media (min-width: 1101px) {
+  .juegos-root.s4 .s4-round,
+  .juegos-root.s4 .s4-pace {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .juegos-root.s4 .s4-round > li,
+  .juegos-root.s4 .s4-pace > li.is-big {
+    flex: 1 1 calc((100% - 2 * clamp(14px, 1.6vw, 22px)) / 3);
+  }
+  .juegos-root.s4 .s4-pace > li {
+    flex: 1 1 calc((100% - 3 * clamp(14px, 1.6vw, 22px)) / 4);
+  }
+  .juegos-root.s4 .s4-pace {
+    gap: clamp(14px, 1.6vw, 22px);
+  }
 }
-.juegos-root.s4 .s4-round > li:nth-child(-n + 2) {
-  grid-column: span 6;
-}
-.juegos-root.s4 .s4-round > li:nth-child(-n + 2) .hub-card__art {
-  aspect-ratio: 16 / 7;
-}
-/* A tu ritmo: dos grandes arriba (Pez Gordo y la Arena) y cuatro abajo. */
-.juegos-root.s4 .s4-pace > li {
-  grid-column: span 3;
-}
-.juegos-root.s4 .s4-pace > li:nth-child(-n + 2) {
-  grid-column: span 6;
-}
-.juegos-root.s4 .s4-pace > li:nth-child(-n + 2) .hub-card__art {
-  aspect-ratio: 16 / 7;
+.juegos-root.s4 :is(.s4-round, .s4-pace) > li.is-big .hub-card__art {
+  aspect-ratio: 16 / 8;
 }
 
 @media (hover: hover) {
@@ -1407,15 +1479,14 @@
   .juegos-root.s4 .s4-round {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .juegos-root.s4 .s4-round > li,
-  .juegos-root.s4 .s4-round > li:nth-child(-n + 2) {
+  .juegos-root.s4 .s4-round > li {
     grid-column: auto;
   }
   .juegos-root.s4 .s4-round > li:last-child:nth-child(odd) {
     grid-column: 1 / -1;
   }
   .juegos-root.s4 .s4-pace > li,
-  .juegos-root.s4 .s4-pace > li:nth-child(-n + 2) {
+  .juegos-root.s4 .s4-pace > li.is-big {
     grid-column: auto;
   }
   .juegos-root .s4-pase__grid {
