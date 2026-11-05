@@ -126,7 +126,7 @@ export default function Squares({ i, board, now, busy, balance, drawn, onAct }) 
     body = (
       <>
         {h?.pending && <p className="sq-alert">Tienes una declaración de Hacienda pendiente: contéstala en la Banca.</p>}
-        <p>Hacienda solo mira tu saldo de la semana: las propiedades, los países, los planetas, las cartas y Suiza no los ve.</p>
+        <p>Hacienda solo mira tu saldo de la semana: las propiedades (de la ciudad y de las islas), las cartas y Suiza no los ve.</p>
         {h && (
           <div className="sq-tax">
             <small>Próxima declaración</small>

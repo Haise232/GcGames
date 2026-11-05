@@ -20,10 +20,9 @@ const KEEP_DAYS = 7
 export const INMO_ERRORS = {
   INMO_TAKEN: 'Esa propiedad ya tiene dueño.',
   INMO_NOT_YOURS: 'Esa propiedad no es tuya.',
-  INMO_MAX: 'Ya tiene hotel: no se puede mejorar más.',
+  INMO_MAX: 'Ya está al máximo: no se puede mejorar más.',
   INMO_NO_BUILD: 'En esta casilla no se puede construir.',
   INMO_FUNDS: 'No te llega el saldo de la semana.',
-  INMO_LOCKED: 'Antes tienes que tener un planeta (para las estrellas) o una estrella (para las galaxias).',
   INMO_DONE: 'Eso ya lo has hecho hoy: vuelve mañana.',
   INMO_PARKING_LOW: `El bote del Parking aún no ha llegado a ${inmo.PARKING_MIN.toLocaleString('es-ES', { useGrouping: 'always' })} €.`,
 }
@@ -70,13 +69,6 @@ export function createInmobiliaria({ db, now, move, ping }) {
     return db.tx(async (q) => {
       await lockAccount(q, user.id)
       const rent = await collect(q, user.id, t)
-      // Las estrellas piden un planeta y las galaxias, una estrella.
-      const need = inmo.REQUIRES[cell.kind]
-      if (need) {
-        const ids = inmo.SPACE.filter((c) => c.kind === need).map((c) => c.i)
-        const has = (await q(`select 1 from public.juegos_inmuebles where usuario_id = $1 and casilla = any($2::int[]) limit 1`, [user.id, ids])).rows.length
-        if (!has) return { error: 'INMO_LOCKED' }
-      }
       const got = await q(
         `insert into public.juegos_inmuebles (casilla, usuario_id, nivel, invertido, invertido_semana, semana, cobrado)
          values ($1, $2, 0, $3, $3, $4, $5) on conflict (casilla) do nothing returning casilla`,
@@ -96,7 +88,8 @@ export function createInmobiliaria({ db, now, move, ping }) {
       const rent = await collect(q, user.id, t)
       const row = (await q(`select * from public.juegos_inmuebles where casilla = $1 and usuario_id = $2 for update`, [msg.casilla, user.id])).rows[0]
       if (!row) return { error: 'INMO_NOT_YOURS' }
-      if (inmo.cellOf(msg.casilla).kind !== 'calle') return { error: 'INMO_NO_BUILD' }
+      const kind = inmo.cellOf(msg.casilla).kind
+      if (kind !== 'calle' && kind !== 'isla') return { error: 'INMO_NO_BUILD' }
       const cost = inmo.upgradeCost(msg.casilla, row.nivel)
       if (cost === null) return { error: 'INMO_MAX' }
       if (!(await move(q, { [user.id]: -cost }, true))) return { error: 'INMO_FUNDS' }
@@ -108,7 +101,7 @@ export function createInmobiliaria({ db, now, move, ping }) {
         thisWeek,
         week,
       ])
-      await log(q, user.id, msg.casilla, row.nivel + 1 >= inmo.MAX_LEVEL ? 'hotel' : 'casa', cost)
+      await log(q, user.id, msg.casilla, kind === 'isla' ? 'mejora' : row.nivel + 1 >= inmo.MAX_LEVEL ? 'hotel' : 'casa', cost)
       return { result: { upgraded: msg.casilla, level: row.nivel + 1, paid: cost, rent } }
     })
   }
@@ -346,7 +339,48 @@ export function createInmobiliaria({ db, now, move, ping }) {
 
   const ACTIONS = { comprar: buy, mejorar: upgrade, vender: sell, cobrar: cash, salida, carta: card, parking, trampa: trap }
 
+  // El mundo y el espacio se retiraron (Season 4: ahora son las 7 islas). Quien tuviera países, planetas, estrellas o
+  // galaxias recibe todo lo invertido en ellos y el alquiler que llevaran sin cobrar (al ritmo base) en su Cuenta en
+  // Suiza, como ingreso de esta semana: estaba escondido de Hacienda y ahí sigue escondido (pasarlo al saldo le haría
+  // saltar una declaración). Las filas se borran. Se hace una vez por instancia, antes de nada, porque esas casillas ya
+  // no existen en inmo.js.
+  let retired = null
+  const refundRetired = () =>
+    (retired ??= db
+      .tx(async (q) => {
+        const t = now()
+        const week = weekOf(t).key
+        const rows = (await q(`select * from public.juegos_inmuebles where casilla >= 60 and casilla < 200 order by usuario_id, casilla for update`)).rows
+        const back = new Map()
+        for (const r of rows) {
+          const invested = Number(r.invertido)
+          const rent = inmo.accrued(Math.floor(invested * inmo.RENT_RATE), Number(r.cobrado), t)
+          back.set(r.usuario_id, (back.get(r.usuario_id) ?? 0) + invested + rent)
+        }
+        for (const [userId, amount] of back) {
+          const row = (await q(`select movs from public.juegos_suiza where usuario_id = $1 for update`, [userId])).rows[0]
+          const movs = [{ t, tipo: 'ingreso', importe: amount, nota: 'Devolución del mundo y el espacio de la Inmobiliaria' }, ...(row?.movs ?? [])].slice(0, 12)
+          await q(
+            `insert into public.juegos_suiza (usuario_id, saldo, saldo_semana, semana, movs) values ($1, $2, $2, $3, $4)
+             on conflict (usuario_id) do update set
+               saldo = juegos_suiza.saldo + $2,
+               saldo_semana = case when juegos_suiza.semana = $3 then juegos_suiza.saldo_semana + $2 else $2 end,
+               semana = $3, movs = $4, actualizado = now()`,
+            [userId, amount, week, JSON.stringify(movs)],
+          )
+        }
+        if (rows.length) await q(`delete from public.juegos_inmuebles where casilla >= 60 and casilla < 200`)
+        // Sus movimientos del canal tampoco se pueden enseñar ya.
+        await q(`delete from public.juegos_inmuebles_log where casilla >= 60 and casilla < 200`)
+        return rows.length
+      })
+      .catch((error) => {
+        retired = null
+        throw error
+      }))
+
   async function handle(user, msg, reply) {
+    await refundRetired()
     const t = now()
     const week = weekOf(t).key
     if (Object.hasOwn(ACTIONS, msg.a)) {
