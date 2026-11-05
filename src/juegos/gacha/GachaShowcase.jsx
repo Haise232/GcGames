@@ -10,7 +10,7 @@ function GachaShowcase({ juegos, online, onOpen }) {
   const table = state?.table ?? []
   const best = ['unica', 'mitica', 'epica'].map((r) => table.find((e) => e.card.rarity === r)).find(Boolean)
 
-  let headline = 'Personajes de anime: cada hora sale una carta gratis en la mesa. Cógela antes que nadie.'
+  let headline = 'Black Clover: cada hora sale una carta gratis en la mesa. Junta las uniones y cógela antes que nadie.'
   if (best) headline = `¡En la mesa hay una ${RARITY[best.card.rarity].toLowerCase()}: ${best.card.name}!`
   else if (table.length > 0) headline = `${table.length === 1 ? 'Hay una carta' : `Hay ${table.length} cartas`} en la mesa para coger gratis.`
 

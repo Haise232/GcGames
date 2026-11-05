@@ -7,7 +7,7 @@ import { playBoom, playCard, playGrowl, playHeartbeat, playOvation, playSiren, p
 import { ODDS, RARITIES, RARITY, pct, useGacha, useServerNow, wait } from './gacha.js'
 import './Gacha.css'
 
-// Gacha de personajes de anime al estilo de Mudae (las reglas están en api/_juegos/gacha.mjs): tiradas que ve todo el
+// Gacha de personajes de Black Clover al estilo de Mudae (las reglas están en api/_juegos/gacha.mjs): tiradas que ve todo el
 // mundo, el primero que reclama se queda la carta, vender cartas por saldo de la semana y ver la colección de cualquiera.
 
 // Probabilidad de una carta concreta: «0,48 %», «0,0029 %».
@@ -911,7 +911,11 @@ function CardTable({ list, onOpen }) {
                       ) : (
                         <span className="gacha-owner gacha-free">Libre: puede tocarle a cualquiera</span>
                       )}
-                      {c.fusesWith && <span className="gacha-owner gacha-fuse">Fusión: júntala con {c.fusesWith.with}</span>}
+                      {c.fusesWith && (
+                        <span className="gacha-owner gacha-fuse">
+                          Fusión: júntala con {(c.fusions ?? [c.fusesWith]).map((f) => f.with).join(' o con ')}
+                        </span>
+                      )}
                     </span>
                   </span>
                 </td>
@@ -973,10 +977,10 @@ function Rules({ prices }) {
         como mucho. Si no la recuperas a tiempo, <b>el banco se la queda</b> y vuelve a estar libre para cualquiera.
       </p>
       <p>
-        <b>Fusiones:</b> si juntas en tu biblioteca a <b>Monkey D. Luffy</b> (legendaria) y a <b>Usopp</b> (común), al momento
-        se convierten en la mítica <b>Los Sombrero de Paja</b>; y a <b>Pikachu</b> (rara) con <b>Ash Ketchum</b> (común), en
-        la mítica <b>Ash y Pikachu</b>; y si consigues a <b>Magna Swing</b> (común) y a <b>Dante Zogratis</b> (épica), te llevas la
-        mítica <b>Magna God: el que derrotó a Dante</b>. Las dos cartas vuelven a quedar libres.
+        <b>Fusiones (uniones):</b> si juntas en tu biblioteca las dos cartas de una unión, al momento se convierten en su carta
+        mítica: <b>Asta + Liebe</b> = Asta: Unión Demoníaca; <b>Yuno + Sylph</b> = Yuno: Unión con el espíritu del viento;{' '}
+        <b>Magna Swing + Dante</b> = Magna God; <b>Lucifero + Dante</b> = Dante al 100 %; <b>Megicula + Vanica</b>,{' '}
+        <b>Beelzebub + Zenon</b>, <b>Walgner + Nacht</b> y <b>Salamander + Fuegoleon</b>. Las dos cartas vuelven a quedar libres.
         Las de fusión no salen nunca en la mesa ni en las tiradas: hay una de cada y solo se consiguen así.
       </p>
       <p>
@@ -1005,8 +1009,8 @@ function Rules({ prices }) {
         </tbody>
       </table>
       <p className="gacha-note">
-        Las cartas son personajes de anime: Dragon Ball, One Piece, Naruto, Jujutsu Kaisen, Death Note, Kimetsu no Yaiba,
-        Chainsaw Man, Evangelion, Pokémon, Black Clover (con Asta, Yuno y los demonios)… En lo más alto, Son Goku. La rareza sale de lo famoso que es cada uno. Tu biblioteca no se reinicia el domingo; tu saldo, sí.
+        Las cartas son de Black Clover: los Toros Negros, los capitanes de los Caballeros Mágicos, la Triada Oscura, los
+        demonios, los espíritus, los elfos… En lo más alto, Asta. La rareza sale de lo famoso que es cada uno. Tu biblioteca no se reinicia el domingo; tu saldo, sí.
       </p>
     </Help>
   )
@@ -1285,7 +1289,7 @@ export default function Gacha({ onExit, juegos, initialTab = 'tirar' }) {
 
       {summon && <Summon summon={summon} busy={busy} onDecide={decide} onClose={() => setSummon(null)} />}
 
-      <footer className="gacha-foot">Imágenes enlazadas desde Wikipedia; los personajes son de sus autores y estudios. Solo para GcGames, sin fines comerciales.</footer>
+      <footer className="gacha-foot">Imágenes enlazadas desde la wiki de Black Clover (Fandom); Black Clover es de Yūki Tabata y sus estudios. Solo para GcGames, sin fines comerciales.</footer>
     </main>
   )
 }

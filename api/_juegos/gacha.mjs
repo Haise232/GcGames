@@ -1,4 +1,4 @@
-// Gacha de Juegos al estilo de Mudae, con personajes de anime. Cada carta tiene como mucho un dueño.
+// Gacha de Juegos al estilo de Mudae, con personajes de Black Clover. Cada carta tiene como mucho un dueño.
 //   - La mesa: cada TABLE_PERIOD_MS sale sola una carta libre, hasta TABLE_MAX a la vista de todos, y cualquiera puede
 //     cogerla: se la queda el primero, sin límite por persona.
 //   - Tirar pagando: una tirada (ROLL_COST) o una premium (PREMIUM_COST: épica o legendaria) saca una carta libre y su
@@ -13,7 +13,7 @@
 // vender ni fusionar; la recuperas devolviendo el préstamo más PAWN_FEE (el interés va a la jaula del bingo) antes de
 // PAWN_MS. Si no, el banco se la queda y vuelve a estar libre para cualquiera (sweepPawns).
 // (Hasta octubre de 2026 las cartas tenían poderes en los juegos; se quitaron porque casi nadie los usaba.)
-// Las cartas vienen de gacha-catalogo.json (Season 4: personajes de anime, lo genera scripts/gacha/anime.mjs).
+// Las cartas vienen de gacha-catalogo.json (Season 4: Black Clover, lo genera scripts/gacha/blackclover.mjs).
 import { randomInt } from 'node:crypto'
 import catalogo from './gacha-catalogo.json' with { type: 'json' }
 
@@ -77,7 +77,9 @@ const cards = new Map(catalogo.cartas.map((c) => [c.id, c]))
 // se la lleva al momento (fuse).
 const FUSIONS = catalogo.cartas.filter((c) => c.fusion)
 const drawable = catalogo.cartas.filter((c) => !c.fusion)
-const partOf = new Map(FUSIONS.flatMap((f) => f.fusion.map((id) => [id, f])))
+// Fusiones de las que forma parte cada carta (puede ser más de una: Dante va con Magna y con Lucifero).
+const partOf = new Map()
+for (const f of FUSIONS) for (const id of f.fusion) partOf.set(id, [...(partOf.get(id) ?? []), f])
 const byRarity = new Map()
 for (const c of drawable) {
   if (!byRarity.has(c.rarity)) byRarity.set(c.rarity, [])
@@ -90,6 +92,9 @@ function chance(kind, rarity) {
   const total = WEIGHTS[kind].reduce((sum, [, w]) => sum + w, 0)
   return ((weight / total) * 100) / (byRarity.get(rarity)?.length ?? 1)
 }
+
+// De una fusión de la que forma parte la carta `id`: con qué otra se junta y qué sale.
+const withOf = (id, f) => ({ with: cards.get(f.fusion.find((part) => part !== id)).name, into: f.name })
 
 // Lo que se manda al navegador de una carta.
 export function cardView(id) {
@@ -109,7 +114,9 @@ export function cardView(id) {
     odds: c.fusion ? { normal: 0, premium: 0 } : { normal: chance('normal', c.rarity), premium: chance('premium', c.rarity) },
     // De fusión: las dos que la forman. Parte de una fusión: con cuál se junta y qué sale.
     fusion: c.fusion ? c.fusion.map((id) => cards.get(id).name) : null,
-    fusesWith: partOf.has(c.id) ? { with: cards.get(partOf.get(c.id).fusion.find((id) => id !== c.id)).name, into: partOf.get(c.id).name } : null,
+    // fusesWith: la primera (como antes); fusions: todas.
+    fusesWith: partOf.has(c.id) ? withOf(c.id, partOf.get(c.id)[0]) : null,
+    fusions: partOf.has(c.id) ? partOf.get(c.id).map((f) => withOf(c.id, f)) : null,
   }
 }
 
@@ -168,16 +175,18 @@ export function createGacha({ db, ping, now, charge, jaula = async () => {} }) {
 
   // Si con la carta que acaba de conseguir ya tiene las dos de una fusión (y la fusión no tiene dueño), las pierde
   // (vuelven a quedar libres) y se lleva la de fusión. Devuelve esa carta o null.
+  // Si la carta forma parte de varias fusiones, vale la primera que se pueda completar.
   async function fuse(q, userId, cardId, t) {
-    const f = partOf.get(cardId)
-    if (!f) return null
-    const { rows } = await q(`select carta from public.juegos_gacha_cartas where usuario_id = $1 and carta = any($2) and empeno is null for update`, [userId, f.fusion])
-    if (rows.length < f.fusion.length) return null
-    const got = await q(`insert into public.juegos_gacha_cartas (carta, usuario_id) values ($1, $2) on conflict (carta) do nothing returning carta`, [f.id, userId])
-    if (got.rows.length === 0) return null
-    await q(`delete from public.juegos_gacha_cartas where usuario_id = $1 and carta = any($2)`, [userId, f.fusion])
-    await log(q, 'fusion', userId, f.id, false, t)
-    return cardView(f.id)
+    for (const f of partOf.get(cardId) ?? []) {
+      const { rows } = await q(`select carta from public.juegos_gacha_cartas where usuario_id = $1 and carta = any($2) and empeno is null for update`, [userId, f.fusion])
+      if (rows.length < f.fusion.length) continue
+      const got = await q(`insert into public.juegos_gacha_cartas (carta, usuario_id) values ($1, $2) on conflict (carta) do nothing returning carta`, [f.id, userId])
+      if (got.rows.length === 0) continue
+      await q(`delete from public.juegos_gacha_cartas where usuario_id = $1 and carta = any($2)`, [userId, f.fusion])
+      await log(q, 'fusion', userId, f.id, false, t)
+      return cardView(f.id)
+    }
+    return null
   }
 
   // Repone la mesa: una carta por cada periodo que pasó desde la última vez, sin pasar de TABLE_MAX. La primera vez sale

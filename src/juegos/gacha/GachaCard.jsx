@@ -78,7 +78,11 @@ function GachaCard({ card, big = false, mini = false }) {
           ) : (
             card.odds && <span className="gacha-card__odds">{pct(card.odds.normal)} por tirada</span>
           )}
-          {card.fusesWith && <span className="gacha-card__odds gacha-card__fuse">Júntala con {card.fusesWith.with}: fusión mítica</span>}
+          {(card.fusions ?? (card.fusesWith ? [card.fusesWith] : [])).map((f) => (
+            <span key={f.into} className="gacha-card__odds gacha-card__fuse">
+              Júntala con {f.with}: {f.into}
+            </span>
+          ))}
         </figcaption>
       )}
     </figure>
