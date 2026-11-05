@@ -1,10 +1,11 @@
-// Juegos en solitario (ruleta, cohete, Plinko, la rana, la carrera de coches, la Torre, el Atraco y Pez Gordo) con el saldo semanal: el servidor sortea
+// Juegos en solitario (ruleta, cohete, Plinko, la rana, la carrera de coches, la Torre, el Atraco, Pez Gordo y Tesoro en la Arena) con el saldo semanal: el servidor sortea
 // con randomInt y aplica las mismas reglas puras que pinta la pantalla (src/juegos/*.js), así el
 // navegador no puede elegir su resultado. Cada función devuelve { error } o el resultado con `delta`, lo que cambia
 // el saldo, y `saved`, lo que hay que guardar para la siguiente jugada (racha y apuesta de la ruleta y del cohete).
 import { createHmac } from 'node:crypto'
 import * as roulette from '../../src/juegos/roulette.js'
 import * as pez from '../../src/juegos/pez.js'
+import * as arena from '../../src/juegos/arena.js'
 import * as plinko from '../../src/juegos/plinko.js'
 import * as crash from '../../src/juegos/crash.js'
 import * as frog from '../../src/juegos/frog.js'
@@ -16,6 +17,7 @@ import { cardView } from './gacha.mjs'
 export const SOLO_GAMES = {
   solo_roulette: 'roulette',
   solo_fish: 'fish',
+  solo_dig: 'dig',
   solo_plinko: 'plinko',
   solo_crash: 'crash',
   solo_frog: 'frog',
@@ -633,4 +635,58 @@ export function fishPlay(msg, balance, saved, rand, ctx) {
   return { delta: paid, played: true, saved: state, result: fishView(state, balance + paid, { ev: out ? 'cash' : 'eaten' }) }
 }
 
-export const SOLO_PLAY = { roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay }
+// --- Tesoro en la Arena: como la Torre, pero en una playa de 5×5. Cada hoyo se sortea al cavarlo (crabNext) y al acabar
+// se reparten los cangrejos que faltaban entre los hoyos sin cavar para enseñarlos. saved: { bet, mode, week, dug, last,
+// best } con bet > 0 mientras hay una partida en marcha; dug son los hoyos cavados (todos con tesoro).
+function digView(state, balance, extra = {}) {
+  const live = state.bet > 0
+  return { bet: live ? state.bet : 0, mode: live ? state.mode : null, dug: live ? (state.dug ?? []) : [], last: state.last ?? null, best: state.best ?? null, balance, ev: null, ...extra }
+}
+
+// msg.a: «sync», «start» (bet, mode), «dig» (cell: de 0 a 24) o «cash».
+export function digPlay(msg, balance, saved, rand, ctx) {
+  let state = saved && saved.week === ctx.week ? { ...saved } : { last: saved?.last ?? null }
+  if (state.best && state.best.day !== ctx.day) state.best = null
+  const live = state.bet > 0
+  const settle = (n, bitten) => {
+    const paid = bitten === null ? arena.payout(state.bet, state.mode, n) : 0
+    const mult = bitten === null ? arena.multAt(state.mode, n) : 0
+    const crabs = arena.placeCrabs(state.mode, state.dug, bitten, rand)
+    const last = { round: ctx.now, stake: state.bet, mode: state.mode, dug: state.dug, crabs, bitten, found: n, mult, payout: paid, net: paid - state.bet }
+    if (paid > 0 && (!state.best || mult > state.best.mult)) state.best = { day: ctx.day, mult, payout: paid, mode: state.mode }
+    state = { ...state, bet: 0, dug: [], last }
+    return paid
+  }
+  if (msg.a === 'sync') return { delta: 0, played: false, saved: null, result: digView(state, balance) }
+  if (msg.a === 'start') {
+    if (live) return { error: 'BAD_PHASE' }
+    if (!arena.validBet(msg.bet) || !arena.validMode(msg.mode)) return { error: 'BAD_MESSAGE' }
+    if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
+    state = { ...state, bet: msg.bet, mode: msg.mode, dug: [], week: ctx.week }
+    return { delta: -msg.bet, played: true, saved: state, result: digView(state, balance - msg.bet, { ev: 'start' }) }
+  }
+  if (!live) return { error: 'BAD_PHASE' }
+  if (msg.a === 'cash') {
+    if (state.dug.length < 1) return { error: 'BAD_PHASE' }
+    const paid = settle(state.dug.length, null)
+    return { delta: paid, played: true, saved: state, result: digView(state, balance + paid, { ev: 'cash' }) }
+  }
+  if (msg.a !== 'dig' || !arena.validCell(msg.cell)) return { error: 'BAD_MESSAGE' }
+  if (state.dug.includes(msg.cell)) return { error: 'BAD_MESSAGE' }
+  // Con suerte del Admin Abuse (ctx.luck 2 o 3), el hoyo se sortea tantas veces y vale el primero sin cangrejo.
+  let crab = arena.crabNext(state.mode, state.dug.length, rand)
+  for (let i = 1; i < (ctx.luck ?? 1) && crab; i++) crab = arena.crabNext(state.mode, state.dug.length, rand)
+  if (crab) {
+    settle(state.dug.length, msg.cell)
+    return { delta: 0, played: true, saved: state, result: digView(state, balance, { ev: 'crab', cell: msg.cell }) }
+  }
+  state = { ...state, dug: [...state.dug, msg.cell] }
+  // Sin más tesoro que sacar o en el tope del premio: cobras solo.
+  if (state.dug.length >= arena.maxDigs(state.mode)) {
+    const paid = settle(state.dug.length, null)
+    return { delta: paid, played: true, saved: state, result: digView(state, balance + paid, { ev: 'all', cell: msg.cell }) }
+  }
+  return { delta: 0, played: true, saved: state, result: digView(state, balance, { ev: 'loot', cell: msg.cell }) }
+}
+
+export const SOLO_PLAY = { roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay, dig: digPlay }

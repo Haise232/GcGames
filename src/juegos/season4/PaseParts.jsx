@@ -9,6 +9,7 @@ export const GAME_NAMES = {
   plinko: 'Plinko',
   frog: 'Rana',
   fish: 'Pez Gordo',
+  dig: 'Arena',
   tower: 'La Torre',
   heist: 'El Atraco',
   bingo: 'Bingo',

@@ -24,10 +24,10 @@ import { createHacienda, jailedUntil } from './hacienda.mjs'
 import { safeAvatar, shortName } from './engine/names.mjs'
 import { PASE_ERRORS, PASE_SQL, createPase } from './pase.mjs'
 
-const FISH_CHECK_SQL = `
+const SOLO_CHECK_SQL = `
 alter table public.juegos_solo drop constraint if exists juegos_solo_juego_check;
 alter table public.juegos_solo add constraint juegos_solo_juego_check
-  check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish'));
+  check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish', 'dig'));
 `
 
 export const STARTING_BALANCE = 15000 // Season 2
@@ -317,7 +317,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         await db.query(
           `with meta as (insert into public.juegos_meta (id, semana) values (1, $1) on conflict (id) do nothing)
            select exists(select 1 from public.juegos_solo where juego in ('blackjack', 'bribe', 'wheel', 'dungeon')) as solo,
-                  coalesce((select pg_get_constraintdef(oid) like '%fish%' from pg_constraint where conname = 'juegos_solo_juego_check'), true) as fish,
+                  coalesce((select pg_get_constraintdef(oid) like '%''dig''%' from pg_constraint where conname = 'juegos_solo_juego_check'), true) as solo_check,
                   ${rows[0].duelos ? `exists(select 1 from public.juegos_duelos where estado = 'abierto')` : 'false'} as duelos`,
           [weekOf(now()).key],
         )
@@ -329,8 +329,9 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         // El Laberinto se retiró en la Season 4 (lo sustituye Pez Gordo): se devuelve el botín de la partida a medias.
         await refundRetired('dungeon', (estado) => (estado?.bet > 0 ? Math.max(estado.bet, estado.pot ?? 0) : 0))
       }
-      // Pez Gordo guarda su partida en juegos_solo: en una base de datos de antes se amplía el check (migracion_juegos_pez.sql).
-      if (!pending.fish) await db.query(FISH_CHECK_SQL)
+      // Pez Gordo y Tesoro en la Arena guardan su partida en juegos_solo: en una base de datos de antes se amplía el check
+      // (migracion_juegos_pez.sql y migracion_juegos_arena.sql).
+      if (!pending.solo_check) await db.query(SOLO_CHECK_SQL)
       if (pending.duelos) await refundDuels()
     })().catch((error) => {
       schemaReady = null
@@ -996,6 +997,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         return reply
       }
       case 'solo_fish':
+      case 'solo_dig':
       case 'solo_plinko':
       case 'solo_frog':
       case 'solo_tower':
@@ -1004,7 +1006,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         if (out.error) reply.error = { code: out.error, message: ERRORS[out.error] }
         else reply.solo = out.result
         if (out.settled) reply.paseEvent = await pase.record(user.id, SOLO_GAMES[msg.t], { win: out.settled.net > 0 })
-        if ((msg.t === 'solo_tower' || msg.t === 'solo_heist' || msg.t === 'solo_fish') && reply.solo) reply.solo.ranking = await dayRanking(SOLO_GAMES[msg.t], user.id)
+        if (['solo_tower', 'solo_heist', 'solo_fish', 'solo_dig'].includes(msg.t) && reply.solo) reply.solo.ranking = await dayRanking(SOLO_GAMES[msg.t], user.id)
         if (out.abuse) reply.abuse = out.abuse
         me.balance = (await db.query(`select saldo from public.juegos_cuentas where usuario_id = $1`, [user.id])).rows[0].saldo
         return reply

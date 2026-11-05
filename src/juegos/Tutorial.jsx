@@ -151,7 +151,7 @@ const STEPS = [
   {
     art: 'island',
     title: '¡Bienvenidos a la Season 4: Islas!',
-    text: `El casino se ha ido de vacaciones a Canarias: todo tiene aspecto nuevo, llega Pez Gordo y el Pase de las Islas, con misiones cada día, un cofre gratis y premios en euros en cada nivel. Como siempre, cada domingo a las 23:59 todos volvéis a empezar con ${eur(START)}. Te lo enseñamos en un minuto.`,
+    text: `El casino se ha ido de vacaciones a Canarias: todo tiene aspecto nuevo, llegan Pez Gordo, Tesoro en la Arena y el Pase de las Islas, con misiones cada día, un cofre gratis y premios en euros en cada nivel. Como siempre, cada domingo a las 23:59 todos volvéis a empezar con ${eur(START)}. Te lo enseñamos en un minuto.`,
     hero: true,
   },
   {
@@ -193,8 +193,8 @@ const STEPS = [
   {
     target: 'solo',
     art: 'solo3',
-    title: 'A tu ritmo, y Pez Gordo',
-    text: 'Nuevo: Pez Gordo. Come plancton y peces más pequeños para crecer, huye de los tiburones y sal del agua cuando quieras: cuanto más pesas, más cobras. Y además La Torre, El Atraco, Plinko y Rana. Cada uno tiene su botón de Ayuda arriba a la derecha.',
+    title: 'A tu ritmo: Pez Gordo y la Arena',
+    text: 'Nuevos: Pez Gordo (come plancton y peces más pequeños, huye de los tiburones y sal del agua cuando quieras: cuanto más pesas, más cobras) y Tesoro en la Arena (cava en la playa sin despertar a un cangrejo: cada hoyo bueno sube el premio). Y además La Torre, El Atraco, Plinko y Rana. Cada uno tiene su botón de Ayuda arriba a la derecha.',
   },
   {
     target: 'live',

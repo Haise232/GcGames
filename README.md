@@ -55,6 +55,9 @@ el domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el
   pesas, más cobras, y si te comen pierdes la apuesta. La partida es una simulación determinista (`src/juegos/pez.js`):
   el navegador manda los movimientos y el servidor la repite para pagar. Sustituye al Laberinto y al Puente de Cristal,
   que se retiraron (lo que quedara a medias se devuelve o se paga solo).
+- **Tesoro en la Arena** (Season 4): una playa de 5×5 con cangrejos escondidos (3, 5, 9 o 15). Cada hoyo con tesoro sube
+  el premio y cobras cuando quieras; si sale un cangrejo pierdes la apuesta. Cada hoyo se sortea en el servidor al cavar
+  (`src/juegos/arena.js`), con un retorno del 96 % y tope de ×250.
 - App instalable en el móvil (PWA) y tema de Halloween en fechas.
 
 ## 🃏 Juegos
@@ -66,7 +69,7 @@ el domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el
 | Ajedrez | Carrera (cada 55 s) | Rana | Cuenta en Suiza |
 | | Ascensor | La Torre | Hacienda |
 | | La Subasta | El Atraco | Duelos |
-| | Bingo | | |
+| | Bingo | Tesoro en la Arena | |
 
 ## ⚙️ Cómo funciona
 

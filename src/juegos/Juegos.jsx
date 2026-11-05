@@ -18,6 +18,8 @@ import Tower from './Tower.jsx'
 import Heist from './Heist.jsx'
 import Auction from './Auction.jsx'
 import Pez from './Pez.jsx'
+import Arena from './Arena.jsx'
+import { ArenaScene } from './season4/ArenaArt.jsx'
 import { FishScene } from './season4/FishArt.jsx'
 import Bingo from './Bingo.jsx'
 import BingoCage from './BingoCage.jsx'
@@ -115,6 +117,15 @@ const ALL_GAMES = [
     art: <FishScene />,
   },
   {
+    id: 'dig',
+    name: 'Tesoro en la Arena',
+    kind: 'Cava y cobra',
+    blurb: 'Cava en la playa buscando tesoro sin despertar a un cangrejo. Cada hoyo bueno sube el premio: cobra cuando quieras.',
+    tint: '255, 181, 71',
+    isNew: true,
+    art: <ArenaScene />,
+  },
+  {
     id: 'plinko',
     name: 'Plinko',
     kind: 'Suerte',
@@ -161,7 +172,7 @@ const ALL_GAMES = [
 // los de a tu ritmo.
 const byId = Object.fromEntries(ALL_GAMES.map((g) => [g.id, g]))
 const ROUND_GAMES = ['elevator', 'auction', 'roulette', 'crash', 'race'].map((id) => byId[id])
-const PACE_GAMES = ['fish', 'tower', 'heist', 'plinko', 'frog'].map((id) => byId[id])
+const PACE_GAMES = ['fish', 'dig', 'tower', 'heist', 'plinko', 'frog'].map((id) => byId[id])
 
 // La Inmobiliaria, destacada arriba del todo: un trozo de tablero con sus casas y un hotel.
 function InmoBanner({ onOpen }) {
@@ -796,7 +807,7 @@ function Notice({ title, children, actions }) {
 
 // Pantalla en la que estabas, para que al recargar la página vuelvas al mismo juego (las mesas ya las recuerda el servidor).
 const SCREEN_KEY = 'juegos-pantalla'
-const KEEP = new Set(['pase', 'bingo', 'roulette', 'crash', 'fish', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction'])
+const KEEP = new Set(['pase', 'bingo', 'roulette', 'crash', 'fish', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'dig'])
 function savedScreen() {
   try {
     const screen = sessionStorage.getItem(SCREEN_KEY)
@@ -807,7 +818,7 @@ function savedScreen() {
 }
 
 function JuegosScreens() {
-  // screen: lobby | pase | bingo | roulette | crash | fish | plinko | frog | race | elevator | gacha | join | score
+  // screen: lobby | pase | bingo | roulette | crash | fish | dig | plinko | frog | race | elevator | gacha | join | score
   const [params, setParams] = useSearchParams()
   // Enlace de invitación (/?juego=poker&mesa=ABCD): entra directamente a esa mesa, o a la mejor si ya no existe.
   const [view, setView] = useState(() => {
@@ -883,6 +894,7 @@ function JuegosScreens() {
   if (screen === 'roulette') return (<Roulette onExit={exit} juegos={juegos} />)
   if (screen === 'crash') return (<Crash onExit={exit} juegos={juegos} />)
   if (screen === 'fish') return (<Pez onExit={exit} juegos={juegos} />)
+  if (screen === 'dig') return (<Arena onExit={exit} juegos={juegos} />)
   if (screen === 'plinko') return (<Plinko onExit={exit} juegos={juegos} />)
   if (screen === 'frog') return (<Frog onExit={exit} juegos={juegos} />)
   if (screen === 'race') return (<Race onExit={exit} juegos={juegos} />)

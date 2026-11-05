@@ -794,9 +794,9 @@
 .juegos-root.s4 .s4-round > li:nth-child(-n + 2) .hub-card__art {
   aspect-ratio: 16 / 7;
 }
-/* A tu ritmo: dos grandes arriba y tres abajo. */
+/* A tu ritmo: dos grandes arriba (Pez Gordo y la Arena) y cuatro abajo. */
 .juegos-root.s4 .s4-pace > li {
-  grid-column: span 4;
+  grid-column: span 3;
 }
 .juegos-root.s4 .s4-pace > li:nth-child(-n + 2) {
   grid-column: span 6;
@@ -1706,11 +1706,102 @@
     opacity: 0;
   }
 }
+.juegos-root .pzs-fin {
+  transform-box: fill-box;
+  transform-origin: 100% 50%;
+  animation: pzs-fin 0.6s ease-in-out infinite alternate;
+}
+@keyframes pzs-fin {
+  to {
+    rotate: -25deg;
+  }
+}
+.juegos-root .pzs-weed path {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: pzs-sway 3.2s ease-in-out infinite alternate;
+}
+.juegos-root .pzs-weed path:nth-child(2) {
+  animation-delay: -1.2s;
+}
+@keyframes pzs-sway {
+  from {
+    rotate: -6deg;
+  }
+  to {
+    rotate: 6deg;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .juegos-root :is(.pzs-shark, .pzs-me, .pzs-small, .pzs-plankton circle, .pzs-bubbles) {
+  .juegos-root :is(.pzs-shark, .pzs-me, .pzs-small, .pzs-plankton circle, .pzs-bubbles, .pzs-fin, .pzs-weed path) {
     animation: none;
   }
   .juegos-root .pzs-shark {
     transform: translate(40px, 36px);
+  }
+}
+
+/* Escena de Tesoro en la Arena (ArenaArt.jsx). */
+.juegos-root .ars-wave {
+  animation: ars-wave 4s ease-in-out infinite alternate;
+}
+@keyframes ars-wave {
+  to {
+    translate: -18px 2px;
+  }
+}
+.juegos-root .ars-shine {
+  animation: ars-shine 2.2s ease-in-out infinite alternate;
+}
+@keyframes ars-shine {
+  from {
+    opacity: 0.55;
+  }
+}
+.juegos-root .ars-chest {
+  animation: ars-hop 2.2s ease-in-out infinite;
+}
+@keyframes ars-hop {
+  50% {
+    translate: 0 -3px;
+  }
+}
+.juegos-root .ars-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: is4-twinkle 1.6s ease-in-out infinite;
+}
+.juegos-root .ars-spark--2 {
+  animation-delay: -0.8s;
+}
+.juegos-root .ars-crab {
+  animation: ars-peek 3s ease-in-out infinite;
+}
+@keyframes ars-peek {
+  0%,
+  100% {
+    translate: 0 8px;
+  }
+  30%,
+  70% {
+    translate: 0 0;
+  }
+}
+.juegos-root .ars-claw {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: ars-snap 0.4s ease-in-out infinite alternate;
+}
+.juegos-root .ars-claw--r {
+  animation-delay: -0.2s;
+}
+@keyframes ars-snap {
+  to {
+    rotate: -16deg;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root :is(.ars-wave, .ars-shine, .ars-chest, .ars-spark, .ars-crab, .ars-claw) {
+    animation: none;
   }
 }

@@ -1,0 +1,670 @@
+/* Escrito a mano (no generado): Tesoro en la Arena (Arena.jsx). La playa (SVG de fondo con el mar arriba, palmeras y
+   sol) y encima la rejilla de 5×5 montones de arena; a la derecha el panel con el premio, los cangrejos y la apuesta. En
+   el móvil, el panel va debajo. */
+.juegos-root .ar-app {
+  --accent: #ffb547;
+  --accent-rgb: 255, 181, 71;
+  --gold: #ffd25e;
+}
+.juegos-root .ar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 26vw, 360px);
+  grid-template-rows: minmax(0, 1fr);
+  gap: clamp(14px, 2vw, 30px);
+  min-height: 0;
+}
+
+/* ---------- Playa ---------- */
+.juegos-root .ar-stage {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(64px, 10vh, 92px) clamp(12px, 3vw, 40px) 14px;
+  overflow: hidden;
+  border-radius: 26px;
+  background: #f0cf8a;
+  box-shadow:
+    0 0 0 2px rgba(255, 210, 94, 0.3),
+    0 20px 50px rgba(0, 0, 0, 0.45);
+  isolation: isolate;
+}
+.juegos-root .ar-stage.is-shake {
+  animation: ar-shake 0.45s ease-in-out;
+}
+.juegos-root .ar-beach {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .ar-wave {
+  animation: ar-wave 5s ease-in-out infinite alternate;
+}
+.juegos-root .ar-wave--2 {
+  animation-duration: 3.6s;
+  animation-direction: alternate-reverse;
+}
+.juegos-root .ar-sunglow {
+  animation: ar-glow 4s ease-in-out infinite alternate;
+}
+.juegos-root .ar-palm {
+  transform-box: fill-box;
+}
+
+.juegos-root .ar-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.juegos-root .ar-chip {
+  display: grid;
+  justify-items: center;
+  padding: 5px 14px;
+  border-radius: 14px;
+  background: rgba(42, 15, 46, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(255, 210, 94, 0.25);
+  backdrop-filter: blur(4px);
+}
+.juegos-root .ar-chip small {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ffd9a0;
+}
+.juegos-root .ar-chip b {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+.juegos-root .ar-chip--next b {
+  color: #b6ff7a;
+}
+
+/* La rejilla de montones: cuadrada, lo más grande que quepa. */
+.juegos-root .ar-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+  gap: clamp(4px, 1vw, 10px);
+  width: min(100%, 560px);
+  max-height: 100%;
+  aspect-ratio: 1;
+  align-self: center;
+  padding: clamp(6px, 1.2vw, 14px);
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(236, 200, 128, 0.94), rgba(222, 180, 104, 0.94));
+  box-shadow:
+    inset 0 2px 10px rgba(120, 80, 30, 0.3),
+    0 10px 30px rgba(120, 80, 30, 0.25);
+}
+.juegos-root .ar-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  box-shadow: none;
+  cursor: default;
+  animation: ar-in 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  animation-delay: var(--d);
+}
+.juegos-root .ar-cell:disabled {
+  opacity: 1;
+}
+.juegos-root .ar-stage.is-run .ar-cell--sand:not(:disabled) {
+  cursor: pointer;
+}
+.juegos-root .ar-stage.is-run .ar-cell--sand:not(:disabled):hover .ar-mound,
+.juegos-root .ar-stage.is-run .ar-cell--sand:focus-visible .ar-mound {
+  translate: 0 -5px;
+  filter: drop-shadow(0 6px 4px rgba(120, 70, 20, 0.35)) brightness(1.06);
+}
+.juegos-root .ar-cell:focus-visible {
+  outline: 3px solid #2ee6d0;
+  outline-offset: 2px;
+}
+.juegos-root .ar-mound {
+  width: 100%;
+  height: auto;
+  transition:
+    translate 0.18s,
+    filter 0.18s;
+  filter: drop-shadow(0 3px 2px rgba(120, 70, 20, 0.25));
+}
+.juegos-root .ar-stage.is-run .ar-cell--sand:not(:disabled) .ar-mound {
+  animation: ar-breathe 2.6s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+.juegos-root .ar-cell.is-ghost {
+  opacity: 0.45;
+  filter: saturate(0.6);
+}
+
+/* Hoyo cavado: la arena oscura y el tesoro (o el cangrejo) que asoma. */
+.juegos-root .ar-hole {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 92%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 60%, #8a5a26 0%, #b07a3a 55%, #e2b86e 72%, transparent 74%);
+}
+.juegos-root .ar-hole--crab {
+  background: radial-gradient(ellipse at 50% 60%, #7a2a1a 0%, #b0503a 55%, #e2b86e 72%, transparent 74%);
+}
+.juegos-root .ar-loot,
+.juegos-root .ar-crab {
+  width: 64%;
+  height: auto;
+  filter: drop-shadow(0 3px 2px rgba(60, 30, 0, 0.35));
+}
+.juegos-root .ar-cell.is-fresh .ar-loot {
+  animation: ar-pop 0.55s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.juegos-root .ar-cell.is-fresh .ar-hole::after {
+  content: '';
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 246, 192, 0.85), transparent 65%);
+  animation: ar-flash 0.7s ease-out both;
+  pointer-events: none;
+}
+.juegos-root .ar-loot__glow {
+  animation: ar-glow 1.4s ease-in-out infinite alternate;
+}
+.juegos-root .ar-crab {
+  width: 74%;
+}
+.juegos-root .ar-crab.is-angry {
+  animation: ar-crab 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.juegos-root .ar-crab__claw {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.juegos-root .ar-crab.is-angry .ar-crab__claw {
+  animation: ar-snap 0.28s ease-in-out 4 alternate;
+}
+.juegos-root .ar-crab.is-angry .ar-crab__claw--r {
+  animation-delay: 0.14s;
+}
+.juegos-root .ar-cell--crab:not(.is-ghost) {
+  z-index: 1;
+}
+.juegos-root .ar-cell--crab:not(.is-ghost) .ar-hole {
+  box-shadow: 0 0 0 3px #ff4f5a, 0 0 24px rgba(255, 79, 90, 0.7);
+}
+
+/* Cavando: la pala que entra y sale y la arena que salta. */
+.juegos-root .ar-shovel {
+  position: absolute;
+  left: 50%;
+  top: -10%;
+  width: 40%;
+  translate: -50% 0;
+  animation: ar-dig 0.21s ease-in-out infinite alternate;
+}
+.juegos-root .ar-shovel svg {
+  display: block;
+  width: 100%;
+}
+.juegos-root .ar-dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.juegos-root .ar-dust i {
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d9b06a;
+  animation: ar-dust 0.42s ease-out infinite;
+  animation-delay: calc(var(--k) * 70ms);
+  --dx: calc((var(--k) - 2) * 16px);
+}
+
+.juegos-root .ar-status {
+  max-width: 560px;
+  margin: 0;
+  padding: 8px 16px;
+  border-radius: 14px;
+  background: rgba(42, 15, 46, 0.78);
+  font-weight: 700;
+  text-align: center;
+  backdrop-filter: blur(4px);
+}
+.juegos-root .ar-status.is-good {
+  box-shadow: inset 0 0 0 2px var(--gold);
+  color: #ffe7a8;
+}
+.juegos-root .ar-status.is-bad {
+  box-shadow: inset 0 0 0 2px #ff4f5a;
+  color: #ffc0b8;
+}
+
+/* En el móvil, para cobrar sin bajar hasta el panel. */
+.juegos-root .ar-cash-float {
+  display: none;
+}
+
+/* ---------- Panel ---------- */
+.juegos-root .ar-panel {
+  display: grid;
+  align-content: safe start;
+  gap: 14px;
+  min-width: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 18px;
+  border-radius: 24px;
+  background: var(--hub-panel, linear-gradient(160deg, rgba(20, 74, 98, 0.94), rgba(10, 28, 52, 0.96)));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 210, 94, 0.2),
+    0 20px 60px rgba(0, 0, 0, 0.4);
+  scrollbar-width: thin;
+}
+.juegos-root .ar-loot-box {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 14px;
+  border-radius: 18px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 210, 94, 0.22), transparent 70%), rgba(0, 0, 0, 0.28);
+  text-align: center;
+}
+.juegos-root .ar-loot-box > small {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .ar-loot-box > b {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(30px, 3vw, 42px);
+  line-height: 1.1;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(255, 210, 94, 0.4);
+}
+.juegos-root .ar-loot-box__mult {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(255, 210, 94, 0.16);
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffe7a8;
+}
+.juegos-root .ar-group h2 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .ar-modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.juegos-root .ar-mode {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  color: var(--ivory);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.juegos-root .ar-mode__ico {
+  grid-row: 1 / 3;
+  font-size: 22px;
+}
+.juegos-root .ar-mode b {
+  font-size: 14px;
+}
+.juegos-root .ar-mode small {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.juegos-root .ar-mode[aria-checked='true'] {
+  background: linear-gradient(180deg, rgba(255, 210, 94, 0.32), rgba(255, 138, 76, 0.22));
+  box-shadow: inset 0 0 0 2px var(--gold);
+}
+.juegos-root .ar-mode:disabled {
+  cursor: default;
+}
+.juegos-root .ar-mode:disabled:not([aria-checked='true']) {
+  opacity: 0.45;
+}
+.juegos-root .ar-bet {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.juegos-root .ar-bet span {
+  font-family: var(--display);
+  font-size: 28px;
+}
+.juegos-root .ar-bet button {
+  height: 44px;
+  border-radius: 12px;
+  font-size: 22px;
+  font-weight: 800;
+}
+.juegos-root .ar-slider {
+  width: 100%;
+  margin: 8px 0;
+  accent-color: var(--gold);
+}
+.juegos-root .ar-quick {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.juegos-root .ar-quick button {
+  min-height: 34px;
+  border-radius: 10px;
+}
+.juegos-root .ar-go {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 60px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #2ee6d0, #14a3a0);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 6px 0 #0b5a5a,
+    0 12px 30px rgba(46, 230, 208, 0.4);
+  color: #062626;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.juegos-root .ar-go:not(:disabled):active {
+  translate: 0 4px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 2px 0 #0b5a5a;
+}
+.juegos-root .ar-go kbd {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 11px;
+}
+.juegos-root .ar-go--cash:not(:disabled) {
+  background: linear-gradient(180deg, #ffe36e, #ff8a4c);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 6px 0 #a2381c,
+    0 12px 34px rgba(255, 120, 70, 0.55);
+  color: #2a0f2e;
+  animation: s4-pop 1.6s ease-in-out infinite;
+}
+.juegos-root .ar-go:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.juegos-root .ar-go__cash {
+  display: grid;
+  justify-items: center;
+  line-height: 1.05;
+}
+.juegos-root .ar-go__cash small {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.juegos-root .ar-go__cash b {
+  font-family: var(--display);
+  font-size: 26px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .ar-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.juegos-root .ar-rank {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .ar-rank li {
+  display: grid;
+  grid-template-columns: 26px 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.juegos-root .ar-rank li:first-child {
+  background: linear-gradient(90deg, rgba(255, 210, 94, 0.22), rgba(255, 210, 94, 0.04));
+}
+.juegos-root .ar-rank li.is-me {
+  outline: 1px solid var(--gold);
+}
+.juegos-root .ar-rank__pos {
+  font-size: 18px;
+  text-align: center;
+}
+.juegos-root .ar-rank__name {
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.juegos-root .ar-rank__mult {
+  display: grid;
+  justify-items: end;
+  font-weight: 800;
+  color: var(--gold);
+}
+.juegos-root .ar-rank__mult small {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.juegos-root .ar-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .ar-history li {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.juegos-root .ar-history .is-win {
+  background: rgba(255, 210, 94, 0.2);
+  color: #ffe7a8;
+}
+.juegos-root .ar-history .is-lose {
+  background: rgba(255, 90, 90, 0.18);
+  color: #ffb0a8;
+}
+
+/* ---------- Animaciones ---------- */
+@keyframes ar-wave {
+  to {
+    translate: -24px 2px;
+  }
+}
+@keyframes ar-glow {
+  to {
+    opacity: 0.6;
+  }
+}
+@keyframes ar-in {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+@keyframes ar-breathe {
+  50% {
+    scale: 1.03 0.97;
+  }
+}
+@keyframes ar-pop {
+  0% {
+    scale: 0.2;
+    translate: 0 30%;
+    rotate: -20deg;
+  }
+  70% {
+    scale: 1.2;
+    translate: 0 -12%;
+  }
+  100% {
+    scale: 1;
+  }
+}
+@keyframes ar-flash {
+  from {
+    opacity: 1;
+    scale: 0.5;
+  }
+  to {
+    opacity: 0;
+    scale: 1.5;
+  }
+}
+@keyframes ar-crab {
+  0% {
+    scale: 0.2;
+    translate: 0 40%;
+  }
+  60% {
+    scale: 1.35;
+    translate: 0 -10%;
+  }
+  100% {
+    scale: 1.1;
+  }
+}
+@keyframes ar-snap {
+  to {
+    rotate: -18deg;
+  }
+}
+@keyframes ar-dig {
+  to {
+    translate: -50% 22%;
+    rotate: 12deg;
+  }
+}
+@keyframes ar-dust {
+  from {
+    opacity: 1;
+    translate: -50% 0;
+  }
+  to {
+    opacity: 0;
+    translate: calc(-50% + var(--dx)) -36px;
+  }
+}
+@keyframes ar-shake {
+  20%,
+  60% {
+    translate: -8px 0;
+  }
+  40%,
+  80% {
+    translate: 8px 0;
+  }
+}
+
+@media (max-width: 860px) {
+  .juegos-root .app.ar-app {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+  .juegos-root .ar {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+  }
+  .juegos-root .ar-stage {
+    padding-top: 64px;
+  }
+  .juegos-root .ar-panel {
+    max-height: none;
+    overflow: visible;
+  }
+  .juegos-root .ar-go {
+    position: relative;
+  }
+  .juegos-root .ar-chip b {
+    font-size: 17px;
+  }
+  .juegos-root .ar-cash-float {
+    display: block;
+    min-height: 48px;
+    padding: 0 22px;
+    border: 0;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #ffe36e, #ff8a4c);
+    box-shadow: 0 4px 0 #a2381c;
+    font-family: var(--display);
+    font-size: 20px;
+    color: #2a0f2e;
+  }
+  .juegos-root .ar-cash-float:disabled {
+    opacity: 0.6;
+  }
+  .juegos-root .ar-stage {
+    grid-template-rows: auto auto auto auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .ar-app *,
+  .juegos-root .ar-app *::before,
+  .juegos-root .ar-app *::after {
+    animation: none !important;
+  }
+}
