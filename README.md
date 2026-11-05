@@ -1,18 +1,24 @@
 <div align="center">
 
-<img src="src/assets/logo.svg" width="120" alt="Logo de GcGames: una ficha de casino con el monograma Gc">
+<img src="src/assets/logo.svg" width="112" alt="Logo de GcGames: una ficha de casino con el monograma Gc">
 
 # GcGames
 
-**Un casino online para jugar con tu gente: mesas en vivo, juegos para todos a la vez, gacha de cartas y una economía semanal con su propia Hacienda.**
+**Un casino online para jugar con tu gente.** Mesas en vivo, rondas para todos a la vez, juegos en solitario, gacha de
+cartas y una economía semanal con su propia Hacienda. Todo con dinero de mentira y sin servidor propio.
 
 [![Jugar](https://img.shields.io/badge/JUGAR-play.gcgames.workers.dev-ffc83d?style=for-the-badge)](https://play.gcgames.workers.dev)
 
 ![React](https://img.shields.io/badge/React_18-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite_6-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![Cloudflare Workers](https://img.shields.io/badge/Cloudflare_Workers-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)
+
+<br>
+
+<img src="docs/capturas/portada.webp" alt="Portada del casino en la Season 4: atardecer en las islas con el Teide, el pase de temporada, las misiones del día y el cofre diario" width="100%">
 
 </div>
 
@@ -21,11 +27,12 @@
 ## Índice
 
 - [Qué es](#-qué-es)
+- [Capturas](#-capturas)
 - [Juegos](#-juegos)
-- [Cómo funciona](#️-cómo-funciona)
+- [Por dentro](#-por-dentro)
 - [Estructura](#-estructura)
 - [Puesta en marcha](#-puesta-en-marcha)
-- [Publicar](#-publicar)
+- [Publicar](#️-publicar)
 - [Base de datos](#️-base-de-datos)
 - [Cuentas y administración](#-cuentas-y-administración)
 - [Seguridad](#-seguridad)
@@ -35,43 +42,112 @@
 
 ## 🎲 Qué es
 
-GcGames es un casino con dinero de mentira para un grupo cerrado. Cada jugador empieza la semana con **15.000 €**;
-el domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el podio de la semana.
+GcGames es un casino con dinero ficticio para un grupo cerrado. Cada jugador empieza la semana con **15.000 €**; el
+domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el podio de la semana.
 
-- **Mesas en vivo** de blackjack, póker y ajedrez (uno contra uno, con apuesta), con chat, globos de mensaje y enlaces de invitación.
-- **Juegos para todos a la vez**: una ronda común cada pocos segundos que todos ven igual.
-- **Juegos en solitario** que sortea el servidor (nadie puede hacer trampas desde el navegador).
-- **Score** semanal con la evolución día a día y lo que cada uno tiene en activos (cartas, inmuebles, Suiza).
-- **Economía**: gacha de cartas coleccionables (con casa de empeños), Inmobiliaria con tablero, Cuenta en Suiza para
-  esconder dinero y **Hacienda**, que reclama su parte a los que más tienen.
-- **La banca**: el master puede dar dinero, mandar mensajes, activar el *Admin Abuse* (×2, ×3 o todo gratis), abrir el
-  bote del bingo, lanzar redadas de Hacienda, aceptar las cuentas nuevas y dar contraseñas temporales.
-- **Season 4 · Islas**: todo el casino con aire tropical (atardecer en Canarias) y el **Pase de las Islas**: XP por
-  cada jugada, tres misiones nuevas cada día (con bonus si haces las tres), un cofre diario gratis con racha de hasta 7
-  días y 30 niveles con premios en euros y títulos que se ven en la clasificación. El pase dura toda la temporada
-  (`api/_juegos/pase.mjs`, tabla `juegos_pase`, que el servidor crea solo si falta). Las cartas del gacha también se
-  visten de isla (arena, laguna, atardecer, sol y arcoíris tropical).
-- **Pez Gordo** (Season 4): come plancton y peces más pequeños para crecer y sal del agua cuando quieras; cuanto más
-  pesas, más cobras, y si te comen pierdes la apuesta. La partida es una simulación determinista (`src/juegos/pez.js`):
-  el navegador manda los movimientos y el servidor la repite para pagar. Sustituye al Laberinto y al Puente de Cristal,
-  que se retiraron (lo que quedara a medias se devuelve o se paga solo).
-- **Tesoro en la Arena** (Season 4): una playa de 5×5 con cangrejos escondidos (3, 5, 9 o 15). Cada hoyo con tesoro sube
-  el premio y cobras cuando quieras; si sale un cangrejo pierdes la apuesta. Cada hoyo se sortea en el servidor al cavar
-  (`src/juegos/arena.js`), con un retorno del 96 % y tope de ×250.
-- App instalable en el móvil (PWA) y tema de Halloween en fechas.
+- **Mesas en vivo** de blackjack, póker y ajedrez (uno contra uno, con apuesta), con chat, globos de mensaje y enlaces
+  de invitación.
+- **Rondas para todos a la vez**: ruleta, cohete, carrera, ascensor, subasta y bingo. Todo el casino ve la misma ronda.
+- **Juegos en solitario** contra la casa, que sortea el servidor: nadie puede hacer trampas desde el navegador.
+- **Score** semanal con la evolución día a día y lo que cada uno tiene fuera del saldo (cartas, inmuebles, Suiza).
+- **Economía**: gacha de cartas coleccionables (con casa de empeños), una Inmobiliaria con tablero, una Cuenta en Suiza
+  para esconder dinero y **Hacienda**, que reclama su parte a los que más tienen.
+- **La banca**: el master puede dar dinero, mandar avisos, activar el *Admin Abuse* (×2, ×3 o todo gratis), abrir el
+  bote del bingo, lanzar redadas de Hacienda, aceptar cuentas nuevas y dar contraseñas temporales.
+- **Temporadas**. Ahora mismo, la **Season 4 · Islas**: todo el casino al atardecer en Canarias y el **Pase de las
+  Islas**, con XP por jugada, tres misiones cada día, un cofre diario con racha y 30 niveles con premios y títulos.
+- **App instalable** en el móvil (PWA), diseño adaptado a pantallas estrechas y tema de Halloween en fechas.
+
+## 📸 Capturas
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/capturas/pez-gordo.webp" alt="Pez Gordo: el pez payaso nadando entre plancton, con un pez que se puede comer, otro que se lo come y el arrecife al lado"></td>
+    <td width="50%"><img src="docs/capturas/tesoro-en-la-arena.webp" alt="Tesoro en la Arena: playa con una rejilla de 5 por 5 montones de arena, cuatro hoyos ya cavados con un diamante, una moneda, un cofre y una botella"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Pez Gordo</b> · come, crece y sal del agua antes de que te coman</td>
+    <td align="center"><b>Tesoro en la Arena</b> · cava sin despertar a un cangrejo</td>
+  </tr>
+  <tr>
+    <td><img src="docs/capturas/a-tu-ritmo.webp" alt="Sección A tu ritmo del menú: Pez Gordo y Tesoro en la Arena en grande y debajo La Torre, El Atraco, Plinko y Rana"></td>
+    <td><img src="docs/capturas/todos-a-la-vez.webp" alt="Sección Todos a la vez del menú: Ascensor, La Subasta, Ruleta, Cohete y Carrera"></td>
+  </tr>
+  <tr>
+    <td align="center">Juegos en solitario</td>
+    <td align="center">Rondas para todo el casino</td>
+  </tr>
+  <tr>
+    <td><img src="docs/capturas/la-torre.webp" alt="La Torre: torre de pisos de cristal de noche, con el multiplicador de cada piso y el panel de dificultad y apuesta"></td>
+    <td><img src="docs/capturas/mesas-en-vivo.webp" alt="Mesas en vivo de Blackjack, Póker y Ajedrez con los jugadores sentados"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>La Torre</b> · sube piso a piso sin pisar una baldosa rota</td>
+    <td align="center">Mesas en vivo</td>
+  </tr>
+  <tr>
+    <td><img src="docs/capturas/pase-de-las-islas.webp" alt="Pase de las Islas: nivel 11 Lobo de mar, el cofre diario con la racha de siete días y las tres misiones del día"></td>
+    <td><img src="docs/capturas/score.webp" alt="Score semanal: podio de los tres primeros, tu puesto y la clasificación con la evolución de cada jugador"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Pase de las Islas</b> · misiones, cofre diario y niveles</td>
+    <td align="center"><b>Score</b> · la clasificación de la semana</td>
+  </tr>
+  <tr>
+    <td><img src="docs/capturas/entrada.webp" alt="Pantalla de entrada con el escaparate de juegos y el formulario para entrar o crear cuenta"></td>
+    <td><img src="docs/capturas/movil.webp" alt="Tres pantallas en el móvil: la portada, Pez Gordo y Tesoro en la Arena"></td>
+  </tr>
+  <tr>
+    <td align="center">Entrada</td>
+    <td align="center">En el móvil</td>
+  </tr>
+</table>
+
+<sub>Capturas de la app con datos de ejemplo (jugadores y saldos inventados).</sub>
 
 ## 🃏 Juegos
 
 | En vivo (mesas) | Para todos a la vez | En solitario | Economía |
 |---|---|---|---|
 | Blackjack | Ruleta (cada 25 s) | Pez Gordo | Gacha de cartas |
-| Póker | Cohete (cada 30 s) | Plinko | Inmobiliaria |
-| Ajedrez | Carrera (cada 55 s) | Rana | Cuenta en Suiza |
-| | Ascensor | La Torre | Hacienda |
-| | La Subasta | El Atraco | Duelos |
-| | Bingo | Tesoro en la Arena | |
+| Póker | Cohete (cada 30 s) | Tesoro en la Arena | Inmobiliaria |
+| Ajedrez | Carrera (cada 55 s) | La Torre | Cuenta en Suiza |
+| | Ascensor (cada minuto) | El Atraco | Hacienda |
+| | La Subasta (cada minuto) | Plinko | Casa de empeños |
+| | Bingo | Rana | |
 
-## ⚙️ Cómo funciona
+<details>
+<summary><b>Qué es cada uno</b></summary>
+
+**Mesas en vivo**
+- **Blackjack**: hasta 7 jugadores contra el crupier.
+- **Póker**: Texas Hold'em de hasta 6 jugadores, ciegas de 50 y 100 €.
+- **Ajedrez**: uno contra uno con apuesta (amistosa o hasta 10.000 €), reloj de 5 minutos más 3 s por jugada, tablas
+  y rendición. Tablero de piedra en perspectiva y piezas que revientan al capturarlas.
+
+**Para todos a la vez**
+- **Ruleta**: una tirada para todos cada 25 s.
+- **Cohete**: sube para todos cada 30 s; retira antes de que explote.
+- **Carrera**: una carrera cada 55 s; apuesta a un coche y cobra si acaba en el podio.
+- **Ascensor**: todos suben y el premio crece en cada planta. Bájate antes de que se rompa el cable; el último en bajar
+  se lleva el bonus.
+- **La Subasta**: siete cajas misteriosas, pujas a la vista y prórroga en los últimos segundos. Puede ser el jackpot…
+  o una piedra.
+- **Bingo**: cartones para todos y un bote común que alimenta lo que se pierde en el resto del casino.
+
+**En solitario**
+- **Pez Gordo**: eres un pez payaso. Come plancton y peces más pequeños para crecer, huye de los tiburones y sal del agua
+  cuando quieras: cuanto más pesas, más cobras (de ×0,28 a ×10). Si te comen, pierdes la apuesta.
+- **Tesoro en la Arena**: una playa de 5×5 con 3, 5, 9 o 15 cangrejos escondidos. Cada hoyo con tesoro sube el premio
+  y cobras cuando quieras; si sale un cangrejo, pierdes. Al acabar se ve dónde estaban todos.
+- **La Torre**: sube piso a piso sin pisar una baldosa rota, en cuatro dificultades.
+- **El Atraco**: monta tu banda con tus cartas del gacha y baja planta a planta hasta la cámara acorazada.
+- **Plinko**: suelta bolas y que caigan en las orillas.
+- **Rana**: salta de nenúfar en nenúfar y cobra cuando quieras.
+
+</details>
+
+## 🔧 Por dentro
 
 ```mermaid
 flowchart LR
@@ -93,16 +169,28 @@ flowchart LR
 ```
 
 - **Sin servidor propio.** Cada acción es un `POST /api/juegos` al Worker con la sesión de Supabase. El Worker comprueba
-  la firma del token (con las claves públicas del proyecto, sin preguntar a Supabase Auth en cada petición), carga la
-  mesa de Postgres con bloqueo (`FOR UPDATE`), aplica la jugada y guarda.
-- **Tiempo real.** Cuando algo cambia, el servidor manda un aviso por Supabase Realtime (sin datos) y cada navegador
-  pide su propia vista: nadie recibe las cartas tapadas de los demás.
-- **Temporizadores.** Los turnos y el crupier los hacen avanzar los propios navegadores cuando vencen (`tick`); primero
-  el que tiene el turno y, por si su pestaña está dormida, los demás un poco después.
+  la firma del token con las claves públicas del proyecto (sin preguntar a Supabase Auth en cada petición), bloquea la
+  fila con `FOR UPDATE`, aplica la jugada y guarda, todo en una transacción.
 - **Mismas reglas en los dos lados.** Las reglas de cada juego son módulos puros en `src/juegos/*.js`: la web los usa
-  para pintar y el servidor (`api/_juegos/`) para sortear y pagar.
-- **Pocas peticiones.** Fuera de las mesas, Realtime avisa de los cambios y el sondeo es solo un respaldo (cada 60 s, y
-  nunca con la pestaña oculta). Lo que es igual para todos (mesas del selector, Score) se guarda unos segundos en el Worker.
+  para pintar y el servidor (`api/_juegos/`) para sortear y pagar. No hay dos versiones que se puedan desincronizar.
+- **El servidor decide.** Los sorteos usan `crypto.randomInt`, y lo que hay detrás de cada baldosa, hoyo o puerta se
+  decide en el momento de pisar o cavar. Las rondas comunes (como el bingo) salen de un HMAC del número de ronda con un
+  secreto del servidor, así todos ven la misma.
+- **Partidas que se repiten en el servidor.** Pez Gordo es un juego de acción en tiempo real, y aun así es
+  determinista: se juega en el navegador con la semilla que da el servidor (10 pasos por segundo, solo sumas, productos,
+  divisiones, raíces y un generador de enteros), y al acabar llegan tus movimientos y el servidor repite la partida
+  entera para pagar. Repetir una partida cuesta unos 4 ms de CPU y no se admiten más pasos de los que ha dado tiempo a
+  jugar.
+- **Juegos calibrados.** En La Torre y en Tesoro en la Arena el multiplicador de cada paso es `0,96 / probabilidad de
+  llegar`: cobres donde cobres, de media se recupera el 96 %. Así el Score no se puede «cultivar» a base de jugar mucho.
+- **Tiempo real barato.** Cuando algo cambia, el servidor manda un aviso sin datos por Supabase Realtime y cada
+  navegador pide su propia vista: nadie recibe las cartas tapadas de los demás. Fuera de las mesas, el sondeo es solo un
+  respaldo (cada 60 s, y nunca con la pestaña oculta), y lo que es igual para todos se guarda unos segundos en el Worker.
+- **Temporizadores sin cron.** Los turnos y el crupier los hacen avanzar los propios navegadores cuando vencen (`tick`):
+  primero el que tiene el turno y, por si su pestaña está dormida, los demás un poco después.
+- **El esquema se mantiene solo.** Las tablas `juegos_*` las crea el servidor la primera vez, y las ampliaciones (por
+  ejemplo, cuando llega un juego nuevo) se aplican al arrancar si faltan. Los juegos retirados devuelven o pagan lo que
+  quedara a medias.
 
 ## 📁 Estructura
 
@@ -113,14 +201,22 @@ flowchart LR
 │   ├── entrada/             # Entrar, crear cuenta, cambiar la contraseña, cuenta pendiente
 │   ├── hooks/useAuth.jsx    # Sesión de Supabase y perfil (get_mi_perfil)
 │   ├── lib/supabase.js      # Cliente de Supabase
-│   └── juegos/              # El casino: selector, cada juego, mesas, póker, banca, gacha…
-├── api/_juegos/             # Servidor: un módulo por juego, banca, Hacienda, auth y base de datos
-│   └── engine/              # Motor de las mesas en vivo (blackjack, póker y ajedrez)
+│   └── juegos/              # El casino
+│       ├── Juegos.jsx       # Selector de juegos y pantallas
+│       ├── *.js             # Reglas puras de cada juego (las comparte el servidor)
+│       ├── *.jsx, *.css     # La pantalla de cada juego
+│       ├── table/, poker/, chess/   # Mesas en vivo
+│       ├── banca/           # Panel del master y Hacienda
+│       ├── shared/          # Núcleo de blackjack, póker y ajedrez
+│       └── season4/         # Tema de las islas, el pase y las ilustraciones nuevas
+├── api/_juegos/             # Servidor: un módulo por juego, banca, Hacienda, pase, auth y base de datos
+│   └── engine/              # Motor de las mesas en vivo, temporizadores y semana
 ├── worker.mjs               # Entrada del Worker de Cloudflare
 ├── wrangler.jsonc           # Configuración del Worker (assets, Hyperdrive, variables)
 ├── public/                  # Iconos (salen de src/assets/logo.svg) y _headers (cabeceras de seguridad)
-├── supabase/00_base.sql     # Tabla usuarios, alta automática y rol juegos_api
+├── supabase/                # SQL base y migraciones
 ├── scripts/                 # Catálogo del gacha y copia de datos
+├── docs/                    # Planes de diseño y capturas del README
 └── .github/workflows/       # Publicación automática
 ```
 
@@ -171,9 +267,11 @@ Supabase (proyecto propio de GcGames).
 
 - `supabase/00_base.sql`: tabla `usuarios`, el trigger que crea la fila al registrarse (como *pendiente*),
   `get_mi_perfil()` y el rol `juegos_api` con su política sobre `usuarios`.
-- Las tablas `juegos_*` (cuentas, mesas, rondas, chat, gacha, inmuebles, Suiza, avisos…) las crea el propio servidor
-  la primera vez desde `api/_juegos/schema.mjs`. Son del rol `juegos_api`; todas tienen RLS sin políticas, así que
-  desde el navegador no se puede leer ni escribir nada: solo el Worker.
+- Las tablas `juegos_*` (cuentas, mesas, rondas, chat, gacha, inmuebles, Suiza, pase, avisos…) las crea el propio
+  servidor la primera vez desde `api/_juegos/schema.mjs`. Son del rol `juegos_api`; todas tienen RLS sin políticas, así
+  que desde el navegador no se puede leer ni escribir nada: solo el Worker.
+- Las migraciones de `supabase/migracion_*.sql` también las aplica el servidor solo si faltan; se pueden ejecutar a mano
+  más de una vez.
 - Al añadir una tabla nueva en una migración: `alter table … owner to juegos_api` y quitar permisos a `anon`,
   `authenticated` y `service_role`.
 
@@ -191,7 +289,7 @@ Supabase (proyecto propio de GcGames).
 ## 🔒 Seguridad
 
 - Todo lo que vale dinero lo decide el servidor: los sorteos usan `crypto.randomInt` y las reglas puras de cada juego;
-  el navegador solo pinta.
+  el navegador solo pinta (y, en Pez Gordo, manda movimientos que el servidor repite).
 - Las sesiones se verifican con las claves públicas (JWKS) del proyecto con WebCrypto.
 - RLS en todas las tablas; el navegador solo puede llamar a `get_mi_perfil()`.
 - Cabeceras en `public/_headers`: CSP (`default-src 'self'`, conexiones solo a `*.supabase.co`), HSTS,
@@ -206,3 +304,9 @@ Supabase (proyecto propio de GcGames).
 | Supabase | 500 MB de base de datos, 50.000 usuarios activos al mes | Avisos y, en el peor caso, pausa del proyecto |
 
 El consumo se ve en el panel de Cloudflare (Workers → `play` → Métricas) y en el de Supabase.
+
+---
+
+<div align="center">
+<sub>Dinero ficticio: en GcGames no se apuesta ni se gana dinero real.</sub>
+</div>
