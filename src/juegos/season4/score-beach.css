@@ -1,0 +1,297 @@
+/* Escrito a mano: el Score en la playa (Season 4). El escenario del podio (ScoreBeach.jsx) con el atardecer, los
+   rayos del sol detrás del primero, los castillos de arena y el confeti; y un toque de mar y arena en el resto de la
+   pantalla. Todo cuelga de .juegos-root.s4:not(.halloween); si no, el escenario no ocupa nada (display: contents) y el
+   podio queda como era. */
+.juegos-root .sb-beach {
+  display: contents;
+}
+.juegos-root .sb-beach__bg,
+.juegos-root .sb-beach__confetti {
+  display: none;
+}
+
+.juegos-root.s4:not(.halloween) .sb-beach {
+  position: relative;
+  display: grid;
+  align-items: end;
+  min-height: clamp(380px, 44vw, 480px);
+  margin-top: 6px;
+  padding: 64px clamp(10px, 3vw, 40px) 0;
+  overflow: hidden;
+  border-radius: 28px;
+  isolation: isolate;
+  box-shadow:
+    0 0 0 1px rgba(255, 210, 94, 0.28),
+    0 0 0 6px rgba(8, 40, 64, 0.5),
+    0 26px 60px rgba(0, 0, 0, 0.5);
+}
+.juegos-root.s4:not(.halloween) .sb-beach__bg {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.juegos-root.s4:not(.halloween) .sb-beach__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root.s4:not(.halloween) .sb-beach__rays {
+  fill: rgba(255, 238, 170, 0.16);
+  transform-origin: 500px 262px;
+  animation: sbb-spin 50s linear infinite;
+}
+.juegos-root.s4:not(.halloween) .sb-beach__sun {
+  transform-origin: 500px 262px;
+  animation: sbb-sun 4s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .sb-beach__star {
+  fill: #fff;
+  animation: sbb-twinkle 2.2s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .sb-beach__clouds {
+  animation: sbb-drift 26s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .sb-beach__glint {
+  animation: sbb-glint 2.4s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .sb-beach__foam {
+  animation: sbb-foam 3.2s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .sb-beach__boat {
+  animation: sbb-boat 18s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .sb-beach__fronds path {
+  fill: #2f9a52;
+  stroke: #1a5a30;
+  stroke-width: 1.5;
+}
+.juegos-root.s4:not(.halloween) .sb-beach__fronds {
+  transform-box: fill-box;
+  transform-origin: 30% 100%;
+  animation: sbb-sway 3.6s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .sb-beach__gulls {
+  animation: sbb-gulls 9s ease-in-out infinite alternate;
+}
+
+/* Confeti que cae sobre el podio. */
+.juegos-root.s4:not(.halloween) .sb-beach__confetti {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.juegos-root.s4:not(.halloween) .sb-beach__confetti i {
+  position: absolute;
+  top: -16px;
+  left: var(--x);
+  width: 8px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--c);
+  rotate: var(--r);
+  opacity: 0.9;
+  animation: sbb-fall var(--t) linear var(--d) infinite;
+}
+.juegos-root.s4:not(.halloween) .sb-beach__confetti i:nth-child(3n) {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* ---------- El podio de castillos de arena ---------- */
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  gap: clamp(10px, 3vw, 34px);
+}
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__step {
+  --h: 104px;
+}
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__step--1 {
+  --h: 156px;
+}
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__step--3 {
+  --h: 76px;
+}
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__name,
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__money,
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__step small {
+  text-shadow:
+    0 2px 6px rgba(20, 8, 30, 0.85),
+    0 0 2px rgba(20, 8, 30, 0.9);
+}
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__money {
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: rgba(42, 15, 46, 0.55);
+}
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__step--1 .sb-podium__money {
+  font-size: clamp(18px, 2.6vw, 26px);
+  box-shadow: 0 0 18px rgba(255, 210, 94, 0.45);
+}
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__avatar {
+  padding: 4px;
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.25),
+    0 0 30px color-mix(in srgb, var(--c) 70%, transparent);
+}
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__crown {
+  font-size: 40px;
+  filter: drop-shadow(0 0 12px rgba(255, 210, 94, 0.9));
+}
+/* El escalón: un castillo de arena con almenas, granitos, el número grabado y su bandera de oro, plata o bronce. */
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__block {
+  position: relative;
+  margin-top: 46px;
+  border-radius: 4px 4px 0 0;
+  background:
+    radial-gradient(circle, rgba(140, 90, 40, 0.3) 1px, transparent 1.6px) 0 0 / 9px 9px,
+    radial-gradient(ellipse 30% 14% at 50% 100%, rgba(255, 255, 255, 0.2), transparent),
+    linear-gradient(90deg, rgba(120, 70, 30, 0.22), transparent 18%, transparent 82%, rgba(120, 70, 30, 0.22)),
+    linear-gradient(180deg, #f6d79a, #e2b46c 65%, #c99350);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 245, 220, 0.55),
+    inset 0 -14px 20px rgba(120, 70, 30, 0.22),
+    0 16px 28px rgba(0, 0, 0, 0.35);
+  color: rgba(122, 72, 30, 0.8);
+  text-shadow: 0 1px 0 rgba(255, 240, 210, 0.7);
+}
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__block::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -16px;
+  height: 16px;
+  background:
+    repeating-linear-gradient(90deg, #f6d79a 0 22px, transparent 22px 34px),
+    transparent;
+  -webkit-mask: linear-gradient(#000, #000);
+  border-radius: 3px 3px 0 0;
+}
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__block::after {
+  content: '';
+  position: absolute;
+  left: calc(82% - 14px);
+  top: -54px;
+  width: 30px;
+  height: 40px;
+  background:
+    linear-gradient(var(--c), color-mix(in srgb, var(--c) 70%, #000)) 2px 0 / 26px 16px no-repeat,
+    linear-gradient(#6a4a2a, #6a4a2a) 0 0 / 2px 100% no-repeat;
+  transform-origin: 0 0;
+  animation: sbb-flag 1.6s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__step.is-empty .sb-podium__block {
+  opacity: 0.55;
+}
+.juegos-root.s4:not(.halloween) .sb-beach .sb-podium__step.is-me .sb-podium__block {
+  outline: 3px solid #fff6c8;
+  outline-offset: 3px;
+}
+
+/* ---------- El resto de la pantalla: un toque de mar y atardecer ---------- */
+.juegos-root.s4:not(.halloween) .app.sb .sb-top__title h1 {
+  background: linear-gradient(180deg, #fff6d0, #ffc46a 55%, #ff7a5a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 3px 0 rgba(122, 36, 18, 0.5));
+}
+.juegos-root.s4:not(.halloween) .app.sb .sb-me,
+.juegos-root.s4:not(.halloween) .app.sb .sb-card,
+.juegos-root.s4:not(.halloween) .app.sb .sb-reset {
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(255, 138, 76, 0.16), transparent 60%),
+    radial-gradient(ellipse at 100% 100%, rgba(46, 230, 208, 0.12), transparent 60%),
+    var(--hub-surface);
+}
+
+@keyframes sbb-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes sbb-sun {
+  to {
+    scale: 1.04;
+    opacity: 0.9;
+  }
+}
+@keyframes sbb-twinkle {
+  to {
+    opacity: 0.25;
+  }
+}
+@keyframes sbb-drift {
+  to {
+    translate: 40px 0;
+  }
+}
+@keyframes sbb-glint {
+  to {
+    opacity: 0.6;
+    translate: 6px 0;
+  }
+}
+@keyframes sbb-foam {
+  to {
+    translate: -14px 2px;
+  }
+}
+@keyframes sbb-boat {
+  to {
+    translate: 120px 0;
+  }
+}
+@keyframes sbb-sway {
+  to {
+    rotate: 4deg;
+  }
+}
+@keyframes sbb-gulls {
+  to {
+    translate: 60px -10px;
+  }
+}
+@keyframes sbb-fall {
+  to {
+    translate: 40px 560px;
+    rotate: calc(var(--r) + 540deg);
+  }
+}
+@keyframes sbb-flag {
+  to {
+    transform: skewY(-8deg) scaleX(0.9);
+  }
+}
+
+@media (max-width: 600px) {
+  .juegos-root.s4:not(.halloween) .sb-beach {
+    min-height: 320px;
+    padding-top: 54px;
+  }
+  .juegos-root.s4:not(.halloween) .sb-beach .sb-podium__step {
+    --h: 80px;
+  }
+  .juegos-root.s4:not(.halloween) .sb-beach .sb-podium__step--1 {
+    --h: 118px;
+  }
+  .juegos-root.s4:not(.halloween) .sb-beach .sb-podium__step--3 {
+    --h: 58px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root.s4 :is(.sb-beach__rays, .sb-beach__sun, .sb-beach__star, .sb-beach__clouds, .sb-beach__glint, .sb-beach__foam, .sb-beach__boat, .sb-beach__fronds, .sb-beach__gulls, .sb-beach__confetti i, .sb-podium__block::after) {
+    animation: none;
+  }
+  .juegos-root.s4 .sb-beach__confetti {
+    display: none;
+  }
+}

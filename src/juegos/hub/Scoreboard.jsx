@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Avatar from '../comun/Avatar.jsx'
 import { delta, eur, until } from '../comun/money.js'
 import './score.css'
+import { ScoreBeachStage } from '../season4/ScoreBeach.jsx'
 
 const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const SHORT = ['Inicio', 'L', 'M', 'X', 'J', 'V', 'S', 'D']
@@ -306,7 +307,11 @@ function Scoreboard({ juegos, onExit }) {
 
       {scores && players.length === 0 && <p className="sb-empty">Nadie ha jugado todavía esta semana. ¡El primero que juegue se pone líder!</p>}
 
-      {players.length > 0 && <Podium players={players} starting={starting} onPick={setSelected} />}
+      {players.length > 0 && (
+        <ScoreBeachStage>
+          <Podium players={players} starting={starting} onPick={setSelected} />
+        </ScoreBeachStage>
+      )}
 
       {mine ? (
         <MyCard mine={mine} players={players} day={day} starting={starting} />

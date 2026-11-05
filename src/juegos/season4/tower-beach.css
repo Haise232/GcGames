@@ -1,0 +1,321 @@
+/* Escrito a mano: La Torre como faro de la playa (Season 4). Todo cuelga de .juegos-root.s4:not(.halloween) para ganar
+   a Tower.css sin tocarlo y dejar a Halloween como estaba. El arte nuevo (la costa y la linterna) está en
+   TowerBeach.jsx; fuera de la temporada se esconde. */
+.juegos-root .tw-shore,
+.juegos-root .tw-lantern,
+.juegos-root .tw-beam {
+  display: none;
+}
+
+/* ---------- La costa al pie ---------- */
+.juegos-root.s4:not(.halloween) .tw-city {
+  display: none;
+}
+.juegos-root.s4:not(.halloween) .tw-shore {
+  display: block;
+  inset: auto 0 0 0;
+  width: 100%;
+  height: 34%;
+  translate: 0 calc(var(--h) * 110%);
+  transition: translate 1.4s ease-out;
+}
+.juegos-root.s4:not(.halloween) .tw-shore__isle {
+  fill: #3a2a5c;
+  opacity: 0.85;
+}
+.juegos-root.s4:not(.halloween) .tw-shore__fronds path {
+  fill: #2f9a52;
+  stroke: #1a5a30;
+  stroke-width: 0.8;
+}
+.juegos-root.s4:not(.halloween) .tw-shore__fronds {
+  transform-box: fill-box;
+  transform-origin: 30% 100%;
+  animation: twb-sway 3.4s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .tw-shore__glint {
+  animation: twb-glint 2.6s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .tw-shore__foam {
+  animation: twb-foam 3s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .tw-shore__boat {
+  animation: twb-boat 14s ease-in-out infinite alternate;
+}
+
+/* ---------- El faro: franjas rojas y blancas, por dentro madera de barco ---------- */
+.juegos-root.s4:not(.halloween) .tw-stage {
+  --wglow: #ffe7a0;
+}
+.juegos-root.s4:not(.halloween) .tw-tower {
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(255, 196, 120, calc(0.22 - var(--h) * 0.15)), transparent 70%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.4), transparent 14%, transparent 86%, rgba(0, 0, 0, 0.4)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 34px),
+    linear-gradient(180deg, #1d3d50, #142c3c);
+  border-image: repeating-linear-gradient(180deg, #f2ece0 0 30px, #d4d0c4 30px 32px, #d8352a 32px 62px, #a8241a 62px 64px) 12;
+  box-shadow:
+    0 0 60px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+/* Cada piso, una franja: los flancos de fuera alternan rojo y blanco, con su ventanuco. */
+.juegos-root.s4:not(.halloween) .tw-floor {
+  border-bottom-color: #6a4424;
+  box-shadow:
+    inset 0 -2px 0 rgba(255, 220, 170, 0.12),
+    inset 0 -6px 0 rgba(0, 0, 0, 0.12);
+}
+.juegos-root.s4:not(.halloween) .tw-floor:nth-child(even) {
+  --brick: #efe8da;
+}
+.juegos-root.s4:not(.halloween) .tw-floor:nth-child(odd) {
+  --brick: #d23a2c;
+}
+.juegos-root.s4:not(.halloween) .tw-floor::before,
+.juegos-root.s4:not(.halloween) .tw-floor::after {
+  --frm: #3a2418;
+  box-shadow:
+    inset 0 0 10px rgba(0, 0, 0, 0.22),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.12);
+}
+.juegos-root.s4:not(.halloween) .tw-floor--tl::before,
+.juegos-root.s4:not(.halloween) .tw-floor--tr::after {
+  --win: transparent;
+  --frm: transparent;
+}
+/* Sin antorchas ni enredaderas: en el faro cuelgan salvavidas. */
+.juegos-root.s4:not(.halloween) .tw-vine,
+.juegos-root.s4:not(.halloween) .tw-chain,
+.juegos-root.s4:not(.halloween) .tw-ice,
+.juegos-root.s4:not(.halloween) .tw-wisp {
+  display: none;
+}
+.juegos-root.s4:not(.halloween) .tw-torch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: conic-gradient(#ff5a4a 0 25%, #fff 0 50%, #ff5a4a 0 75%, #fff 0);
+  -webkit-mask: radial-gradient(circle, transparent 0 5px, #000 5.5px);
+  mask: radial-gradient(circle, transparent 0 5px, #000 5.5px);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4));
+  animation: none;
+}
+.juegos-root.s4:not(.halloween) .tw-torch::before,
+.juegos-root.s4:not(.halloween) .tw-torch::after {
+  display: none;
+}
+.juegos-root.s4:not(.halloween) .tw-floor:nth-child(3n) .tw-torch {
+  display: none;
+}
+.juegos-root.s4:not(.halloween) .tw-floor.is-current {
+  background: linear-gradient(90deg, transparent, rgba(255, 226, 122, 0.16), transparent);
+}
+.juegos-root.s4:not(.halloween) .tw-floor.is-far {
+  opacity: 0.72;
+  filter: saturate(0.85);
+}
+.juegos-root.s4:not(.halloween) .tw-floor--high {
+  background: linear-gradient(180deg, rgba(143, 227, 255, 0.06), transparent 60%);
+}
+
+/* El multiplicador de cada piso: un letrero de madera clara con el borde rojo. */
+.juegos-root.s4:not(.halloween) .tw-plaque {
+  justify-self: start;
+  justify-items: center;
+  min-width: 62px;
+  padding: 3px 8px 4px;
+  border: 2px solid #d8352a;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fff8ea, #ecdcbc);
+  box-shadow: 0 3px 0 rgba(60, 30, 10, 0.5);
+  color: #7a2412;
+  font-size: clamp(14px, 1.35vw, 17px);
+}
+.juegos-root.s4:not(.halloween) .tw-plaque small {
+  color: #a0603a;
+}
+.juegos-root.s4:not(.halloween) .tw-floor.is-done .tw-plaque {
+  border-color: #17a39b;
+  color: #0f6a64;
+}
+.juegos-root.s4:not(.halloween) .tw-floor.is-current .tw-plaque {
+  border-color: #ffb547;
+  box-shadow:
+    0 3px 0 rgba(60, 30, 10, 0.5),
+    0 0 14px rgba(255, 210, 94, 0.6);
+}
+
+/* Las baldosas: tablones de madera de playa. Las buenas se vuelven turquesa; las rotas, astilladas. */
+.juegos-root.s4:not(.halloween) .tw-tile {
+  border-color: rgba(255, 230, 190, 0.55);
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.3) 0 7%, transparent 7%),
+    repeating-linear-gradient(180deg, transparent 0 9px, rgba(90, 50, 20, 0.22) 9px 10px),
+    repeating-linear-gradient(90deg, rgba(90, 50, 20, 0.12) 0 1px, transparent 1px 31%),
+    linear-gradient(180deg, #ddb072, #b9834a 60%, #93602f);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 240, 210, 0.55),
+    inset 0 -4px 0 rgba(80, 40, 10, 0.45),
+    0 4px 0 rgba(30, 18, 8, 0.6),
+    0 8px 14px rgba(0, 0, 0, 0.3);
+}
+.juegos-root.s4:not(.halloween) .tw-floor.is-current .tw-tile {
+  border-color: rgba(255, 226, 122, 0.95);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 245, 220, 0.7),
+    inset 0 -4px 0 rgba(80, 40, 10, 0.45),
+    0 4px 0 rgba(30, 18, 8, 0.6),
+    0 0 18px rgba(255, 226, 122, 0.5);
+}
+.juegos-root.s4:not(.halloween) .tw-floor.is-current .tw-tile:not(:disabled):hover,
+.juegos-root.s4:not(.halloween) .tw-floor.is-current .tw-tile:not(:disabled):focus-visible {
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.45) 0 7%, transparent 7%),
+    repeating-linear-gradient(180deg, transparent 0 9px, rgba(90, 50, 20, 0.18) 9px 10px),
+    linear-gradient(180deg, #ffe0a0, #e7b06a);
+}
+.juegos-root.s4:not(.halloween) .tw-tile.is-safe {
+  border-color: rgba(143, 240, 230, 0.9);
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.4) 0 7%, transparent 7%),
+    repeating-linear-gradient(180deg, transparent 0 9px, rgba(0, 60, 70, 0.18) 9px 10px),
+    linear-gradient(180deg, #5ee6dc, #17a39b);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -4px 0 rgba(0, 70, 70, 0.4),
+    0 4px 0 rgba(10, 30, 30, 0.6),
+    0 0 14px rgba(46, 230, 208, 0.45);
+}
+.juegos-root.s4:not(.halloween) .tw-tile.is-broken {
+  border-color: rgba(255, 120, 100, 0.8);
+  background:
+    linear-gradient(62deg, transparent 46%, rgba(30, 14, 4, 0.8) 47% 50%, transparent 51%),
+    linear-gradient(-28deg, transparent 46%, rgba(30, 14, 4, 0.7) 47% 49%, transparent 50%),
+    linear-gradient(140deg, transparent 56%, rgba(30, 14, 4, 0.6) 57% 59%, transparent 60%),
+    linear-gradient(180deg, #8a5a32, #5a3418);
+}
+
+/* La planta baja: la arena con la puerta de madera del faro. */
+.juegos-root.s4:not(.halloween) .tw-ground {
+  border-top: 3px solid #fff6e0;
+  background:
+    radial-gradient(circle, rgba(140, 90, 40, 0.25) 1px, transparent 1.5px) 0 0 / 7px 7px,
+    linear-gradient(90deg, transparent 40%, #6a4424 40% 41%, #8a5a30 41% 59%, #6a4424 59% 60%, transparent 60%) 0 100% / 100% 72% no-repeat,
+    linear-gradient(180deg, #f4d89e, #dcae68);
+  color: #6a3a14;
+}
+.juegos-root.s4:not(.halloween) .tw-lamp {
+  background: #ffe27a;
+  box-shadow: 0 0 10px #ffd25e;
+}
+
+/* ---------- La cima: la linterna del faro con su haz ---------- */
+.juegos-root.s4:not(.halloween) .tw-crown {
+  background: linear-gradient(180deg, rgba(255, 226, 122, 0.16), rgba(255, 226, 122, 0.04));
+  border-bottom: 3px solid #d8352a;
+}
+.juegos-root.s4:not(.halloween) .tw-crown__roof,
+.juegos-root.s4:not(.halloween) .tw-garg,
+.juegos-root.s4:not(.halloween) .tw-bunting,
+.juegos-root.s4:not(.halloween) .tw-hoard,
+.juegos-root.s4:not(.halloween) .tw-crown__icon {
+  display: none;
+}
+.juegos-root.s4:not(.halloween) .tw-lantern {
+  display: block;
+  position: absolute;
+  top: calc(var(--roof) * -0.75);
+  left: 50%;
+  z-index: 2;
+  width: 100%;
+  height: calc(var(--roof) * 1.75);
+  translate: -50% 0;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+}
+.juegos-root.s4:not(.halloween) .tw-lantern__lamp {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: twb-lamp 1.8s ease-in-out infinite alternate;
+}
+/* El haz: un abanico de luz que gira, aplastado para que parezca que barre el horizonte. */
+.juegos-root.s4:not(.halloween) .tw-beam {
+  display: block;
+  position: absolute;
+  top: calc(var(--roof) * 0.27);
+  left: 50%;
+  z-index: 1;
+  width: 1600px;
+  height: 1600px;
+  translate: -50% -50%;
+  scale: 1 0.16;
+  pointer-events: none;
+}
+.juegos-root.s4:not(.halloween) .tw-beam i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    rgba(255, 244, 190, 0.5) 0deg,
+    transparent 9deg 171deg,
+    rgba(255, 244, 190, 0.5) 180deg,
+    transparent 189deg 351deg,
+    rgba(255, 244, 190, 0.5) 360deg
+  );
+  -webkit-mask: radial-gradient(circle, #000 4%, rgba(0, 0, 0, 0.6) 25%, transparent 60%);
+  mask: radial-gradient(circle, #000 4%, rgba(0, 0, 0, 0.6) 25%, transparent 60%);
+  animation: twb-spin 7s linear infinite;
+}
+.juegos-root.s4:not(.halloween) .tw-crown.is-summit .tw-beam i {
+  animation-duration: 2.4s;
+  filter: brightness(1.4);
+}
+
+@keyframes twb-sway {
+  to {
+    rotate: 4deg;
+  }
+}
+@keyframes twb-glint {
+  to {
+    opacity: 0.55;
+    translate: 3px 0;
+  }
+}
+@keyframes twb-foam {
+  to {
+    translate: -8px 1.5px;
+  }
+}
+@keyframes twb-boat {
+  to {
+    translate: 40px 0;
+  }
+}
+@keyframes twb-lamp {
+  to {
+    scale: 1.25;
+    opacity: 0.8;
+  }
+}
+@keyframes twb-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* En pantallas estrechas el letrero cabe en su columna. */
+@media (max-width: 860px) {
+  .juegos-root.s4:not(.halloween) .tw-plaque {
+    min-width: 0;
+    max-width: calc(var(--plq) - 6px);
+    padding: 2px 5px 3px;
+    border-width: 1.5px;
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root.s4 :is(.tw-shore__fronds, .tw-shore__glint, .tw-shore__foam, .tw-shore__boat, .tw-lantern__lamp, .tw-beam i) {
+    animation: none;
+  }
+}

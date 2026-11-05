@@ -7,6 +7,7 @@ import { useCountUp } from '../comun/useCountUp.js'
 import WinBurst from '../comun/WinBurst.jsx'
 import Help from '../comun/Help.jsx'
 import './Plinko.css'
+import { BeachBall, PlinkoBeach } from '../season4/PlinkoBeach.jsx'
 
 // Medidas del tablero (unidades del viewBox): S es la distancia entre clavos.
 const S = 40
@@ -102,6 +103,7 @@ function Ball({ ball, reduced, onPeg, onLand }) {
         ))}
       <g ref={ref} className="plinko__ball" style={start}>
         <circle r={BALL_R} />
+        <BeachBall r={BALL_R} />
         <circle r={BALL_R * 0.35} cx={-BALL_R * 0.3} cy={-BALL_R * 0.3} className="plinko__shine" />
       </g>
     </>
@@ -314,6 +316,9 @@ function Plinko({ onExit, juegos }) {
                     <stop offset="100%" stopColor={bottom} />
                   </linearGradient>
                 ))}
+                <clipPath id="plinko-ballclip">
+                  <circle r={BALL_R} />
+                </clipPath>
                 {/* Un solo resplandor para todos los clavos (más barato que uno por clavo). */}
                 <filter id="plinko-glow" x="-20%" y="-20%" width="140%" height="140%">
                   <feGaussianBlur stdDeviation="3" result="blur" />
@@ -323,6 +328,7 @@ function Plinko({ onExit, juegos }) {
                   </feMerge>
                 </filter>
               </defs>
+              <PlinkoBeach w={W} h={H} slotY={SLOT_Y} />
               <g className="plinko__pegs" filter="url(#plinko-glow)">
               {Array.from({ length: ROWS }, (_, row) =>
                 Array.from({ length: row + 3 }, (_, j) => (
@@ -347,6 +353,7 @@ function Plinko({ onExit, juegos }) {
                 >
                   <rect x={slotX(k) - S / 2 + 2} y={SLOT_Y} width={S - 4} height={SLOT_H} rx={8} fill={`url(#plinko-tone-${toneOf(mult)})`} />
                   <rect className="plinko__slot-shine" x={slotX(k) - S / 2 + 5} y={SLOT_Y + 3} width={S - 10} height={SLOT_H * 0.32} rx={5} />
+                  <path className="plinko__roof" d={`M${slotX(k) - S / 2} ${SLOT_Y + 2} L${slotX(k)} ${SLOT_Y - 11} L${slotX(k) + S / 2} ${SLOT_Y + 2} Z`} fill={`url(#plinko-tone-${toneOf(mult)})`} />
                   <text x={slotX(k)} y={SLOT_Y + SLOT_H / 2 + 1}>
                     {mult.toLocaleString('es-ES')}
                   </text>

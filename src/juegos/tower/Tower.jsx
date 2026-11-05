@@ -8,6 +8,7 @@ import WinBurst from '../comun/WinBurst.jsx'
 import Help from '../comun/Help.jsx'
 import Avatar from '../comun/Avatar.jsx'
 import './Tower.css'
+import { Lantern, TowerShore } from '../season4/TowerBeach.jsx'
 
 const STEP_MS = 650 // lo que dura el salto a una baldosa
 const FALL_MS = 1500 // lo que se ve la caída antes de volver a empezar
@@ -358,6 +359,7 @@ function Tower({ onExit, juegos }) {
                 d="M30 70h14v1h-14zM90 74h20v1h-20zM160 69h12v1h-12zM230 73h18v1h-18zM300 70h10v1h-10zM350 75h16v1h-16z"
               />
             </svg>
+            <TowerShore />
             <span className="tw-wind tw-wind--1" />
             <span className="tw-wind tw-wind--2" />
             <span className="tw-wind tw-wind--3" />
@@ -390,6 +392,7 @@ function Tower({ onExit, juegos }) {
                   <path d="M160 64V44q0-14 40-14t40 14v20Z" fill="#241d12" opacity="0.75" />
                   <path d="M170 64V50q0-9 30-9t30 9v14Z" fill="#ffd25e" opacity="0.35" />
                 </svg>
+                <Lantern />
                 <svg className="tw-bunting" viewBox="0 0 400 26" preserveAspectRatio="none" aria-hidden="true">
                   <path d="M0 3Q200 14 400 3" stroke="#e9e1ff" strokeWidth="1.5" fill="none" opacity="0.7" />
                   {Array.from({ length: 11 }, (_, i) => {
