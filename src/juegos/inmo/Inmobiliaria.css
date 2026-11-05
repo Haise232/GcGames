@@ -1547,11 +1547,11 @@
 }
 
 /* ============================== Las 7 islas ==============================
-   Arriba, el mapa del archipiélago (cada isla, de su color, con cuántas de sus propiedades tienen dueño); debajo, las
-   doce propiedades de la isla elegida en fichas. */
+   Arriba, el mapa del archipiélago (siluetas reales, cada isla de su color, con su cartel y cuántas tienen dueño);
+   debajo, la cabecera de la isla elegida (bonus y la barra de 12 casillas) y sus propiedades en fichas. */
 .juegos-root .is-islands {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   min-width: 320px;
   animation: is-in 0.5s ease both;
 }
@@ -1561,12 +1561,17 @@
     transform: translateY(8px);
   }
 }
+
+/* --- El mapa --- */
 .juegos-root .is-map {
+  position: relative;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 20px;
   box-shadow:
-    0 0 0 3px rgba(255, 210, 94, 0.35),
-    0 18px 40px rgba(0, 0, 0, 0.45);
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 0 0 6px rgba(8, 40, 64, 0.65),
+    0 0 0 7px rgba(255, 210, 94, 0.35),
+    0 20px 44px rgba(0, 0, 0, 0.5);
 }
 .juegos-root .is-map svg {
   display: block;
@@ -1581,153 +1586,423 @@
     translate: -14px 3px;
   }
 }
+.juegos-root .is-ferries {
+  animation: is-ferry 3s linear infinite;
+}
+@keyframes is-ferry {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+.juegos-root .is-ocean {
+  fill: #d6f8ff;
+  fill-opacity: 0.28;
+  font-family: var(--display);
+  font-size: 26px;
+  font-style: italic;
+  letter-spacing: 0.3em;
+}
+.juegos-root .is-compass circle {
+  fill: rgba(255, 255, 255, 0.06);
+  stroke: rgba(214, 248, 255, 0.35);
+  stroke-width: 1.5;
+}
+.juegos-root .is-compass path {
+  fill: rgba(214, 248, 255, 0.45);
+}
+.juegos-root .is-compass .is-compass__n {
+  fill: #ffd25e;
+}
+.juegos-root .is-compass text {
+  fill: #ffd25e;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .juegos-root .is-island {
   cursor: pointer;
   outline: none;
 }
-.juegos-root .is-island__shore {
-  fill: none;
-  stroke: #fff6d8;
-  stroke-width: 10;
+.juegos-root .is-island > path,
+.juegos-root .is-teide {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform 0.25s cubic-bezier(0.3, 1.5, 0.5, 1),
+    fill 0.2s,
+    filter 0.2s,
+    stroke 0.2s;
+}
+.juegos-root .is-island__shallow {
+  fill: #7ff0f0;
+  stroke: #7ff0f0;
+  stroke-width: 18;
   stroke-linejoin: round;
   opacity: 0.35;
 }
-.juegos-root .is-island__land {
-  fill: color-mix(in srgb, var(--c) 70%, #e8d29a);
-  stroke: #1a1030;
-  stroke-width: 3;
+.juegos-root .is-island__sand {
+  fill: none;
+  stroke: #f6e3ae;
+  stroke-width: 7;
   stroke-linejoin: round;
-  transition:
-    fill 0.2s,
-    filter 0.2s;
+}
+.juegos-root .is-island__land {
+  fill: color-mix(in srgb, var(--c) 62%, #6b5a3a);
+  stroke: #3a2a18;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+.juegos-root .is-island__relief {
+  pointer-events: none;
+}
+.juegos-root .is-teide path {
+  fill: #5a3324;
+  stroke: #2d1810;
+  stroke-width: 1;
+}
+.juegos-root .is-teide .is-teide__snow {
+  fill: #fff;
+  stroke: none;
+}
+.juegos-root .is-island:hover > path,
+.juegos-root .is-island:focus-visible > path,
+.juegos-root .is-island:hover .is-teide {
+  transform: scale(1.06);
 }
 .juegos-root .is-island:hover .is-island__land,
 .juegos-root .is-island:focus-visible .is-island__land {
-  filter: brightness(1.15);
+  filter: brightness(1.12) saturate(1.1);
 }
 .juegos-root .is-island.is-on .is-island__land {
   fill: var(--c);
-  filter: drop-shadow(0 0 10px rgba(255, 227, 110, 0.9));
-  stroke: #ffe36e;
-  stroke-width: 4;
+  stroke: #fff6c8;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 12px rgba(255, 227, 110, 0.85));
 }
-.juegos-root .is-island__name {
+.juegos-root .is-island.is-on .is-island__shallow {
+  fill: #ffe9a0;
+  stroke: #ffe9a0;
+  opacity: 0.45;
+  animation: is-glow 2.4s ease-in-out infinite alternate;
+}
+@keyframes is-glow {
+  to {
+    opacity: 0.2;
+  }
+}
+
+/* Carteles de las islas (dentro del mapa, así crecen y menguan con él). */
+.juegos-root .is-tag {
+  cursor: pointer;
+}
+.juegos-root .is-tag__bg {
+  fill: rgba(6, 26, 46, 0.82);
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 1;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+  transition: fill 0.2s;
+}
+.juegos-root .is-tag__band {
+  fill: var(--c);
+}
+.juegos-root .is-tag__name {
   fill: #fff;
   font-family: var(--display);
-  font-size: 22px;
-  paint-order: stroke;
-  stroke: rgba(10, 20, 40, 0.8);
-  stroke-width: 5px;
-  pointer-events: none;
+  font-size: 20px;
+  letter-spacing: 0.02em;
 }
-.juegos-root .is-island__count {
+.juegos-root .is-tag__track {
+  fill: rgba(255, 255, 255, 0.16);
+}
+.juegos-root .is-tag__fill {
+  fill: #ffe36e;
+}
+.juegos-root .is-tag__count {
   fill: #ffe36e;
   font-size: 15px;
   font-weight: 800;
-  paint-order: stroke;
-  stroke: rgba(10, 20, 40, 0.8);
-  stroke-width: 4px;
-  pointer-events: none;
+}
+.juegos-root .is-tag:hover .is-tag__bg {
+  fill: rgba(16, 52, 84, 0.92);
+}
+.juegos-root .is-tag.is-on .is-tag__bg {
+  fill: color-mix(in srgb, var(--c) 60%, #0a1a2e);
+  stroke: #ffe36e;
+  stroke-width: 2;
 }
 
-.juegos-root .is-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 14px;
-  padding: 10px 14px;
-  border-left: 6px solid var(--c);
-  border-radius: 12px;
-  background: rgba(7, 22, 40, 0.6);
+/* Fila de islas: solo en pantallas estrechas, donde los carteles no caben. */
+.juegos-root .is-chips {
+  display: none;
+  gap: 6px;
+  margin: 0 -2px;
+  padding: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
-.juegos-root .is-head h2 {
+.juegos-root .is-chips button {
+  flex: none;
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-left: 4px solid var(--c);
+  border-radius: 999px;
+  background: rgba(7, 22, 40, 0.7);
+  color: var(--ivory);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.juegos-root .is-chips button.is-on {
+  border-color: #ffe36e;
+  background: color-mix(in srgb, var(--c) 60%, #0a1a2e);
+  color: #fff;
+}
+
+/* --- La cabecera de la isla --- */
+.juegos-root .is-head {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px 14px;
+  padding: 14px 16px 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--c) 55%, transparent), transparent 60%),
+    linear-gradient(180deg, rgba(10, 30, 52, 0.9), rgba(6, 18, 32, 0.92));
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  animation: is-in 0.4s ease both;
+}
+.juegos-root .is-head__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--c) 70%, #000);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.25),
+    0 6px 14px rgba(0, 0, 0, 0.35);
+  font-size: 30px;
+}
+.juegos-root .is-head__title h2 {
   margin: 0;
   font-family: var(--display);
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 400;
+  line-height: 1;
 }
-.juegos-root .is-head p {
+.juegos-root .is-head__title p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-style: italic;
+}
+.juegos-root .is-head__bonus {
+  display: grid;
+  justify-items: end;
+}
+.juegos-root .is-head__bonus small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.juegos-root .is-head__bonus b {
+  color: #ffe36e;
+  font-family: var(--display);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+}
+.juegos-root .is-track {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 6px;
+}
+.juegos-root .is-track__cells {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 4px;
+}
+.juegos-root .is-track__cells i {
+  height: 12px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.juegos-root .is-track__cells i.is-taken {
+  background: rgba(255, 255, 255, 0.32);
+}
+.juegos-root .is-track__cells i.is-mine {
+  background: linear-gradient(180deg, #ffe98a, #f0b429);
+  box-shadow: 0 0 8px rgba(255, 210, 94, 0.6);
+  animation: is-pop 0.4s calc(var(--k) * 40ms) cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+@keyframes is-pop {
+  from {
+    scale: 0.4;
+  }
+}
+.juegos-root .is-track__marks {
+  position: relative;
+  height: 16px;
+}
+.juegos-root .is-track__marks span {
+  position: absolute;
+  top: 0;
+  translate: -100% 0;
+  padding-right: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.juegos-root .is-track__marks span::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  right: -2px;
+  width: 2px;
+  height: 8px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.35);
+}
+.juegos-root .is-track__marks span.is-done {
+  color: #ffe36e;
+}
+.juegos-root .is-track p {
   margin: 0;
   color: var(--muted);
+  font-size: 13px;
 }
-.juegos-root .is-head b {
+.juegos-root .is-track b {
   color: #ffe36e;
 }
 
+/* --- Las fichas --- */
 .juegos-root .is-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
   gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
+.juegos-root .is-grid li {
+  animation: is-in 0.35s calc(var(--k) * 30ms) ease both;
+}
 .juegos-root .is-card {
   position: relative;
   display: grid;
-  grid-template-rows: auto auto 1fr;
-  gap: 6px;
+  grid-template-rows: auto 1fr auto;
+  gap: 8px;
   width: 100%;
   height: 100%;
-  min-height: 132px;
+  min-height: 150px;
   padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-top: 5px solid var(--c);
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255, 246, 232, 0.08), rgba(7, 22, 40, 0.7));
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background:
+    radial-gradient(90% 70% at 0% 0%, color-mix(in srgb, var(--c) 22%, transparent), transparent 70%),
+    linear-gradient(180deg, rgba(16, 40, 64, 0.85), rgba(6, 18, 32, 0.92));
   color: var(--ivory);
   font: inherit;
   text-align: left;
   cursor: pointer;
   transition:
     translate 0.15s,
-    box-shadow 0.15s;
+    box-shadow 0.15s,
+    border-color 0.15s;
 }
 .juegos-root .is-card:hover {
   translate: 0 -3px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+  border-color: color-mix(in srgb, var(--c) 60%, #fff);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
 }
 .juegos-root .is-card:focus-visible {
   outline: 3px solid #ffe36e;
   outline-offset: 2px;
 }
-.juegos-root .is-card.is-owned {
-  background: linear-gradient(180deg, hsl(var(--oh) 60% 45% / 0.28), rgba(7, 22, 40, 0.75));
-}
-.juegos-root .is-card.is-mine {
-  box-shadow: inset 0 0 0 2px #ffd25e;
-}
-.juegos-root .is-card.is-selected {
-  box-shadow:
-    inset 0 0 0 2px #fff,
-    0 0 20px rgba(255, 255, 255, 0.35);
+.juegos-root .is-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
 }
 .juegos-root .is-card__icon {
-  font-size: 30px;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--c) 35%, rgba(255, 255, 255, 0.08));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  font-size: 26px;
   line-height: 1;
+}
+.juegos-root .is-card__type {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.juegos-root .is-card__stars {
+  color: #ffd25e;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+.juegos-root .is-card__stars span {
+  color: rgba(255, 255, 255, 0.2);
 }
 .juegos-root .is-card__name {
   font-weight: 800;
   font-size: 14px;
-  line-height: 1.2;
+  line-height: 1.25;
 }
-.juegos-root .is-card__price {
-  align-self: end;
-  font-family: var(--display);
-  font-size: 18px;
+.juegos-root .is-card__buy {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.14);
+}
+.juegos-root .is-card__buy b {
   color: #ffe36e;
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 400;
+}
+.juegos-root .is-card__buy small {
+  color: #7fe0a8;
+  font-size: 12px;
+  font-weight: 700;
 }
 .juegos-root .is-card__own {
   display: flex;
-  align-self: end;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.14);
   font-size: 13px;
-  font-weight: 700;
 }
-.juegos-root .is-card__own span {
+.juegos-root .is-card__own > span {
   display: grid;
   min-width: 0;
+}
+.juegos-root .is-card__own b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .juegos-root .is-card__own small {
   overflow: hidden;
@@ -1736,14 +2011,41 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.juegos-root .is-card__stars {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  color: #ffd25e;
-  font-size: 13px;
-  letter-spacing: 1px;
+.juegos-root .is-card.is-owned {
+  background:
+    radial-gradient(90% 70% at 0% 0%, hsl(var(--oh) 60% 45% / 0.3), transparent 70%),
+    linear-gradient(180deg, rgba(16, 40, 64, 0.85), rgba(6, 18, 32, 0.92));
 }
+.juegos-root .is-card.is-owned:not(.is-mine) .is-card__icon {
+  filter: saturate(0.6);
+}
+.juegos-root .is-card.is-mine {
+  border-color: rgba(255, 210, 94, 0.7);
+  background:
+    radial-gradient(90% 70% at 0% 0%, rgba(255, 210, 94, 0.28), transparent 70%),
+    linear-gradient(180deg, rgba(40, 40, 30, 0.85), rgba(14, 20, 30, 0.92));
+}
+.juegos-root .is-card.is-mine .is-card__own b {
+  color: #ffe36e;
+}
+.juegos-root .is-card.is-selected {
+  border-color: #fff;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 24px color-mix(in srgb, var(--c) 70%, transparent);
+}
+
+.juegos-root .im-deed__fact {
+  margin: 0 16px;
+  padding: 10px 12px;
+  border-left: 4px solid var(--band);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.05);
+  color: #333;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 @media (max-width: 900px) {
   .juegos-root .im-stage .is-islands {
     width: 100%;
@@ -1753,8 +2055,47 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+@media (max-width: 620px) {
+  .juegos-root .is-tag {
+    display: none;
+  }
+  .juegos-root .is-chips {
+    display: flex;
+  }
+  .juegos-root .is-head {
+    grid-template-columns: auto 1fr;
+  }
+  .juegos-root .is-head__bonus {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+    align-items: center;
+    justify-items: start;
+  }
+  .juegos-root .is-head__title h2,
+  .juegos-root .is-head__bonus b {
+    font-size: 24px;
+  }
+  .juegos-root .is-card {
+    min-height: 140px;
+    padding: 10px;
+  }
+  .juegos-root .is-card__icon {
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+  }
+  .juegos-root .is-card__type {
+    display: none;
+  }
+  .juegos-root .is-card__buy {
+    flex-direction: column;
+    gap: 0;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .juegos-root :is(.is-islands, .is-waves) {
+  .juegos-root :is(.is-islands, .is-waves, .is-ferries, .is-head, .is-grid li, .is-track__cells i, .is-island.is-on .is-island__shallow) {
     animation: none;
   }
 }
