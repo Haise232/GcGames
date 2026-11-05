@@ -535,25 +535,59 @@ export function playSmash() {
   tone(ac, { freq: 70, to: 30, at: 0.08, dur: 0.6, type: 'square', peak: 0.05 })
 }
 
-// ---- Buceo de Perlas ----
-// Burbujas al bajar un tramo: unos «blup» que suben.
+// ---- Apnea ----
+// Una ráfaga de ruido filtrado (aire que entra o sale): sube o baja de tono entre `from` y `to`, con subida y bajada suaves.
+function breath(ac, { from, to, dur, peak = 0.14, at = 0 }) {
+  const len = Math.floor(ac.sampleRate * dur)
+  const buffer = ac.createBuffer(1, len, ac.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1
+  const src = ac.createBufferSource()
+  const filter = ac.createBiquadFilter()
+  const gain = ac.createGain()
+  const start = ac.currentTime + at
+  src.buffer = buffer
+  filter.type = 'bandpass'
+  filter.Q.value = 0.9
+  filter.frequency.setValueAtTime(from, start)
+  filter.frequency.exponentialRampToValueAtTime(to, start + dur)
+  gain.gain.setValueAtTime(0.0001, start)
+  gain.gain.exponentialRampToValueAtTime(peak, start + dur * 0.35)
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + dur)
+  src.connect(filter).connect(gain).connect(master)
+  src.start(start)
+}
+
+// Burbujas al pasar cada diez metros: unos «blup» que suben.
 export function playBubbles() {
   const ac = audio()
   if (!ac) return
   ;[0, 0.09, 0.2, 0.27].forEach((at, i) => tone(ac, { freq: 260 + i * 70, to: 520 + i * 90, at, dur: 0.07, type: 'sine', peak: 0.06 }))
 }
 
-// Perla: un tintineo de cristal; la negra, más grave y con un eco que brilla.
-export function playPearl(black = false) {
+// Respirar hondo antes de tirarse: aire que entra, cada vez más agudo.
+export function playInhale() {
   const ac = audio()
   if (!ac) return
-  if (black) {
-    ;[523, 659, 784, 1047, 1319].forEach((freq, i) => tone(ac, { freq, at: i * 0.06, dur: 0.5, type: 'sine', peak: 0.07 }))
-    tone(ac, { freq: 131, to: 98, dur: 0.8, type: 'triangle', peak: 0.12 })
-    return
-  }
-  tone(ac, { freq: 1568, dur: 0.35, type: 'sine', peak: 0.07 })
-  tone(ac, { freq: 2093, at: 0.07, dur: 0.4, type: 'sine', peak: 0.05 })
+  breath(ac, { from: 500, to: 2400, dur: 0.7, peak: 0.16 })
+}
+
+// La bocanada al salir a la superficie: un aire largo que entra de golpe y un suspiro de alivio que baja.
+export function playSurfaceGasp() {
+  const ac = audio()
+  if (!ac) return
+  breath(ac, { from: 700, to: 3000, dur: 0.55, peak: 0.28 })
+  breath(ac, { from: 2200, to: 500, dur: 0.8, peak: 0.12, at: 0.6 })
+  tone(ac, { freq: 220, to: 330, at: 0.05, dur: 0.4, type: 'sine', peak: 0.04 })
+}
+
+// Latido de la apnea cuando falta el aire: seco y corto; con `level` (1 a 3) suena más fuerte y más agudo.
+export function playPulse(level = 1) {
+  const ac = audio()
+  if (!ac) return
+  const k = Math.min(3, Math.max(1, level))
+  tone(ac, { freq: 62 + k * 8, to: 42, dur: 0.13, type: 'sine', peak: 0.12 + k * 0.07 })
+  tone(ac, { freq: 56 + k * 8, to: 38, at: 0.17, dur: 0.15, type: 'sine', peak: 0.09 + k * 0.05 })
 }
 
 // Sin aire: un último burbujeo que se apaga.

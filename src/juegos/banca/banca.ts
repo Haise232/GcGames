@@ -120,7 +120,7 @@ export const GAME_GROUPS: { name: string; games: { id: string; name: string }[] 
     games: [
       { id: 'fish', name: 'Pez Gordo' },
       { id: 'dig', name: 'Tesoro en la Arena' },
-      { id: 'dive', name: 'Buceo de Perlas' },
+      { id: 'dive', name: 'Apnea' },
       { id: 'tower', name: 'La Torre' },
       { id: 'heist', name: 'El Atraco' },
       { id: 'plinko', name: 'Plinko' },
@@ -208,7 +208,7 @@ export function abusePerks(a: Pick<Abuse, 'modo' | 'ambito'>): string[] {
   return [
     `Premios ${m} en ruleta, cohete, carrera, regata, plinko, rana, laberinto, bingo, torre, atraco, subasta, puente y ascensor`,
     `Blackjack y póker: lo que ganes, ${m}`,
-    `Suerte ${m} en el gacha, el plinko, la torre, el atraco, la arena y el buceo`,
+    `Suerte ${m} en el gacha, el plinko, la torre, el atraco, la arena y la apnea`,
     `Bingo: ${a.modo === 'x3' ? 'dos cartones' : 'un cartón'} de regalo por cada uno que compres`,
   ]
 }
@@ -222,6 +222,6 @@ export function abuseText(a: Pick<Abuse, 'modo' | 'ambito'>): { big: string; sma
   const m = a.modo === 'x3' ? '×3' : '×2'
   return {
     big: `PROBABILIDAD ${m} ${where}`,
-    small: a.ambito === 'poker' ? `Lo que ganes en el póker, ${m}.` : `Lo que ganes, ${m}, y suerte ${m} en el plinko, la torre, el atraco, la arena, el buceo y el bingo.`,
+    small: a.ambito === 'poker' ? `Lo que ganes en el póker, ${m}.` : `Lo que ganes, ${m}, y suerte ${m} en el plinko, la torre, el atraco, la arena, la apnea y el bingo.`,
   }
 }

@@ -59,7 +59,7 @@ const BY_GAME = [
   { id: 'frog', goal: 5, xp: 100, text: 'Juega 5 partidas a la Rana' },
   { id: 'fish', goal: 3, xp: 130, text: 'Juega 3 partidas a Pez Gordo' },
   { id: 'dig', goal: 4, xp: 120, text: 'Busca el tesoro 4 veces en la Arena' },
-  { id: 'dive', goal: 3, xp: 120, text: 'Bucea 3 veces en busca de perlas' },
+  { id: 'dive', goal: 3, xp: 120, text: 'Haz 3 inmersiones de apnea' },
   { id: 'tower', goal: 3, xp: 120, text: 'Sube 3 veces a la Torre' },
   { id: 'heist', goal: 2, xp: 130, text: 'Da 2 golpes en el Atraco' },
   { id: 'bingo', goal: 2, xp: 120, text: 'Compra cartones en 2 partidas de Bingo' },

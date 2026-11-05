@@ -1833,7 +1833,7 @@
   animation: ars-wave 4s ease-in-out infinite alternate;
 }
 
-/* Escena de Buceo de Perlas (DiveArt.jsx). */
+/* Escena de Apnea (DiveArt.jsx). */
 .juegos-root .dvs-rays {
   animation: dvs-rays 5s ease-in-out infinite alternate;
 }
@@ -1857,7 +1857,15 @@
   }
 }
 .juegos-root .dvs-shine {
-  animation: ars-shine 2s ease-in-out infinite alternate;
+  animation: ars-shine 1.2s ease-in-out infinite alternate;
+}
+.juegos-root .dvs-shark {
+  animation: dvs-shark 5s ease-in-out infinite alternate;
+}
+@keyframes dvs-shark {
+  to {
+    translate: -26px -4px;
+  }
 }
 .juegos-root .dvs-diver {
   animation: dvs-sink 3.2s ease-in-out infinite alternate;
@@ -1937,7 +1945,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .juegos-root :is(.ars-wave, .ars-shine, .ars-chest, .ars-spark, .ars-crab, .ars-claw, .dvs-rays, .dvs-weed, .dvs-shine, .dvs-diver, .dvs-bubbles, .rgs-boat, .rgs-waves) {
+  .juegos-root :is(.ars-wave, .ars-shine, .ars-chest, .ars-spark, .ars-crab, .ars-claw, .dvs-rays, .dvs-weed, .dvs-shine, .dvs-diver, .dvs-shark, .dvs-bubbles, .rgs-boat, .rgs-waves) {
     animation: none;
   }
 }

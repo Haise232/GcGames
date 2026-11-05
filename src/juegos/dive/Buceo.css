@@ -1,14 +1,15 @@
-/* Escrito a mano (no generado): Buceo de Perlas (Buceo.jsx). El mar es un SVG alto (0-40 m) dentro de una ventana; la
-   cámara (--cam, en % del alto del mundo) lo desplaza para seguir al buzo. Encima van los marcadores (lo que llevas, el
-   aire, el siguiente tramo), lo que sube el premio en cada perla y el estado. El panel de la derecha reutiliza el de
-   Tesoro en la Arena (ar-*, dig/Arena.css). En el móvil, el panel va debajo. */
+/* Escrito a mano (no generado): Apnea (Buceo.jsx). El mar es un SVG alto (0-40 m) dentro de una ventana: la cámara lo
+   desplaza (--ty) para seguir al buzo, que va a un tercio de la altura. Encima van la profundidad y el premio en grande,
+   los pulmones (el aire y la raya de lo que hace falta para volver) y el estado. La tensión (--t, de 0 a 1) cierra la
+   visión en túnel, enrojece los bordes y acelera el latido (--beat). El panel de la derecha reutiliza el de Tesoro en la
+   Arena (ar-*, dig/Arena.css). En el móvil, el panel va debajo. */
 .juegos-root .bz-app {
   --accent: #2ee6d0;
   --accent-rgb: 46, 230, 208;
 }
 .juegos-root .bz-app::before {
   background:
-    radial-gradient(50% 40% at 50% 0%, rgba(46, 230, 208, 0.18), transparent 70%),
+    radial-gradient(50% 40% at 50% 0%, rgba(255, 138, 76, 0.2), transparent 70%),
     radial-gradient(circle, rgba(200, 246, 255, 0.06) 2px, transparent 3px) 0 0 / 60px 90px,
     linear-gradient(180deg, #0b2a4a, #071a34 60%, #040e22);
 }
@@ -39,39 +40,345 @@
     0 0 0 3px #ffe36e,
     0 0 40px rgba(255, 227, 110, 0.45);
 }
+.juegos-root .bz-stage.is-warn {
+  box-shadow:
+    0 0 0 3px #ff4f6a,
+    0 0 40px rgba(255, 79, 106, 0.5);
+}
 
 .juegos-root .bz-window {
+  /* Dónde queda la cámara y el buzo en pantalla (1 unidad del dibujo = 100cqw / --w). */
+  --ty: clamp(min(0px, calc(100cqh - var(--h) * 100cqw / var(--w))), calc(36cqh - var(--dy) * 100cqw / var(--w)), 0px);
+  --px: calc(var(--dx) * 100cqw / var(--w));
+  --py: calc(var(--dy) * 100cqw / var(--w) + var(--ty));
   position: absolute;
   inset: 0;
   overflow: hidden;
   container-type: size;
 }
-/* El mundo ocupa el ancho de la ventana (600 unidades) y mide de alto lo que dé (1480). La cámara deja al buzo (--dy) a
-   un tercio de la ventana, sin pasarse de la superficie ni del fondo: 1 unidad = 100cqw / --w. */
+/* El mundo ocupa el ancho de la ventana (600 unidades) y mide de alto lo que dé (1520). La cámara deja al buzo a un
+   tercio de la ventana, sin pasarse de la superficie ni del fondo. */
 .juegos-root .bz-world {
   position: absolute;
   top: 0;
   left: 0;
   width: 100cqw;
   height: auto;
-  translate: 0 clamp(min(0px, calc(100cqh - var(--h) * 100cqw / var(--w))), calc(36cqh - var(--dy) * 100cqw / var(--w)), 0px);
+  translate: 0 var(--ty);
   transition: translate 0.9s cubic-bezier(0.45, 0, 0.2, 1);
 }
+/* Mientras el buzo se mueve, la cámara y el buzo siguen al fotograma, sin transiciones que los retrasen. */
+.juegos-root .bz-window.is-moving :is(.bz-world, .bz-diver) {
+  transition: none;
+}
 
-/* Los marcadores de arriba y el estado de abajo van por encima del mar. */
-.juegos-root .bz-top {
+/* ---------- La tensión: túnel, bordes que laten y luz que vuelve ---------- */
+/* La visión en túnel: oscuro y rojizo desde los bordes, con un agujero alrededor del buzo que se cierra con --t. */
+.juegos-root .bz-tunnel {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: min(1, calc(var(--t) * 1.5));
+  background: radial-gradient(circle at var(--px) var(--py), transparent calc(88% - var(--t) * 74%), rgba(26, 0, 10, 0.55) calc(104% - var(--t) * 74%), rgba(8, 0, 4, 0.96) calc(150% - var(--t) * 80%));
+}
+/* El latido: un destello rojo en los bordes al ritmo del corazón (la duración la fija --beat, y cambia con cada nivel). */
+.juegos-root .bz-pulse {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  box-shadow: inset 0 0 calc(70px + var(--t) * 110px) calc(var(--t) * 14px) rgba(255, 30, 70, 0.8);
+  opacity: 0;
+  animation: bz-beat var(--beat) ease-out infinite;
+}
+@keyframes bz-beat {
+  0% {
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 0.25;
+  }
+  30% {
+    opacity: 0.85;
+  }
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+/* La luz que vuelve al subir: un resplandor cálido desde arriba. */
+.juegos-root .bz-relief {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: calc(var(--relief) * 0.7);
+  background: radial-gradient(90% 60% at 50% 0%, rgba(255, 236, 170, 0.75), rgba(255, 190, 120, 0.25) 55%, transparent 80%);
+}
+
+/* ---------- Lo que se lee de un vistazo ---------- */
+.juegos-root .bz-hud {
   position: absolute;
   top: 12px;
   right: 12px;
-  left: 70px;
-  z-index: 2;
+  left: 66px;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  pointer-events: none;
 }
+/* La profundidad, enorme, y debajo el premio. */
+.juegos-root .bz-read {
+  display: grid;
+  gap: 2px;
+  color: #fff;
+  text-shadow:
+    0 2px 0 rgba(4, 22, 44, 0.55),
+    0 0 18px rgba(4, 22, 44, 0.7);
+}
+.juegos-root .bz-read > small {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.juegos-root .bz-read__depth {
+  font-family: var(--display);
+  font-size: clamp(56px, 6.4vw, 96px);
+  font-weight: 400;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .bz-read__depth i {
+  margin-left: 6px;
+  font-size: 0.42em;
+  font-style: normal;
+  opacity: 0.8;
+}
+.juegos-root .bz-read__prize {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  justify-content: start;
+  column-gap: 8px;
+  width: fit-content;
+  margin-top: 6px;
+  padding: 7px 14px 8px;
+  border-radius: 16px;
+  background: rgba(7, 22, 40, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(255, 227, 110, 0.4);
+  text-shadow: none;
+}
+.juegos-root .bz-read__prize small {
+  grid-column: 1 / -1;
+  color: #cfeaff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.juegos-root .bz-read__prize b {
+  color: #ffe36e;
+  font-family: var(--display);
+  font-size: clamp(24px, 2.6vw, 36px);
+  font-weight: 400;
+  line-height: 1;
+}
+.juegos-root .bz-read__prize em {
+  color: #8fe3ff;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 800;
+}
+.juegos-root .bz-read.is-low .bz-read__depth {
+  color: #ffb0b8;
+}
+
+/* Los pulmones. */
+.juegos-root .bz-lungs {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: 112px;
+  flex: none;
+  padding: 8px 8px 7px;
+  border-radius: 20px;
+  background: rgba(7, 22, 40, 0.68);
+  box-shadow: inset 0 0 0 1px rgba(200, 246, 255, 0.28);
+  color: #fff;
+}
+.juegos-root .bz-lungs > small {
+  color: #cfeaff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.juegos-root .bz-lungs > b {
+  font-family: var(--display);
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .bz-lungs svg {
+  width: 84px;
+  height: auto;
+  overflow: visible;
+}
+.juegos-root .bz-lungs__reserve {
+  fill: rgba(255, 181, 71, 0.78);
+}
+.juegos-root .bz-lungs__reserve.is-doomed {
+  fill: rgba(255, 42, 74, 0.85);
+}
+/* Cuando el buzo no se mueve (se rellena al salir), el aire sube y baja con suavidad. */
+.juegos-root .bz-lungs:not(.is-live) :is(.bz-lungs__air, .bz-lungs__reserve) {
+  transition:
+    y 0.9s ease,
+    height 0.9s ease;
+}
+.juegos-root .bz-lungs__need line {
+  stroke: #fff;
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 4px #fff);
+}
+.juegos-root .bz-lungs__need path {
+  fill: #fff;
+}
+.juegos-root .bz-lungs.is-low {
+  box-shadow:
+    inset 0 0 0 2px #ff4f6a,
+    0 0 22px rgba(255, 79, 106, 0.6);
+  animation: bz-blink 0.45s ease-in-out infinite alternate;
+}
+.juegos-root .bz-lungs.is-low > b,
+.juegos-root .bz-lungs.is-doomed > b {
+  color: #ff8a98;
+}
+.juegos-root .bz-lungs.is-doomed > b {
+  font-size: 20px;
+}
+@keyframes bz-blink {
+  to {
+    opacity: 0.55;
+  }
+}
+
+/* El aviso de «¡sube ya!»: grande, en el centro y latiendo. */
+.juegos-root .bz-alert {
+  position: absolute;
+  top: 72%;
+  left: 50%;
+  z-index: 3;
+  margin: 0;
+  padding: 8px 22px 10px;
+  border-radius: 18px;
+  background: rgba(40, 0, 10, 0.72);
+  box-shadow:
+    0 0 0 3px #ff4f6a,
+    0 0 36px rgba(255, 79, 106, 0.7);
+  color: #fff;
+  font-family: var(--display);
+  font-size: clamp(30px, 4vw, 52px);
+  white-space: nowrap;
+  pointer-events: none;
+  translate: -50% 0;
+  animation: bz-alert 0.45s ease-in-out infinite alternate;
+}
+.juegos-root .bz-alert span {
+  color: #ff8a98;
+}
+@keyframes bz-alert {
+  to {
+    scale: 1.08;
+  }
+}
+
+/* La bocanada de la superficie: un fogonazo de sol, la palabra y burbujas que suben. */
+.juegos-root .bz-gulp {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(80% 70% at 50% 20%, rgba(255, 244, 200, 0.95), rgba(255, 200, 130, 0.5) 50%, transparent 80%);
+  animation: bz-gulp-flash 1.1s ease-out both;
+}
+.juegos-root .bz-gulp b {
+  color: #fff;
+  font-family: var(--display);
+  font-size: clamp(54px, 9vw, 120px);
+  font-weight: 400;
+  text-shadow:
+    0 4px 0 #ff8a4c,
+    0 0 40px rgba(255, 138, 76, 0.9);
+  animation: bz-gulp-word 1.1s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.juegos-root .bz-gulp i {
+  position: absolute;
+  bottom: -20px;
+  left: calc(8% + var(--i) * 10%);
+  width: calc(14px + (var(--i) % 3) * 8px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.2);
+  animation: bz-gulp-bubble 1.1s ease-out both;
+  animation-delay: calc(var(--i) * 0.04s);
+}
+@keyframes bz-gulp-flash {
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes bz-gulp-word {
+  0% {
+    opacity: 0;
+    scale: 0.4;
+  }
+  30% {
+    opacity: 1;
+    scale: 1.12;
+  }
+  45% {
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 -30px;
+  }
+}
+@keyframes bz-gulp-bubble {
+  to {
+    translate: 0 -70cqh;
+    opacity: 0;
+  }
+}
+
+/* Los marcadores de abajo van por encima del mar. */
 .juegos-root .bz-status {
   position: absolute;
   right: 16px;
   bottom: 14px;
-  left: 70px;
-  z-index: 2;
+  left: 66px;
+  z-index: 3;
   max-width: none;
   margin: 0 auto;
 }
@@ -88,11 +395,11 @@
   top: 14px;
   bottom: 14px;
   left: 14px;
-  z-index: 2;
+  z-index: 3;
   width: 40px;
   border-radius: 14px;
   background:
-    repeating-linear-gradient(180deg, transparent 0 calc(10% - 2px), rgba(255, 255, 255, 0.35) calc(10% - 2px) 10%),
+    repeating-linear-gradient(180deg, transparent 0 calc(12.5% - 2px), rgba(255, 255, 255, 0.35) calc(12.5% - 2px) 12.5%),
     rgba(7, 22, 40, 0.6);
   box-shadow: inset 0 0 0 1px rgba(200, 246, 255, 0.25);
 }
@@ -103,6 +410,25 @@
   border-radius: 14px;
   background: linear-gradient(180deg, rgba(46, 230, 208, 0.25), rgba(46, 230, 208, 0.55));
   transition: height 0.8s cubic-bezier(0.45, 0, 0.2, 1);
+}
+.juegos-root .bz-gauge__safe {
+  position: absolute;
+  top: calc(var(--s) * 100%);
+  right: -3px;
+  left: -3px;
+  height: 3px;
+  background: #ff6a7e;
+  box-shadow: 0 0 8px #ff2a4a;
+}
+.juegos-root .bz-gauge em {
+  position: absolute;
+  top: calc(var(--s) * 100%);
+  left: 50%;
+  translate: -50% 2px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
 }
 .juegos-root .bz-gauge b {
   position: absolute;
@@ -117,99 +443,18 @@
   font-size: 11px;
   white-space: nowrap;
 }
-
-/* La botella de aire: lo que queda (--left) y, con una raya blanca, lo que hace falta para volver (--need). */
-.juegos-root .bz-tank {
-  position: relative;
-  display: block;
-  width: 110px;
-  height: 14px;
-  margin: 4px 0 2px;
-  overflow: hidden;
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.16);
-}
-.juegos-root .bz-tank__air {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: calc(var(--left) * 100%);
-  border-radius: inherit;
-  background: linear-gradient(90deg, #2ee6d0, #8fe3ff);
-}
-.juegos-root .bz-tank__need {
-  position: absolute;
-  top: -2px;
-  bottom: -2px;
-  left: calc(var(--need) * 100%);
-  width: 3px;
-  background: #fff;
-  box-shadow: 0 0 6px #fff;
-}
-.juegos-root .bz-tank.is-low .bz-tank__air {
-  background: linear-gradient(90deg, #ff4f6a, #ffb547);
-  animation: bz-blink 0.5s ease-in-out infinite alternate;
-}
-@keyframes bz-blink {
-  to {
-    opacity: 0.45;
-  }
-}
-
-/* Lo que sube el premio en cada perla: sale en grande y se desvanece. */
-.juegos-root .bz-gain {
-  position: absolute;
-  top: 38%;
-  left: 50%;
-  z-index: 3;
-  display: grid;
-  justify-items: center;
-  padding: 8px 18px;
-  border-radius: 16px;
-  background: rgba(7, 22, 40, 0.75);
-  color: #ffe36e;
-  font-family: var(--display);
-  font-size: clamp(22px, 2.6vw, 34px);
-  white-space: nowrap;
-  pointer-events: none;
-  translate: -50% 0;
-  animation: bz-gain 1.8s ease-out both;
-}
-.juegos-root .bz-gain small {
-  font-size: 0.55em;
-  color: #e0c4ff;
-}
-.juegos-root .bz-gain.is-black {
-  box-shadow:
-    0 0 0 3px #c49cff,
-    0 0 40px rgba(196, 156, 255, 0.7);
-  color: #fff;
-}
-@keyframes bz-gain {
-  0% {
-    opacity: 0;
-    scale: 0.6;
-  }
-  15% {
-    opacity: 1;
-    scale: 1.08;
-  }
-  25% {
-    scale: 1;
-  }
-  75% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    translate: -50% -40px;
-  }
+.juegos-root .bz-window.is-moving :is(.bz-gauge__fill, .bz-gauge b) {
+  transition: none;
 }
 
 /* ---------- Dentro del mar ---------- */
-.juegos-root .bz-mark {
-  fill: rgba(200, 246, 255, 0.55);
-  font-size: 15px;
-  font-weight: 700;
+.juegos-root .bz-mark line {
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 2;
+}
+.juegos-root .bz-mark.is-ten line {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 3;
 }
 .juegos-root .bz-rays {
   animation: bz-rays 6s ease-in-out infinite alternate;
@@ -228,67 +473,33 @@
     translate: -20px 0;
   }
 }
-
-/* Ostras: la tapa se abre de golpe y la perla sube y brilla. */
-.juegos-root .bz-oyster__lid {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
+/* El límite del aire: una raya discontinua que brilla más cuanto más tensión, y debajo la zona sin retorno rayada. */
+.juegos-root .bz-limit line {
+  stroke: #ff5a70;
+  stroke-width: 4;
+  stroke-dasharray: 16 10;
+  filter: drop-shadow(0 0 calc(3px + var(--t) * 12px) #ff2a4a);
 }
-.juegos-root .bz-oyster.is-fresh .bz-oyster__lid {
-  animation: bz-lid 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+.juegos-root .bz-limit text {
+  fill: #ffc0c8;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  paint-order: stroke;
+  stroke: rgba(40, 0, 10, 0.75);
+  stroke-width: 5px;
 }
-@keyframes bz-lid {
-  from {
-    scale: 1 0.25;
-  }
-}
-.juegos-root .bz-pearl {
-  filter: drop-shadow(0 0 6px rgba(255, 246, 240, 0.9));
-}
-.juegos-root .bz-oyster.is-fresh .bz-pearl {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: bz-pearl 0.9s cubic-bezier(0.2, 1.6, 0.4, 1) both;
-}
-@keyframes bz-pearl {
-  0% {
-    scale: 0;
-  }
-  50% {
-    translate: 0 -14px;
-    scale: 1.4;
-  }
-}
-.juegos-root .bz-oyster.is-black .bz-pearl {
-  filter: drop-shadow(0 0 10px rgba(196, 156, 255, 1));
-}
-.juegos-root .bz-shock {
-  opacity: 0;
-}
-.juegos-root .bz-oyster.is-fresh .bz-shock {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: bz-shock 0.9s ease-out;
-}
-@keyframes bz-shock {
-  from {
-    opacity: 1;
-    scale: 0.3;
-  }
-  to {
-    opacity: 0;
-    scale: 3;
-  }
-}
-.juegos-root .bz-oyster.is-loss path:first-child {
-  fill: #4a2a38;
+.juegos-root .bz-limit .bz-limit__sub {
+  fill: #ff8a98;
+  font-size: 16px;
 }
 
-/* El buzo: nada de un sitio a otro, patalea y echa burbujas. */
+/* El buzo: nada de un sitio a otro, patalea y suelta burbujas solo cuando va justo de aire. */
 .juegos-root .bz-diver {
   transition: transform 0.7s cubic-bezier(0.45, 0, 0.2, 1);
 }
 .juegos-root .bz-diver__body {
+  transition: rotate 0.3s;
   animation: bz-bob 2.4s ease-in-out infinite alternate;
 }
 @keyframes bz-bob {
@@ -296,28 +507,37 @@
     translate: 0 5px;
   }
 }
+.juegos-root .bz-diver.is-swim .bz-diver__body {
+  rotate: 75deg;
+}
+.juegos-root .bz-diver.is-up .bz-diver__body {
+  rotate: -75deg;
+}
 .juegos-root .bz-fins {
   transform-box: fill-box;
   transform-origin: 100% 50%;
   animation: bz-kick 0.9s ease-in-out infinite alternate;
 }
 .juegos-root .bz-diver.is-swim .bz-fins {
-  animation-duration: 0.25s;
+  animation-duration: 0.35s;
+}
+.juegos-root .bz-diver.is-up .bz-fins {
+  animation-duration: 0.6s;
 }
 @keyframes bz-kick {
   from {
-    rotate: -14deg;
+    rotate: -12deg;
   }
   to {
-    rotate: 14deg;
+    rotate: 12deg;
   }
 }
 .juegos-root .bz-breath circle {
-  fill: none;
+  fill: rgba(200, 246, 255, 0.25);
   stroke: #c8f6ff;
   stroke-width: 1.6;
-  animation: bz-breath 2s ease-in infinite;
-  animation-delay: calc(var(--i) * 0.5s);
+  animation: bz-breath 1.6s ease-in infinite;
+  animation-delay: calc(var(--i) * 0.22s);
 }
 @keyframes bz-breath {
   from {
@@ -326,7 +546,7 @@
   }
   to {
     opacity: 0;
-    translate: 6px -60px;
+    translate: 8px -70px;
   }
 }
 .juegos-root .bz-diver.is-lost .bz-breath {
@@ -380,16 +600,40 @@
 }
 @keyframes bz-turtle {
   from {
-    transform: translate(-80px, 420px);
+    transform: translate(-80px, 470px);
   }
   to {
-    transform: translate(680px, 340px);
+    transform: translate(680px, 390px);
   }
 }
 .juegos-root .bz-flipper {
   transform-box: fill-box;
   transform-origin: 0% 50%;
   animation: bz-kick 1.2s ease-in-out infinite alternate;
+}
+.juegos-root .bz-caustics {
+  opacity: 0.22;
+  animation: bz-caustics 5s ease-in-out infinite alternate;
+}
+@keyframes bz-caustics {
+  to {
+    opacity: 0.08;
+    translate: -50px 10px;
+  }
+}
+.juegos-root .bz-kelp {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: bz-sway 4s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * -1.3s);
+}
+@keyframes bz-sway {
+  from {
+    rotate: -4deg;
+  }
+  to {
+    rotate: 4deg;
+  }
 }
 .juegos-root .bz-moray {
   animation: bz-moray 5s ease-in-out infinite;
@@ -421,178 +665,67 @@
   filter: drop-shadow(0 0 10px #ffe36e);
   animation: bz-blink 1.2s ease-in-out infinite alternate;
 }
+/* El Abismo: ojos que parpadean en las paredes, un leviatán que pasa y nieve marina. */
+.juegos-root .bz-eyes {
+  filter: drop-shadow(0 0 8px rgba(255, 58, 74, 0.95));
+}
+.juegos-root .bz-eyes__in {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: bz-eyes 6s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -1.7s);
+}
+@keyframes bz-eyes {
+  0%,
+  90%,
+  100% {
+    scale: 1;
+    opacity: 1;
+  }
+  93% {
+    scale: 1 0.08;
+  }
+  96% {
+    scale: 1;
+    opacity: 0.35;
+  }
+}
+.juegos-root .bz-leviathan {
+  animation: bz-leviathan 70s linear infinite;
+}
+@keyframes bz-leviathan {
+  from {
+    transform: translate(-460px, 930px);
+  }
+  to {
+    transform: translate(1060px, 880px);
+  }
+}
+.juegos-root .bz-snow {
+  opacity: 0.5;
+  animation: bz-snow 7s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * -0.9s);
+}
+@keyframes bz-snow {
+  to {
+    opacity: 0.12;
+    translate: 10px -46px;
+  }
+}
 /* La oscuridad y la linterna (en el SVG, con una máscara que sigue al buzo). */
 .juegos-root .bz-dark {
   transition: opacity 0.8s;
 }
-.juegos-root .bz-lamp {
-  transition: transform 0.7s cubic-bezier(0.45, 0, 0.2, 1);
-}
 
 /* ---------- Panel ---------- */
-.juegos-root .bz-necklace {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.18);
-}
-.juegos-root .bz-necklace i {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, var(--hi), var(--lo));
-  box-shadow: 0 0 6px rgba(255, 246, 240, 0.5);
-  animation: bz-bead 0.4s cubic-bezier(0.2, 1.6, 0.4, 1) both;
-}
-.juegos-root .bz-necklace i.is-black {
-  box-shadow: 0 0 10px rgba(196, 156, 255, 1);
-}
-@keyframes bz-bead {
-  from {
-    scale: 0;
-  }
-}
-.juegos-root .bz-autos {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
-}
-.juegos-root .bz-autos button {
-  display: grid;
-  justify-items: center;
-  gap: 1px;
-  padding: 7px 2px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--ivory);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.juegos-root .bz-autos small {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-}
-.juegos-root .bz-autos button[aria-checked='true'] {
-  border-color: #2ee6d0;
-  background: rgba(46, 230, 208, 0.18);
-}
-.juegos-root .bz-autos button:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-.juegos-root .bz-actions {
-  position: sticky;
-  bottom: 0;
-  z-index: 3;
-  display: grid;
-  gap: 10px;
-}
-.juegos-root .bz-actions .ar-go {
-  position: static;
-}
-.juegos-root .bz-down {
-  background: linear-gradient(180deg, #8fe3ff, #2ea0d8);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 6px 0 #135a8a,
-    0 12px 30px rgba(46, 160, 216, 0.4);
-  color: #04223a;
-}
-.juegos-root .bz-stop {
-  background: linear-gradient(180deg, #ff9a8a, #e0485a);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 6px 0 #8a1f2a;
-  color: #2a0408;
-}
-
-@media (max-width: 860px) {
-  .juegos-root .app.bz-app {
-    height: auto;
-    min-height: 100svh;
-    overflow: visible;
-  }
-  .juegos-root .bz-stage {
-    height: 66svh;
-    min-height: 460px;
-  }
-  .juegos-root .bz-top {
-    left: 62px;
-    right: 8px;
-  }
-  .juegos-root .bz-status {
-    left: 62px;
-    right: 8px;
-    font-size: 14px;
-  }
-  .juegos-root .bz-gauge {
-    width: 34px;
-    left: 10px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .juegos-root :is(.bz-world, .bz-diver, .bz-lamp, .bz-gauge__fill) {
-    transition: none;
-  }
-  .juegos-root :is(.bz-gain, .bz-shark) {
-    animation-duration: 0.01s;
-  }
-}
-
-/* ---------- Mantener para bajar ---------- */
-/* Mientras el buzo se mueve, la cámara y el buzo siguen al fotograma, sin transiciones que los retrasen. */
-.juegos-root .bz-window.is-moving :is(.bz-world, .bz-diver) {
-  transition: none;
-}
-.juegos-root .bz-diver.is-swim .bz-diver__body {
-  rotate: 75deg;
-}
-.juegos-root .bz-diver.is-up .bz-diver__body {
-  rotate: -75deg;
-}
-.juegos-root .bz-diver__body {
-  transition: rotate 0.3s;
-}
-/* El límite del aire: una línea discontinua en el agua. */
-.juegos-root .bz-limit line {
-  stroke: #ff8a8a;
-  stroke-width: 3;
-  stroke-dasharray: 14 10;
-  opacity: 0.7;
-}
-.juegos-root .bz-limit text {
-  fill: #ffb0b0;
-  font-size: 18px;
-  font-weight: 800;
-}
-.juegos-root .bz-gauge__safe {
-  position: absolute;
-  top: calc(var(--s) * 100%);
-  right: -3px;
-  left: -3px;
-  height: 3px;
-  background: #ff8a8a;
-}
-.juegos-root .bz-stage.is-warn {
-  box-shadow:
-    0 0 0 3px #ff4f6a,
-    0 0 40px rgba(255, 79, 106, 0.5);
-}
-/* El botón grande: se mantiene pulsado. */
+/* El botón grande: se mantiene pulsado (sin seleccionar texto ni abrir menús al dejar el dedo apretado). */
 .juegos-root .bz-hold {
-  min-height: 84px;
+  min-height: 92px;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
   background: linear-gradient(180deg, #8fe3ff, #2ea0d8);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.4),
@@ -606,7 +739,7 @@
 }
 .juegos-root .bz-hold__text b {
   font-family: var(--display);
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 400;
 }
 .juegos-root .bz-hold__text small {
@@ -625,9 +758,77 @@
   background: linear-gradient(180deg, #ff9a8a, #e0485a);
   animation: bz-blink 0.4s ease-in-out infinite alternate;
 }
+
 @media (max-width: 860px) {
+  .juegos-root .app.bz-app {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+  .juegos-root .bz-stage {
+    height: 66svh;
+    min-height: 460px;
+  }
+  .juegos-root .bz-hud {
+    left: 58px;
+    right: 8px;
+    gap: 6px;
+  }
+  .juegos-root .bz-read__depth {
+    font-size: 54px;
+  }
+  .juegos-root .bz-read__prize {
+    padding: 5px 10px 6px;
+  }
+  .juegos-root .bz-lungs {
+    width: 92px;
+    padding: 6px 6px 5px;
+  }
+  .juegos-root .bz-lungs svg {
+    width: 66px;
+  }
+  .juegos-root .bz-lungs > b {
+    font-size: 22px;
+  }
+  .juegos-root .bz-status {
+    left: 58px;
+    right: 8px;
+    font-size: 14px;
+  }
+  .juegos-root .bz-gauge {
+    width: 34px;
+    left: 10px;
+  }
+  /* El botón de mantener sigue al pulgar: grande y pegado al borde de abajo. */
   .juegos-root .bz-hold {
     position: sticky;
     bottom: 8px;
+    min-height: 104px;
+  }
+}
+
+/* Sin animaciones: la tensión se ve igual (túnel, color y raya de los pulmones), pero sin destellos ni parpadeos. */
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root :is(.bz-world, .bz-diver, .bz-gauge__fill, .bz-gauge b, .bz-dark, .bz-lungs__air, .bz-lungs__reserve) {
+    transition: none !important;
+  }
+  .juegos-root :is(.bz-pulse, .bz-alert, .bz-lungs.is-low, .bz-hold.is-held.is-warn, .bz-rays, .bz-surface, .bz-school, .bz-turtle, .bz-flipper, .bz-caustics, .bz-kelp, .bz-moray, .bz-clown, .bz-jelly, .bz-lure, .bz-eyes__in, .bz-leviathan, .bz-snow, .bz-fins, .bz-diver__body, .bz-breath circle) {
+    animation: none;
+  }
+  .juegos-root .bz-pulse {
+    opacity: calc(var(--t) * 0.5);
+  }
+  .juegos-root :is(.bz-gulp, .bz-gulp b, .bz-gulp i, .bz-shark) {
+    animation-duration: 0.01s;
+  }
+  .juegos-root .bz-gulp i {
+    display: none;
+  }
+}
+
+/* En pantallas táctiles la tecla de espacio no pinta nada. */
+@media (hover: none) {
+  .juegos-root .bz-hold kbd {
+    display: none;
   }
 }

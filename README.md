@@ -111,7 +111,7 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 |---|---|---|---|
 | Blackjack | Regata (cada 50 s) | Pez Gordo | Gacha de cartas |
 | Póker | Ruleta (cada 25 s) | Tesoro en la Arena | Inmobiliaria |
-| Ajedrez | Cohete (cada 30 s) | Buceo de Perlas | Cuenta en Suiza |
+| Ajedrez | Cohete (cada 30 s) | Apnea | Cuenta en Suiza |
 | | Carrera (cada 55 s) | La Torre | Hacienda |
 | | Ascensor (cada minuto) | El Atraco | Casa de empeños |
 | | La Subasta (cada minuto) | Plinko | |
@@ -144,9 +144,10 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
   cuando quieras: cuanto más pesas, más cobras (de ×0,28 a ×10). Si te comen, pierdes la apuesta.
 - **Tesoro en la Arena**: una playa de 5×5 con 3, 5, 9 o 15 cangrejos escondidos. Cada hoyo con tesoro sube el premio
   y cobras cuando quieras; si sale un cangrejo, pierdes. Al acabar se ve dónde estaban todos.
-- **Buceo de Perlas**: mantén pulsado para bajar y suelta para subir. Cuanto más hondo llegues y consigas volver, más
-  cobras. El tiburón aparece a una profundidad que el servidor sortea en secreto, y el aire se gasta bajando y subiendo
-  (subir es el doble de lento): si sueltas demasiado abajo, te ahogas por el camino. En Laguna, Arrecife o Abismo.
+- **Apnea**: aguanta la respiración mientras mantienes pulsado para bajar y suelta para subir. Cuanto más hondo llegues
+  y consigas volver, más cobras. El tiburón aparece a una profundidad que el servidor sortea en secreto, y el aire de los
+  pulmones se gasta bajando y subiendo (subir es el doble de lento): si sueltas demasiado abajo, te ahogas por el camino.
+  Una marca en los pulmones te dice el aire que necesitas para volver. En Laguna, Arrecife o Abismo.
 - **La Torre**: sube piso a piso sin pisar una baldosa rota, en cuatro dificultades.
 - **El Atraco**: monta tu banda con tus cartas del gacha y baja planta a planta hasta la cámara acorazada.
 - **Plinko**: suelta bolas y que caigan en las orillas.
@@ -189,7 +190,7 @@ flowchart LR
   entera para pagar. Repetir una partida cuesta unos 4 ms de CPU y no se admiten más pasos de los que ha dado tiempo a
   jugar.
 - **Juegos calibrados.** En La Torre y en Tesoro en la Arena el multiplicador de cada paso es `0,96 / probabilidad de
-  llegar`, en el Buceo de Perlas el premio a d metros es `0,96 / probabilidad de no cruzarte el tiburón hasta ahí` y en la Regata cada velero paga
+  llegar`, en la Apnea el premio a d metros es `0,96 / probabilidad de no cruzarte el tiburón hasta ahí` y en la Regata cada velero paga
   `0,96 / su probabilidad`: hagas lo que hagas, de media se recupera el 96 %. Así el Score no se puede «cultivar» a base de jugar mucho.
 - **Tiempo real barato.** Cuando algo cambia, el servidor manda un aviso sin datos por Supabase Realtime y cada
   navegador pide su propia vista: nadie recibe las cartas tapadas de los demás. Fuera de las mesas, el sondeo es solo un

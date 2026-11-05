@@ -142,9 +142,9 @@ const ALL_GAMES = [
   },
   {
     id: 'dive',
-    name: 'Buceo de Perlas',
-    kind: 'Baja y sube',
-    blurb: 'Bucea tramo a tramo abriendo ostras: cada perla sube el premio y la negra lo dobla. Sube antes de que te pille un tiburón o se acabe el aire.',
+    name: 'Apnea',
+    kind: 'Aguanta y sube',
+    blurb: 'Baja aguantando la respiración: cuanto más hondo, más paga. Suelta a tiempo para subir antes de que te pille un tiburón o se acabe el aire.',
     tint: '143, 227, 255',
     isNew: true,
     art: <DiveScene />,

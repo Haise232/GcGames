@@ -1,4 +1,4 @@
-// Reglas puras de Buceo de Perlas (Season 4): las usan la pantalla (Buceo.jsx) para pintar y el servidor
+// Reglas puras de Apnea (Season 4): las usan la pantalla (Buceo.jsx) para pintar y el servidor
 // (api/_juegos/solo.mjs) para sortear y pagar. Se juega manteniendo pulsado: mientras mantienes, el buzo baja; al soltar,
 // sube. Cuanto más hondo llegues y consigas volver, más cobras.
 //
@@ -6,8 +6,8 @@
 // - El tiburón: al tirarte, el servidor decide en secreto a qué profundidad aparece (como el punto de explosión del
 //   Cohete). Si llegas a esa profundidad bajando, te pilla y pierdes la apuesta. La probabilidad de no cruzártelo hasta d
 //   metros es e^(−λ·d), y el premio a d metros es HOUSE · e^(λ·d): bajes hasta donde bajes, de media se recupera el 96 %.
-// - El aire: la botella dura AIR_MS y se gasta bajando y subiendo, y subir es más lento que bajar (UP_MPS < DOWN_MPS).
-//   Si sueltas tan abajo que no te llega el aire para volver, te ahogas por el camino y pierdes. Se ve en la botella: no
+// - El aire: el aire de los pulmones dura AIR_MS y se gasta bajando y subiendo, y subir es más lento que bajar (UP_MPS < DOWN_MPS).
+//   Si sueltas tan abajo que no te llega el aire para volver, te ahogas por el camino y pierdes. Se ve en los pulmones: no
 //   cambia el 96 %, solo pone un límite a lo hondo que se puede llegar.
 // El servidor mide la bajada con su propio reloj, desde que te tiras hasta que sueltas.
 
@@ -18,8 +18,7 @@ export const HOUSE = 0.96
 export const MAX_M = 40 // el fondo: más abajo no se puede
 export const DOWN_MPS = 2.5 // metros por segundo bajando
 export const UP_MPS = 1.25 // y subiendo (la mitad: subir cuesta)
-export const AIR_MS = 40000 // lo que dura la botella, bajando y subiendo
-export const PEARL_M = 4 // una ostra cada 4 m (solo se ve: las perlas que recoges al pasar)
+export const AIR_MS = 40000 // lo que aguantan los pulmones, bajando y subiendo
 
 // Zonas: lo que pagaría llegar al fondo (40 m) sin cruzarte el tiburón. Cuanto más paga, antes suele aparecer.
 export const ZONES = {
