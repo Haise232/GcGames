@@ -1,9 +1,9 @@
 // Bola Canaria (Season 4): una cancha de tierra vista desde arriba con el mingue al fondo. Eliges cómo tirar (arrimar,
 // tiro medio o bochazo) y tiras tu bola: cuanto más cerca del mingue se queda, más cobras. Dónde para lo sortea el
 // servidor al tirar (reglas en bola.js); aquí la bola rueda (o vuela, en el bochazo) hasta ese punto.
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
 import { useEffectEvent } from '../comun/useEffectEvent.js'
-import { BANDS, BAND_IDS, COURT, MIN_BET, STEP, STYLES, clampBet, fmtMult, maxBetFor, multOf, payout } from './bola.js'
+import { BANDS, BAND_IDS, COURT, MIN_BET, MIN_POWER, STEP, STYLES, clampAim, clampBet, fmtMult, maxBetFor, multOf, payout, styleOf } from './bola.js'
 import { eur } from '../comun/money.js'
 import { buzz, playCash, playChip, playClunk, playLand, playLose, playRustle, playWin } from '../comun/sound.js'
 import { useCountUp } from '../comun/useCountUp.js'
@@ -16,11 +16,13 @@ const HISTORY = 14
 const KEEP = 5 // bolas viejas que se quedan en la cancha
 const ICONS = { arrimar: '🤏', medio: '🎯', bochazo: '💥' }
 const START = { x: 0, y: COURT.throwY - 0.5 }
+const PULL = 3.6 // palmos de estirar para la fuerza máxima
+const COLORS = { arrimar: '#7fe0a8', medio: '#ffd25e', bochazo: '#ff6a4a' }
 
-function Court({ style, balls, flying, done }) {
+const Court = forwardRef(function Court({ style, balls, flying, done, aiming, idle, onAimStart }, ref) {
   const rings = BAND_IDS.filter((b) => b !== 'fuera')
   return (
-    <svg className="bl-court" viewBox="-7.5 -6 15 20.5" aria-label="La cancha">
+    <svg ref={ref} className={`bl-court ${idle ? 'is-idle' : ''}`} viewBox="-7.5 -6 15 20.5" aria-label="La cancha" onPointerDown={onAimStart}>
       <defs>
         <radialGradient id="bl-dirt" cx="0.5" cy="0.35" r="0.8">
           <stop offset="0" stopColor="#d9a86a" />
@@ -30,6 +32,9 @@ function Court({ style, balls, flying, done }) {
           <stop offset="0" stopColor="#ff9a7a" />
           <stop offset="1" stopColor="#b5261c" />
         </radialGradient>
+        <marker id="bl-head" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 Z" fill="context-stroke" />
+        </marker>
         <radialGradient id="bl-old" cx="0.35" cy="0.3" r="0.7">
           <stop offset="0" stopColor="#8ac4f0" />
           <stop offset="1" stopColor="#1e4a8a" />
@@ -74,6 +79,34 @@ function Court({ style, balls, flying, done }) {
           </text>
         </g>
       ))}
+      {/* La bola en la línea de tiro, lista para estirarla como un tirachinas. */}
+      {idle && (
+        <g className="bl-ready">
+          {aiming && (
+            <g>
+              <path d={`M${START.x - 0.6} ${START.y} L${START.x + aiming.pull.x} ${START.y + aiming.pull.y} L${START.x + 0.6} ${START.y}`} fill="none" stroke="#5a3a1a" strokeWidth="0.09" />
+              <path
+                className="bl-arrow"
+                d={`M${START.x} ${START.y} L${START.x + aiming.dir.x * (1.5 + aiming.power * 7)} ${START.y + aiming.dir.y * (1.5 + aiming.power * 7)}`}
+                stroke={COLORS[aiming.style]}
+                strokeWidth="0.16"
+                strokeDasharray="0.35 0.22"
+                markerEnd="url(#bl-head)"
+              />
+            </g>
+          )}
+          <g transform={`translate(${START.x + (aiming?.pull.x ?? 0) * 0.35} ${START.y + (aiming?.pull.y ?? 0) * 0.35})`} className="bl-grab">
+            <circle r="1.1" fill="#fff" opacity="0.12" className="bl-grab__halo" />
+            <circle r="0.45" fill="url(#bl-ball)" stroke="#6a120c" strokeWidth="0.05" />
+            <path d="M-0.3 -0.1 Q0 -0.4 0.3 -0.1" stroke="#fff" strokeOpacity="0.6" strokeWidth="0.06" fill="none" />
+          </g>
+          {aiming && (
+            <text x={START.x} y={START.y - 1.3} textAnchor="middle" className="bl-aim-label" fill={COLORS[aiming.style]}>
+              {STYLES[aiming.style].name} · {Math.round(aiming.power * 100)} %
+            </text>
+          )}
+        </g>
+      )}
       {/* La bola que se tira. */}
       {flying && (
         <g className={`bl-ball bl-ball--${flying.style} ${done ? 'is-done' : ''}`} style={{ transform: `translate(${flying.pos.x}px, ${flying.pos.y}px)`, transitionDuration: `${flying.ms}ms` }}>
@@ -86,7 +119,7 @@ function Court({ style, balls, flying, done }) {
       )}
     </svg>
   )
-}
+})
 
 function Bola({ onExit, juegos }) {
   const [bet, setBet] = useState(50)
@@ -98,6 +131,8 @@ function Bola({ onExit, juegos }) {
   const [history, setHistory] = useState([])
   const [burst, setBurst] = useState(null)
   const [shake, setShake] = useState(false)
+  const [aiming, setAiming] = useState(null) // mientras estiras la bola: { pull, dir, power, aim, style }
+  const court = useRef(null)
   const lock = useRef(false)
   const timers = useRef([])
   const { request } = juegos
@@ -116,13 +151,13 @@ function Bola({ onExit, juegos }) {
   const busy = asking || rolling
   const canBet = !busy && maxBet >= MIN_BET
 
-  async function throwBall() {
+  async function throwBall(shot = { style, aim: 0 }) {
     if (lock.current || busy || shownBet > balance) return
     lock.current = true
     setAsking(true)
     setBurst(null)
     playChip()
-    const body = await request({ t: 'solo_bola', bet: shownBet, style })
+    const body = await request({ t: 'solo_bola', bet: shownBet, style: shot.style, aim: clampAim(shot.aim) })
     lock.current = false
     setAsking(false)
     const v = body?.solo
@@ -161,11 +196,54 @@ function Bola({ onExit, juegos }) {
     }
   }
 
+  // --- El tirachinas: pulsas en la bola, la estiras hacia atrás y la sueltas. La fuerza elige el tiro (suave
+  // arrima, a medias tiro medio, a tope bochazo) y el ángulo, hacia qué lado del mingue va. ---
+  const toCourt = (e) => {
+    const svg = court.current
+    const p = svg.createSVGPoint()
+    p.x = e.clientX
+    p.y = e.clientY
+    return p.matrixTransform(svg.getScreenCTM().inverse())
+  }
+  const measure = (e) => {
+    const at = toCourt(e)
+    const pull = { x: at.x - START.x, y: Math.max(0, at.y - START.y) }
+    const len = Math.hypot(pull.x, pull.y)
+    const power = Math.min(1, len / PULL)
+    // Hacia delante, al revés de donde estiras (con el ángulo limitado).
+    const aim = clampAim(len < 0.2 ? 0 : (Math.atan2(-pull.x, pull.y) * 180) / Math.PI)
+    const rad = (aim * Math.PI) / 180
+    const scale = len > PULL ? PULL / len : 1
+    return { pull: { x: pull.x * scale, y: pull.y * scale }, dir: { x: Math.sin(rad), y: -Math.cos(rad) }, power, aim, style: styleOf(power) }
+  }
+  function aimStart(e) {
+    if (busy || shownBet > balance || balance < MIN_BET) return
+    const at = toCourt(e)
+    if (Math.hypot(at.x - START.x, at.y - START.y) > 2.4) return // hay que coger la bola (o cerca)
+    e.preventDefault()
+    court.current.setPointerCapture?.(e.pointerId)
+    setAiming(measure(e))
+  }
+  function aimMove(e) {
+    if (!aiming) return
+    const next = measure(e)
+    if (next.style !== aiming.style) playRustle()
+    setAiming(next)
+    setStyle(next.style)
+  }
+  function aimEnd() {
+    if (!aiming) return
+    const shot = aiming
+    setAiming(null)
+    if (shot.power < MIN_POWER) return
+    throwBall({ style: shot.style, aim: shot.aim })
+  }
+
   const onKeys = useEffectEvent((event) => {
     if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.code !== 'Space') return
     if (event.target instanceof Element && event.target.matches('input, select, textarea, button:focus-visible')) return
     event.preventDefault()
-    throwBall()
+    throwBall({ style, aim: 0 })
   })
   useEffect(() => {
     window.addEventListener('keydown', onKeys)
@@ -173,9 +251,10 @@ function Bola({ onExit, juegos }) {
   }, [])
 
   const extra = result?.abuse?.extra ?? 0
-  let status = 'Elige cómo tirar y tu apuesta. Cuanto más cerca del mingue (la bolita blanca), más cobras.'
+  let status = 'Pulsa tu bola, estírala hacia atrás como un tirachinas y suéltala: cuanto más estiras, más fuerte. Cuanto más cerca del mingue, más cobras.'
   let tone = ''
   if (juegos.error) status = juegos.error
+  else if (aiming) status = aiming.power < MIN_POWER ? 'Estira más para tirar (o suelta aquí para cancelar).' : `${STYLES[aiming.style].name} (${Math.round(aiming.power * 100)} %): suelta para tirar.`
   else if (asking) status = 'Preparando el tiro…'
   else if (rolling) status = flying.style === 'bochazo' ? '¡Bochazo! La bola va por el aire…' : 'La bola rueda hacia el mingue…'
   else if (result?.net > 0) {
@@ -227,8 +306,22 @@ function Bola({ onExit, juegos }) {
               <b>{fmtMult(bands.arrime[1])}</b>
             </span>
           </div>
-          <div className="bl-court-wrap">
-            <Court style={result && !busy ? result.style : flying ? flying.style : style} balls={balls} flying={flying} done={Boolean(result)} />
+          <div className="bl-court-wrap" onPointerMove={aimMove} onPointerUp={aimEnd} onPointerCancel={aimEnd}>
+            <Court
+              ref={court}
+              style={aiming ? aiming.style : result && !busy ? result.style : flying && !result ? flying.style : style}
+              balls={balls}
+              flying={flying}
+              done={Boolean(result)}
+              aiming={aiming}
+              idle={!busy}
+              onAimStart={aimStart}
+            />
+            {!busy && !aiming && !result && (
+              <span className="bl-hint" aria-hidden="true">
+                👆 Pulsa la bola, estírala hacia atrás y suelta
+              </span>
+            )}
             {result && !busy && (
               <span className={`bl-verdict ${result.net > 0 ? 'is-good' : result.mult > 0 ? '' : 'is-bad'}`} key={result.id}>
                 {BANDS[result.band].name}
@@ -251,7 +344,7 @@ function Bola({ onExit, juegos }) {
           </div>
 
           <div className="fi-group">
-            <h2>Cómo tiras</h2>
+            <h2>Cómo tiras (o estira la bola: la fuerza elige)</h2>
             <div className="fi-options" style={{ '--cols': 1 }} role="radiogroup" aria-label="Tiro">
               {Object.entries(STYLES).map(([id, s]) => (
                 <button key={id} type="button" role="radio" aria-checked={style === id} className="fi-option" disabled={busy} onClick={() => setStyle(id)}>
@@ -267,7 +360,7 @@ function Bola({ onExit, juegos }) {
 
           <BetBox bet={shownBet} setBet={setBet} min={MIN_BET} max={maxBet} step={STEP} disabled={!canBet} clamp={clampBet} />
 
-          <button type="button" className="fi-go" disabled={busy || shownBet > balance || balance < MIN_BET} onClick={throwBall}>
+          <button type="button" className="fi-go" disabled={busy || shownBet > balance || balance < MIN_BET} onClick={() => throwBall({ style, aim: 0 })}>
             {asking ? 'Preparando…' : rolling ? 'Rodando…' : `Tirar · ${eur(shownBet)}`}
             <kbd>Espacio</kbd>
           </button>

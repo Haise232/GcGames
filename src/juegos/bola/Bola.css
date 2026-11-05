@@ -130,3 +130,53 @@
     opacity: 0.12;
   }
 }
+
+/* El tirachinas: la bola lista en la línea de tiro, la goma, la flecha y el nombre del tiro según la fuerza. */
+.juegos-root .bl-court {
+  touch-action: none;
+  user-select: none;
+}
+.juegos-root .bl-court.is-idle .bl-grab {
+  cursor: grab;
+}
+.juegos-root .bl-grab__halo {
+  animation: bl-halo 1.3s ease-in-out infinite alternate;
+}
+.juegos-root .bl-aim-label {
+  font-size: 0.62px;
+  font-weight: 900;
+  paint-order: stroke;
+  stroke: rgba(40, 20, 6, 0.85);
+  stroke-width: 0.12px;
+}
+.juegos-root .bl-arrow {
+  animation: bl-march 0.6s linear infinite;
+}
+.juegos-root .bl-hint {
+  position: absolute;
+  top: 62%;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(42, 15, 46, 0.85);
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffe7a8;
+  pointer-events: none;
+  animation: bl-hint 1.4s ease-in-out infinite alternate;
+}
+@keyframes bl-halo {
+  to {
+    opacity: 0.35;
+    scale: 1.3;
+  }
+}
+@keyframes bl-march {
+  to {
+    stroke-dashoffset: -0.57;
+  }
+}
+@keyframes bl-hint {
+  to {
+    translate: 0 -4px;
+  }
+}

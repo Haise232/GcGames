@@ -3,7 +3,8 @@
 // cerca del mingue se quede, más cobras. Tres tiros: arrimar (seguro), el tiro medio y el bochazo (a lo grande).
 //
 // El servidor sortea primero dónde acaba (BANDS: arrimada, cerca, a media distancia, lejos o fuera de la cancha) con
-// las probabilidades de cada tiro, y después el punto exacto dentro de esa franja. En cada tiro, la suma de
+// las probabilidades de cada tiro, y después el punto exacto dentro de esa franja (hacia el lado al que apuntaste).
+// El tiro lo eliges con la fuerza: estiras la bola como un tirachinas, más o menos (styleOf). En cada tiro, la suma de
 // probabilidad × premio es HOUSE (el 96 %).
 
 export const MIN_BET = 10
@@ -60,22 +61,31 @@ export function drawBand(style, rand) {
 }
 
 const r2 = (n) => Math.round(n * 100) / 100
-// El punto exacto donde se para la bola dentro de su franja ({ x, y } en palmos, el mingue en 0, 0).
-export function placeBall(band, rand) {
+// Hacia dónde apunta el jugador: grados a la izquierda (negativo) o a la derecha (positivo) de la recta al mingue.
+export const MAX_AIM = 30
+export const clampAim = (aim) => (Number.isFinite(aim) ? Math.max(-MAX_AIM, Math.min(MAX_AIM, Math.round(aim))) : 0)
+
+// El punto exacto donde se para la bola dentro de su franja ({ x, y } en palmos, el mingue en 0, 0). La puntería solo
+// decide hacia qué lado del mingue se queda (la distancia, que es lo que paga, ya está sorteada).
+export function placeBall(band, rand, aim = 0) {
   const f = (n) => rand(n * 1000) / 1000 // decimal de 0 a n
   if (band === 'fuera') {
-    // Por un lado o por el fondo, pasado el borde.
-    const side = rand(3)
-    if (side === 2) return { x: r2(f(8) - 4), y: r2(COURT.back - 0.4 - f(1)) }
+    // Por el lado al que apuntabas (o por cualquiera si tiraste recto), o por el fondo.
+    const side = aim > 10 ? (rand(3) ? 1 : 2) : aim < -10 ? (rand(3) ? 0 : 2) : rand(3)
+    if (side === 2) return { x: r2(f(6) - 3 + aim / 10), y: r2(COURT.back - 0.4 - f(1)) }
     const x = side === 0 ? COURT.left - 0.4 - f(0.8) : COURT.right + 0.4 + f(0.8)
     return { x: r2(x), y: r2(f(9) - 3) }
   }
   const { from, to } = BANDS[band]
   const d = from + f(to - from)
-  // Casi siempre por delante o a los lados del mingue (se tira desde abajo); a veces se pasa un poco.
-  const a = ((f(250) - 125) * Math.PI) / 180 + Math.PI / 2
+  // Alrededor de la dirección del tiro (se tira desde abajo: hacia arriba es −y), con su desvío.
+  const a = ((f(140) - 70 - aim * 2.2) * Math.PI) / 180 + Math.PI / 2
   return { x: r2(Math.cos(a) * d), y: r2(Math.sin(a) * d) }
 }
+
+// Qué tiro sale según la fuerza (de 0 a 1) con la que estiras la bola: suave arrima, medio y a tope, bochazo.
+export const styleOf = (power) => (power < 0.42 ? 'arrimar' : power < 0.78 ? 'medio' : 'bochazo')
+export const MIN_POWER = 0.12
 
 // --- Ayudas de la pantalla ---
 export const maxBetFor = (balance) => Math.min(MAX_BET, Math.floor(balance / STEP) * STEP)

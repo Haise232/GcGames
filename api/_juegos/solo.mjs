@@ -944,17 +944,18 @@ export function divePlay(msg, balance, saved, rand, ctx) {
 // --- Rasca de las Fiestas: una jugada, sin nada guardado (como el Plinko). El cartón entero sale del servidor al
 // comprarlo; la pantalla solo lo destapa. Con suerte del Admin Abuse se sortean tantos premios y se queda el mejor.
 export function scratchBuy(msg, balance, _saved, rand, ctx) {
-  if (!rasca.validBet(msg.bet)) return { error: 'BAD_MESSAGE' }
-  if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
-  let prize = rasca.drawPrize(rand)
+  if (!rasca.validType(msg.type)) return { error: 'BAD_MESSAGE' }
+  const bet = rasca.TYPES[msg.type].price
+  if (bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
+  let prize = rasca.drawPrize(msg.type, rand)
   for (let i = 1; i < (ctx.luck ?? 1); i++) {
-    const other = rasca.drawPrize(rand)
-    if (rasca.payout(msg.bet, other) > rasca.payout(msg.bet, prize)) prize = other
+    const other = rasca.drawPrize(msg.type, rand)
+    if (rasca.payout(msg.type, other) > rasca.payout(msg.type, prize)) prize = other
   }
-  const card = rasca.makeCard(prize, rand)
-  const paid = rasca.payout(msg.bet, prize)
-  const delta = paid - msg.bet
-  return { delta, played: true, saved: null, result: { id: ctx.now, card, prize, bet: msg.bet, payout: paid, net: delta, balance: balance + delta } }
+  const card = rasca.makeCard(msg.type, prize, rand)
+  const paid = rasca.payout(msg.type, prize)
+  const delta = paid - bet
+  return { delta, played: true, saved: null, stake: bet, result: { id: ctx.now, type: msg.type, card, prize, bet, payout: paid, net: delta, balance: balance + delta } }
 }
 
 // --- Bola Canaria: también una jugada sin nada guardado. Con suerte del Admin Abuse se tira varias veces y vale la mejor.
@@ -966,7 +967,7 @@ export function bolaThrow(msg, balance, _saved, rand, ctx) {
     const other = bola.drawBand(msg.style, rand)
     if (bola.multOf(msg.style, other) > bola.multOf(msg.style, band)) band = other
   }
-  const at = bola.placeBall(band, rand)
+  const at = bola.placeBall(band, rand, bola.clampAim(msg.aim))
   const mult = bola.multOf(msg.style, band)
   const paid = bola.payout(msg.bet, mult)
   const delta = paid - msg.bet

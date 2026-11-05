@@ -703,7 +703,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
   // Lo apostado y lo ganado (o perdido) en la jugada que acaba de liquidarse, o null si no se liquidó ninguna.
   // Plinko, el Rasca y la Bola se liquidan en cada jugada; los demás, cuando aparece un «last» de otra ronda o partida.
   function settlementOf(game, msg, saved, out) {
-    if (INSTANT.has(game)) return { stake: msg.bet, net: out.delta }
+    if (INSTANT.has(game)) return { stake: out.stake ?? msg.bet, net: out.delta }
     const last = out.saved?.last
     if (!last || last.round === saved?.last?.round) return null
     return { stake: last.stake, net: last.net }
