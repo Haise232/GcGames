@@ -7,7 +7,7 @@ import { playBoom, playCard, playGrowl, playHeartbeat, playOvation, playSiren, p
 import { ODDS, RARITIES, RARITY, pct, useGacha, useServerNow, wait } from './gacha.js'
 import './Gacha.css'
 
-// Gacha de personajes y mods de juegos al estilo de Mudae (las reglas están en api/_juegos/gacha.mjs): tiradas que ve todo el
+// Gacha de personajes de anime al estilo de Mudae (las reglas están en api/_juegos/gacha.mjs): tiradas que ve todo el
 // mundo, el primero que reclama se queda la carta, vender cartas por saldo de la semana y ver la colección de cualquiera.
 
 // Probabilidad de una carta concreta: «0,48 %», «0,0029 %».
@@ -973,9 +973,9 @@ function Rules({ prices }) {
         como mucho. Si no la recuperas a tiempo, <b>el banco se la queda</b> y vuelve a estar libre para cualquiera.
       </p>
       <p>
-        <b>Fusiones:</b> si juntas en tu biblioteca a <b>Vergil</b> (legendaria) y la <b>Silla de plástico</b> (común), al
-        momento se convierten en la mítica <b>Vergil en la silla de plástico</b>; y a <b>Lady Dimitrescu</b> (rara) con la{' '}
-        <b>Crema solar</b> (común), en la mítica <b>Lady Dimitrescu en bikini</b>. Las dos cartas vuelven a quedar libres.
+        <b>Fusiones:</b> si juntas en tu biblioteca a <b>Monkey D. Luffy</b> (legendaria) y a <b>Usopp</b> (común), al momento
+        se convierten en la mítica <b>Los Sombrero de Paja</b>; y a <b>Pikachu</b> (rara) con <b>Ash Ketchum</b> (común), en
+        la mítica <b>Ash y Pikachu</b>. Las dos cartas vuelven a quedar libres.
         Las de fusión no salen nunca en la mesa ni en las tiradas: hay una de cada y solo se consiguen así.
       </p>
       <p>
@@ -1004,9 +1004,8 @@ function Rules({ prices }) {
         </tbody>
       </table>
       <p className="gacha-note">
-        Las cartas son personajes de juegos para adultos (Devil May Cry, Monster Hunter, The Witcher, Resident Evil…) y,
-        en lo más alto, mods famosos y graciosos como Macho Man en Skyrim o Shrek en Elden Ring. La rareza sale de lo
-        famoso que es cada uno. Tu biblioteca no se reinicia el domingo; tu saldo, sí.
+        Las cartas son personajes de anime: Dragon Ball, One Piece, Naruto, Jujutsu Kaisen, Death Note, Kimetsu no Yaiba,
+        Chainsaw Man, Evangelion, Pokémon… En lo más alto, Son Goku. La rareza sale de lo famoso que es cada uno. Tu biblioteca no se reinicia el domingo; tu saldo, sí.
       </p>
     </Help>
   )
@@ -1285,7 +1284,7 @@ export default function Gacha({ onExit, juegos, initialTab = 'tirar' }) {
 
       {summon && <Summon summon={summon} busy={busy} onDecide={decide} onClose={() => setSummon(null)} />}
 
-      <footer className="gacha-foot">Imágenes enlazadas desde Wikipedia, Wikimedia Commons y las noticias de cada mod; los personajes son de sus compañías y los mods, de sus autores. Solo para GcGames, sin fines comerciales.</footer>
+      <footer className="gacha-foot">Imágenes enlazadas desde Wikipedia; los personajes son de sus autores y estudios. Solo para GcGames, sin fines comerciales.</footer>
     </main>
   )
 }

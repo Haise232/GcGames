@@ -1,4 +1,4 @@
-// Gacha de Juegos al estilo de Mudae, con personajes de videojuegos. Cada carta tiene como mucho un dueño.
+// Gacha de Juegos al estilo de Mudae, con personajes de anime. Cada carta tiene como mucho un dueño.
 //   - La mesa: cada TABLE_PERIOD_MS sale sola una carta libre, hasta TABLE_MAX a la vista de todos, y cualquiera puede
 //     cogerla: se la queda el primero, sin límite por persona.
 //   - Tirar pagando: una tirada (ROLL_COST) o una premium (PREMIUM_COST: épica o legendaria) saca una carta libre y su
@@ -13,7 +13,7 @@
 // vender ni fusionar; la recuperas devolviendo el préstamo más PAWN_FEE (el interés va a la jaula del bingo) antes de
 // PAWN_MS. Si no, el banco se la queda y vuelve a estar libre para cualquiera (sweepPawns).
 // (Hasta octubre de 2026 las cartas tenían poderes en los juegos; se quitaron porque casi nadie los usaba.)
-// Las cartas vienen de gacha-catalogo.json (lo genera scripts/gacha/importar.mjs).
+// Las cartas vienen de gacha-catalogo.json (Season 4: personajes de anime, lo genera scripts/gacha/anime.mjs).
 import { randomInt } from 'node:crypto'
 import catalogo from './gacha-catalogo.json' with { type: 'json' }
 

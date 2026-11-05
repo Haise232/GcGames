@@ -1,4 +1,4 @@
-// Genera el catálogo del gacha (api/_juegos/gacha-catalogo.json): personajes de juegos para adultos y, en las cartas
+// Temática anterior (hoy el catálogo sale de anime.mjs). Genera el catálogo del gacha (api/_juegos/gacha-catalogo.json): personajes de juegos para adultos y, en las cartas
 // más altas, mods famosos y graciosos. La lista y la rareza de cada una están a mano en PERSONAJES. La foto de un
 // personaje es la imagen principal de su artículo en la Wikipedia inglesa (el arte oficial, que allí es imagen no libre)
 // salvo que se fije a mano; la de un mod, una captura fijada a mano de la noticia o la página que lo cuenta.
