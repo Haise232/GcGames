@@ -1,4 +1,4 @@
-// Inmobiliaria: propiedades en un tablero para todos (reglas en src/juegos/inmo.js).
+// Inmobiliaria: propiedades en un tablero para todos (reglas en src/juegos/inmo/inmo.js).
 // Cada casilla con dueño es una fila de juegos_inmuebles: { casilla, usuario_id, nivel, invertido, invertido_semana,
 // semana, cobrado (ms: hasta cuándo está cobrado el alquiler) }. Lo que pasa (compras, mejoras, ventas) queda en
 // juegos_inmuebles_log para el canal. Comprar, mejorar y vender cobran antes el alquiler pendiente del jugador, porque
@@ -9,7 +9,7 @@
 //   inmo   cualquiera: a «estado», «comprar» { casilla }, «mejorar» { casilla }, «vender» { casilla }, «cobrar»,
 //          «salida», «carta» { mazo: 'suerte' | 'caja' }, «parking» o «trampa»
 import { randomInt } from 'node:crypto'
-import * as inmo from '../../src/juegos/inmo.js'
+import * as inmo from '../../src/juegos/inmo/inmo.js'
 import { WEEK_TZ, weekOf } from './engine/week.mjs'
 import { TAX_STEP, taxRate, tramoOf } from './hacienda.mjs'
 

@@ -1,8 +1,8 @@
-// Cuenta en Suiza (reglas en src/juegos/suiza.js): efectivo guardado donde Hacienda no mira.
+// Cuenta en Suiza (reglas en src/juegos/suiza/suiza.js): efectivo guardado donde Hacienda no mira.
 // Una fila de juegos_suiza por jugador: { saldo, saldo_semana (lo ingresado en la semana «semana»), semana, movs (los
 // últimos movimientos, solo para su dueño) }. Es secreta: nadie ve lo que tienen los demás.
 //   suiza   cualquiera: a «estado», «ingresar» { importe } o «retirar» { importe }
-import * as rules from '../../src/juegos/suiza.js'
+import * as rules from '../../src/juegos/suiza/suiza.js'
 import { weekOf } from './engine/week.mjs'
 
 const MOVS = 12

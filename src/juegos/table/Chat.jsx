@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import Avatar from '../Avatar.jsx'
+import Avatar from '../comun/Avatar.jsx'
 import { useBubblesEnabled } from './SeatBubble.jsx'
 import './chat.css'
 

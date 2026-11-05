@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { BANK_TOPIC, abusePerks, abuseText, bancaCall, eur, type Abuse, type Aviso, type BoteAbierto, type Declaracion } from './banca'
 import { HaciendaBanner, HaciendaIntro, type HaciendaResult } from './Hacienda'
 import { CarcelScreen } from './Carcel'
-import { isMuted, playCash, playSiren, playWin } from '../sound.js'
+import { isMuted, playCash, playSiren, playWin } from '../comun/sound.js'
 import './banca.css'
 
 // El Admin Abuse ya presentado (con su animación grande) en este navegador: se guarda su «desde».

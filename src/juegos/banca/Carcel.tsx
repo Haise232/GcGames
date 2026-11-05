@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { isMuted, playClank, playLose, playWin } from '../sound.js'
+import { isMuted, playClank, playLose, playWin } from '../comun/sound.js'
 import './hacienda.css'
 
 const JAIL_MS = 5 * 60_000 // como hacienda.JAIL_MS: la condena entera

@@ -2,8 +2,8 @@
 // reclamados. La XP suelta de cada jugada se junta en una pastilla pequeña («+10 XP») para no tapar el juego.
 // Escucha el evento «juegos:pase» que lanza useJuegos con cada respuesta que trae paseEvent.
 import { useEffect, useRef, useState } from 'react'
-import { eur } from '../money.js'
-import { playWin } from '../sound.js'
+import { eur } from '../comun/money.js'
+import { playWin } from '../comun/sound.js'
 
 const TOAST_MS = 4200
 const BIG_MS = 5200

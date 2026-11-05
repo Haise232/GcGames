@@ -171,7 +171,7 @@ flowchart LR
 - **Sin servidor propio.** Cada acción es un `POST /api/juegos` al Worker con la sesión de Supabase. El Worker comprueba
   la firma del token con las claves públicas del proyecto (sin preguntar a Supabase Auth en cada petición), bloquea la
   fila con `FOR UPDATE`, aplica la jugada y guarda, todo en una transacción.
-- **Mismas reglas en los dos lados.** Las reglas de cada juego son módulos puros en `src/juegos/*.js`: la web los usa
+- **Mismas reglas en los dos lados.** Las reglas de cada juego son módulos puros en `src/juegos/<juego>/*.js`: la web los usa
   para pintar y el servidor (`api/_juegos/`) para sortear y pagar. No hay dos versiones que se puedan desincronizar.
 - **El servidor decide.** Los sorteos usan `crypto.randomInt`, y lo que hay detrás de cada baldosa, hoyo o puerta se
   decide en el momento de pisar o cavar. Las rondas comunes (como el bingo) salen de un HMAC del número de ronda con un
@@ -203,8 +203,13 @@ flowchart LR
 │   ├── lib/supabase.js      # Cliente de Supabase
 │   └── juegos/              # El casino
 │       ├── Juegos.jsx       # Selector de juegos y pantallas
-│       ├── *.js             # Reglas puras de cada juego (las comparte el servidor)
-│       ├── *.jsx, *.css     # La pantalla de cada juego
+│       ├── useJuegos.js     # Conexión con el servidor
+│       ├── <juego>/         # Un juego por carpeta (roulette/, crash/, race/, fish/, dig/…): su pantalla
+│       │                    #   (*.jsx, *.css), su arte y sus reglas puras (*.js, las comparte el servidor)
+│       ├── hub/             # Selector: tarjetas, clasificación y guía
+│       ├── comun/           # Piezas compartidas: avatar, ayuda, premios, sonido, dinero, cartas
+│       ├── estilos/         # Estilos base y la cabecera y el fondo de cada juego
+│       ├── temas/           # Temas de temporada que se encienden por fechas (Halloween)
 │       ├── table/, poker/, chess/   # Mesas en vivo
 │       ├── banca/           # Panel del master y Hacienda
 │       ├── shared/          # Núcleo de blackjack, póker y ajedrez

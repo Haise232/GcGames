@@ -1,4 +1,4 @@
-// Puente de Cristal en vivo: una partida para todos cada bridge.ROUND_MS (reglas en src/juegos/bridge.js).
+// Puente de Cristal en vivo: una partida para todos cada bridge.ROUND_MS (reglas en src/juegos/bridge/bridge.js).
 // Qué cristal aguanta en cada paso sale de HMAC(secreto, ronda), como la ruleta, y el servidor no lo suelta hasta que se
 // acaba el tiempo de elegir ese paso; lo mismo con lo que eligen los demás, para que nadie copie. Si alguien no elige,
 // vale el lado que le toca de HMAC(secreto, ronda, jugador). La partida de cada uno va en juegos_solo (juego «bridge»):
@@ -6,7 +6,7 @@
 // el evento ya acabara). La entrada sale del saldo al entrar; al acabar de cruzar, la primera
 // petición reparte el bote (settleDue). La parte de la casa va a la jaula del bingo y la partida queda en juegos_rondas.
 //   bridge   cualquiera: a «sync», «join» (stake) o «pick» (step, side: 'L' | 'R')
-import * as bridge from '../../src/juegos/bridge.js'
+import * as bridge from '../../src/juegos/bridge/bridge.js'
 import { hmacStream } from './solo.mjs'
 import { abuseExtra, abuseOn } from './banca.mjs'
 import { weekOf } from './engine/week.mjs'

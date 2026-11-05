@@ -1,4 +1,4 @@
-// Bingo en vivo: una partida para todos cada bingo.ROUND_MS (reglas en src/juegos/bingo.js).
+// Bingo en vivo: una partida para todos cada bingo.ROUND_MS (reglas en src/juegos/bingo/bingo.js).
 // Los cartones de cada uno se guardan en juegos_solo (juego «bingo»): { round, week, cards, prices, boosts, paid, last }
 // (prices: lo que costó cada cartón; sin él, son de antes de los precios nuevos. boosts: el Admin Abuse activo al comprar
 // cada cartón, 'x2' | 'x3' | 'gratis' o null; se aplica al pagar ese cartón aunque el evento ya haya acabado. free: los
@@ -13,7 +13,7 @@
 // Se paga sin temporizador: la primera petición que llega después de la bola del bingo reparte los premios (settleDue).
 //   bingo   cualquiera: a «sync» (ponerse al día) o «buy» (n cartones más de tipo kind para la partida en curso)
 import { randomInt } from 'node:crypto'
-import * as bingo from '../../src/juegos/bingo.js'
+import * as bingo from '../../src/juegos/bingo/bingo.js'
 import { abuseExtra, abuseLuck, abuseOn } from './banca.mjs'
 import { hmacStream, uniform } from './solo.mjs'
 import { weekOf } from './engine/week.mjs'

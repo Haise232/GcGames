@@ -21,7 +21,7 @@ import {
   type UsuarioAdmin,
 } from './banca'
 import './banca-panel.css'
-import { enFechas, preferencia, setPreferencia, type PreferenciaHalloween } from '../halloween'
+import { enFechas, preferencia, setPreferencia, type PreferenciaHalloween } from '../temas/halloween/halloween'
 
 type Tab = 'dinero' | 'mensaje' | 'abuso' | 'bote' | 'hacienda' | 'cuentas' | 'usuarios' | 'juegos' | 'tema'
 const ALL = 'todos'

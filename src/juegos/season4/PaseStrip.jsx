@@ -1,7 +1,7 @@
 // El pase en el selector: tu nivel y título, la barra de XP, las tres misiones del día, el cofre diario y los premios
 // por reclamar. El pase completo se abre con «Ver el pase».
 import { useEffect, useState } from 'react'
-import { eur } from '../money.js'
+import { eur } from '../comun/money.js'
 import { Chest, LevelRing, Mission, XpBar, unclaimed } from './PaseParts.jsx'
 
 export default function PaseStrip({ juegos, online, onOpen }) {

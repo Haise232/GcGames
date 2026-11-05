@@ -3,15 +3,15 @@
 // navegador no puede elegir su resultado. Cada función devuelve { error } o el resultado con `delta`, lo que cambia
 // el saldo, y `saved`, lo que hay que guardar para la siguiente jugada (racha y apuesta de la ruleta y del cohete).
 import { createHmac } from 'node:crypto'
-import * as roulette from '../../src/juegos/roulette.js'
-import * as pez from '../../src/juegos/pez.js'
-import * as arena from '../../src/juegos/arena.js'
-import * as plinko from '../../src/juegos/plinko.js'
-import * as crash from '../../src/juegos/crash.js'
-import * as frog from '../../src/juegos/frog.js'
-import * as race from '../../src/juegos/race.js'
-import * as tower from '../../src/juegos/tower.js'
-import * as heist from '../../src/juegos/heist.js'
+import * as roulette from '../../src/juegos/roulette/roulette.js'
+import * as pez from '../../src/juegos/fish/pez.js'
+import * as arena from '../../src/juegos/dig/arena.js'
+import * as plinko from '../../src/juegos/plinko/plinko.js'
+import * as crash from '../../src/juegos/crash/crash.js'
+import * as frog from '../../src/juegos/frog/frog.js'
+import * as race from '../../src/juegos/race/race.js'
+import * as tower from '../../src/juegos/tower/tower.js'
+import * as heist from '../../src/juegos/heist/heist.js'
 import { cardView } from './gacha.mjs'
 
 export const SOLO_GAMES = {

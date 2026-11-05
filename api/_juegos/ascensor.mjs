@@ -1,4 +1,4 @@
-// Ascensor en vivo: un viaje para todos cada elevator.ROUND_MS (reglas en src/juegos/elevator.js).
+// Ascensor en vivo: un viaje para todos cada elevator.ROUND_MS (reglas en src/juegos/elevator/elevator.js).
 // La planta en la que se rompe el cable sale de HMAC(secreto, ronda), como la ruleta, y el servidor no la suelta hasta
 // que se rompe y ya nadie puede bajarse (puertas cerradas y pasado EXIT_GRACE_MS): mientras tanto la pantalla solo sabe
 // en qué planta va (por el reloj) y quién se ha bajado ya. Las bajadas automáticas de los demás no se enseñan hasta que
@@ -10,7 +10,7 @@
 // Sin suerte del Admin Abuse: varios intentos por planta harían que el ascensor devolviera más de lo que entra (pasó
 // con la rana).
 //   elevator   cualquiera: a «sync», «join» (stake, auto), «exit» (bajarse ya) o «auto» (floor o null)
-import * as elevator from '../../src/juegos/elevator.js'
+import * as elevator from '../../src/juegos/elevator/elevator.js'
 import { hmacStream } from './solo.mjs'
 import { abuseExtra, abuseOn } from './banca.mjs'
 import { weekOf } from './engine/week.mjs'

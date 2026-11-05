@@ -1,5 +1,5 @@
 // Piezas comunes del Pase de las Islas (franja del selector y pantalla del pase).
-import { eur } from '../money.js'
+import { eur } from '../comun/money.js'
 
 // Nombre corto de cada juego, para los botones «Ir a …» de las misiones.
 export const GAME_NAMES = {

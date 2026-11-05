@@ -1,4 +1,4 @@
-// Subasta en vivo: una caja para todos cada auction.ROUND_MS (reglas en src/juegos/auction.js).
+// Subasta en vivo: una caja para todos cada auction.ROUND_MS (reglas en src/juegos/auction/auction.js).
 // La caja (tipo y contenido) sale de HMAC(secreto, ronda), como la ruleta: el tipo se enseña desde el principio y el
 // contenido no se suelta hasta que se cierran las pujas. Las pujas son a la vista (quién va primero y el historial) y cada
 // puja en los últimos auction.SNIPE_MS retrasa el cierre. Las de cada uno van en juegos_solo (juego «auction»):
@@ -11,7 +11,7 @@
 // ganadora menos lo que llevaba la caja) va a la jaula del bingo. Las últimas subastas quedan en juegos_rondas.
 // Cada puja avisa por Realtime (TOPIC) para que todos vean al momento quién va primero.
 //   auction   cualquiera: a «sync» o «bid» (amount: tu puja total en la ronda en curso; tiene que superar a la primera)
-import * as auction from '../../src/juegos/auction.js'
+import * as auction from '../../src/juegos/auction/auction.js'
 import { hmacStream, uniform } from './solo.mjs'
 import { abuseExtra, abuseOn } from './banca.mjs'
 import { weekOf } from './engine/week.mjs'

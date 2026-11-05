@@ -1,9 +1,9 @@
 // Pantalla del Pase de las Islas: tu nivel, el cofre diario con su racha, las misiones del día y el camino de 30
 // niveles con sus premios. Los datos los da el servidor ({ t: 'pase' }, api/_juegos/pase.mjs).
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import Help from '../Help.jsx'
-import { eur, until } from '../money.js'
-import { useCountUp } from '../useCountUp.js'
+import Help from '../comun/Help.jsx'
+import { eur, until } from '../comun/money.js'
+import { useCountUp } from '../comun/useCountUp.js'
 import IslandScene from './IslandScene.jsx'
 import { Chest, LevelRing, Mission, XpBar, unclaimed } from './PaseParts.jsx'
 

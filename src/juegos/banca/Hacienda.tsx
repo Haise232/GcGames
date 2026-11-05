@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { eur, type Declaracion, type HaciendaDatos } from './banca'
-import { isMuted, playCash, playHeartbeat, playLose, playSiren, playStamp, playWin } from '../sound.js'
+import { isMuted, playCash, playHeartbeat, playLose, playSiren, playStamp, playWin } from '../comun/sound.js'
 import './hacienda.css'
 
 export type HaciendaResult = HaciendaDatos & { paid: number }
