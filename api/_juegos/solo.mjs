@@ -1,4 +1,4 @@
-// Juegos en solitario (ruleta, cohete, Plinko, la rana, la carrera de coches, la Torre, el Atraco, Pez Gordo y Tesoro en la Arena) con el saldo semanal: el servidor sortea
+// Juegos en solitario (ruleta, cohete, Plinko, la rana, la carrera de coches, la Torre, el Atraco, Pez Gordo, Tesoro en la Arena, el Rasca, Mayor o Menor y la Bola Canaria) con el saldo semanal: el servidor sortea
 // con randomInt y aplica las mismas reglas puras que pinta la pantalla (src/juegos/*.js), así el
 // navegador no puede elegir su resultado. Cada función devuelve { error } o el resultado con `delta`, lo que cambia
 // el saldo, y `saved`, lo que hay que guardar para la siguiente jugada (racha y apuesta de la ruleta y del cohete).
@@ -14,6 +14,9 @@ import * as frog from '../../src/juegos/frog/frog.js'
 import * as race from '../../src/juegos/race/race.js'
 import * as tower from '../../src/juegos/tower/tower.js'
 import * as heist from '../../src/juegos/heist/heist.js'
+import * as rasca from '../../src/juegos/scratch/rasca.js'
+import * as hilo from '../../src/juegos/hilo/hilo.js'
+import * as bola from '../../src/juegos/bola/bola.js'
 import { cardView } from './gacha.mjs'
 
 export const SOLO_GAMES = {
@@ -28,6 +31,9 @@ export const SOLO_GAMES = {
   solo_race: 'race',
   solo_tower: 'tower',
   solo_heist: 'heist',
+  solo_scratch: 'scratch',
+  solo_hilo: 'hilo',
+  solo_bola: 'bola',
 }
 
 // --- Ruleta en vivo: una sola rueda para todos que gira cada ROUND_MS, como en un casino en directo. ---
@@ -935,4 +941,103 @@ export function divePlay(msg, balance, saved, rand, ctx) {
   return { delta: paid, played: true, saved: state, result: diveView(state, balance + paid, t, { ev: 'up' }) }
 }
 
-export const SOLO_PLAY = { roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay, dig: digPlay, dive: divePlay, regatta: regattaLive }
+// --- Rasca de las Fiestas: una jugada, sin nada guardado (como el Plinko). El cartón entero sale del servidor al
+// comprarlo; la pantalla solo lo destapa. Con suerte del Admin Abuse se sortean tantos premios y se queda el mejor.
+export function scratchBuy(msg, balance, _saved, rand, ctx) {
+  if (!rasca.validBet(msg.bet)) return { error: 'BAD_MESSAGE' }
+  if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
+  let prize = rasca.drawPrize(rand)
+  for (let i = 1; i < (ctx.luck ?? 1); i++) {
+    const other = rasca.drawPrize(rand)
+    if (rasca.payout(msg.bet, other) > rasca.payout(msg.bet, prize)) prize = other
+  }
+  const card = rasca.makeCard(prize, rand)
+  const paid = rasca.payout(msg.bet, prize)
+  const delta = paid - msg.bet
+  return { delta, played: true, saved: null, result: { id: ctx.now, card, prize, bet: msg.bet, payout: paid, net: delta, balance: balance + delta } }
+}
+
+// --- Bola Canaria: también una jugada sin nada guardado. Con suerte del Admin Abuse se tira varias veces y vale la mejor.
+export function bolaThrow(msg, balance, _saved, rand, ctx) {
+  if (!bola.validBet(msg.bet) || !bola.validStyle(msg.style)) return { error: 'BAD_MESSAGE' }
+  if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
+  let band = bola.drawBand(msg.style, rand)
+  for (let i = 1; i < (ctx.luck ?? 1); i++) {
+    const other = bola.drawBand(msg.style, rand)
+    if (bola.multOf(msg.style, other) > bola.multOf(msg.style, band)) band = other
+  }
+  const at = bola.placeBall(band, rand)
+  const mult = bola.multOf(msg.style, band)
+  const paid = bola.payout(msg.bet, mult)
+  const delta = paid - msg.bet
+  return { delta, played: true, saved: null, result: { id: ctx.now, style: msg.style, band, at, mult, bet: msg.bet, payout: paid, net: delta, balance: balance + delta } }
+}
+
+// --- Mayor o Menor: como la rana, la apuesta sale del saldo al empezar y queda en juego. saved: { bet, card, prod,
+// steps, skips, cards, week, last } con bet > 0 mientras hay partida; cards son las cartas que han salido (la última,
+// la que se ve). Cada carta se sortea al pedirla, así que no se puede adivinar.
+function hiloView(state, balance, ev = null) {
+  const live = state.bet > 0
+  return {
+    bet: live ? state.bet : 0,
+    card: live ? state.card : null,
+    cards: live ? state.cards : [],
+    steps: live ? state.steps : 0,
+    skips: live ? state.skips : 0,
+    mult: live ? hilo.multOf(state.prod, state.steps) : 0,
+    prod: live ? state.prod : 1,
+    last: state.last ?? null,
+    balance,
+    ev,
+  }
+}
+
+// msg.a: «sync», «start» (bet), «guess» (guess: 'hi' | 'lo'), «skip» (cambiar de carta) o «cash» (cobrar ya).
+export function hiloPlay(msg, balance, saved, rand, ctx) {
+  // Una partida de otra semana ya no existe: el saldo se reinició.
+  let state = saved && saved.week === ctx.week ? { ...saved } : { last: saved?.last ?? null }
+  const live = state.bet > 0
+  const settle = (mult, extra = {}) => {
+    const paid = hilo.payout(state.bet, mult)
+    state = { last: { round: ctx.now, stake: state.bet, mult, payout: paid, net: paid - state.bet, steps: state.steps, cards: state.cards, ...extra } }
+    return paid
+  }
+  if (msg.a === 'sync') return { delta: 0, played: false, saved: null, result: hiloView(state, balance) }
+  if (msg.a === 'start') {
+    if (live) return { error: 'BAD_PHASE' }
+    if (!hilo.validBet(msg.bet)) return { error: 'BAD_MESSAGE' }
+    if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
+    const card = hilo.drawCard(rand)
+    state = { bet: msg.bet, card, prod: 1, steps: 0, skips: hilo.SKIPS, cards: [card], week: ctx.week, last: state.last ?? null }
+    return { delta: -msg.bet, played: true, saved: state, result: hiloView(state, balance - msg.bet, 'start') }
+  }
+  if (!live) return { error: 'BAD_PHASE' }
+  if (msg.a === 'cash') {
+    if (state.steps < 1) return { error: 'BAD_PHASE' }
+    const paid = settle(hilo.multOf(state.prod, state.steps))
+    return { delta: paid, played: true, saved: state, result: hiloView(state, balance + paid, 'cash') }
+  }
+  if (msg.a === 'skip') {
+    if (state.skips < 1) return { error: 'BAD_PHASE' }
+    const card = hilo.drawCard(rand)
+    state = { ...state, card, skips: state.skips - 1, cards: [...state.cards, card].slice(-12) }
+    return { delta: 0, played: true, saved: state, result: hiloView(state, balance, 'skip') }
+  }
+  if (msg.a !== 'guess' || !hilo.validGuess(msg.guess)) return { error: 'BAD_MESSAGE' }
+  const next = hilo.drawCard(rand)
+  const cards = [...state.cards, next].slice(-12)
+  if (!hilo.wins(state.card, next, msg.guess)) {
+    state = { ...state, cards }
+    settle(0, { bust: next })
+    return { delta: 0, played: true, saved: state, result: hiloView(state, balance, 'bust') }
+  }
+  state = { ...state, card: next, cards, prod: state.prod / hilo.chance(state.card, msg.guess), steps: state.steps + 1 }
+  const mult = hilo.multOf(state.prod, state.steps)
+  if (mult >= hilo.MAX_MULT) {
+    const paid = settle(mult)
+    return { delta: paid, played: true, saved: state, result: hiloView(state, balance + paid, 'top') }
+  }
+  return { delta: 0, played: true, saved: state, result: hiloView(state, balance, 'win') }
+}
+
+export const SOLO_PLAY = { scratch: scratchBuy, hilo: hiloPlay, bola: bolaThrow, roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay, dig: digPlay, dive: divePlay, regatta: regattaLive }

@@ -19,6 +19,11 @@ export const GAME_NAMES = {
   poker: 'Póker',
   chess: 'Ajedrez',
   gacha: 'Gacha',
+  dive: 'Apnea',
+  regatta: 'Regata',
+  scratch: 'Rasca',
+  hilo: 'Mayor o Menor',
+  bola: 'Bola Canaria',
 }
 
 // Premios por reclamar: niveles desbloqueados que aún no se han cobrado, y su total.

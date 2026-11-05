@@ -1,0 +1,179 @@
+/* Escrito a mano: Rasca de las Fiestas (Rasca.jsx). La noche de verbena de fondo y en el centro el cartón, de papel
+   crema con su cabecera; cada casilla con su capa plateada que se va borrando al rascar (--scr de 0 a 1). */
+.juegos-root .rs-stage {
+  background: #2a1a4e;
+}
+.juegos-root .rs-verbena {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .rs-garland {
+  transform-origin: 50% 0;
+  animation: rs-sway 4s ease-in-out infinite alternate;
+  animation-delay: var(--d);
+}
+.juegos-root .rs-bulb {
+  fill: #ffe38a;
+  filter: drop-shadow(0 0 4px #ffd25e);
+  animation: rs-blink 1.6s ease-in-out infinite alternate;
+  animation-delay: var(--d);
+}
+
+.juegos-root .rs-ticket {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  width: min(100%, 470px);
+  max-height: 100%;
+  align-self: center;
+  padding: 14px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 12px 50%, transparent 7px, transparent 0) left / 24px 100% no-repeat,
+    repeating-linear-gradient(45deg, rgba(232, 68, 58, 0.06) 0 10px, transparent 10px 20px),
+    #fff6e2;
+  box-shadow:
+    0 0 0 4px #e8443a,
+    0 0 0 7px #fff6e2,
+    0 0 0 9px #f2b632,
+    0 24px 50px rgba(0, 0, 0, 0.5);
+  color: #3a1a12;
+  rotate: -1.5deg;
+  animation: rs-print 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.juegos-root .rs-ticket.is-empty {
+  opacity: 0.85;
+}
+.juegos-root .rs-ticket__head {
+  display: grid;
+  justify-items: center;
+  line-height: 1.05;
+  text-align: center;
+}
+.juegos-root .rs-ticket__head small {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #a2381c;
+}
+.juegos-root .rs-ticket__head b {
+  font-family: var(--display);
+  font-size: clamp(22px, 3.2vw, 32px);
+  font-weight: 400;
+  color: #e8443a;
+  text-shadow: 2px 2px 0 #f2b632;
+}
+.juegos-root .rs-ticket__head span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6a3a22;
+}
+.juegos-root .rs-ticket__foot {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  text-align: center;
+  color: #8a5a3a;
+}
+
+.juegos-root .rs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  aspect-ratio: 1;
+  touch-action: none;
+  user-select: none;
+}
+.juegos-root .rs-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 2px dashed rgba(162, 56, 28, 0.35);
+  border-radius: 14px;
+  background: radial-gradient(circle, #fffaf0, #f6e4c0);
+  color: inherit;
+  cursor: grab;
+}
+.juegos-root .rs-cell:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.juegos-root .rs-ticket.is-live .rs-cell:not(:disabled):hover .rs-foil {
+  filter: brightness(1.08);
+}
+.juegos-root .rs-symbol {
+  font-size: clamp(34px, 6vw, 58px);
+  line-height: 1;
+}
+.juegos-root .rs-cell.is-open .rs-symbol {
+  animation: rs-pop 0.35s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+/* La capa plateada: se aclara y se agujerea según lo rascado; al destaparse, desaparece. */
+.juegos-root .rs-foil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.7), transparent 40%),
+    repeating-linear-gradient(135deg, #b9c0c8 0 6px, #d6dce2 6px 12px);
+  opacity: calc(1 - var(--scr) * 0.55);
+  -webkit-mask: radial-gradient(circle at 40% 45%, transparent calc(var(--scr) * 38%), #000 calc(var(--scr) * 38% + 1px));
+  mask: radial-gradient(circle at 40% 45%, transparent calc(var(--scr) * 38%), #000 calc(var(--scr) * 38% + 1px));
+  transition:
+    opacity 0.15s,
+    filter 0.15s;
+}
+.juegos-root .rs-foil::after {
+  content: '?';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--display);
+  font-size: clamp(26px, 4vw, 40px);
+  color: rgba(80, 90, 100, 0.55);
+}
+.juegos-root .rs-cell.is-win {
+  border: 2px solid #f2b632;
+  background: radial-gradient(circle, #fff3b0, #ffd25e);
+  box-shadow: 0 0 18px rgba(255, 210, 94, 0.8);
+  animation: rs-win 0.9s ease-in-out infinite alternate;
+}
+.juegos-root .rs-cell.is-dim .rs-symbol {
+  opacity: 0.45;
+  filter: grayscale(0.4);
+}
+
+@keyframes rs-sway {
+  to {
+    rotate: 1.5deg;
+  }
+}
+@keyframes rs-blink {
+  to {
+    opacity: 0.35;
+  }
+}
+@keyframes rs-print {
+  from {
+    opacity: 0;
+    translate: 0 -40px;
+    rotate: 6deg;
+  }
+}
+@keyframes rs-pop {
+  from {
+    scale: 0.3;
+    rotate: -20deg;
+  }
+}
+@keyframes rs-win {
+  to {
+    scale: 1.06;
+  }
+}

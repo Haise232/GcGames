@@ -20,10 +20,14 @@ import Auction from './auction/Auction.jsx'
 import Pez from './fish/Pez.jsx'
 import Arena from './dig/Arena.jsx'
 import Buceo from './dive/Buceo.jsx'
+import Rasca from './scratch/Rasca.jsx'
+import Hilo from './hilo/Hilo.jsx'
+import Bola from './bola/Bola.jsx'
 import Regata from './regatta/Regata.jsx'
 import { ArenaScene } from './season4/ArenaArt.jsx'
 import { FishScene } from './season4/FishArt.jsx'
 import { DiveScene } from './season4/DiveArt.jsx'
+import { BolaScene, HiloScene, RascaScene } from './season4/FiestasArt.jsx'
 import { RegattaScene } from './season4/RegattaArt.jsx'
 import Bingo from './bingo/Bingo.jsx'
 import BingoCage from './bingo/BingoCage.jsx'
@@ -150,6 +154,33 @@ const ALL_GAMES = [
     art: <DiveScene />,
   },
   {
+    id: 'scratch',
+    name: 'Rasca de las Fiestas',
+    kind: 'Rasca y gana',
+    blurb: 'Compra un cartón y ráscalo con el dedo. Tres papas, tres plátanos… o tres dragos milenarios, que pagan ×500.',
+    tint: '255, 120, 90',
+    isNew: true,
+    art: <RascaScene />,
+  },
+  {
+    id: 'hilo',
+    name: 'Mayor o Menor',
+    kind: 'Baraja española',
+    blurb: 'En la mesa del guachinche: ¿la siguiente carta será mayor o menor? Cada acierto sube el premio. Cobra antes de fallar.',
+    tint: '232, 68, 58',
+    isNew: true,
+    art: <HiloScene />,
+  },
+  {
+    id: 'bola',
+    name: 'Bola Canaria',
+    kind: 'Arrima y cobra',
+    blurb: 'Tira tu bola en la cancha de tierra: cuanto más cerca del mingue, más cobras. Arrima suave o arriesga con un bochazo ×25.',
+    tint: '217, 168, 106',
+    isNew: true,
+    art: <BolaScene />,
+  },
+  {
     id: 'plinko',
     name: 'Plinko',
     kind: 'Suerte',
@@ -196,7 +227,7 @@ const ALL_GAMES = [
 // los de a tu ritmo.
 const byId = Object.fromEntries(ALL_GAMES.map((g) => [g.id, g]))
 const ROUND_GAMES = ['regatta', 'elevator', 'auction', 'roulette', 'crash', 'race'].map((id) => byId[id])
-const PACE_GAMES = ['fish', 'dig', 'dive', 'tower', 'heist', 'plinko', 'frog'].map((id) => byId[id])
+const PACE_GAMES = ['scratch', 'hilo', 'bola', 'fish', 'dig', 'dive', 'tower', 'heist', 'plinko', 'frog'].map((id) => byId[id])
 
 // La Inmobiliaria, destacada arriba del todo: un trozo de tablero con sus casas y un hotel.
 function InmoBanner({ onOpen }) {
@@ -905,7 +936,7 @@ function Notice({ title, children, actions }) {
 
 // Pantalla en la que estabas, para que al recargar la página vuelvas al mismo juego (las mesas ya las recuerda el servidor).
 const SCREEN_KEY = 'juegos-pantalla'
-const KEEP = new Set(['pase', 'bingo', 'roulette', 'crash', 'fish', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'dig', 'dive', 'regatta'])
+const KEEP = new Set(['pase', 'bingo', 'roulette', 'crash', 'fish', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'dig', 'dive', 'regatta', 'scratch', 'hilo', 'bola'])
 function savedScreen() {
   try {
     const screen = sessionStorage.getItem(SCREEN_KEY)
@@ -997,6 +1028,9 @@ function JuegosScreens() {
   if (screen === 'fish') return (<Pez onExit={exit} juegos={juegos} />)
   if (screen === 'dig') return (<Arena onExit={exit} juegos={juegos} />)
   if (screen === 'dive') return (<Buceo onExit={exit} juegos={juegos} />)
+  if (screen === 'scratch') return (<Rasca onExit={exit} juegos={juegos} />)
+  if (screen === 'hilo') return (<Hilo onExit={exit} juegos={juegos} />)
+  if (screen === 'bola') return (<Bola onExit={exit} juegos={juegos} />)
   if (screen === 'regatta') return (<Regata onExit={exit} juegos={juegos} />)
   if (screen === 'plinko') return (<Plinko onExit={exit} juegos={juegos} />)
   if (screen === 'frog') return (<Frog onExit={exit} juegos={juegos} />)

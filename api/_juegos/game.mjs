@@ -27,8 +27,11 @@ import { PASE_ERRORS, PASE_SQL, createPase } from './pase.mjs'
 const SOLO_CHECK_SQL = `
 alter table public.juegos_solo drop constraint if exists juegos_solo_juego_check;
 alter table public.juegos_solo add constraint juegos_solo_juego_check
-  check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish', 'dig', 'dive', 'regatta'));
+  check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish', 'dig', 'dive', 'regatta', 'hilo'));
 `
+
+// Juegos de una sola jugada: se liquidan al momento y no guardan nada en juegos_solo.
+const INSTANT = new Set(['plinko', 'scratch', 'bola'])
 
 export const STARTING_BALANCE = 15000 // Season 2
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -318,7 +321,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         await db.query(
           `with meta as (insert into public.juegos_meta (id, semana) values (1, $1) on conflict (id) do nothing)
            select exists(select 1 from public.juegos_solo where juego in ('blackjack', 'bribe', 'wheel', 'dungeon')) as solo,
-                  coalesce((select pg_get_constraintdef(oid) like '%''regatta''%' from pg_constraint where conname = 'juegos_solo_juego_check'), true) as solo_check,
+                  coalesce((select pg_get_constraintdef(oid) like '%''hilo''%' from pg_constraint where conname = 'juegos_solo_juego_check'), true) as solo_check,
                   ${rows[0].duelos ? `exists(select 1 from public.juegos_duelos where estado = 'abierto')` : 'false'} as duelos`,
           [weekOf(now()).key],
         )
@@ -698,9 +701,9 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
   }
 
   // Lo apostado y lo ganado (o perdido) en la jugada que acaba de liquidarse, o null si no se liquidó ninguna.
-  // Plinko se liquida en cada jugada; los demás, cuando aparece un «last» de otra ronda o partida.
+  // Plinko, el Rasca y la Bola se liquidan en cada jugada; los demás, cuando aparece un «last» de otra ronda o partida.
   function settlementOf(game, msg, saved, out) {
-    if (game === 'plinko') return { stake: msg.bet, net: out.delta }
+    if (INSTANT.has(game)) return { stake: msg.bet, net: out.delta }
     const last = out.saved?.last
     if (!last || last.round === saved?.last?.round) return null
     return { stake: last.stake, net: last.net }
@@ -718,9 +721,9 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       const accRows = (await q(`select usuario_id, saldo, dias, jugado from public.juegos_cuentas where usuario_id = $1 for update`, [user.id])).rows
       const accounts = new TxAccounts(accRows, week.day)
       const balance = accounts.get(user.id).balance
-      // Plinko no guarda nada entre jugadas.
+      // Plinko, el Rasca y la Bola no guardan nada entre jugadas.
       const saved =
-        game === 'plinko'
+        INSTANT.has(game)
           ? null
           : ((await q(`select estado from public.juegos_solo where usuario_id = $1 and juego = $2 for update`, [user.id, game])).rows[0]?.estado ?? null)
       const out = await SOLO_PLAY[game](msg, balance, saved, randomInt, ctx)
@@ -1014,6 +1017,9 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       case 'solo_fish':
       case 'solo_dig':
       case 'solo_plinko':
+      case 'solo_scratch':
+      case 'solo_bola':
+      case 'solo_hilo':
       case 'solo_frog':
       case 'solo_tower':
       case 'solo_heist': {

@@ -116,6 +116,9 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 | | Ascensor (cada minuto) | El Atraco | Casa de empeños |
 | | La Subasta (cada minuto) | Plinko | |
 | | Bingo | Rana | |
+| | | Rasca de las Fiestas | |
+| | | Mayor o Menor | |
+| | | Bola Canaria | |
 
 <details>
 <summary><b>Qué es cada uno</b></summary>
@@ -156,6 +159,13 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 - **El Atraco**: monta tu banda con tus cartas del gacha y baja planta a planta hasta la cámara acorazada.
 - **Plinko**: suelta bolas y que caigan en las orillas.
 - **Rana**: salta de nenúfar en nenúfar y cobra cuando quieras.
+- **Rasca de las Fiestas**: compra un cartón de 3 × 3 y ráscalo con el dedo. Tres símbolos iguales dan premio: papas
+  arrugadas ×1, mojo ×2, plátano ×5, timple ×20, el Teide ×100 y el drago milenario ×500. El cartón lo sortea el
+  servidor al comprarlo.
+- **Mayor o Menor**: con la baraja española, en la mesa de un guachinche. Dices si la siguiente carta será mayor o igual,
+  o menor o igual; cada acierto multiplica el premio y cobras cuando quieras. Tres cambios de carta gratis por partida.
+- **Bola Canaria**: tira tu bola en la cancha de tierra; cuanto más cerca del mingue se queda, más cobras. Arrimar,
+  tiro medio o bochazo (la mitad se va fuera, pero una arrimada paga ×25).
 
 </details>
 

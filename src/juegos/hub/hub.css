@@ -632,6 +632,15 @@
 .juegos-root .hub-card--plinko {
   --art: radial-gradient(80% 100% at 50% 20%, #4a2a86, #150b30);
 }
+.juegos-root .hub-card--scratch {
+  --art: linear-gradient(180deg, #1a1446, #6a2a6a);
+}
+.juegos-root .hub-card--hilo {
+  --art: linear-gradient(180deg, #6a3a1a, #3a1e0c);
+}
+.juegos-root .hub-card--bola {
+  --art: linear-gradient(180deg, #2a5a3a, #173a24);
+}
 .juegos-root .hub-card--frog {
   --art: linear-gradient(180deg, #11788a, #0a4658);
 }

@@ -1,0 +1,203 @@
+/* Escrito a mano: Mayor o Menor (Hilo.jsx). La mesa de madera del guachinche con su mantel de cuadros; encima, el
+   mazo, la carta que se ve (baraja española) y los botones de mayor y menor; debajo, las cartas que ya salieron. */
+.juegos-root .hl-stage {
+  background: #3a1e0c;
+}
+.juegos-root .hl-table {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .hl-felt {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 220px);
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 3vw, 34px);
+  align-self: center;
+}
+
+/* La carta: papel crema, número arriba y abajo, el palo en el centro. */
+.juegos-root .hl-card {
+  --w: clamp(120px, 15vw, 170px);
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  width: var(--w);
+  aspect-ratio: 5 / 7.6;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, #fffaf0, #f3e6c8);
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    inset 0 0 0 4px var(--ink, #8a5a2a),
+    0 10px 24px rgba(0, 0, 0, 0.45);
+  color: var(--ink, #8a5a2a);
+}
+.juegos-root .hl-card__n {
+  font-family: var(--display);
+  font-size: calc(var(--w) * 0.2);
+  font-weight: 400;
+  line-height: 1;
+}
+.juegos-root .hl-card__n--end {
+  justify-self: end;
+  rotate: 180deg;
+}
+.juegos-root .hl-card__mid {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+}
+.juegos-root .hl-card__face {
+  font-size: calc(var(--w) * 0.34);
+  line-height: 1;
+}
+.juegos-root .hl-card--back {
+  background: repeating-linear-gradient(45deg, #b5261c 0 8px, #8a1a12 8px 16px);
+  box-shadow:
+    inset 0 0 0 3px #fff6e2,
+    0 10px 24px rgba(0, 0, 0, 0.45);
+}
+.juegos-root .hl-card--back span {
+  margin: auto;
+  width: 46%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffd25e 0 30%, #f2b632 31% 60%, transparent 61%);
+  grid-row: 1 / 4;
+}
+.juegos-root .hl-card.is-small {
+  --w: 44px;
+  padding: 3px 4px;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 0 1px var(--ink, #8a5a2a),
+    0 3px 6px rgba(0, 0, 0, 0.35);
+}
+.juegos-root .hl-card.is-small .hl-card__n {
+  font-size: 12px;
+}
+.juegos-root .hl-card.is-small .hl-card__face {
+  font-size: 12px;
+}
+.juegos-root .hl-card.is-flip {
+  animation: hl-flip 0.38s cubic-bezier(0.2, 1, 0.3, 1) both;
+}
+.juegos-root .hl-deck {
+  position: relative;
+}
+.juegos-root .hl-deck .hl-card {
+  --w: clamp(84px, 10vw, 120px);
+}
+.juegos-root .hl-deck__2 {
+  position: absolute;
+  inset: 0;
+  translate: 4px -4px;
+}
+.juegos-root .hl-main.is-bust .hl-card {
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    inset 0 0 0 4px #e8443a,
+    0 0 0 4px #e8443a,
+    0 10px 24px rgba(0, 0, 0, 0.45);
+}
+
+.juegos-root .hl-guesses {
+  display: grid;
+  gap: 8px;
+}
+.juegos-root .hl-guess {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 16px;
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.35);
+}
+.juegos-root .hl-guess span {
+  grid-row: 1 / 3;
+  font-size: 26px;
+}
+.juegos-root .hl-guess b {
+  font-size: 16px;
+}
+.juegos-root .hl-guess small {
+  font-weight: 700;
+  opacity: 0.85;
+}
+.juegos-root .hl-guess--hi {
+  background: linear-gradient(180deg, #3fae5a, #2a7a3e);
+}
+.juegos-root .hl-guess--lo {
+  background: linear-gradient(180deg, #e8443a, #a2281c);
+}
+.juegos-root .hl-guess:not(:disabled):hover {
+  filter: brightness(1.1);
+}
+.juegos-root .hl-guess:not(:disabled):active {
+  translate: 0 3px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+.juegos-root .hl-guess:disabled,
+.juegos-root .hl-skip:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.juegos-root .hl-skip {
+  padding: 8px 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  background: rgba(42, 15, 46, 0.6);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.juegos-root .hl-trail {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  min-height: 70px;
+}
+.juegos-root .hl-trail .hl-card {
+  animation: fi-in 0.3s ease both;
+}
+
+@keyframes hl-flip {
+  from {
+    opacity: 0;
+    transform: perspective(600px) rotateY(90deg) translateX(-40px);
+  }
+}
+
+@media (max-width: 860px) {
+  .juegos-root .hl-felt {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    width: 100%;
+  }
+  .juegos-root .hl-deck {
+    display: none;
+  }
+  .juegos-root .hl-guesses {
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+  .juegos-root .hl-skip {
+    grid-column: 1 / -1;
+  }
+  .juegos-root .hl-trail .hl-card:nth-child(n + 7) {
+    display: none;
+  }
+}
