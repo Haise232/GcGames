@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { Coins, MessageSquare, Zap, X, Search, Users, Check, Clock, Trophy, Landmark, Ghost, UserPlus, KeyRound, Copy, Contact } from 'lucide-react'
+import { Coins, MessageSquare, Zap, X, Search, Users, Check, Clock, Trophy, Landmark, Ghost, UserPlus, KeyRound, Copy, Contact, Gamepad2 } from 'lucide-react'
 import {
   ABUSE_MINUTES,
+  GAME_GROUPS,
   POT_MINUTES,
   RAID_FLOORS,
   RAID_PCTS,
@@ -22,7 +23,7 @@ import {
 import './banca-panel.css'
 import { enFechas, preferencia, setPreferencia, type PreferenciaHalloween } from '../halloween'
 
-type Tab = 'dinero' | 'mensaje' | 'abuso' | 'bote' | 'hacienda' | 'cuentas' | 'usuarios' | 'tema'
+type Tab = 'dinero' | 'mensaje' | 'abuso' | 'bote' | 'hacienda' | 'cuentas' | 'usuarios' | 'juegos' | 'tema'
 const ALL = 'todos'
 const CHIPS = [100, 1000, 10000, 50000]
 const MAX = 1_000_000
@@ -77,7 +78,10 @@ const SECTIONS: { name: string; items: { id: Tab; label: string; desc: string; I
   },
   {
     name: 'Ajustes',
-    items: [{ id: 'tema', label: 'Tema', desc: 'El aspecto de temporada, solo en este navegador.', Icon: Ghost }],
+    items: [
+      { id: 'juegos', label: 'Juegos', desc: 'Quita juegos del selector para esta temporada y vuelve a ponerlos cuando quieras. No se borra nada.', Icon: Gamepad2 },
+      { id: 'tema', label: 'Tema', desc: 'El aspecto de temporada, solo en este navegador.', Icon: Ghost },
+    ],
   },
 ]
 
@@ -152,6 +156,7 @@ export default function BancaPanel({ onClose, initialTab = 'dinero' }: { onClose
   const [userQuery, setUserQuery] = useState('')
   const [resetFor, setResetFor] = useState<string | null>(null) // a quién se le va a poner la temporal (pide confirmar)
   const [temp, setTemp] = useState<{ id: string; password: string; copied: boolean } | null>(null)
+  const [hidden, setHidden] = useState<string[] | null>(null)
 
   const loadPeople = useCallback(async () => {
     const { banca } = await bancaCall({ t: 'banca_gente' })
@@ -179,6 +184,31 @@ export default function BancaPanel({ onClose, initialTab = 'dinero' }: { onClose
       .then(({ banca }) => setUsers(banca?.usuarios ?? []))
       .catch((e: Error) => setNote({ ok: false, text: e.message }))
   }, [tab])
+
+  // Banca → Juegos: se carga al abrir la pestaña.
+  useEffect(() => {
+    if (tab !== 'juegos') return
+    bancaCall({ t: 'banca_juegos' })
+      .then(({ banca }) => setHidden(banca?.ocultos ?? []))
+      .catch((e: Error) => setNote({ ok: false, text: e.message }))
+  }, [tab])
+
+  // Quita un juego del selector o lo vuelve a poner (para todos, al momento).
+  const toggleGame = async (id: string, name: string) => {
+    if (!hidden) return
+    const off = !hidden.includes(id)
+    setBusy(true)
+    setNote(null)
+    try {
+      const { banca } = await bancaCall({ t: 'banca_juegos', ocultos: off ? [...hidden, id] : hidden.filter((x) => x !== id) })
+      setHidden(banca?.ocultos ?? [])
+      setNote({ ok: true, text: off ? `${name} ya no sale en el selector.` : `${name} vuelve a salir en el selector.` })
+    } catch (e) {
+      setNote({ ok: false, text: (e as Error).message })
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const shownUsers = useMemo(() => {
     const q = userQuery.trim().toLowerCase()
@@ -317,6 +347,7 @@ export default function BancaPanel({ onClose, initialTab = 'dinero' }: { onClose
     if (id === 'abuso' && active) return <em className="bp__badge bp__badge--live" aria-label="en marcha" />
     if (id === 'bote' && potOpen) return <em className="bp__badge bp__badge--live" aria-label="abierto" />
     if (id === 'usuarios' && users) return <em className="bp__badge">{users.length}</em>
+    if (id === 'juegos' && hidden?.length) return <em className="bp__badge">{hidden.length}</em>
     return null
   }
   // En el móvil las secciones son chips en una fila que se desliza: la elegida se pone a la vista.
@@ -744,6 +775,48 @@ export default function BancaPanel({ onClose, initialTab = 'dinero' }: { onClose
                       ))}
                       {shownUsers.length === 0 && <li className="bp-muted">Nadie con ese nombre o email.</li>}
                     </ul>
+                  )}
+                </>
+              )}
+
+              {tab === 'juegos' && (
+                <>
+                  <p className="bp-muted">
+                    Un juego apagado desaparece del selector para todos y no sale en las misiones del pase. No se borra nada: partidas,
+                    cartas, propiedades y dinero siguen ahí, y al encenderlo vuelve tal cual.
+                  </p>
+                  {hidden === null ? (
+                    <p className="bp-muted">Cargando…</p>
+                  ) : (
+                    GAME_GROUPS.map((group) => (
+                      <section key={group.name} className="bp-games">
+                        <h4>{group.name}</h4>
+                        <ul>
+                          {group.games.map((g) => {
+                            const on = !hidden.includes(g.id)
+                            return (
+                              <li key={g.id}>
+                                <span className={on ? 'bp-games__name' : 'bp-games__name is-off'}>
+                                  {g.name}
+                                  {!on && <em className="bp-tag">Oculto</em>}
+                                </span>
+                                <button
+                                  type="button"
+                                  role="switch"
+                                  aria-checked={on}
+                                  aria-label={`${g.name}: ${on ? 'visible' : 'oculto'}`}
+                                  className="bp-switch"
+                                  disabled={busy}
+                                  onClick={() => toggleGame(g.id, g.name)}
+                                >
+                                  <i aria-hidden="true" />
+                                </button>
+                              </li>
+                            )
+                          })}
+                        </ul>
+                      </section>
+                    ))
                   )}
                 </>
               )}

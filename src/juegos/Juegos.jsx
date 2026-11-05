@@ -570,6 +570,13 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome,
   const halloween = useHalloween()
   // Misión del día de ese juego (si la hay), para la pegatina de su tarjeta.
   const missionFor = (id) => juegos.pase?.missions.find((m) => m.game === id)
+  // Lo que la banca ha quitado del selector esta temporada (Banca → Juegos): no se borra, solo no se enseña.
+  const hidden = new Set(lobby?.hidden ?? [])
+  const shown = (id) => !hidden.has(id)
+  const roundGames = ROUND_GAMES.filter((g) => shown(g.id))
+  const paceGames = PACE_GAMES.filter((g) => shown(g.id))
+  const liveGames = Object.keys(LIVE).filter(shown)
+  const moneyBits = ['gacha', 'inmo', 'suiza'].filter(shown)
 
   return (
     <main className="app app--lobby hub">
@@ -672,13 +679,15 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome,
         </aside>
       )}
 
-      <div className="hub-feature">
-        <section aria-labelledby="bingo-title">
-          <h2 id="bingo-title" className="hub-title">
-            Bingo <small>el bote de todo el casino</small>
-          </h2>
-          <BingoBanner info={lobby?.bingo} online={connected} onOpen={() => onPick('bingo')} />
-        </section>
+      <div className={shown('bingo') ? 'hub-feature' : 'hub-feature hub-feature--solo'}>
+        {shown('bingo') && (
+          <section aria-labelledby="bingo-title">
+            <h2 id="bingo-title" className="hub-title">
+              Bingo <small>el bote de todo el casino</small>
+            </h2>
+            <BingoBanner info={lobby?.bingo} online={connected} onOpen={() => onPick('bingo')} />
+          </section>
+        )}
         <section aria-labelledby="score-title" data-tour="score">
           <h2 id="score-title" className="hub-title">
             Clasificación <small>se reinicia el domingo a las 23:59</small>
@@ -687,60 +696,74 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome,
         </section>
       </div>
 
-      <section aria-labelledby="round-title" data-tour="round">
-        <h2 id="round-title" className="hub-title">
-          Todos a la vez <small>la misma ronda para todo el casino</small>
-        </h2>
-        <ul className="hub-showcase s4-round">
-          {ROUND_GAMES.map((game, i) => (
-            <li key={game.id} style={{ '--i': i }} data-tour={game.id === 'elevator' ? 'elevator' : undefined}>
-              <GameCard game={game} big connected={connected} onPick={onPick} mission={missionFor(game.id)} />
-            </li>
-          ))}
-        </ul>
-      </section>
+      {roundGames.length > 0 && (
+        <section aria-labelledby="round-title" data-tour="round">
+          <h2 id="round-title" className="hub-title">
+            Todos a la vez <small>la misma ronda para todo el casino</small>
+          </h2>
+          <ul className="hub-showcase s4-round">
+            {roundGames.map((game, i) => (
+              <li key={game.id} style={{ '--i': i }} data-tour={game.id === 'elevator' ? 'elevator' : undefined}>
+                <GameCard game={game} big connected={connected} onPick={onPick} mission={missionFor(game.id)} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-      <section aria-labelledby="solo-title" data-tour="solo">
-        <h2 id="solo-title" className="hub-title">
-          A tu ritmo <small>tú contra la casa, cuando quieras</small>
-        </h2>
-        <ul className="hub-games s4-pace">
-          {PACE_GAMES.map((game, i) => (
-            <li key={game.id} style={{ '--i': i }}>
-              <GameCard game={game} connected={connected} onPick={onPick} mission={missionFor(game.id)} />
-            </li>
-          ))}
-        </ul>
-      </section>
+      {paceGames.length > 0 && (
+        <section aria-labelledby="solo-title" data-tour="solo">
+          <h2 id="solo-title" className="hub-title">
+            A tu ritmo <small>tú contra la casa, cuando quieras</small>
+          </h2>
+          <ul className="hub-games s4-pace">
+            {paceGames.map((game, i) => (
+              <li key={game.id} style={{ '--i': i }}>
+                <GameCard game={game} connected={connected} onPick={onPick} mission={missionFor(game.id)} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-      <section className="hub-live-sec" aria-labelledby="live-title" data-tour="live">
-        <h2 id="live-title" className="hub-title">
-          Mesas en vivo <small>con la gente del casino</small>
-        </h2>
-        <div className="hub-cards">
-          {Object.keys(LIVE).map((game) => (
-            <LiveGame key={game} game={game} tables={tablesOf(game)} loaded={Boolean(lobby)} online={online} onJoin={onJoin} />
-          ))}
-        </div>
-      </section>
+      {liveGames.length > 0 && (
+        <section className="hub-live-sec" aria-labelledby="live-title" data-tour="live">
+          <h2 id="live-title" className="hub-title">
+            Mesas en vivo <small>con la gente del casino</small>
+          </h2>
+          <div className="hub-cards">
+            {liveGames.map((game) => (
+              <LiveGame key={game} game={game} tables={tablesOf(game)} loaded={Boolean(lobby)} online={online} onJoin={onJoin} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Las tres formas de guardar el dinero lejos de Hacienda, juntas: las cartas, las propiedades y Suiza. */}
-      <section aria-labelledby="money-title" data-tour="gacha">
-        <h2 id="money-title" className="hub-title">
-          Tu dinero a salvo <small>Hacienda solo mira el saldo</small>
-        </h2>
-        <ul className="hub-money">
-          <li>
-            <GachaShowcase juegos={juegos} online={connected} onOpen={onGacha} />
-          </li>
-          <li>
-            <InmoBanner onOpen={() => onPick('inmo')} />
-          </li>
-          <li>
-            <SuizaBanner onOpen={() => onPick('suiza')} />
-          </li>
-        </ul>
-      </section>
+      {moneyBits.length > 0 && (
+        <section aria-labelledby="money-title" data-tour="gacha">
+          <h2 id="money-title" className="hub-title">
+            Tu dinero a salvo <small>Hacienda solo mira el saldo</small>
+          </h2>
+          <ul className="hub-money">
+            {shown('gacha') && (
+              <li>
+                <GachaShowcase juegos={juegos} online={connected} onOpen={onGacha} />
+              </li>
+            )}
+            {shown('inmo') && (
+              <li>
+                <InmoBanner onOpen={() => onPick('inmo')} />
+              </li>
+            )}
+            {shown('suiza') && (
+              <li>
+                <SuizaBanner onOpen={() => onPick('suiza')} />
+              </li>
+            )}
+          </ul>
+        </section>
+      )}
     </main>
   )
 }
@@ -889,7 +912,10 @@ function JuegosScreens() {
     )
   }
 
-  const { screen } = view
+  // Un juego que la banca ha quitado del selector (Banca → Juegos) no se abre ni desde una pantalla guardada ni desde un
+  // enlace: se vuelve al selector.
+  const off = (juegos.lobby?.hidden ?? []).includes(view.screen === 'join' ? view.game : view.screen)
+  const screen = off ? 'lobby' : view.screen
   if (screen === 'bingo') return (<Bingo onExit={exit} juegos={juegos} />)
   if (screen === 'roulette') return (<Roulette onExit={exit} juegos={juegos} />)
   if (screen === 'crash') return (<Crash onExit={exit} juegos={juegos} />)

@@ -1879,3 +1879,8 @@
     animation: none;
   }
 }
+
+/* Sin bingo (la banca lo ha quitado del selector): la clasificación ocupa toda la fila. */
+.juegos-root .hub-feature--solo {
+  grid-template-columns: minmax(0, 1fr);
+}

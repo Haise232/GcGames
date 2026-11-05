@@ -566,7 +566,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       db.query(`select count(*)::int as n from public.juegos_cuentas where visto > now() - make_interval(secs => $1::int)`, [ONLINE_MS / 1000]),
       bingo.summary(),
     ])
-    return { tables: tables.rows.map((row) => summary(row, t)), online: online.rows[0].n, resetAt: weekOf(t).resetAt, bingo: jackpot }
+    return { tables: tables.rows.map((row) => summary(row, t)), online: online.rows[0].n, resetAt: weekOf(t).resetAt, bingo: jackpot, hidden: await banca.hidden() }
   })
 
   async function lobby(user) {
@@ -816,7 +816,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
     await q(`update public.juegos_cuentas set saldo = $2, dias = $3::bigint[], jugado = $4 where usuario_id = $1`, [userId, acc.balance, pgArray(acc.days), acc.played])
     return acc.balance
   }
-  const pase = createPase({ db, now, secret, move })
+  const pase = createPase({ db, now, secret, move, hidden: () => banca.hiddenNow() })
   const gacha = createGacha({ db, ping, now, charge, jaula: (q, amount) => bingo.feed(q, amount) })
 
   // Jugadores con apuesta en una ronda de la ruleta o el cohete en vivo (la ronda se queda anotada aunque ya se haya pagado).
@@ -906,7 +906,8 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
   async function handle(user, msg) {
     if (!msg || typeof msg.t !== 'string') throw new JuegosError('BAD_MESSAGE')
     await warm()
-    await banca.abuse() // deja leído el Admin Abuse para lo que lo mira dentro de una transacción (gacha)
+    // Deja leídos el Admin Abuse y los juegos ocultos para lo que los mira dentro de una transacción (gacha, pase).
+    await Promise.all([banca.abuse(), banca.hidden()])
     // La banca (avisos y panel del master) va aparte: no toca la cuenta ni cuenta como actividad en las mesas.
     if (msg.t.startsWith('banca')) {
       const out = await banca.handle(user, msg)

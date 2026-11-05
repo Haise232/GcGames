@@ -15,6 +15,10 @@
 //   banca_cuentas master: sin más, las cuentas nuevas que esperan; { id, aceptar: true | false } acepta o rechaza una
 //   banca_usuarios master: todas las cuentas con su email, estado y último acceso
 //   banca_password master: { id } le pone una contraseña temporal (la devuelve una vez) y le obliga a cambiarla al entrar
+//   banca_juegos  master: sin más, los juegos ocultos; { ocultos: [id…] } cambia cuáles se quitan del selector
+//
+// Juegos ocultos (juegos_meta.ocultos): el master quita juegos del selector para una temporada sin borrar nada (partidas,
+// cartas, propiedades… siguen ahí) y los vuelve a poner cuando quiera. Llega a todos con el lobby (lobby.hidden).
 //
 // Admin Abuse (juegos_meta.abuso): x2 y x3 multiplican lo que ganas en una jugada (la banca paga la diferencia) y dan
 // más suerte donde el sorteo es de cada uno (plinko, laberinto y cartones gratis en el bingo; en la rana no: devolvía
@@ -35,6 +39,18 @@ const TEMP_LENGTH = 12
 const ABUSE_TTL_MS = 3000 // cada instancia de la función relee el Admin Abuse como mucho cada este rato
 const MASTER_TTL_MS = 60000
 const POT_TTL_MS = 3000 // como el Admin Abuse: el estado del bote se relee como mucho cada este rato
+const HIDDEN_TTL_MS = 3000 // igual con los juegos ocultos
+
+// Los juegos que se pueden quitar del selector (los ids de Juegos.jsx).
+export const HIDEABLE = [
+  'elevator', 'auction', 'roulette', 'crash', 'race',
+  'fish', 'dig', 'tower', 'heist', 'plinko', 'frog',
+  'blackjack', 'poker', 'chess',
+  'bingo', 'gacha', 'inmo', 'suiza',
+]
+const HIDEABLE_SET = new Set(HIDEABLE)
+// La columna llegó después del esquema: en una base de datos de antes se añade la primera vez que hace falta.
+const HIDDEN_SQL = `alter table public.juegos_meta add column if not exists ocultos jsonb not null default '[]'::jsonb`
 
 // ¿Afecta el Admin Abuse a este juego? (póker, blackjack, roulette, crash, race, plinko, frog, dungeon, gacha, bingo,
 // tower, heist, auction, bridge, elevator)
@@ -62,6 +78,30 @@ const cleanText = (text) =>
 export function createBanca({ db, ping, now, credit, pot, hacienda }) {
   let abuseCache = { at: -Infinity, value: null }
   let potCache = { at: -Infinity, value: null }
+  let hiddenCache = { at: -Infinity, value: [] }
+
+  async function readHidden() {
+    try {
+      return (await db.query(`select ocultos from public.juegos_meta where id = 1`)).rows[0]?.ocultos ?? []
+    } catch (error) {
+      if (error?.code !== '42703') throw error // 42703: aún no existe la columna
+      await db.query(HIDDEN_SQL)
+      return []
+    }
+  }
+
+  // Los juegos ocultos (ids), con una caché corta: van en cada lobby.
+  async function hidden() {
+    const t = now()
+    if (t - hiddenCache.at > HIDDEN_TTL_MS) {
+      const list = await readHidden()
+      hiddenCache = { at: t, value: Array.isArray(list) ? list.filter((id) => HIDEABLE_SET.has(id)) : [] }
+    }
+    return hiddenCache.value
+  }
+
+  // Sin consultar (para las misiones del pase, dentro de una transacción). handle() de game.mjs lo refresca.
+  const hiddenNow = () => hiddenCache.value
 
   // El bote del bingo tal y como lo anuncia la banca a todos: abierto o no, desde y hasta cuándo y lo que hay en la jaula.
   async function potPublic() {
@@ -257,6 +297,20 @@ export function createBanca({ db, ping, now, credit, pot, hacienda }) {
     return { banca: { declaracion: out } }
   }
 
+  // Quitar juegos del selector (o volver a ponerlos). Sin «ocultos», solo devuelve la lista.
+  async function games(user, msg) {
+    if (msg.ocultos !== undefined) {
+      if (!Array.isArray(msg.ocultos) || !msg.ocultos.every((id) => HIDEABLE_SET.has(id))) return { error: 'BAD_MESSAGE' }
+      const list = HIDEABLE.filter((id) => msg.ocultos.includes(id))
+      await readHidden() // por si falta la columna
+      await db.query(`update public.juegos_meta set ocultos = $1::jsonb where id = 1`, [JSON.stringify(list)])
+      hiddenCache = { at: now(), value: list }
+      await ping('juegos-lobby')
+      return { banca: { ocultos: list } }
+    }
+    return { banca: { ocultos: await hidden() } }
+  }
+
   // Cuentas nuevas: quien se registra queda «pendiente» hasta que el master la acepta (o la rechaza).
   async function accounts(user, msg) {
     if (msg.id !== undefined) {
@@ -302,7 +356,7 @@ export function createBanca({ db, ping, now, credit, pot, hacienda }) {
     return { banca: { temporal, para: msg.id } }
   }
 
-  const MASTER_ONLY = { banca_usuarios: users, banca_password: tempPassword, banca_cuentas: accounts, banca_gente: people, banca_dar: give, banca_mensaje: message, banca_abuso: setAbuse, banca_bote: jackpot, banca_hacienda: raid }
+  const MASTER_ONLY = { banca_usuarios: users, banca_password: tempPassword, banca_cuentas: accounts, banca_gente: people, banca_dar: give, banca_mensaje: message, banca_abuso: setAbuse, banca_bote: jackpot, banca_hacienda: raid, banca_juegos: games }
 
   async function handle(user, msg) {
     if (msg.t === 'banca') return status(user)
@@ -317,5 +371,5 @@ export function createBanca({ db, ping, now, credit, pot, hacienda }) {
   // Limpieza: avisos de hace más de 7 días (se llama en el reinicio semanal).
   const sweep = (q) => q(`delete from public.juegos_avisos where creado < now() - interval '7 days'`)
 
-  return { handle, abuse, cached, sweep }
+  return { handle, abuse, cached, hidden, hiddenNow, sweep }
 }

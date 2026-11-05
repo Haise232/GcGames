@@ -121,6 +121,8 @@ create table if not exists public.juegos_gacha_efectos (
 
 -- Banca (igual que supabase/migracion_juegos_banca.sql): Admin Abuse activo y avisos de dinero o mensajes del master.
 alter table public.juegos_meta add column if not exists abuso jsonb;
+-- Juegos que la banca ha quitado del selector (ids), igual que supabase/migracion_juegos_ocultos.sql.
+alter table public.juegos_meta add column if not exists ocultos jsonb not null default '[]'::jsonb;
 create table if not exists public.juegos_avisos (
   id         bigserial primary key,
   usuario_id uuid references public.usuarios(id) on delete cascade,

@@ -76,14 +76,17 @@ export function dayKey(t) {
   return isoPlus(week.key, week.day)
 }
 
-// Las tres misiones del día de una persona: una general y dos de juegos distintos, siempre las mismas ese día.
-export function missionsFor(secret, userId, day) {
+// Las tres misiones del día de una persona: una general y dos de juegos distintos, siempre las mismas ese día. Nunca de un
+// juego que la banca ha quitado del selector (hidden: sus ids).
+export function missionsFor(secret, userId, day, hidden = []) {
   const h = createHmac('sha256', secret).update(`pase:${SEASON.id}:${userId}:${day}`).digest()
   const general = GENERAL[h.readUInt32BE(0) % GENERAL.length]
-  const first = h.readUInt32BE(4) % BY_GAME.length
-  let second = h.readUInt32BE(8) % (BY_GAME.length - 1)
+  const open = BY_GAME.filter((m) => !hidden.includes(m.game))
+  const pool = open.length >= 2 ? open : BY_GAME
+  const first = h.readUInt32BE(4) % pool.length
+  let second = h.readUInt32BE(8) % (pool.length - 1)
   if (second >= first) second++
-  return [general, BY_GAME[first], BY_GAME[second]]
+  return [general, pool[first], pool[second]]
 }
 
 function progressOf(mission, st) {
@@ -119,7 +122,7 @@ function fresh(row, day) {
   return st
 }
 
-export function createPase({ db, now, secret, move }) {
+export function createPase({ db, now, secret, move, hidden = () => [] }) {
   async function load(q, userId, day) {
     const row = (await q(`select * from public.juegos_pase where usuario_id = $1 for update`, [userId])).rows[0]
     return fresh(row, day)
@@ -152,7 +155,7 @@ export function createPase({ db, now, secret, move }) {
 
   function view(userId, st, day) {
     const level = levelOf(st.xp)
-    const missions = missionsFor(secret, userId, day).map((m) => ({
+    const missions = missionsFor(secret, userId, day, hidden()).map((m) => ({
       id: m.id,
       text: m.text,
       game: m.game ?? null,
@@ -198,7 +201,7 @@ export function createPase({ db, now, secret, move }) {
         st.jugadas++
         if (!st.juegos.includes(game)) st.juegos.push(game)
         const done = []
-        for (const m of missionsFor(secret, userId, day)) {
+        for (const m of missionsFor(secret, userId, day, hidden())) {
           if (st.hechas.includes(m.id)) continue
           if (m.kind === 'game' && m.game === game) st.progreso[m.id] = (st.progreso[m.id] ?? 0) + 1
           if (m.kind === 'win' && win) st.progreso[m.id] = (st.progreso[m.id] ?? 0) + 1

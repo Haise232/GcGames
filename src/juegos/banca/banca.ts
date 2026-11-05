@@ -98,8 +98,51 @@ export interface BancaReply {
     usuarios?: UsuarioAdmin[]
     temporal?: string
     para?: string
+    ocultos?: string[]
   }
 }
+
+// Banca → Juegos: lo que se puede quitar del selector (los mismos ids que api/_juegos/banca.mjs HIDEABLE), por grupos.
+export const GAME_GROUPS: { name: string; games: { id: string; name: string }[] }[] = [
+  {
+    name: 'Todos a la vez',
+    games: [
+      { id: 'elevator', name: 'Ascensor' },
+      { id: 'auction', name: 'La Subasta' },
+      { id: 'roulette', name: 'Ruleta' },
+      { id: 'crash', name: 'Cohete' },
+      { id: 'race', name: 'Carrera' },
+    ],
+  },
+  {
+    name: 'A tu ritmo',
+    games: [
+      { id: 'fish', name: 'Pez Gordo' },
+      { id: 'dig', name: 'Tesoro en la Arena' },
+      { id: 'tower', name: 'La Torre' },
+      { id: 'heist', name: 'El Atraco' },
+      { id: 'plinko', name: 'Plinko' },
+      { id: 'frog', name: 'Rana' },
+    ],
+  },
+  {
+    name: 'Mesas en vivo',
+    games: [
+      { id: 'blackjack', name: 'Blackjack' },
+      { id: 'poker', name: 'Póker' },
+      { id: 'chess', name: 'Ajedrez' },
+    ],
+  },
+  {
+    name: 'Destacados y dinero a salvo',
+    games: [
+      { id: 'bingo', name: 'Bingo' },
+      { id: 'gacha', name: 'Gacha' },
+      { id: 'inmo', name: 'Inmobiliaria' },
+      { id: 'suiza', name: 'Suiza' },
+    ],
+  },
+]
 
 // Una cuenta en Banca → Usuarios.
 export interface UsuarioAdmin {
