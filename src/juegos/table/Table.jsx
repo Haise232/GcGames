@@ -15,6 +15,8 @@ import WinToast from '../comun/WinToast.jsx'
 // Blackjack.css (generado) trae las fichas que comparte con el Cohete; blackjack-ui.css, el aspecto de esta mesa.
 import './Blackjack.css'
 import './blackjack-ui.css'
+// Season 4: la mesa de blackjack hecha chiringuito de playa (arte en season4/BlackjackBeach.jsx, estilos en blackjack-beach.css).
+import { Awning, BeachProps, BeachScene, Chiringuitero } from '../season4/BlackjackBeach.jsx'
 
 // Fichas de la mesa (las mismas que valida el servidor en engine/room.mjs).
 const CHIPS = [50, 100, 500, 1000]
@@ -442,6 +444,7 @@ function Table({ room, me, conn, error, send, onLeave, chat, bubbles, pending })
 
   return (
     <main ref={mainRef} className="app bj">
+      <BeachScene />
       <header className="top bj-top">
         <h1>Blackjack</h1>
         <p className="bj-room" data-room-code={state.code}>
@@ -490,9 +493,11 @@ function Table({ room, me, conn, error, send, onLeave, chat, bubbles, pending })
 
       <div className="bj-floor fill">
         <section className="bj-stage" aria-label="Mesa de blackjack">
+          <BeachProps />
           <div className="bj-table" aria-hidden="true">
             <div className="bj-table__felt" />
           </div>
+          <Awning />
 
           <div className="bj-shoe" aria-hidden="true">
             <span className="bj-shoe__box">
@@ -503,6 +508,7 @@ function Table({ room, me, conn, error, send, onLeave, chat, bubbles, pending })
 
           <div className={`bj-dealer ${dealerBust ? 'bj-dealer--bust' : ''}`}>
             <p className="bj-dealer__label">
+              <Chiringuitero />
               Crupier
               {state.dealerTotal !== null && (
                 <span className={`bj-total ${dealerBust ? 'bj-total--bust' : ''}`}>

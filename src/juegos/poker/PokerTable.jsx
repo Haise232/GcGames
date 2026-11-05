@@ -12,6 +12,7 @@ import WinBurst from '../comun/WinBurst.jsx'
 import WinToast from '../comun/WinToast.jsx'
 import { playCard, playChip, playLose, playTurn, playWin } from '../comun/sound.js'
 import { useCountdown } from '../table/useCountdown.js'
+import { Bucket, Farolillos, PokerBeach, Starfish } from '../season4/PokerBeach.jsx'
 import './poker.css'
 import './bet-slider.css'
 // Último: ajusta el aspecto de poker.css (generado) sin tocarlo.
@@ -390,7 +391,7 @@ function Seat({ seat, index, angle, state, mine, active, clock, highlight, liveH
       </div>
       {dealer && (
         <span className="pod__dealer" role="img" aria-label="Botón del repartidor">
-          D
+          <Starfish letter />
         </span>
       )}
       <div className={`pod__anchor pod__anchor--out pod__anchor--${side} ${axis ? 'pod__anchor--axis' : ''}`}>
@@ -733,6 +734,8 @@ function PokerTable({ room, me, conn, error, send, onLeave, chat, bubbles, pendi
 
   return (
     <main ref={mainRef} className="app poker pk">
+      {/* Con el tema de las islas: la playa de fondo (solo arte, sin lógica). */}
+      <PokerBeach />
       <header className="top pk-top">
         <h1>Póker</h1>
         <p className="pk-room" data-room-code={state.code}>
@@ -760,6 +763,7 @@ function PokerTable({ room, me, conn, error, send, onLeave, chat, bubbles, pendi
       </p>
 
       <div className="pk-floor fill">
+        <Farolillos />
         <section className="pstage" aria-label="Mesa de póker">
           <div className="pktable">
             <div className="pktable__felt" />
@@ -803,6 +807,7 @@ function PokerTable({ room, me, conn, error, send, onLeave, chat, bubbles, pendi
             ) : (
               <>
                 <div className="ppot">
+                  <Bucket />
                   <ol className="pstreets" aria-label="Calle">
                     {Object.values(STREETS).map((name, i) => (
                       <li

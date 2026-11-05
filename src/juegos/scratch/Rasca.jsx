@@ -114,6 +114,34 @@ function TicketBody({ type, ticket, wins, done }) {
   )
 }
 
+// Las capas de rascar de cada cartón: plata, oro (Drago de Oro), con su rayado, su borde y su tinta.
+const FOILS = {
+  silver: { base: ['#e4e8ec', '#b9c1ca', '#d6dbe1', '#a9b2bc'], line: 'rgba(255,255,255,0.28)', edge: 'rgba(120,130,142,0.55)', ink: 'rgba(78,88,100,0.7)' },
+  gold: { base: ['#ffe9a0', '#d9a83a', '#ffd968', '#b98a24'], line: 'rgba(255,250,220,0.3)', edge: 'rgba(140,96,20,0.6)', ink: 'rgba(110,72,10,0.75)' },
+  pearl: { base: ['#f2e6ff', '#c9b6e6', '#eadcff', '#b49ad8'], line: 'rgba(255,255,255,0.3)', edge: 'rgba(110,80,150,0.5)', ink: 'rgba(90,60,130,0.7)' },
+}
+
+// Cuántos píxeles tapados quedan en una casilla (uno de cada pocos; en las redondas, solo los de dentro del círculo).
+function solidIn(ctx, r, dpr) {
+  const X = Math.round(r.x * dpr)
+  const Y = Math.round(r.y * dpr)
+  const w = Math.max(1, Math.round(r.w * dpr))
+  const h = Math.max(1, Math.round(r.h * dpr))
+  const data = ctx.getImageData(X, Y, w, h).data
+  let solid = 0
+  for (let py = 1; py < h; py += 5) {
+    for (let px = 1; px < w; px += 5) {
+      if (r.round) {
+        const dx = (px - w / 2) / (w / 2)
+        const dy = (py - h / 2) / (h / 2)
+        if (dx * dx + dy * dy > 1) continue
+      }
+      if (data[(py * w + px) * 4 + 3] > 40) solid++
+    }
+  }
+  return solid
+}
+
 function Rasca({ onExit, juegos }) {
   const [type, setType] = useState('papas')
   const [ticket, setTicket] = useState(null) // el cartón comprado: { id, type, card, prize, bet, payout, net, balance }
@@ -149,65 +177,116 @@ function Rasca({ onExit, juegos }) {
   const shown = useCountUp(balance)
 
   // --- La capa plateada ---
+  // Las casillas se miden con offsetLeft/offsetTop (la maquetación, sin transformaciones): así la capa coincide con
+  // ellas aunque el cartón esté entrando con su animación.
   const paint = useCallback(() => {
     const cv = canvas.current
     const wrap = body.current
     if (!cv || !wrap) return
     const dpr = window.devicePixelRatio || 1
-    const box = wrap.getBoundingClientRect()
-    cv.width = Math.round(box.width * dpr)
-    cv.height = Math.round(box.height * dpr)
-    cv.style.width = `${box.width}px`
-    cv.style.height = `${box.height}px`
-    const ctx = cv.getContext('2d')
+    const W = wrap.clientWidth
+    const H = wrap.clientHeight
+    cv.width = Math.round(W * dpr)
+    cv.height = Math.round(H * dpr)
+    cv.style.width = `${W}px`
+    cv.style.height = `${H}px`
+    const ctx = cv.getContext('2d', { willReadFrequently: true })
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.globalCompositeOperation = 'source-over'
     rects.current = [...wrap.querySelectorAll('[data-cell]')].map((el) => {
-      const r = el.getBoundingClientRect()
-      return { i: Number(el.dataset.cell), x: r.left - box.left, y: r.top - box.top, w: r.width, h: r.height }
+      let x = 0
+      let y = 0
+      for (let n = el; n && n !== wrap; n = n.offsetParent) {
+        x += n.offsetLeft
+        y += n.offsetTop
+      }
+      const round = getComputedStyle(el).borderRadius.includes('50%')
+      return { i: Number(el.dataset.cell), x, y, w: el.offsetWidth, h: el.offsetHeight, round, base: 0 }
     })
     const skip = view ? openRef.current : []
+    const foil = FOILS[TYPES[shownType].foil] ?? FOILS.silver
     for (const r of rects.current) {
       if (skip.includes(r.i)) continue
+      const shape = () => {
+        ctx.beginPath()
+        if (r.round) ctx.ellipse(r.x + r.w / 2, r.y + r.h / 2, r.w / 2 + 1, r.h / 2 + 1, 0, 0, Math.PI * 2)
+        else ctx.roundRect(r.x - 1, r.y - 1, r.w + 2, r.h + 2, 13)
+      }
+      // Base metálica con su brillo.
       const g = ctx.createLinearGradient(r.x, r.y, r.x + r.w, r.y + r.h)
-      g.addColorStop(0, '#d9dee4')
-      g.addColorStop(0.5, '#b4bcc6')
-      g.addColorStop(1, '#cfd5dc')
+      foil.base.forEach((c, k) => g.addColorStop(k / (foil.base.length - 1), c))
       ctx.fillStyle = g
-      ctx.beginPath()
-      ctx.roundRect(r.x, r.y, r.w, r.h, 10)
+      shape()
       ctx.fill()
       ctx.save()
+      shape()
       ctx.clip()
-      ctx.strokeStyle = 'rgba(255,255,255,0.35)'
-      ctx.lineWidth = 3
-      for (let k = -r.h; k < r.w; k += 9) {
+      // Rayado fino en diagonal y un reflejo.
+      ctx.strokeStyle = foil.line
+      ctx.lineWidth = 1.5
+      for (let k = -r.h; k < r.w; k += 6) {
         ctx.beginPath()
         ctx.moveTo(r.x + k, r.y + r.h)
         ctx.lineTo(r.x + k + r.h, r.y)
         ctx.stroke()
       }
+      const shine = ctx.createLinearGradient(r.x, r.y, r.x + r.w * 0.7, r.y + r.h)
+      shine.addColorStop(0, 'rgba(255,255,255,0)')
+      shine.addColorStop(0.45, 'rgba(255,255,255,0.45)')
+      shine.addColorStop(0.55, 'rgba(255,255,255,0)')
+      ctx.fillStyle = shine
+      ctx.fillRect(r.x, r.y, r.w, r.h)
+      // Borde interior, como un sello.
+      ctx.strokeStyle = foil.edge
+      ctx.lineWidth = 2
+      if (r.round) {
+        ctx.beginPath()
+        ctx.ellipse(r.x + r.w / 2, r.y + r.h / 2, r.w / 2 - 4, r.h / 2 - 4, 0, 0, Math.PI * 2)
+        ctx.stroke()
+      } else {
+        ctx.beginPath()
+        ctx.roundRect(r.x + 4, r.y + 4, r.w - 8, r.h - 8, 9)
+        ctx.stroke()
+      }
       ctx.restore()
-      ctx.fillStyle = 'rgba(70,80,92,0.55)'
-      ctx.font = `800 ${Math.round(Math.min(r.w, r.h) * 0.42)}px system-ui, sans-serif`
+      // El dibujo del centro: «?» en los de símbolos, la moneda en los de números, y «RASCA» debajo.
+      const size = Math.min(r.w, r.h)
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      ctx.fillText(t.kind === 'match' ? '?' : '€', r.x + r.w / 2, r.y + r.h / 2)
+      ctx.fillStyle = foil.ink
+      ctx.font = `900 ${Math.round(size * 0.38)}px system-ui, sans-serif`
+      ctx.fillText(TYPES[shownType].kind === 'match' ? '?' : '€', r.x + r.w / 2, r.y + r.h * (size > 60 ? 0.44 : 0.5))
+      if (size > 60) {
+        ctx.font = `800 ${Math.max(8, Math.round(size * 0.11))}px system-ui, sans-serif`
+        ctx.fillText('RASCA', r.x + r.w / 2, r.y + r.h * 0.76)
+      }
     }
+    // Cuánto tapa cada casilla recién pintada (para medir luego qué parte se ha rascado).
+    for (const r of rects.current) r.base = skip.includes(r.i) ? 0 : solidIn(ctx, r, dpr)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shownType, view?.id])
   useLayoutEffect(() => {
     paint()
   }, [paint])
+  // Si cambia el tamaño del cartón (giras el móvil, cargan las fuentes…), la capa se vuelve a pintar encima.
   useEffect(() => {
-    const onResize = () => paint()
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
+    const wrap = body.current
+    if (!wrap || typeof ResizeObserver === 'undefined') return
+    let size = `${wrap.clientWidth}x${wrap.clientHeight}`
+    const ro = new ResizeObserver(() => {
+      const now = `${wrap.clientWidth}x${wrap.clientHeight}`
+      if (now !== size) {
+        size = now
+        paint()
+      }
+    })
+    ro.observe(wrap)
+    return () => ro.disconnect()
   }, [paint])
 
   const clearCell = (i) => {
     const r = rects.current.find((x) => x.i === i)
-    const ctx = canvas.current?.getContext('2d')
+    const ctx = canvas.current?.getContext('2d', { willReadFrequently: true })
     if (r && ctx) ctx.clearRect(r.x - 2, r.y - 2, r.w + 4, r.h + 4)
   }
   const openCells = (list) => {
@@ -223,19 +302,8 @@ function Rasca({ onExit, juegos }) {
     const cv = canvas.current
     if (!cv) return
     const dpr = window.devicePixelRatio || 1
-    const ctx = cv.getContext('2d')
-    const ready = []
-    for (const r of rects.current) {
-      if (openRef.current.includes(r.i)) continue
-      const data = ctx.getImageData(Math.round(r.x * dpr), Math.round(r.y * dpr), Math.max(1, Math.round(r.w * dpr)), Math.max(1, Math.round(r.h * dpr))).data
-      let solid = 0
-      let seen = 0
-      for (let k = 3; k < data.length; k += 4 * 7) {
-        seen++
-        if (data[k] > 40) solid++
-      }
-      if (seen && 1 - solid / seen >= OPEN_AT) ready.push(r.i)
-    }
+    const ctx = cv.getContext('2d', { willReadFrequently: true })
+    const ready = rects.current.filter((r) => !openRef.current.includes(r.i) && r.base > 0 && 1 - solidIn(ctx, r, dpr) / r.base >= OPEN_AT).map((r) => r.i)
     openCells(ready)
   }
 
@@ -243,14 +311,15 @@ function Rasca({ onExit, juegos }) {
     const cv = canvas.current
     if (!cv || !live) return
     const box = cv.getBoundingClientRect()
-    const x = clientX - box.left
-    const y = clientY - box.top
-    const inside = x > -COIN_R && y > -COIN_R && x < box.width + COIN_R && y < box.height + COIN_R
+    const k = box.width ? cv.clientWidth / box.width : 1
+    const x = (clientX - box.left) * k
+    const y = (clientY - box.top) * k
+    const inside = x > -COIN_R && y > -COIN_R && x < cv.clientWidth + COIN_R && y < cv.clientHeight + COIN_R
     if (!inside) {
       lastPt.current = null
       return
     }
-    const ctx = cv.getContext('2d')
+    const ctx = cv.getContext('2d', { willReadFrequently: true })
     ctx.globalCompositeOperation = 'destination-out'
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'

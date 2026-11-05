@@ -15,6 +15,7 @@ const MILLION = 1_000_000
 // prizes: [id, multiplicador, probabilidad por millón]. En «match», el id es el del símbolo (symbols).
 export const TYPES = {
   papas: {
+    foil: 'silver',
     name: 'Papas y Mojo',
     blurb: 'El de toda la vida: tres iguales y cobras.',
     price: 10,
@@ -39,6 +40,7 @@ export const TYPES = {
     ],
   },
   carnaval: {
+    foil: 'pearl',
     name: 'Carnaval',
     blurb: 'Dos números ganadores y seis tuyos, cada uno con su premio.',
     price: 50,
@@ -58,6 +60,7 @@ export const TYPES = {
     ],
   },
   islas: {
+    foil: 'silver',
     name: 'Ruta de las Islas',
     blurb: 'Doce casillas con las siete islas: tres iguales y cobras su premio.',
     price: 200,
@@ -84,6 +87,7 @@ export const TYPES = {
     ],
   },
   drago: {
+    foil: 'gold',
     name: 'Drago de Oro',
     blurb: 'El cartón de lujo: un número ganador y seis tuyos, hasta ×100.',
     price: 1000,

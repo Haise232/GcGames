@@ -1,0 +1,671 @@
+/* Escrito a mano (no generado): Blackjack en el chiringuito. La mesa de la Season 4 · Islas vista desde la playa de
+   Canarias al atardecer: borde de madera de barco con cuerda, tapete de agua de laguna, toldo a rayas con bombillas,
+   crupier chiringuitero, aros salvavidas en lugar de marcos, chapas de colores por fichas y cartas con reverso
+   marinero. El arte está en BlackjackBeach.jsx; aquí va todo lo que se ve. Solo es aspecto: ninguna regla toca cómo se
+   juega. Cada regla cuelga de .juegos-root.s4:not(.halloween) .bj, así gana a blackjack-ui.css y el tema de Halloween
+   (que no lo usa) se queda como estaba. */
+
+/* ============================== Paleta ============================== */
+.juegos-root.s4:not(.halloween) .bj {
+  --accent: #ff8a5c;
+  --accent-rgb: 255, 138, 92;
+  --gold: #ffd36a;
+  --sand: #f1d9a0;
+  --sand-rgb: 241, 217, 160;
+  --plate: #0b2a3a;
+  --plate-hi: #164a5e;
+  --ink: #3a2305;
+  --deep: 5, 34, 46;
+}
+
+/* ============================== Fondo de la pantalla ============================== */
+.juegos-root.s4:not(.halloween) .bj .bjb-scene {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-scene svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* Oscurece un poco arriba (bajo la cabecera) y en los bordes para que la mesa mande. */
+.juegos-root.s4:not(.halloween) .bj .bjb-scene__shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(6, 10, 34, 0.5), transparent 22%),
+    radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(4, 12, 30, 0.45));
+}
+/* Capas que se mueven sin repintar el fondo: cada una es un SVG propio y solo cambia su traslación u opacidad. */
+.juegos-root.s4:not(.halloween) .bj .bjb-layer {
+  position: absolute;
+  inset: 0;
+  will-change: transform, opacity;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-layer--clouds {
+  animation: bjb-drift 70s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-layer--waves {
+  animation: bjb-swell 8s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-layer--glitter {
+  animation: bjb-glitter 3.2s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-layer--lights-a {
+  animation: bjb-twinkle 2.2s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-layer--lights-b {
+  animation: bjb-twinkle 2.2s -1.1s ease-in-out infinite alternate;
+}
+
+/* ============================== La mesa: madera de barco, cuerda y agua ============================== */
+.juegos-root.s4:not(.halloween) .bj .bj-stage {
+  --sw: min(100cqw, 185cqh, 1320px);
+  --rail: clamp(14px, calc(var(--sw) * 0.021), 28px);
+  --sc: clamp(7px, calc(var(--sw) * 0.0105), 14px);
+}
+
+.juegos-root.s4:not(.halloween) .bj .bj-table {
+  background:
+    repeating-linear-gradient(94deg, rgba(60, 34, 14, 0) 0 9px, rgba(60, 34, 14, 0.28) 9px 10px, rgba(255, 236, 200, 0.1) 10px 11px),
+    repeating-linear-gradient(94deg, rgba(255, 255, 255, 0) 0 23px, rgba(255, 255, 255, 0.07) 23px 41px, rgba(60, 34, 14, 0.1) 41px 64px),
+    linear-gradient(180deg, #cfa66e, #a97a45 45%, #7d5530);
+  box-shadow:
+    0 0 0 2px #3a2412,
+    0 0 0 4px rgba(var(--sand-rgb), 0.55),
+    0 0 0 5px #3a2412,
+    0 30px 50px rgba(2, 14, 28, 0.55),
+    inset 0 2px 0 rgba(255, 244, 214, 0.45),
+    inset 0 -10px 18px rgba(60, 34, 14, 0.55);
+}
+/* El agua brilla: dos capas de reflejos (esta y la del tapete) que se cruzan despacio; solo cambian de opacidad. */
+.juegos-root.s4:not(.halloween) .bj .bj-table::after {
+  content: '';
+  position: absolute;
+  inset: var(--rail);
+  border-radius: 20px 20px 50% 50% / 20px 20px 100% 100%;
+  background:
+    repeating-radial-gradient(ellipse 190px 90px at 62% 24%, transparent 0 38px, rgba(255, 255, 255, 0.075) 39px 41px),
+    repeating-radial-gradient(ellipse 150px 70px at 30% 70%, transparent 0 30px, rgba(255, 255, 255, 0.06) 31px 33px);
+  animation: bjb-shimmer 7s -3.5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.juegos-root.s4:not(.halloween) .bj .bj-table__felt {
+  --motif: calc(var(--sw) * 0.046);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 104'%3E%3Cpath d='M50 7 L61 38 L94 38 L68 58 L78 92 L50 72 L22 92 L32 58 L6 38 L39 38 Z' fill='%23fff0c8' fill-opacity='.2' stroke='%23fff0c8' stroke-opacity='.2' stroke-width='7' stroke-linejoin='round'/%3E%3Cg fill='%230a4b5c' fill-opacity='.35'%3E%3Ccircle cx='50' cy='44' r='3'/%3E%3Ccircle cx='50' cy='25' r='2'/%3E%3Ccircle cx='70' cy='42' r='2'/%3E%3Ccircle cx='62' cy='68' r='2'/%3E%3Ccircle cx='38' cy='68' r='2'/%3E%3Ccircle cx='30' cy='42' r='2'/%3E%3C/g%3E%3C/svg%3E") 12% 15% / var(--motif) auto no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 104'%3E%3Cpath d='M50 92 L10 52 Q2 30 18 24 Q24 6 40 13 Q50 2 60 13 Q76 6 82 24 Q98 30 90 52 Z' fill='%23fff0c8' fill-opacity='.2' stroke='%23fff0c8' stroke-opacity='.2' stroke-width='6' stroke-linejoin='round'/%3E%3Cpath d='M50 88 L50 16 M50 88 L32 18 M50 88 L68 18 M50 88 L18 34 M50 88 L82 34 M50 88 L10 52 M50 88 L90 52' stroke='%230a4b5c' stroke-opacity='.3' stroke-width='3' fill='none'/%3E%3C/svg%3E") 25% 29% / calc(var(--motif) * 0.8) auto no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 104'%3E%3Cpath d='M50 7 L61 38 L94 38 L68 58 L78 92 L50 72 L22 92 L32 58 L6 38 L39 38 Z' fill='%23fff0c8' fill-opacity='.2' stroke='%23fff0c8' stroke-opacity='.2' stroke-width='7' stroke-linejoin='round'/%3E%3Cg fill='%230a4b5c' fill-opacity='.35'%3E%3Ccircle cx='50' cy='44' r='3'/%3E%3Ccircle cx='50' cy='25' r='2'/%3E%3Ccircle cx='70' cy='42' r='2'/%3E%3Ccircle cx='62' cy='68' r='2'/%3E%3Ccircle cx='38' cy='68' r='2'/%3E%3Ccircle cx='30' cy='42' r='2'/%3E%3C/g%3E%3C/svg%3E") 35% 11% / calc(var(--motif) * 0.6) auto no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 104'%3E%3Cpath d='M50 92 L10 52 Q2 30 18 24 Q24 6 40 13 Q50 2 60 13 Q76 6 82 24 Q98 30 90 52 Z' fill='%23fff0c8' fill-opacity='.2' stroke='%23fff0c8' stroke-opacity='.2' stroke-width='6' stroke-linejoin='round'/%3E%3Cpath d='M50 88 L50 16 M50 88 L32 18 M50 88 L68 18 M50 88 L18 34 M50 88 L82 34 M50 88 L10 52 M50 88 L90 52' stroke='%230a4b5c' stroke-opacity='.3' stroke-width='3' fill='none'/%3E%3C/svg%3E") 66% 12% / calc(var(--motif) * 0.75) auto no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 104'%3E%3Cpath d='M50 7 L61 38 L94 38 L68 58 L78 92 L50 72 L22 92 L32 58 L6 38 L39 38 Z' fill='%23fff0c8' fill-opacity='.2' stroke='%23fff0c8' stroke-opacity='.2' stroke-width='7' stroke-linejoin='round'/%3E%3Cg fill='%230a4b5c' fill-opacity='.35'%3E%3Ccircle cx='50' cy='44' r='3'/%3E%3Ccircle cx='50' cy='25' r='2'/%3E%3Ccircle cx='70' cy='42' r='2'/%3E%3Ccircle cx='62' cy='68' r='2'/%3E%3Ccircle cx='38' cy='68' r='2'/%3E%3Ccircle cx='30' cy='42' r='2'/%3E%3C/g%3E%3C/svg%3E") 76% 29% / calc(var(--motif) * 0.9) auto no-repeat,
+    radial-gradient(ellipse 52% 26% at 50% 0%, rgba(255, 170, 96, 0.42), transparent 78%),
+    radial-gradient(ellipse 60% 55% at 50% 38%, rgba(255, 255, 255, 0.1), transparent 70%),
+    radial-gradient(ellipse at 50% 38%, #22a8a4, #127880 52%, #0a4b5c);
+  box-shadow:
+    inset 0 0 0 2px rgba(var(--sand-rgb), 0.7),
+    inset 0 10px 30px rgba(3, 30, 44, 0.5),
+    inset 0 0 70px rgba(3, 30, 44, 0.45);
+}
+/* La cuerda que ciñe el tapete: trenzado en diagonal, con sombra. */
+.juegos-root.s4:not(.halloween) .bj .bj-table__felt::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  padding: 6px;
+  border-radius: 24px 24px 50% 50% / 24px 24px 100% 100%;
+  background:
+    repeating-linear-gradient(58deg, #f4e2b0 0 3px, #b58f55 3px 6px);
+  -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  filter: drop-shadow(0 1px 1px rgba(40, 20, 6, 0.6));
+  pointer-events: none;
+}
+.juegos-root.s4:not(.halloween) .bj .bj-table__felt::after {
+  inset: 0;
+  border: 0;
+  border-radius: 20px 20px 50% 50% / 20px 20px 100% 100%;
+  background:
+    repeating-radial-gradient(ellipse 170px 80px at 22% 28%, transparent 0 34px, rgba(255, 255, 255, 0.075) 35px 37px),
+    repeating-radial-gradient(ellipse 210px 100px at 78% 62%, transparent 0 42px, rgba(255, 255, 255, 0.06) 43px 45px);
+  animation: bjb-shimmer 7s ease-in-out infinite alternate;
+}
+
+.juegos-root.s4:not(.halloween) .bj .bj-stage .felt-print {
+  top: 33%;
+}
+.juegos-root.s4:not(.halloween) .bj .felt-print__main {
+  fill: #ffe7a6;
+  paint-order: stroke;
+  stroke: rgba(4, 40, 52, 0.5);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.juegos-root.s4:not(.halloween) .bj .felt-print__note {
+  fill: rgba(255, 244, 214, 0.78);
+}
+
+/* ============================== Toldo del chiringuito ============================== */
+.juegos-root.s4:not(.halloween) .bj .bjb-awning {
+  position: absolute;
+  top: calc(var(--rail) * 0.15);
+  right: calc(1% + 26px);
+  left: calc(1% + 26px);
+  z-index: 3;
+  height: calc(var(--sc) * 3.4);
+  filter: drop-shadow(0 5px 4px rgba(4, 20, 34, 0.45));
+  pointer-events: none;
+}
+/* Tela a rayas coral y crema con el volante festoneado. */
+.juegos-root.s4:not(.halloween) .bj .bjb-awning::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(60, 10, 8, 0.28), transparent 45%, rgba(60, 10, 8, 0.12)),
+    repeating-linear-gradient(90deg, #ff5a4f 0 calc(var(--sc) * 2), #fff3df calc(var(--sc) * 2) calc(var(--sc) * 4));
+  -webkit-mask:
+    linear-gradient(#000 0 0) 0 0 / 100% calc(100% - var(--sc)) no-repeat,
+    radial-gradient(circle at 50% 0, #000 calc(var(--sc) - 0.5px), transparent var(--sc)) 0 100% / calc(var(--sc) * 2) var(--sc) repeat-x;
+  mask:
+    linear-gradient(#000 0 0) 0 0 / 100% calc(100% - var(--sc)) no-repeat,
+    radial-gradient(circle at 50% 0, #000 calc(var(--sc) - 0.5px), transparent var(--sc)) 0 100% / calc(var(--sc) * 2) var(--sc) repeat-x;
+}
+/* Bombillas de verbena colgando de las puntas del volante, en dos tandas que se alternan. */
+.juegos-root.s4:not(.halloween) .bj .bjb-awning__lights {
+  position: absolute;
+  inset: auto 0 calc(var(--sc) * -0.55);
+  height: calc(var(--sc) * 1.1);
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-awning__lights::before,
+.juegos-root.s4:not(.halloween) .bj .bjb-awning__lights::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat-x;
+  background-size: calc(var(--sc) * 4) 100%;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-awning__lights::before {
+  background-image: radial-gradient(circle at calc(var(--sc) * 1) 50%, #fff6c8 0 calc(var(--sc) * 0.16), #ffd24a calc(var(--sc) * 0.17) calc(var(--sc) * 0.3), rgba(255, 190, 70, 0.4) calc(var(--sc) * 0.32), transparent calc(var(--sc) * 0.62));
+  animation: bjb-twinkle 2.4s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-awning__lights::after {
+  background-image: radial-gradient(circle at calc(var(--sc) * 3) 50%, #ffe0ef 0 calc(var(--sc) * 0.16), #ff7ab8 calc(var(--sc) * 0.17) calc(var(--sc) * 0.3), rgba(255, 110, 170, 0.4) calc(var(--sc) * 0.32), transparent calc(var(--sc) * 0.62));
+  animation: bjb-twinkle 2.4s -1.2s ease-in-out infinite alternate;
+}
+
+/* ============================== Crupier: el chiringuitero ============================== */
+.juegos-root.s4:not(.halloween) .bj .bj-dealer {
+  top: calc(var(--rail) * 0.15 + var(--sc) * 4.4);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-dealer__label {
+  gap: 8px;
+  padding: 3px 14px 3px 3px;
+  border: 1px solid rgba(var(--sand-rgb), 0.6);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(92, 58, 28, 0.9), rgba(58, 34, 14, 0.92));
+  box-shadow: 0 4px 10px rgba(2, 14, 28, 0.4);
+  font-size: 13px;
+  color: #fff3d6;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-chef {
+  flex: none;
+  width: clamp(32px, calc(var(--sw) * 0.034), 46px);
+  height: clamp(32px, calc(var(--sw) * 0.034), 46px);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+}
+.juegos-root.s4:not(.halloween) .bj .bj-dealer__label .bj-total {
+  margin-left: 2px;
+}
+
+/* El zapato, una caja de madera con las cartas con el canto coral. */
+.juegos-root.s4:not(.halloween) .bj .bj-shoe__box {
+  background: linear-gradient(180deg, #8a5e34, #4e3018);
+  box-shadow:
+    inset 0 0 0 2px rgba(var(--sand-rgb), 0.7),
+    0 6px 12px rgba(2, 14, 28, 0.45);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-shoe__cards {
+  background: repeating-linear-gradient(0deg, #ff5a4f 0 2px, #fff3df 2px 3px);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-shoe small {
+  color: rgba(255, 243, 214, 0.78);
+}
+
+/* ============================== Reverso marinero de las cartas ============================== */
+.juegos-root.s4:not(.halloween) .bj .card__back {
+  border-color: #f6efdd;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 70'%3E%3Crect width='50' height='70' fill='%23123a63'/%3E%3Cg fill='%23f6efdd' fill-opacity='.22'%3E%3Crect y='4' width='50' height='2.4'/%3E%3Crect y='11' width='50' height='2.4'/%3E%3Crect y='18' width='50' height='2.4'/%3E%3Crect y='25' width='50' height='2.4'/%3E%3Crect y='32' width='50' height='2.4'/%3E%3Crect y='39' width='50' height='2.4'/%3E%3Crect y='46' width='50' height='2.4'/%3E%3Crect y='53' width='50' height='2.4'/%3E%3Crect y='60' width='50' height='2.4'/%3E%3Crect y='67' width='50' height='2.4'/%3E%3C/g%3E%3Ccircle cx='25' cy='35' r='17.5' fill='%23f6efdd'/%3E%3Ccircle cx='25' cy='35' r='15' fill='none' stroke='%23d9432f' stroke-width='1.3' stroke-dasharray='2.6 1.8'/%3E%3Cg fill='none' stroke='%23123a63' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='25' cy='24.6' r='2.5'/%3E%3Cpath d='M25 27.2V45.5M20 31.2H30M16.6 38.6Q17.8 46.4 25 46.6Q32.2 46.4 33.4 38.6M14.4 40.4L16.6 38.2L19 40.2M31 40.2L33.4 38.2L35.6 40.4'/%3E%3C/g%3E%3C/svg%3E")
+      center / 100% 100% no-repeat,
+    #123a63;
+  box-shadow:
+    inset 0 0 0 1px rgba(18, 58, 99, 0.5),
+    0 6px 14px rgba(4, 16, 24, 0.45);
+}
+
+/* ============================== Fichas: chapas de playa ============================== */
+.juegos-root.s4:not(.halloween) .bj .chip--bj50 {
+  --chip: #d9432f;
+}
+.juegos-root.s4:not(.halloween) .bj .chip--bj100 {
+  --chip: #0b8284;
+}
+.juegos-root.s4:not(.halloween) .bj .chip--bj500 {
+  --chip: #1d4f91;
+}
+.juegos-root.s4:not(.halloween) .bj .chip--bj1000 {
+  --chip: #f2b632;
+  --chip-text: #3a2305;
+}
+/* Canto de chapa de botella: dientes alternos alrededor y un aro claro dentro. */
+.juegos-root.s4:not(.halloween) .bj .chip {
+  border: 5px solid transparent;
+  background:
+    radial-gradient(circle, transparent 0 56%, rgba(255, 255, 255, 0.6) 57% 60%, transparent 61%) padding-box,
+    radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--chip) 62%, #fff), var(--chip) 62%) padding-box,
+    repeating-conic-gradient(#fff6e8 0 15deg, color-mix(in srgb, var(--chip) 55%, #000) 15deg 30deg) border-box;
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.35),
+    0 6px 10px rgba(2, 14, 28, 0.35);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+.juegos-root.s4:not(.halloween) .bj .chip--bj1000 {
+  text-shadow: none;
+}
+.juegos-root.s4:not(.halloween) .bj .bj-chip {
+  background:
+    radial-gradient(ellipse at center, transparent 40%, rgba(255, 255, 255, 0.55) 42% 54%, transparent 56%), var(--chip);
+  box-shadow:
+    inset 0 0 0 2px #fff6e8,
+    0 1px 0 rgba(0, 0, 0, 0.6),
+    0 2px 3px rgba(0, 0, 0, 0.35);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-chips b {
+  color: #fff6e8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* ============================== Asientos: salvavidas y tablillas ============================== */
+.juegos-root.s4:not(.halloween) .bj .bj-seat__avatar {
+  background: var(--plate);
+  box-shadow:
+    0 0 0 2px #fff6e8,
+    0 8px 18px rgba(2, 14, 28, 0.5);
+}
+/* El aro salvavidas: cuatro gajos coral y crema alrededor de la foto. */
+.juegos-root.s4:not(.halloween) .bj .bj-seat__avatar::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, transparent calc(100% - 7px), rgba(255, 255, 255, 0.28) calc(100% - 6px), transparent calc(100% - 3px)),
+    conic-gradient(#ff5a4f 0 12.5%, #fff6e8 0 25%, #ff5a4f 0 37.5%, #fff6e8 0 50%, #ff5a4f 0 62.5%, #fff6e8 0 75%, #ff5a4f 0 87.5%, #fff6e8 0);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  mask: radial-gradient(closest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  filter: drop-shadow(0 2px 2px rgba(2, 14, 28, 0.45));
+  pointer-events: none;
+}
+.juegos-root.s4:not(.halloween) .bj .bj-seat--turn .bj-seat__avatar::before {
+  inset: -14px;
+  background: conic-gradient(var(--ring, var(--gold)) calc(var(--p) * 360deg), rgba(255, 255, 255, 0.2) 0);
+  mask: radial-gradient(closest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+}
+.juegos-root.s4:not(.halloween) .bj .bj-seat--turn .bj-seat__avatar {
+  box-shadow:
+    0 0 0 2px #fff6e8,
+    0 0 26px rgba(255, 211, 106, 0.65),
+    0 8px 18px rgba(2, 14, 28, 0.5);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-seat--hurry {
+  --ring: #ff7a6b;
+}
+
+.juegos-root.s4:not(.halloween) .bj .bj-seat__plate {
+  margin-top: -6px;
+  padding-top: 17px;
+  border-color: rgba(var(--sand-rgb), 0.6);
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0) 0 5px, rgba(255, 255, 255, 0.025) 5px 6px),
+    linear-gradient(180deg, var(--plate-hi), var(--plate));
+  box-shadow: 0 6px 14px rgba(2, 14, 28, 0.5);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-seat--me .bj-seat__plate {
+  border-color: var(--gold);
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0) 0 5px, rgba(255, 255, 255, 0.03) 5px 6px),
+    linear-gradient(180deg, #1b6578, #0c3345);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-seat__stack {
+  color: var(--gold);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-tag {
+  background: #fff3df;
+}
+.juegos-root.s4:not(.halloween) .bj .bj-tag--ready {
+  border-color: #6fe0c8;
+  background: #0f8f86;
+}
+.juegos-root.s4:not(.halloween) .bj .bj-tag--turn {
+  background: linear-gradient(180deg, #ffe58f, #ffb547);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-tag--win {
+  background: linear-gradient(180deg, #fff3c2, #ffc94d);
+  box-shadow: 0 0 18px rgba(255, 211, 106, 0.8);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-tag--bad {
+  border-color: #ffb3a6;
+  background: #c2332c;
+}
+.juegos-root.s4:not(.halloween) .bj .bj-tag--away {
+  background: #27475a;
+}
+
+/* Sitio de la apuesta: un aro de arena en el tapete. */
+.juegos-root.s4:not(.halloween) .bj .bj-seat__spot {
+  border-color: rgba(var(--sand-rgb), 0.5);
+  color: rgba(255, 243, 214, 0.55);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-seat__spot.has-bet {
+  border-color: rgba(var(--sand-rgb), 0.55);
+  background: rgba(var(--deep), 0.7);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-seat__plus {
+  border-color: rgba(var(--sand-rgb), 0.85);
+  background: rgba(var(--deep), 0.34);
+  color: var(--sand);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-seat__sit:hover .bj-seat__plus {
+  border-color: var(--gold);
+  background: rgba(255, 211, 106, 0.2);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-seat__sit {
+  color: #fff6e0;
+  text-shadow: 0 1px 3px rgba(2, 14, 28, 0.9);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-seat__free {
+  border-color: rgba(var(--sand-rgb), 0.42);
+  color: rgba(255, 243, 214, 0.55);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-seat--bad .bj-seat__cards {
+  filter: grayscale(0.5) brightness(0.75);
+}
+
+/* Total de la mano. */
+.juegos-root.s4:not(.halloween) .bj .bj-total {
+  background: rgba(var(--deep), 0.88);
+  box-shadow: inset 0 0 0 1px rgba(var(--sand-rgb), 0.4);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-total--21 {
+  background: #12896b;
+}
+.juegos-root.s4:not(.halloween) .bj .bj-total--bust {
+  background: #d3382d;
+}
+
+/* ============================== Avisos, banda y pie ============================== */
+.juegos-root.s4:not(.halloween) .bj .bj-wait {
+  border-color: rgba(var(--sand-rgb), 0.65);
+  background: rgba(var(--deep), 0.82);
+  box-shadow:
+    0 16px 40px rgba(2, 14, 28, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-wait p {
+  color: #d6ecf0;
+}
+.juegos-root.s4:not(.halloween) .bj .bj-wait__pill {
+  background: rgba(var(--deep), 0.8);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-wait__actions button:first-child,
+.juegos-root.s4:not(.halloween) .bj .bj-btn--hit {
+  border-color: #ffe9a8;
+  background: linear-gradient(180deg, #ffe58f, #ffb547);
+  color: var(--ink);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-btn--hit:not(:disabled):hover {
+  background: linear-gradient(180deg, #fff0b4, #ffc462);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-btn--stand {
+  border-color: #6fe0c8;
+  background: linear-gradient(180deg, #12908f, #0a6870);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-btn--stand:not(:disabled):hover {
+  background: linear-gradient(180deg, #17a3a0, #0c7881);
+}
+
+.juegos-root.s4:not(.halloween) .bj .bj-band {
+  border-color: rgba(var(--sand-rgb), 0.38);
+  background: linear-gradient(90deg, rgba(255, 138, 92, 0.16), transparent 40%), rgba(var(--deep), 0.7);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-band__log {
+  border-left-color: rgba(var(--sand-rgb), 0.3);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-bar {
+  border-color: rgba(var(--sand-rgb), 0.4);
+  background: rgba(var(--deep), 0.92);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-bar--act {
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 1px rgba(255, 211, 106, 0.5),
+    0 0 26px rgba(255, 211, 106, 0.28),
+    0 14px 34px rgba(2, 14, 28, 0.45);
+}
+.juegos-root.s4:not(.halloween) .bj .bj-bar__note,
+.juegos-root.s4:not(.halloween) .bj .bj-bar__hand {
+  color: #d6ecf0;
+}
+
+/* ============================== Escenario: palmera, sombrilla y cartel ============================== */
+.juegos-root.s4:not(.halloween) .bj .bjb-props {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-palm {
+  position: absolute;
+  bottom: 0;
+  left: -7%;
+  width: calc(var(--sw) * 0.222);
+  overflow: visible;
+  filter: drop-shadow(0 8px 8px rgba(2, 14, 28, 0.4));
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-palm__crown {
+  transform-origin: 0 0;
+  animation: bjb-sway 6.5s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-frond {
+  transform-origin: 0 0;
+  animation: bjb-frond 3.6s ease-in-out infinite alternate;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-umbrella {
+  position: absolute;
+  right: -3%;
+  bottom: 0;
+  width: calc(var(--sw) * 0.2);
+  overflow: visible;
+  filter: drop-shadow(0 8px 8px rgba(2, 14, 28, 0.4));
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-umbrella__sway {
+  transform-origin: 168px 318px;
+  animation: bjb-umbrella 7s ease-in-out infinite alternate;
+}
+/* Cartel de madera entre dos postes, bajo el centro de la mesa. */
+.juegos-root.s4:not(.halloween) .bj .bjb-sign {
+  position: absolute;
+  bottom: calc(var(--sw) * 0.004);
+  left: 25%;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-items: center;
+  column-gap: 0;
+  padding: 2px calc(var(--sw) * 0.018);
+  border: 2px solid #3a2412;
+  border-radius: 6px;
+  background:
+    repeating-linear-gradient(0deg, rgba(60, 34, 14, 0) 0 4px, rgba(60, 34, 14, 0.2) 4px 5px),
+    linear-gradient(180deg, #7a4f2a, #4f301a);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 214, 0.3),
+    0 5px 8px rgba(2, 14, 28, 0.4);
+  text-align: center;
+  translate: -50% 0;
+  color: #fff1d0;
+  line-height: 1.1;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-sign b {
+  grid-column: 1 / -1;
+  font-family: var(--display);
+  font-size: clamp(12px, calc(var(--sw) * 0.0145), 19px);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-shadow: 0 1px 0 #2a170a;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-sign small {
+  grid-column: 1 / -1;
+  font-size: clamp(8px, calc(var(--sw) * 0.0075), 10px);
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #ffe7a6;
+  text-shadow: 0 1px 0 #4a2c12;
+}
+.juegos-root.s4:not(.halloween) .bj .bjb-sign i {
+  display: none;
+}
+
+/* ============================== Mesa vertical (móvil) ============================== */
+@container bjfloor (aspect-ratio < 1.25) {
+  .juegos-root.s4:not(.halloween) .bj .bj-stage {
+    --rail: 11px;
+    --sc: 8px;
+    padding-top: calc(var(--sc) * 3.4 + 14px);
+  }
+  .juegos-root.s4:not(.halloween) .bj .bj-table::after {
+    border-radius: 16px 16px 40% 40% / 16px 16px 10% 10%;
+  }
+  .juegos-root.s4:not(.halloween) .bj .bj-table__felt::before {
+    border-radius: 20px 20px 40% 40% / 20px 20px 10% 10%;
+  }
+  .juegos-root.s4:not(.halloween) .bj .bjb-awning {
+    right: 16px;
+    left: 16px;
+  }
+  .juegos-root.s4:not(.halloween) .bj .bjb-props {
+    display: none;
+  }
+  .juegos-root.s4:not(.halloween) .bj .bj-dealer {
+    top: auto;
+  }
+  .juegos-root.s4:not(.halloween) .bj .bjb-chef {
+    width: 30px;
+    height: 30px;
+  }
+  .juegos-root.s4:not(.halloween) .bj .bj-dealer__label {
+    padding-right: 11px;
+    font-size: 11px;
+  }
+  /* Mientras el aviso ocupa el sitio del crupier, su cartel no se transparenta por debajo. */
+  .juegos-root.s4:not(.halloween) .bj .bj-stage:has(.bj-wait) .bj-dealer__label {
+    visibility: hidden;
+  }
+  /* Abajo el tapete llega a la orilla: arena mojada y una línea de espuma. */
+  .juegos-root.s4:not(.halloween) .bj .bj-table__felt::after {
+    display: block;
+    inset: auto 0 0;
+    height: 16%;
+    border-radius: 0 0 40% 40% / 0 0 40% 40%;
+    background:
+      linear-gradient(180deg, rgba(255, 250, 235, 0) 0 20%, rgba(255, 252, 240, 0.8) 23% 27%, #f0d79c 30%, #c99b5c 100%);
+    animation: none;
+  }
+}
+
+/* ============================== Animaciones ============================== */
+@keyframes bjb-twinkle {
+  from {
+    opacity: 0.45;
+  }
+}
+@keyframes bjb-drift {
+  to {
+    translate: 70px 0;
+  }
+}
+@keyframes bjb-swell {
+  from {
+    translate: -26px 0;
+  }
+  to {
+    translate: 26px 3px;
+  }
+}
+@keyframes bjb-glitter {
+  from {
+    opacity: 0.5;
+  }
+}
+@keyframes bjb-shimmer {
+  from {
+    opacity: 0.15;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes bjb-sway {
+  from {
+    rotate: -1.4deg;
+  }
+  to {
+    rotate: 1.6deg;
+  }
+}
+@keyframes bjb-frond {
+  from {
+    rotate: -2.4deg;
+  }
+  to {
+    rotate: 2.6deg;
+  }
+}
+@keyframes bjb-umbrella {
+  from {
+    rotate: -1.4deg;
+  }
+  to {
+    rotate: 1.6deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root.s4:not(.halloween) .bj .bjb-layer,
+  .juegos-root.s4:not(.halloween) .bj .bj-table__felt::after,
+  .juegos-root.s4:not(.halloween) .bj .bj-table::after,
+  .juegos-root.s4:not(.halloween) .bj .bjb-awning__lights::before,
+  .juegos-root.s4:not(.halloween) .bj .bjb-awning__lights::after,
+  .juegos-root.s4:not(.halloween) .bj .bjb-palm__crown,
+  .juegos-root.s4:not(.halloween) .bj .bjb-frond,
+  .juegos-root.s4:not(.halloween) .bj .bjb-umbrella__sway {
+    animation: none;
+  }
+  .juegos-root.s4:not(.halloween) .bj .bj-table__felt::after,
+  .juegos-root.s4:not(.halloween) .bj .bj-table::after {
+    opacity: 0.6;
+  }
+}
+
+/* Halloween no usa este arte: se oculta tal cual. */
+.juegos-root.halloween .bjb-scene,
+.juegos-root.halloween .bjb-props,
+.juegos-root.halloween .bjb-awning,
+.juegos-root.halloween .bjb-chef {
+  display: none;
+}
