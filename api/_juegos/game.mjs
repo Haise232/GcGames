@@ -61,7 +61,7 @@ export const ERRORS = {
   BAD_PHASE: 'No puedes hacer eso ahora.',
   NOT_YOUR_TURN: 'No es tu turno.',
   INSUFFICIENT_FUNDS: 'Saldo insuficiente.',
-  BETS_CLOSED: 'No va más: la bola ya está en marcha. Apuesta en la siguiente ronda.',
+  BETS_CLOSED: 'No va más: las apuestas de esta ronda ya están cerradas. Apuesta en la siguiente.',
   LAUNCHED: 'El cohete ya despegó: apuesta en la siguiente ronda.',
   CRASHED: '¡Tarde! El cohete ya explotó.',
   SEAT_TAKEN: 'Ese asiento está ocupado.',
