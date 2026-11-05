@@ -1832,6 +1832,38 @@
 .juegos-root .rgs-waves {
   animation: ars-wave 4s ease-in-out infinite alternate;
 }
+.juegos-root .rgs-bolt {
+  animation: rgs-bolt 3.2s steps(1) infinite;
+}
+@keyframes rgs-bolt {
+  0%,
+  60%,
+  100% {
+    opacity: 0;
+  }
+  62%,
+  70% {
+    opacity: 1;
+  }
+  66% {
+    opacity: 0.2;
+  }
+}
+.juegos-root .rgs-tentacle {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: rgs-tentacle 2.6s ease-in-out infinite alternate;
+}
+@keyframes rgs-tentacle {
+  from {
+    rotate: -6deg;
+    scale: 1 0.9;
+  }
+  to {
+    rotate: 7deg;
+    scale: 1 1;
+  }
+}
 
 /* Escena de Apnea (DiveArt.jsx). */
 .juegos-root .dvs-rays {
@@ -1945,7 +1977,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .juegos-root :is(.ars-wave, .ars-shine, .ars-chest, .ars-spark, .ars-crab, .ars-claw, .dvs-rays, .dvs-weed, .dvs-shine, .dvs-diver, .dvs-shark, .dvs-bubbles, .rgs-boat, .rgs-waves) {
+  .juegos-root :is(.ars-wave, .ars-shine, .ars-chest, .ars-spark, .ars-crab, .ars-claw, .dvs-rays, .dvs-weed, .dvs-shine, .dvs-diver, .dvs-shark, .dvs-bubbles, .rgs-boat, .rgs-waves, .rgs-bolt, .rgs-tentacle) {
     animation: none;
   }
 }

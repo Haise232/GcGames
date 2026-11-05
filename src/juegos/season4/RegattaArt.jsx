@@ -1,5 +1,5 @@
 // Escena de la Regata para su tarjeta del selector: tres veleros de colores sobre el mar al atardecer, con la isla y su
-// volcán al fondo y la boya de llegada. Las animaciones (clases rgs-*) están en season4.css.
+// volcán al fondo, la boya de llegada, un rayo que cae de una nube de tormenta y un tentáculo del Kraken que asoma. Las animaciones (clases rgs-*) están en season4.css.
 export function RegattaScene() {
   const boats = [
     ['#ff6b8a', '#ffe0ea', 64, 112, 0],
@@ -33,6 +33,17 @@ export function RegattaScene() {
         <path d="M222 120 V96" stroke="#fff" strokeWidth="2" />
         <path d="M222 96 L236 101 L222 106 Z" fill="#ff6b5a" />
         <circle cx="222" cy="122" r="6" fill="#ff6b5a" stroke="#fff" strokeWidth="2" />
+      </g>
+      {/* Nube de tormenta con su rayo y el tentáculo del Kraken al fondo a la derecha. */}
+      <g className="rgs-storm">
+        <ellipse cx="46" cy="22" rx="34" ry="11" fill="#1c1a3c" opacity="0.85" />
+        <ellipse cx="70" cy="16" rx="22" ry="9" fill="#1c1a3c" opacity="0.85" />
+        <path className="rgs-bolt" d="M52 30 L44 46 L52 48 L42 68" fill="none" stroke="#fffbe0" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+      </g>
+      <g className="rgs-tentacle">
+        <path d="M196 150 C 184 132 206 124 198 104" stroke="#4a1f78" strokeWidth="8" fill="none" strokeLinecap="round" />
+        <path d="M196 150 C 184 132 206 124 198 104" stroke="#7a42b8" strokeWidth="4.5" fill="none" strokeLinecap="round" />
+        <path d="M196 150 C 184 132 206 124 198 104" stroke="#e6c8ff" strokeWidth="2.4" fill="none" strokeLinecap="round" strokeDasharray="0 7" />
       </g>
       {boats.map(([hull, sail, x, y, i]) => (
         <g key={hull} className={`rgs-boat rgs-boat--${i}`} transform={`translate(${x} ${y})`}>

@@ -396,20 +396,22 @@ export async function raceLive(msg, balance, saved, _rand, ctx) {
   return { delta, played: changed, saved: changed ? state : null, result: raceView(state, balance + delta, ctx) }
 }
 
-// --- Regata en vivo: una regata para todos cada regatta.ROUND_MS; se apuesta al velero que gana. ---
-// Como la Carrera, todo sale de HMAC(secreto, ronda), pero en dos partes: el parte del viento (las probabilidades y cuotas
-// de cada velero) se enseña desde que se abren las apuestas, y el ganador (sorteado con esas probabilidades), los tiempos y
-// los ritmos no salen del servidor hasta que se cierran.
+// --- Regata en vivo: una regata para todos cada regatta.ROUND_MS; se apuesta al Ganador, a la Exacta o al Trío. ---
+// Como la Carrera, todo sale de HMAC(secreto, ronda), pero en dos partes: el parte del tiempo (el clima y las
+// probabilidades de cada velero) se enseña desde que se abren las apuestas, y el orden de llegada (sorteado con esas
+// probabilidades), los tiempos, los ritmos y los efectos del clima no salen del servidor hasta que se cierran.
 const REGATTA_HISTORY = 12
 const regattaWinds = new Map()
 const regattaDraws = new Map()
 
-// El parte del viento de una ronda: viento (solo se ve) y probabilidad de cada velero en puntos básicos.
+// El parte del tiempo de una ronda: el clima, el viento (solo se ve) y la probabilidad de cada velero en puntos básicos.
+// El clima elige el reparto: despejado con un favorito claro, tormenta muy igualada, kraken con desconocidos que pagan mucho…
 export function regattaWind(secret, round) {
   const hit = regattaWinds.get(round)
   if (hit) return hit
   const rand = uniform(hmacStream(secret, `regata-viento:${round}`))
-  const profile = regatta.PROFILES[rand(regatta.PROFILES.length)]
+  const clima = regatta.climaAt(rand(regatta.CLIMA_WEIGHT))
+  const profile = clima.profiles[rand(clima.profiles.length)]
   const boats = Array.from({ length: regatta.N }, (_, i) => i)
   for (let i = boats.length - 1; i > 0; i--) {
     const j = rand(i + 1)
@@ -417,39 +419,74 @@ export function regattaWind(secret, round) {
   }
   const bp = Array(regatta.N).fill(0)
   boats.forEach((boat, k) => (bp[boat] = profile[k]))
-  const wind = { name: regatta.WINDS[rand(regatta.WINDS.length)], dir: rand(360), knots: 6 + rand(19), bp, odds: bp.map(regatta.oddsOf) }
+  const odds = bp.map((_, i) => regatta.oddsFor('win', [i], bp))
+  const wind = { clima: clima.id, name: regatta.WINDS[rand(regatta.WINDS.length)], dir: rand(360), knots: 6 + rand(19), bp, odds }
   if (regattaWinds.size > 5000) regattaWinds.clear()
   regattaWinds.set(round, wind)
   return wind
 }
 
-// La regata: el ganador según las probabilidades del parte, el orden del resto al azar, tiempos y ritmos.
+// La regata: el orden de llegada completo (Plackett-Luce: el primero sale con las probabilidades del parte, el segundo
+// con las de los que quedan, y así), los tiempos, los ritmos y lo que hace el clima (veleros frenados, rayos).
 export function regattaDraw(secret, round) {
   const hit = regattaDraws.get(round)
   if (hit) return hit
-  const { bp } = regattaWind(secret, round)
+  const { bp, clima: climaId } = regattaWind(secret, round)
+  const clima = regatta.climaOf(climaId)
   const rand = uniform(hmacStream(secret, `regata:${round}`))
-  let pick = rand(10000)
-  let winner = 0
-  while (pick >= bp[winner]) pick -= bp[winner++]
-  const rest = Array.from({ length: regatta.N }, (_, i) => i).filter((b) => b !== winner)
-  for (let i = rest.length - 1; i > 0; i--) {
-    const j = rand(i + 1)
-    ;[rest[i], rest[j]] = [rest[j], rest[i]]
+  // Orden de llegada: cada puesto se sortea entre los que quedan, con peso su probabilidad.
+  const left = Array.from({ length: regatta.N }, (_, i) => i)
+  const order = []
+  while (left.length) {
+    let pick = rand(left.reduce((sum, b) => sum + bp[b], 0))
+    let k = 0
+    while (pick >= bp[left[k]]) pick -= bp[left[k++]]
+    order.push(left.splice(k, 1)[0])
   }
-  const order = [winner, ...rest]
-  // Tiempos: el ganador tarda 12-14 s y el resto llega detrás; a veces por muy poco.
+  const winner = order[0]
+  // Tiempos: el ganador tarda 11,5-13,5 s y el resto llega detrás; a veces por muy poco (y alguna vez, foto finish).
   const finish = Array(regatta.N).fill(0)
-  let time = 12000 + rand(2001)
+  let time = 11500 + rand(2001)
   order.forEach((boat, place) => {
-    if (place === 1) time += rand(100) < 30 ? 30 + rand(150) : 200 + rand(600)
-    else if (place > 1) time += 120 + rand(600)
+    if (place === 1) {
+      const roll = rand(100)
+      time += roll < 12 ? 10 + rand(60) : roll < 40 ? 60 + rand(140) : 200 + rand(600)
+    } else if (place > 1) {
+      time += 120 + rand(600)
+    }
     finish[boat] = Math.min(time, regatta.SAIL_MAX_MS - 400 - (regatta.N - 1 - place) * 30)
   })
-  // Ritmo de cada velero (rachas de viento): Σ j·|aj| < 1/π para que nunca retroceda (ver regatta.progress).
-  const swing = (limit) => (rand(2 * limit + 1) - limit) / 10000
+  // Ritmo de cada velero (rachas de viento): Σ j·|aj| < 1/π para que nunca retroceda (ver regatta.progress). La amplitud
+  // la marca el clima: despejado va suave, la tormenta y el viento fuerte se adelantan sin parar.
+  const swing = (limit) => ((rand(2 * limit + 1) - limit) / 10000) * clima.amp
   const wobble = finish.map(() => [swing(650), swing(420), swing(240), swing(110)])
-  const draw = { winner, order, finish, wobble, end: Math.max(...finish) }
+  // Efectos del clima. Frenazos: el velero se queda quieto un rato por donde pasa y luego se suelta; siempre acaba
+  // llegando en su `finish`, así que el orden no cambia. El Kraken no se mete con el ganador.
+  const fx = clima.effects
+  const stalls = []
+  if (fx.stall) {
+    const candidates = Array.from({ length: regatta.N }, (_, i) => i).filter((b) => !(fx.notWinner && b === winner))
+    for (let i = candidates.length - 1; i > 0; i--) {
+      const j = rand(i + 1)
+      ;[candidates[i], candidates[j]] = [candidates[j], candidates[i]]
+    }
+    const count = fx.stall[0] + rand(fx.stall[1] - fx.stall[0] + 1)
+    for (const boat of candidates.slice(0, count)) {
+      const frac = fx.frac[0] + (rand(1001) / 1000) * (fx.frac[1] - fx.frac[0])
+      const at = regatta.reachAt(finish[boat], wobble[boat], frac)
+      const dur = Math.min(fx.dur[0] + rand(fx.dur[1] - fx.dur[0] + 1), finish[boat] - 500 - regatta.STALL_REC_MS - at)
+      if (dur >= 800) stalls.push({ boat, what: fx.what, at, dur })
+    }
+    stalls.sort((x, y) => x.at - y.at)
+  }
+  // Rayos: cuándo caen (ms desde la salida) y por dónde del campo (0 a 1).
+  const bolts = []
+  if (fx.bolts) {
+    const count = fx.bolts[0] + rand(fx.bolts[1] - fx.bolts[0] + 1)
+    for (let i = 0; i < count; i++) bolts.push({ at: 1200 + rand(10500), x: (8 + rand(85)) / 100 })
+    bolts.sort((x, y) => x.at - y.at)
+  }
+  const draw = { winner, order, finish, wobble, stalls, bolts, end: Math.max(...finish) }
   if (regattaDraws.size > 5000) regattaDraws.clear()
   regattaDraws.set(round, draw)
   return draw
@@ -458,12 +495,15 @@ export function regattaDraw(secret, round) {
 // ¿Hay una apuesta guardada de una regata que ya acabó? Entonces se paga antes de nada.
 export const regattaDue = (saved, t, secret) => Boolean(saved?.bets?.length) && t >= regatta.startOf(saved.round) + regattaDraw(secret, saved.round).end
 
-// Últimos ganadores de regatas ya terminadas, de la más reciente a la más antigua, con lo que pagaban.
+// Últimos resultados de regatas ya terminadas, de la más reciente a la más antigua: el podio, el clima y lo que pagaba el ganador.
 function regattaHistory(secret, t) {
   const out = []
   for (let r = regatta.phaseAt(t).round; out.length < REGATTA_HISTORY && r >= 0; r--) {
     const draw = regattaDraw(secret, r)
-    if (t >= regatta.startOf(r) + draw.end) out.push({ boat: draw.winner, odds: regattaWind(secret, r).odds[draw.winner] })
+    if (t >= regatta.startOf(r) + draw.end) {
+      const wind = regattaWind(secret, r)
+      out.push({ boat: draw.winner, podium: draw.order.slice(0, 3), clima: wind.clima, odds: wind.odds[draw.winner] })
+    }
   }
   return out
 }
@@ -476,16 +516,18 @@ export function regattaView(saved, balance, { now: t, secret }) {
   return {
     now: t,
     round,
-    wind: { name: wind.name, dir: wind.dir, knots: wind.knots, bp: wind.bp, odds: wind.odds },
-    race: draw ? { start: regatta.startOf(round), finish: draw.finish, wobble: draw.wobble, winner: draw.winner, order: draw.order } : null,
-    bets: saved?.round === round ? (saved.bets ?? []) : [],
+    wind: { clima: wind.clima, name: wind.name, dir: wind.dir, knots: wind.knots, bp: wind.bp, odds: wind.odds },
+    race: draw
+      ? { start: regatta.startOf(round), finish: draw.finish, wobble: draw.wobble, winner: draw.winner, order: draw.order, stalls: draw.stalls, bolts: draw.bolts }
+      : null,
+    bets: saved?.round === round && saved.v === regatta.RULES ? (saved.bets ?? []) : [],
     last: saved?.last ?? null,
     history: regattaHistory(secret, t),
     balance,
   }
 }
 
-// msg.a: «sync» (ponerse al día) o «bet» (tus apuestas de esta regata, [{ boat, amount }]; una lista vacía las retira).
+// msg.a: «sync» (ponerse al día) o «bet» (tus apuestas de esta regata, [{ kind, boats, amount }]; una lista vacía las retira).
 export function regattaLive(msg, balance, saved, _rand, ctx) {
   const t = ctx.now
   let state = { ...(saved ?? {}) }
@@ -498,12 +540,18 @@ export function regattaLive(msg, balance, saved, _rand, ctx) {
       delta += stake
     } else if (state.week === ctx.week) {
       const draw = regattaDraw(ctx.secret, state.round)
-      const { odds } = regattaWind(ctx.secret, state.round)
-      const paid = state.bets.map((b) => regatta.payoutOf(b, draw.winner, odds))
-      const total = paid.reduce((sum, p) => sum + p, 0)
+      const { bp, clima } = regattaWind(ctx.secret, state.round)
+      // El detalle de cada apuesta (cuota y lo que cobró) para el aviso y la celebración.
+      const bets = state.bets.map((b) => ({ ...b, odds: regatta.oddsFor(b.kind, b.boats, bp), paid: regatta.payoutOf(b, draw.order, bp) }))
+      const total = bets.reduce((sum, b) => sum + b.paid, 0)
       delta += total
-      const mult = total > 0 ? Math.round((total / stake) * 100) / 100 : 0
-      state = { ...state, last: { round: state.round, winner: draw.winner, odds: odds[draw.winner], stake, payout: total, net: total - stake, mult, bets: state.bets, paid } }
+      // Entero (veces lo apostado, redondeado): la lista de ganadores lo lee como int en la base de datos.
+      const mult = Math.round(total / stake)
+      const best = bets.reduce((top, b) => (b.paid > (top?.paid ?? 0) ? b : top), null)
+      state = {
+        ...state,
+        last: { round: state.round, clima, winner: draw.winner, podium: draw.order.slice(0, 3), stake, payout: total, net: total - stake, mult, best, bets },
+      }
     }
     state = { ...state, bets: [] }
     changed = true
@@ -512,12 +560,12 @@ export function regattaLive(msg, balance, saved, _rand, ctx) {
   if (msg.a === 'bet') {
     if (msg.round !== round || offset >= regatta.BETS_MS + GRACE_MS) return { error: 'BETS_CLOSED' }
     const placed = msg.bets
-    if (!Array.isArray(placed) || (placed.length > 0 && !regatta.validBets(placed))) return { error: 'BAD_MESSAGE' }
+    if (!Array.isArray(placed) || !regatta.validBets(placed)) return { error: 'BAD_MESSAGE' }
     const before = state.round === round ? regatta.totalOf(state.bets ?? []) : 0
     const stake = regatta.totalOf(placed)
     if (stake - before > balance + delta) return { error: 'INSUFFICIENT_FUNDS' }
     delta += before - stake
-    state = { ...state, round, week: ctx.week, v: regatta.RULES, bets: placed.map(({ boat, amount }) => ({ boat, amount })) }
+    state = { ...state, round, week: ctx.week, v: regatta.RULES, bets: placed.map(({ kind, boats, amount }) => ({ kind, boats: [...boats], amount })) }
     changed = true
   } else if (msg.a !== 'sync') {
     return { error: 'BAD_MESSAGE' }

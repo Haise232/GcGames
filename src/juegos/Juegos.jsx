@@ -115,8 +115,8 @@ const ALL_GAMES = [
   {
     id: 'regatta',
     name: 'Regata',
-    kind: 'Cada 50 s',
-    blurb: 'Cinco veleros y el parte del viento: el favorito paga poco y el que nadie espera paga mucho. Apuesta y míralos llegar a la boya.',
+    kind: 'Cada 44 s',
+    blurb: 'Tormenta, remolino, Kraken… cada regata trae su clima. Apuesta al ganador, a la exacta o al trío y cobra hasta ×3.000.',
     live: true,
     tint: '143, 227, 255',
     isNew: true,

@@ -109,7 +109,7 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 
 | En vivo (mesas) | Para todos a la vez | En solitario | Economía |
 |---|---|---|---|
-| Blackjack | Regata (cada 50 s) | Pez Gordo | Gacha de cartas |
+| Blackjack | Regata (cada 44 s) | Pez Gordo | Gacha de cartas |
 | Póker | Ruleta (cada 25 s) | Tesoro en la Arena | Inmobiliaria |
 | Ajedrez | Cohete (cada 30 s) | Apnea | Cuenta en Suiza |
 | | Carrera (cada 55 s) | La Torre | Hacienda |
@@ -127,9 +127,13 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
   y rendición. Tablero de piedra en perspectiva y piezas que revientan al capturarlas.
 
 **Para todos a la vez**
-- **Regata**: cinco veleros cada 50 s. Antes de cada regata sale el parte del viento con la probabilidad y la cuota de
-  cada velero: el favorito gana a menudo y paga poco, el que nadie espera paga mucho. El ganador sale de esas mismas
-  probabilidades, así que apuestes al que apuestes se recupera el 96 %.
+- **Regata**: cinco veleros cada 44 s. Antes de cada regata sale el parte del tiempo: un clima (Despejado, Viento fuerte,
+  Niebla, Tormenta, Remolino, Kraken, Calima o Arcoíris) que decide las probabilidades de cada velero y trae su propio
+  espectáculo (rayos y lluvia, niebla que tapa la carrera, un remolino que hace girar y frena veleros, tentáculos del
+  Kraken que atrapan a alguno…). El servidor sortea el orden de llegada completo (modelo Plackett-Luce) y se puede
+  apostar al Ganador, a la Exacta (1.º y 2.º en orden) y al Trío (1.º, 2.º y 3.º en orden): cada resultado paga
+  `0,96 / su probabilidad` (tope ×3.000), así que apuestes a lo que apuestes se recupera el 96 %. Los efectos del
+  clima son coreografía y nunca cambian el orden ya sorteado.
 - **Ruleta**: una tirada para todos cada 25 s.
 - **Cohete**: sube para todos cada 30 s; retira antes de que explote.
 - **Carrera**: una carrera cada 55 s; apuesta a un coche y cobra si acaba en el podio.
@@ -190,7 +194,7 @@ flowchart LR
   entera para pagar. Repetir una partida cuesta unos 4 ms de CPU y no se admiten más pasos de los que ha dado tiempo a
   jugar.
 - **Juegos calibrados.** En La Torre y en Tesoro en la Arena el multiplicador de cada paso es `0,96 / probabilidad de
-  llegar`, en la Apnea el premio a d metros es `0,96 / probabilidad de no cruzarte el tiburón hasta ahí` y en la Regata cada velero paga
+  llegar`, en la Apnea el premio a d metros es `0,96 / probabilidad de no cruzarte el tiburón hasta ahí` y en la Regata cada resultado (ganador, exacta o trío) paga
   `0,96 / su probabilidad`: hagas lo que hagas, de media se recupera el 96 %. Así el Score no se puede «cultivar» a base de jugar mucho.
 - **Tiempo real barato.** Cuando algo cambia, el servidor manda un aviso sin datos por Supabase Realtime y cada
   navegador pide su propia vista: nadie recibe las cartas tapadas de los demás. Fuera de las mesas, el sondeo es solo un

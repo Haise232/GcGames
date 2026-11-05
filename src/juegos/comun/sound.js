@@ -597,3 +597,80 @@ export function playGasp() {
   tone(ac, { freq: 420, to: 120, dur: 0.5, type: 'sine', peak: 0.09 })
   tone(ac, { freq: 300, to: 90, at: 0.3, dur: 0.6, type: 'triangle', peak: 0.07 })
 }
+
+// ---- Regata ----
+// Bocina de salida: dos notas graves y largas, como la de un barco.
+export function playHorn() {
+  const ac = audio()
+  if (!ac) return
+  tone(ac, { freq: 196, dur: 0.7, type: 'sawtooth', peak: 0.09 })
+  tone(ac, { freq: 247, dur: 0.7, type: 'sawtooth', peak: 0.07 })
+}
+
+// Trueno: un golpe de ruido grave que rueda y un bajo que se hunde.
+export function playThunder() {
+  const ac = audio()
+  if (!ac) return
+  breath(ac, { from: 500, to: 70, dur: 1.5, peak: 0.4 })
+  tone(ac, { freq: 70, to: 32, at: 0.05, dur: 1.1, type: 'sine', peak: 0.2 })
+}
+
+// Remolino: un silbido que gira (sube y baja varias veces).
+export function playWhirl() {
+  const ac = audio()
+  if (!ac) return
+  for (let i = 0; i < 3; i++) {
+    tone(ac, { freq: 240, to: 760, at: i * 0.5, dur: 0.25, type: 'sine', peak: 0.06 })
+    tone(ac, { freq: 760, to: 240, at: i * 0.5 + 0.25, dur: 0.25, type: 'sine', peak: 0.06 })
+  }
+}
+
+// El Kraken atrapa un velero: rugido grave y un chapoteo enorme.
+export function playKraken() {
+  const ac = audio()
+  if (!ac) return
+  tone(ac, { freq: 90, to: 38, dur: 1.1, type: 'sawtooth', peak: 0.14 })
+  tone(ac, { freq: 60, to: 30, at: 0.08, dur: 1.2, type: 'square', peak: 0.06 })
+  breath(ac, { from: 900, to: 150, dur: 0.9, peak: 0.2, at: 0.1 })
+}
+
+// Foto finish: el clic del obturador y un destello agudo.
+export function playShutter() {
+  const ac = audio()
+  if (!ac) return
+  breath(ac, { from: 3000, to: 5000, dur: 0.12, peak: 0.25 })
+  tone(ac, { freq: 1500, to: 700, at: 0.08, dur: 0.1, type: 'square', peak: 0.04 })
+}
+
+// Un velero se suelta (o pasa al frente): un arpegio corto que sube.
+export function playSurge() {
+  const ac = audio()
+  if (!ac) return
+  ;[0, 0.07, 0.14].forEach((at, i) => tone(ac, { freq: 420 * 2 ** (i / 4), at, dur: 0.1, type: 'triangle', peak: 0.06 }))
+}
+
+// El sonido de cada clima al abrirse las apuestas.
+export function playClima(id) {
+  const ac = audio()
+  if (!ac) return
+  if (id === 'despejado') {
+    tone(ac, { freq: 1900, to: 1400, dur: 0.25, type: 'sine', peak: 0.05 })
+    tone(ac, { freq: 2100, to: 1500, at: 0.3, dur: 0.3, type: 'sine', peak: 0.045 })
+  } else if (id === 'viento') {
+    breath(ac, { from: 300, to: 2000, dur: 1.4, peak: 0.28 })
+  } else if (id === 'niebla') {
+    tone(ac, { freq: 98, to: 92, dur: 1.4, type: 'sawtooth', peak: 0.08 })
+    tone(ac, { freq: 123, to: 116, dur: 1.4, type: 'sawtooth', peak: 0.05 })
+  } else if (id === 'tormenta') {
+    playThunder()
+  } else if (id === 'remolino') {
+    playWhirl()
+  } else if (id === 'kraken') {
+    playKraken()
+  } else if (id === 'calima') {
+    breath(ac, { from: 250, to: 600, dur: 1.6, peak: 0.16 })
+    tone(ac, { freq: 82, dur: 1.4, type: 'sine', peak: 0.07 })
+  } else if (id === 'arcoiris') {
+    ;[523, 659, 784, 1047, 1319].forEach((freq, i) => tone(ac, { freq, at: i * 0.1, dur: 0.35, type: 'triangle', peak: 0.06 }))
+  }
+}
