@@ -873,7 +873,7 @@
     gap: clamp(14px, 1.6vw, 22px);
   }
 }
-.juegos-root.s4 :is(.s4-round, .s4-pace) > li.is-big .hub-card__art {
+.juegos-root.s4 .s4-pace > li.is-big .hub-card__art {
   aspect-ratio: 16 / 8;
 }
 
@@ -1812,6 +1812,27 @@
   }
 }
 
+/* Escena de la Regata (RegattaArt.jsx). */
+.juegos-root .rgs-boat {
+  animation: rgs-sail 3.4s ease-in-out infinite alternate;
+}
+.juegos-root .rgs-boat--1 {
+  animation-duration: 2.8s;
+  animation-delay: -1s;
+}
+.juegos-root .rgs-boat--2 {
+  animation-duration: 3.8s;
+  animation-delay: -2s;
+}
+@keyframes rgs-sail {
+  to {
+    translate: 10px -2px;
+  }
+}
+.juegos-root .rgs-waves {
+  animation: ars-wave 4s ease-in-out infinite alternate;
+}
+
 /* Escena de Buceo de Perlas (DiveArt.jsx). */
 .juegos-root .dvs-rays {
   animation: dvs-rays 5s ease-in-out infinite alternate;
@@ -1916,7 +1937,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .juegos-root :is(.ars-wave, .ars-shine, .ars-chest, .ars-spark, .ars-crab, .ars-claw, .dvs-rays, .dvs-weed, .dvs-shine, .dvs-diver, .dvs-bubbles) {
+  .juegos-root :is(.ars-wave, .ars-shine, .ars-chest, .ars-spark, .ars-crab, .ars-claw, .dvs-rays, .dvs-weed, .dvs-shine, .dvs-diver, .dvs-bubbles, .rgs-boat, .rgs-waves) {
     animation: none;
   }
 }

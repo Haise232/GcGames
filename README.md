@@ -109,11 +109,12 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 
 | En vivo (mesas) | Para todos a la vez | En solitario | Economía |
 |---|---|---|---|
-| Blackjack | Ruleta (cada 25 s) | Pez Gordo | Gacha de cartas |
-| Póker | Cohete (cada 30 s) | Tesoro en la Arena | Inmobiliaria |
-| Ajedrez | Carrera (cada 55 s) | La Torre | Cuenta en Suiza |
-| | Ascensor (cada minuto) | El Atraco | Hacienda |
-| | La Subasta (cada minuto) | Plinko | Casa de empeños |
+| Blackjack | Regata (cada 50 s) | Pez Gordo | Gacha de cartas |
+| Póker | Ruleta (cada 25 s) | Tesoro en la Arena | Inmobiliaria |
+| Ajedrez | Cohete (cada 30 s) | Buceo de Perlas | Cuenta en Suiza |
+| | Carrera (cada 55 s) | La Torre | Hacienda |
+| | Ascensor (cada minuto) | El Atraco | Casa de empeños |
+| | La Subasta (cada minuto) | Plinko | |
 | | Bingo | Rana | |
 
 <details>
@@ -126,6 +127,9 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
   y rendición. Tablero de piedra en perspectiva y piezas que revientan al capturarlas.
 
 **Para todos a la vez**
+- **Regata**: cinco veleros cada 50 s. Antes de cada regata sale el parte del viento con la probabilidad y la cuota de
+  cada velero: el favorito gana a menudo y paga poco, el que nadie espera paga mucho. El ganador sale de esas mismas
+  probabilidades, así que apuestes al que apuestes se recupera el 96 %.
 - **Ruleta**: una tirada para todos cada 25 s.
 - **Cohete**: sube para todos cada 30 s; retira antes de que explote.
 - **Carrera**: una carrera cada 55 s; apuesta a un coche y cobra si acaba en el podio.
@@ -140,6 +144,8 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
   cuando quieras: cuanto más pesas, más cobras (de ×0,28 a ×10). Si te comen, pierdes la apuesta.
 - **Tesoro en la Arena**: una playa de 5×5 con 3, 5, 9 o 15 cangrejos escondidos. Cada hoyo con tesoro sube el premio
   y cobras cuando quieras; si sale un cangrejo, pierdes. Al acabar se ve dónde estaban todos.
+- **Buceo de Perlas**: bajas al fondo del mar tramo a tramo abriendo ostras, en Laguna, Arrecife o Abismo. Cada perla
+  sube el premio y la perla negra lo dobla; si sale un tiburón o se acaba el aire, pierdes. Subes y cobras cuando quieras.
 - **La Torre**: sube piso a piso sin pisar una baldosa rota, en cuatro dificultades.
 - **El Atraco**: monta tu banda con tus cartas del gacha y baja planta a planta hasta la cámara acorazada.
 - **Plinko**: suelta bolas y que caigan en las orillas.
@@ -182,7 +188,8 @@ flowchart LR
   entera para pagar. Repetir una partida cuesta unos 4 ms de CPU y no se admiten más pasos de los que ha dado tiempo a
   jugar.
 - **Juegos calibrados.** En La Torre y en Tesoro en la Arena el multiplicador de cada paso es `0,96 / probabilidad de
-  llegar`: cobres donde cobres, de media se recupera el 96 %. Así el Score no se puede «cultivar» a base de jugar mucho.
+  llegar`, en el Buceo de Perlas cada tramo vale de media lo que llevas y en la Regata cada velero paga
+  `0,96 / su probabilidad`: hagas lo que hagas, de media se recupera el 96 %. Así el Score no se puede «cultivar» a base de jugar mucho.
 - **Tiempo real barato.** Cuando algo cambia, el servidor manda un aviso sin datos por Supabase Realtime y cada
   navegador pide su propia vista: nadie recibe las cartas tapadas de los demás. Fuera de las mesas, el sondeo es solo un
   respaldo (cada 60 s, y nunca con la pestaña oculta), y lo que es igual para todos se guarda unos segundos en el Worker.

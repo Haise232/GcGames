@@ -54,6 +54,7 @@ const BY_GAME = [
   { id: 'roulette', goal: 5, xp: 110, text: 'Apuesta en 5 tiradas de la Ruleta' },
   { id: 'crash', goal: 5, xp: 110, text: 'Vuela en 5 cohetes' },
   { id: 'race', goal: 3, xp: 110, text: 'Apuesta en 3 carreras' },
+  { id: 'regatta', goal: 3, xp: 110, text: 'Apuesta en 3 regatas' },
   { id: 'plinko', goal: 15, xp: 100, text: 'Suelta 15 bolas en el Plinko' },
   { id: 'frog', goal: 5, xp: 100, text: 'Juega 5 partidas a la Rana' },
   { id: 'fish', goal: 3, xp: 130, text: 'Juega 3 partidas a Pez Gordo' },

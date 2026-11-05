@@ -7,6 +7,7 @@ import * as roulette from '../../src/juegos/roulette/roulette.js'
 import * as pez from '../../src/juegos/fish/pez.js'
 import * as arena from '../../src/juegos/dig/arena.js'
 import * as dive from '../../src/juegos/dive/dive.js'
+import * as regatta from '../../src/juegos/regatta/regatta.js'
 import * as plinko from '../../src/juegos/plinko/plinko.js'
 import * as crash from '../../src/juegos/crash/crash.js'
 import * as frog from '../../src/juegos/frog/frog.js'
@@ -20,6 +21,7 @@ export const SOLO_GAMES = {
   solo_fish: 'fish',
   solo_dig: 'dig',
   solo_dive: 'dive',
+  solo_regatta: 'regatta',
   solo_plinko: 'plinko',
   solo_crash: 'crash',
   solo_frog: 'frog',
@@ -394,6 +396,135 @@ export async function raceLive(msg, balance, saved, _rand, ctx) {
   return { delta, played: changed, saved: changed ? state : null, result: raceView(state, balance + delta, ctx) }
 }
 
+// --- Regata en vivo: una regata para todos cada regatta.ROUND_MS; se apuesta al velero que gana. ---
+// Como la Carrera, todo sale de HMAC(secreto, ronda), pero en dos partes: el parte del viento (las probabilidades y cuotas
+// de cada velero) se enseña desde que se abren las apuestas, y el ganador (sorteado con esas probabilidades), los tiempos y
+// los ritmos no salen del servidor hasta que se cierran.
+const REGATTA_HISTORY = 12
+const regattaWinds = new Map()
+const regattaDraws = new Map()
+
+// El parte del viento de una ronda: viento (solo se ve) y probabilidad de cada velero en puntos básicos.
+export function regattaWind(secret, round) {
+  const hit = regattaWinds.get(round)
+  if (hit) return hit
+  const rand = uniform(hmacStream(secret, `regata-viento:${round}`))
+  const profile = regatta.PROFILES[rand(regatta.PROFILES.length)]
+  const boats = Array.from({ length: regatta.N }, (_, i) => i)
+  for (let i = boats.length - 1; i > 0; i--) {
+    const j = rand(i + 1)
+    ;[boats[i], boats[j]] = [boats[j], boats[i]]
+  }
+  const bp = Array(regatta.N).fill(0)
+  boats.forEach((boat, k) => (bp[boat] = profile[k]))
+  const wind = { name: regatta.WINDS[rand(regatta.WINDS.length)], dir: rand(360), knots: 6 + rand(19), bp, odds: bp.map(regatta.oddsOf) }
+  if (regattaWinds.size > 5000) regattaWinds.clear()
+  regattaWinds.set(round, wind)
+  return wind
+}
+
+// La regata: el ganador según las probabilidades del parte, el orden del resto al azar, tiempos y ritmos.
+export function regattaDraw(secret, round) {
+  const hit = regattaDraws.get(round)
+  if (hit) return hit
+  const { bp } = regattaWind(secret, round)
+  const rand = uniform(hmacStream(secret, `regata:${round}`))
+  let pick = rand(10000)
+  let winner = 0
+  while (pick >= bp[winner]) pick -= bp[winner++]
+  const rest = Array.from({ length: regatta.N }, (_, i) => i).filter((b) => b !== winner)
+  for (let i = rest.length - 1; i > 0; i--) {
+    const j = rand(i + 1)
+    ;[rest[i], rest[j]] = [rest[j], rest[i]]
+  }
+  const order = [winner, ...rest]
+  // Tiempos: el ganador tarda 12-14 s y el resto llega detrás; a veces por muy poco.
+  const finish = Array(regatta.N).fill(0)
+  let time = 12000 + rand(2001)
+  order.forEach((boat, place) => {
+    if (place === 1) time += rand(100) < 30 ? 30 + rand(150) : 200 + rand(600)
+    else if (place > 1) time += 120 + rand(600)
+    finish[boat] = Math.min(time, regatta.SAIL_MAX_MS - 400 - (regatta.N - 1 - place) * 30)
+  })
+  // Ritmo de cada velero (rachas de viento): Σ j·|aj| < 1/π para que nunca retroceda (ver regatta.progress).
+  const swing = (limit) => (rand(2 * limit + 1) - limit) / 10000
+  const wobble = finish.map(() => [swing(650), swing(420), swing(240), swing(110)])
+  const draw = { winner, order, finish, wobble, end: Math.max(...finish) }
+  if (regattaDraws.size > 5000) regattaDraws.clear()
+  regattaDraws.set(round, draw)
+  return draw
+}
+
+// ¿Hay una apuesta guardada de una regata que ya acabó? Entonces se paga antes de nada.
+export const regattaDue = (saved, t, secret) => Boolean(saved?.bets?.length) && t >= regatta.startOf(saved.round) + regattaDraw(secret, saved.round).end
+
+// Últimos ganadores de regatas ya terminadas, de la más reciente a la más antigua, con lo que pagaban.
+function regattaHistory(secret, t) {
+  const out = []
+  for (let r = regatta.phaseAt(t).round; out.length < REGATTA_HISTORY && r >= 0; r--) {
+    const draw = regattaDraw(secret, r)
+    if (t >= regatta.startOf(r) + draw.end) out.push({ boat: draw.winner, odds: regattaWind(secret, r).odds[draw.winner] })
+  }
+  return out
+}
+
+export function regattaView(saved, balance, { now: t, secret }) {
+  const round = regatta.phaseAt(t).round
+  const wind = regattaWind(secret, round)
+  const revealed = t >= round * regatta.ROUND_MS + regatta.BETS_MS + GRACE_MS
+  const draw = revealed ? regattaDraw(secret, round) : null
+  return {
+    now: t,
+    round,
+    wind: { name: wind.name, dir: wind.dir, knots: wind.knots, bp: wind.bp, odds: wind.odds },
+    race: draw ? { start: regatta.startOf(round), finish: draw.finish, wobble: draw.wobble, winner: draw.winner, order: draw.order } : null,
+    bets: saved?.round === round ? (saved.bets ?? []) : [],
+    last: saved?.last ?? null,
+    history: regattaHistory(secret, t),
+    balance,
+  }
+}
+
+// msg.a: «sync» (ponerse al día) o «bet» (tus apuestas de esta regata, [{ boat, amount }]; una lista vacía las retira).
+export function regattaLive(msg, balance, saved, _rand, ctx) {
+  const t = ctx.now
+  let state = { ...(saved ?? {}) }
+  let delta = 0
+  let changed = false
+  // 1. Se paga la apuesta de una regata que ya acabó (si es de otra semana, el saldo ya se reinició: se descarta).
+  if (regattaDue(state, t, ctx.secret)) {
+    const stake = regatta.totalOf(state.bets)
+    if (state.week === ctx.week && state.v !== regatta.RULES) {
+      delta += stake
+    } else if (state.week === ctx.week) {
+      const draw = regattaDraw(ctx.secret, state.round)
+      const { odds } = regattaWind(ctx.secret, state.round)
+      const paid = state.bets.map((b) => regatta.payoutOf(b, draw.winner, odds))
+      const total = paid.reduce((sum, p) => sum + p, 0)
+      delta += total
+      const mult = total > 0 ? Math.round((total / stake) * 100) / 100 : 0
+      state = { ...state, last: { round: state.round, winner: draw.winner, odds: odds[draw.winner], stake, payout: total, net: total - stake, mult, bets: state.bets, paid } }
+    }
+    state = { ...state, bets: [] }
+    changed = true
+  }
+  const { round, offset } = regatta.phaseAt(t)
+  if (msg.a === 'bet') {
+    if (msg.round !== round || offset >= regatta.BETS_MS + GRACE_MS) return { error: 'BETS_CLOSED' }
+    const placed = msg.bets
+    if (!Array.isArray(placed) || (placed.length > 0 && !regatta.validBets(placed))) return { error: 'BAD_MESSAGE' }
+    const before = state.round === round ? regatta.totalOf(state.bets ?? []) : 0
+    const stake = regatta.totalOf(placed)
+    if (stake - before > balance + delta) return { error: 'INSUFFICIENT_FUNDS' }
+    delta += before - stake
+    state = { ...state, round, week: ctx.week, v: regatta.RULES, bets: placed.map(({ boat, amount }) => ({ boat, amount })) }
+    changed = true
+  } else if (msg.a !== 'sync') {
+    return { error: 'BAD_MESSAGE' }
+  }
+  return { delta, played: changed, saved: changed ? state : null, result: regattaView(state, balance + delta, ctx) }
+}
+
 // --- Rana: la apuesta queda en juego (ya salió del saldo) y en cada salto el jugador decide si salta o cobra. ---
 // El servidor sortea cada salto con randomInt, así que la pantalla no puede adelantarse. saved: { bet, mult, week, last }
 // con bet > 0 mientras hay una rana en marcha; last es la última partida liquidada (para el aviso y el gacha).
@@ -755,4 +886,4 @@ export function divePlay(msg, balance, saved, rand, ctx) {
   return { delta: 0, played: true, saved: state, result: diveView(state, balance, { ev: 'pearl', kind }) }
 }
 
-export const SOLO_PLAY = { roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay, dig: digPlay, dive: divePlay }
+export const SOLO_PLAY = { roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay, dig: digPlay, dive: divePlay, regatta: regattaLive }

@@ -11,7 +11,7 @@ import { storedTimers } from './engine/timers.mjs'
 import { weekOf } from './engine/week.mjs'
 import { PUBLIC_SEATS, GAMES, nextNumber, pickTable } from './engine/lobby.mjs'
 import { CHESS_CHECK_SQL, SCHEMA_SQL } from './schema.mjs'
-import { SOLO_GAMES, SOLO_PLAY, crashDue, crashView, crashWaitMs, raceDue, raceView, rouletteDue, rouletteView } from './solo.mjs'
+import { SOLO_GAMES, SOLO_PLAY, crashDue, crashView, crashWaitMs, raceDue, raceView, regattaDue, regattaView, rouletteDue, rouletteView } from './solo.mjs'
 import { GACHA_ERRORS, createGacha, priceOf } from './gacha.mjs'
 import { BINGO_ERRORS, createBingo } from './bingo.mjs'
 import { AUCTION_ERRORS, createAuction } from './subasta.mjs'
@@ -873,6 +873,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
     solo_roulette: { game: 'roulette', due: rouletteDue, view: rouletteView },
     solo_crash: { game: 'crash', due: (saved, t) => crashDue(saved, t, secret), view: crashView },
     solo_race: { game: 'race', due: (saved, t) => raceDue(saved, t, secret), view: raceView },
+    solo_regatta: { game: 'regatta', due: (saved, t) => regattaDue(saved, t, secret), view: regattaView },
   }
 
   // Acciones que se aplican a la mesa en la que estás.
@@ -969,7 +970,8 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       }
       case 'solo_roulette':
       case 'solo_crash':
-      case 'solo_race': {
+      case 'solo_race':
+      case 'solo_regatta': {
         const live = LIVE_SOLO[msg.t]
         let play = msg
         // Espera larga del cohete: se responde justo cuando explota (sin tocar la BD mientras tanto), así cada

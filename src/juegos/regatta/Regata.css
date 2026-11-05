@@ -1,0 +1,295 @@
+/* Escrito a mano (no generado): la Regata en vivo (Regata.jsx). A la izquierda el campo de regatas (SVG con la isla, el
+   mar al atardecer y los cinco veleros) y las últimas regatas; a la derecha la cuenta atrás, los veleros con su cuota y
+   las fichas. La cuenta atrás, el estado y las fichas son los de la ruleta y el cohete (Roulette.css, App.css). */
+.juegos-root .rg-app {
+  --accent: #8fe3ff;
+  --accent-rgb: 143, 227, 255;
+}
+.juegos-root .rg-app::before {
+  background:
+    radial-gradient(60% 30% at 50% 0%, rgba(255, 138, 76, 0.22), transparent 70%),
+    repeating-radial-gradient(ellipse at 50% 120%, transparent 0 34px, rgba(200, 246, 255, 0.04) 34px 36px),
+    linear-gradient(180deg, #1a1446, #0d2b4a 40%, #082036 75%, #061629);
+}
+.juegos-root .rg-app .floor {
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 1fr);
+}
+.juegos-root .rg-side {
+  justify-content: center;
+}
+
+/* ---------- Campo de regatas ---------- */
+.juegos-root .rg-stage {
+  position: relative;
+  flex: 0 1 auto;
+  width: 100%;
+  aspect-ratio: 900 / 420;
+  max-height: calc(100cqh - 110px);
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 22px;
+  background:
+    linear-gradient(#0a4a6a, #0a4a6a) padding-box,
+    linear-gradient(135deg, #ffe36e, #ff8a4c 45%, #2ee6d0) border-box;
+  box-shadow:
+    0 0 36px rgba(46, 230, 208, 0.2),
+    0 22px 50px rgba(4, 6, 20, 0.6);
+}
+.juegos-root .rg-course {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .rg-waves {
+  animation: rg-waves 5s ease-in-out infinite alternate;
+}
+@keyframes rg-waves {
+  to {
+    translate: -16px 3px;
+  }
+}
+.juegos-root .rg-sail {
+  transform-box: fill-box;
+  transform-origin: 0% 100%;
+  animation: rg-sail 1.8s ease-in-out infinite alternate;
+}
+@keyframes rg-sail {
+  to {
+    scale: 1.08 1;
+  }
+}
+.juegos-root .rg-wake {
+  opacity: 0.6;
+}
+.juegos-root .rg-boat.is-mine .rg-boat__art {
+  filter: drop-shadow(0 0 6px rgba(255, 227, 110, 0.95));
+}
+.juegos-root .rg-boat.is-winner .rg-boat__art {
+  filter: drop-shadow(0 0 10px rgba(255, 227, 110, 1));
+}
+.juegos-root .rg-finish[data-done='1'] line {
+  stroke: #fff;
+}
+
+.juegos-root .rg-wind {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 14px;
+  background: rgba(7, 22, 40, 0.72);
+  backdrop-filter: blur(4px);
+  color: #fff;
+}
+.juegos-root .rg-wind > span:last-child {
+  display: grid;
+}
+.juegos-root .rg-wind small {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8fe3ff;
+}
+.juegos-root .rg-wind > span:last-child b {
+  font-size: 14px;
+}
+.juegos-root .rg-wind__vane {
+  display: grid;
+  justify-items: center;
+  color: #ffe36e;
+}
+.juegos-root .rg-wind__vane svg {
+  width: 30px;
+  height: 30px;
+  rotate: var(--dir);
+}
+.juegos-root .rg-wind__vane b {
+  font-size: 10px;
+  color: #fff;
+}
+
+.juegos-root .rg-winner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  margin: 0;
+  padding: 12px 26px;
+  border-radius: 20px;
+  background: rgba(7, 22, 40, 0.82);
+  box-shadow:
+    0 0 0 3px var(--c),
+    0 20px 40px rgba(0, 0, 0, 0.5);
+  font-family: var(--display);
+  font-size: clamp(26px, 3.4vw, 44px);
+  color: #fff;
+  translate: -50% -50%;
+  animation: rg-pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.juegos-root .rg-winner small {
+  font-family: inherit;
+  font-size: 0.55em;
+  color: #ffe36e;
+}
+@keyframes rg-pop {
+  from {
+    scale: 0.6;
+    opacity: 0;
+  }
+}
+
+/* Últimas regatas: el número del velero con su color y lo que pagaba. */
+.juegos-root .rg-recent ol li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .rg-recent ol li i {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--c);
+  color: #08182a;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+/* ---------- Veleros con su cuota ---------- */
+.juegos-root .rg-boats {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 clamp(10px, 2vh, 18px);
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .rg-pick {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 5px solid var(--c);
+  border-radius: 14px;
+  background: rgba(7, 22, 40, 0.6);
+  color: var(--ivory);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    translate 0.15s;
+}
+.juegos-root .rg-pick:not(:disabled):hover {
+  background: rgba(20, 50, 80, 0.75);
+  translate: 2px 0;
+}
+.juegos-root .rg-pick:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.juegos-root .rg-pick:focus-visible {
+  outline: 3px solid var(--ivory);
+  outline-offset: 2px;
+}
+.juegos-root .rg-pick.is-picked {
+  background: color-mix(in srgb, var(--c) 18%, rgba(7, 22, 40, 0.75));
+  box-shadow: inset 0 0 0 1px var(--c);
+}
+.juegos-root .rg-pick.is-winner {
+  box-shadow:
+    inset 0 0 0 2px #ffe36e,
+    0 0 24px rgba(255, 227, 110, 0.4);
+}
+.juegos-root .rg-pick__num {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--c);
+  color: #08182a;
+  font-family: var(--display);
+  font-size: 18px;
+}
+.juegos-root .rg-pick__name {
+  display: grid;
+  min-width: 0;
+}
+.juegos-root .rg-pick__name b {
+  font-size: 16px;
+}
+.juegos-root .rg-pick__name small {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.juegos-root .rg-pick.is-fav .rg-pick__name small {
+  color: #ffe36e;
+}
+.juegos-root .rg-pick__odds {
+  font-family: var(--display);
+  font-size: 22px;
+  color: #ffe36e;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .rg-pick__stake {
+  position: absolute;
+  top: 6px;
+  right: 92px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ffe36e;
+  color: #3a1604;
+  font-size: 12px;
+  font-weight: 800;
+}
+/* La barrita de abajo: cuánta probabilidad tiene. */
+.juegos-root .rg-pick__bar {
+  position: absolute;
+  inset: auto auto 0 0;
+  width: calc(var(--p) * 100%);
+  height: 3px;
+  background: var(--c);
+  opacity: 0.7;
+}
+
+@media (max-width: 900px) {
+  .juegos-root .rg-app .floor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* En una columna el lado no tiene alto propio: el campo se mide por el ancho. */
+  .juegos-root .rg-app .floor {
+    grid-template-rows: auto auto;
+  }
+  .juegos-root .rg-app .rg-side {
+    flex-direction: column;
+    align-items: stretch;
+    container-type: inline-size;
+  }
+  .juegos-root .rg-stage {
+    flex: none;
+    max-height: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root :is(.rg-waves, .rg-sail, .rg-winner) {
+    animation: none;
+  }
+}
