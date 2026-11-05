@@ -1836,46 +1836,49 @@
     scale: 0.85;
   }
 }
-.juegos-root .im-board--isla .im-cell--isla {
-  box-shadow: inset 0 0 0 0.25cqw color-mix(in srgb, var(--band) 60%, transparent);
+.juegos-root .im-board--isla .im-cell__band {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5cqw;
 }
-.juegos-root .im-board--isla .im-cell--isla.is-mine {
-  box-shadow:
-    inset 0 0 0 0.45cqw #ffd25e,
-    0 0 1.6cqw rgba(255, 210, 94, 0.55);
+.juegos-root .im-board--isla .im-cell--left .im-cell__band,
+.juegos-root .im-board--isla .im-cell--right .im-cell__band {
+  flex-direction: column;
 }
-.juegos-root .im-board--isla .im-cell--isla.is-selected {
-  box-shadow:
-    0 0 0 0.45cqw #fff,
-    0 1.2cqw 3cqw rgba(0, 0, 0, 0.6);
+.juegos-root .im-board--isla .im-cell--bottom .im-cell__band,
+.juegos-root .im-board--isla .im-cell--top .im-cell__band {
+  height: 30%;
 }
-.juegos-root .im-board--isla .im-cell__icon {
-  font-size: 3.4cqw;
+/* El icono, en un círculo blanco sobre la franja. */
+.juegos-root .im-cell__emblem {
+  display: grid;
+  place-items: center;
+  width: 3.4cqw;
+  height: 3.4cqw;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0.2cqw 0.5cqw rgba(0, 0, 0, 0.3);
+  font-size: 2.1cqw;
+  line-height: 1;
 }
-.juegos-root .im-board--isla .is-corner .im-cell__icon {
-  font-size: 5cqw;
+.juegos-root .im-board--isla .im-houses i {
+  width: 1.5cqw;
+  height: 1.5cqw;
+}
+/* Con las tres mejoras, las casitas se vuelven rojas, como el hotel de la ciudad. */
+.juegos-root .im-board--isla .im-houses i.is-full {
+  background: #d8261e;
 }
 .juegos-root .im-board--isla .im-cell__name {
-  font-size: 1.35cqw;
-  text-transform: none;
-}
-.juegos-root .im-board--isla .is-corner .im-cell__name {
-  font-size: 1.55cqw;
+  font-size: 1.3cqw;
 }
 .juegos-root .im-board--isla .im-cell__price,
 .juegos-root .im-board--isla .im-cell__owner {
-  font-size: 1.5cqw;
+  font-size: 1.45cqw;
 }
-.juegos-root .im-board--isla .im-cell__owner {
-  display: flex;
-  justify-content: center;
-  gap: 0.4cqw;
-}
-.juegos-root .im-cell__stars {
-  color: #c48a00;
-  font-size: 1.3cqw;
-  font-style: normal;
-  letter-spacing: 0.05em;
+.juegos-root .im-board--isla .im-cell__owner .avatar {
+  --size: 3.6cqw !important;
 }
 
 /* --- La ciudad de la isla --- */
@@ -1981,11 +1984,13 @@
     width: 100%;
     min-width: 0;
   }
-  .juegos-root .im-board--isla .im-cell:not(.is-corner) .im-cell__name {
+  .juegos-root .im-board--isla .im-cell__name {
     font-size: 0;
   }
-  .juegos-root .im-board--isla .im-cell__icon {
-    font-size: 4.6cqw;
+  .juegos-root .im-cell__emblem {
+    width: 5cqw;
+    height: 5cqw;
+    font-size: 3.2cqw;
   }
   .juegos-root .im-board--isla .im-cell__price {
     font-size: 1.9cqw;

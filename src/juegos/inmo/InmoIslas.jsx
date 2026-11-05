@@ -5,7 +5,7 @@
 import { memo, useMemo } from 'react'
 import Avatar from '../comun/Avatar.jsx'
 import { eur } from '../comun/money.js'
-import { GROUPS, ISLANDS, ISLA_TIERS, MAX_ISLA_LEVEL, groupSize } from './inmo.js'
+import { GROUPS, ISLANDS, ISLA_TIERS, MAX_ISLA_LEVEL, groupSize, levelName } from './inmo.js'
 import { hueOf } from './InmoCity.jsx'
 import InmoIslaCity from './InmoIslaCity.jsx'
 
@@ -173,26 +173,34 @@ function Board({ island, cells, selected, onSelect, onIsland }) {
         {list.map((cell, n) => {
           const { row, col, side } = place(n)
           const own = byCell.get(cell.i)
-          const corner = n % 6 === 0
           return (
             <button
               key={cell.i}
               type="button"
-              className={`im-cell im-cell--${side} im-cell--isla ${corner ? 'is-corner' : ''} ${own ? 'is-owned' : ''} ${own?.owner.me ? 'is-mine' : ''} ${selected === cell.i ? 'is-selected' : ''}`}
+              className={`im-cell im-cell--${side} im-cell--isla ${own ? 'is-owned' : ''} ${own?.owner.me ? 'is-mine' : ''} ${selected === cell.i ? 'is-selected' : ''}`}
               style={{ gridRow: row, gridColumn: col, '--band': GROUPS[island].color, '--oh': own ? hueOf(own.owner.name) : 0, '--k': n }}
               onClick={() => onSelect(cell.i)}
               aria-pressed={selected === cell.i}
-              aria-label={`${cell.name}: ${own ? `de ${own.owner.me ? 'ti' : own.owner.name}` : `libre, ${eur(cell.price)}`}`}
+              aria-label={`${cell.name}: ${own ? `de ${own.owner.me ? 'ti' : own.owner.name}, ${levelName(own.level, cell.i)}` : `libre, ${eur(cell.price)}`}`}
               title={cell.name}
             >
-              <span className="im-cell__icon" aria-hidden="true">
-                {cell.icon}
+              {/* Como las calles de la ciudad: la franja del color de la isla, con su icono y una casita por mejora. */}
+              <span className="im-cell__band">
+                <span className="im-cell__emblem" aria-hidden="true">
+                  {cell.icon}
+                </span>
+                {own?.level > 0 && (
+                  <span className="im-houses" aria-hidden="true">
+                    {Array.from({ length: own.level }, (_, h) => (
+                      <i key={h} className={own.level >= MAX_ISLA_LEVEL ? 'is-full' : undefined} />
+                    ))}
+                  </span>
+                )}
               </span>
               <span className="im-cell__name">{cell.name}</span>
               {own ? (
                 <span className="im-cell__owner">
                   <Avatar name={own.owner.name} src={own.owner.avatar} size={20} />
-                  {own.level > 0 && <i className="im-cell__stars">{'★'.repeat(own.level) + '☆'.repeat(MAX_ISLA_LEVEL - own.level)}</i>}
                 </span>
               ) : (
                 <span className="im-cell__price">{eur(cell.price)}</span>
