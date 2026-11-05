@@ -347,11 +347,15 @@ function Tower({ onExit, juegos }) {
             {Array.from({ length: EMBERS }, (_, i) => (
               <span key={i} className="tw-ember" style={{ '--i': i }} />
             ))}
+            {/* Season 4: la torre se alza junto a la costa, con el volcán, una palmera y el mar abajo. */}
             <svg className="tw-city" viewBox="0 0 400 80" preserveAspectRatio="none">
-              <path d="M0 80V52h18V38h14v14h10V30h16v22h12V44h20V24h12v28h14V36h18v16h10V20h8v-8h6v8h8v32h14V40h16v12h12V32h18v20h10V46h20V28h14v24h12V40h16v12h18V34h14v18h12V48h14v32Z" />
+              <path d="M0 80V58q30-2 58-8l52-28q12-6 24 0l58 30q30 10 64 6l30-6q20-2 34 2l40 4q20 0 40-4V80Z" />
+              <path d="M352 62q-2-16 4-30l3 1q-5 14-3 29Z" />
+              <path d="M357 32q-14-6-24 2q12-2 22 2zM357 32q-6-12-18-12q10 4 16 13zM357 32q8-10 20-8q-12 2-18 10zM357 32q14-2 22 8q-10-6-20-6z" />
+              <rect className="tw-city__sea" x="0" y="66" width="400" height="14" />
               <path
                 className="tw-city__lights"
-                d="M23 44h3v3h-3zM50 38h3v3h-3zM97 34h3v3h-3zM125 50h3v3h-3zM155 30h3v3h-3zM190 26h3v3h-3zM214 44h3v3h-3zM250 36h3v3h-3zM282 48h3v3h-3zM318 34h3v3h-3zM350 44h3v3h-3zM378 40h3v3h-3z"
+                d="M30 70h14v1h-14zM90 74h20v1h-20zM160 69h12v1h-12zM230 73h18v1h-18zM300 70h10v1h-10zM350 75h16v1h-16z"
               />
             </svg>
             <span className="tw-wind tw-wind--1" />

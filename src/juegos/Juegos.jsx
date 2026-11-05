@@ -51,6 +51,7 @@ import './hub.css'
 import './chrome.css'
 // Season 4 («Islas»): la portada, el pase y el tema tropical (todo .juegos-root.s4), después de las hojas de cada juego.
 import './season4/season4.css'
+import './season4/s4-juegos.css'
 import IslandScene from './season4/IslandScene.jsx'
 import PaseStrip from './season4/PaseStrip.jsx'
 import Pase from './season4/Pase.jsx'

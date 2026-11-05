@@ -1,0 +1,383 @@
+/* Escrito a mano (no generado): Season 4 · Islas dentro de cada juego. season4.css cambia la paleta y el selector; aquí
+   cada juego pasa a la isla: su fondo (.app::before de chrome.css), su color de acento y lo más reconocible de su escena.
+   Todo cuelga de .juegos-root.s4, así que gana a las hojas de cada juego y halloween.css (que va después) sigue
+   mandando cuando está encendido. Solo es aspecto: ninguna regla toca cómo se juega. */
+
+/* ============================== Acentos ==============================
+   Cada juego conserva su color, pero en tonos de la isla. */
+.juegos-root.s4 .elevator-app {
+  --accent: #ffc35a;
+  --accent-rgb: 255, 195, 90;
+}
+.juegos-root.s4 .auction-app {
+  --accent: #ff8a6a;
+  --accent-rgb: 255, 138, 106;
+}
+.juegos-root.s4 .bingo-live {
+  --accent: #ffb547;
+  --accent-rgb: 255, 181, 71;
+}
+.juegos-root.s4 .crash-live {
+  --accent: #ff8a4c;
+  --accent-rgb: 255, 138, 76;
+}
+.juegos-root.s4 .frog-app {
+  --accent: #6ff0b4;
+  --accent-rgb: 111, 240, 180;
+}
+.juegos-root.s4 .gacha-app {
+  --accent: #ff6fb0;
+  --accent-rgb: 255, 111, 176;
+}
+.juegos-root.s4 .hs-app {
+  --accent: #ffd25e;
+  --accent-rgb: 255, 210, 94;
+}
+.juegos-root.s4 .plinko-app {
+  --accent: #ff5fa2;
+  --accent-rgb: 255, 95, 162;
+}
+.juegos-root.s4 .race-app {
+  --accent: #ff6b5a;
+  --accent-rgb: 255, 107, 90;
+}
+.juegos-root.s4 .roulette-live {
+  --accent: #ffe36e;
+  --accent-rgb: 255, 227, 110;
+}
+.juegos-root.s4 .tw-app {
+  --accent: #8fe3ff;
+  --accent-rgb: 143, 227, 255;
+}
+.juegos-root.s4 .im-app {
+  --accent: #ff6b5a;
+  --accent-rgb: 255, 107, 90;
+}
+
+/* ============================== Fondos ==============================
+   La misma idea que chrome.css (una capa fija detrás de todo, más oscura en el centro), con la isla de fondo. Abajo
+   casi siempre hay mar o arena y arriba el cielo del atardecer o de la noche tropical. */
+
+/* Ascensor: el hotel de la playa al caer la tarde, con el hueco del ascensor de cristal. */
+.juegos-root.s4 .elevator-app::before {
+  background:
+    radial-gradient(60% 40% at 50% 0%, rgba(255, 195, 90, 0.2), transparent 70%),
+    linear-gradient(90deg, transparent 0 calc(50% - 41px), rgba(143, 227, 255, 0.14) calc(50% - 41px) calc(50% - 39px), transparent 0 calc(50% + 39px), rgba(143, 227, 255, 0.14) calc(50% + 39px) calc(50% + 41px), transparent 0),
+    repeating-linear-gradient(180deg, transparent 0 22vh, rgba(0, 0, 0, 0.28) 22vh calc(22vh + 6px), rgba(255, 246, 232, 0.05) calc(22vh + 6px) calc(22vh + 8px)),
+    linear-gradient(180deg, transparent 70%, rgba(46, 230, 208, 0.12)),
+    linear-gradient(180deg, #2a1a48, #10254a 55%, #071a2c);
+}
+
+/* Subasta: el muelle de noche, tablones de madera y una guirnalda de bombillas. */
+.juegos-root.s4 .auction-app::before {
+  background:
+    radial-gradient(circle, rgba(255, 214, 120, 0.9) 0 2px, rgba(255, 190, 90, 0.28) 3px, transparent 7px) 0 2.4vh / 7vw 4.8vh repeat-x,
+    radial-gradient(40% 55% at 50% 35%, rgba(255, 200, 140, 0.16), transparent 70%),
+    radial-gradient(70% 30% at 50% 100%, rgba(46, 230, 208, 0.12), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.22) 0 2px, transparent 2px 9vw),
+    linear-gradient(180deg, #3a1a3a, #2a1428 40%, #181428 70%, #0a2232 90%, #061629);
+}
+
+/* Bingo: el chiringuito, con farolillos de colores y cañas de bambú. */
+.juegos-root.s4 .bingo-live::before {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 181, 71, 0.2) 0 2.4vw, transparent 2.6vw),
+    radial-gradient(circle at 30% 10%, rgba(255, 95, 162, 0.16) 0 1.8vw, transparent 2vw),
+    radial-gradient(circle at 72% 12%, rgba(46, 230, 208, 0.16) 0 2vw, transparent 2.2vw),
+    radial-gradient(circle at 90% 22%, rgba(255, 227, 110, 0.16) 0 2.6vw, transparent 2.8vw),
+    linear-gradient(90deg, rgba(196, 150, 80, 0.22) 0 10px, rgba(120, 82, 40, 0.3) 10px 12px, transparent 12px calc(100% - 12px), rgba(120, 82, 40, 0.3) calc(100% - 12px) calc(100% - 10px), rgba(196, 150, 80, 0.22) calc(100% - 10px)),
+    radial-gradient(ellipse at 50% 0%, #4a2050, #1d1438 55%, #0b1a30);
+}
+
+/* Cohete: noche tropical con estrellas; el atardecer y el mar los pinta la escena. */
+.juegos-root.s4 .crash-live::before {
+  background:
+    radial-gradient(1px 1px at 10% 20%, #fff, transparent),
+    radial-gradient(1px 1px at 30% 70%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 55% 15%, #fff, transparent),
+    radial-gradient(1px 1px at 70% 55%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 88% 30%, #fff, transparent),
+    radial-gradient(1px 1px at 92% 85%, #fff, transparent),
+    radial-gradient(50% 40% at 80% 100%, rgba(255, 107, 90, 0.26), transparent 70%),
+    radial-gradient(40% 35% at 10% 0%, rgba(255, 79, 139, 0.16), transparent 70%),
+    linear-gradient(180deg, #120f36, #0a1a36 60%, #061629);
+}
+
+/* Rana: una laguna turquesa con flores de hibisco flotando. */
+.juegos-root.s4 .frog-app::before {
+  background:
+    radial-gradient(1.4vw 1.4vw at 8% 82%, rgba(255, 95, 130, 0.5) 40%, transparent 42%),
+    radial-gradient(4vw 2.4vw at 8% 85%, rgba(67, 209, 124, 0.34) 60%, transparent 62%),
+    radial-gradient(1.1vw 1.1vw at 92% 68%, rgba(255, 181, 71, 0.5) 40%, transparent 42%),
+    radial-gradient(3vw 1.8vw at 92% 70%, rgba(67, 209, 124, 0.3) 60%, transparent 62%),
+    radial-gradient(2.4vw 1.4vw at 85% 92%, rgba(67, 209, 124, 0.26) 60%, transparent 62%),
+    repeating-radial-gradient(circle at 30% 60%, transparent 0 40px, rgba(255, 255, 255, 0.03) 40px 42px),
+    radial-gradient(ellipse at 50% 0%, #11606a, #07343f 60%, #04202c);
+}
+
+/* Gacha: noche de luciérnagas sobre la playa. */
+.juegos-root.s4 .gacha-app::before {
+  background:
+    radial-gradient(35% 30% at 10% 10%, rgba(255, 95, 162, 0.2), transparent 70%),
+    radial-gradient(35% 30% at 90% 20%, rgba(46, 230, 208, 0.16), transparent 70%),
+    radial-gradient(40% 35% at 50% 100%, rgba(255, 181, 71, 0.16), transparent 70%),
+    linear-gradient(180deg, #1c1440, #0d1d3a 60%, #071a2c);
+}
+
+/* Atraco: el pueblo de la costa de noche, con los láseres en coral. */
+.juegos-root.s4 .hs-app::before {
+  background:
+    linear-gradient(28deg, transparent 49.8%, rgba(255, 95, 130, 0.18) 50%, transparent 50.2%),
+    linear-gradient(-34deg, transparent 49.8%, rgba(255, 95, 130, 0.14) 50%, transparent 50.2%),
+    radial-gradient(50% 40% at 50% 0%, rgba(255, 210, 94, 0.12), transparent 70%),
+    linear-gradient(180deg, transparent 80%, rgba(46, 230, 208, 0.08)),
+    linear-gradient(180deg, #121838, #0a1a2c 70%, #061629);
+}
+
+/* Plinko: la feria de la playa, neón rosa y turquesa. */
+.juegos-root.s4 .plinko-app::before {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.07) 1.5px, transparent 2px) 0 0 / 34px 34px,
+    radial-gradient(40% 50% at 0% 50%, rgba(255, 95, 162, 0.22), transparent 70%),
+    radial-gradient(40% 50% at 100% 50%, rgba(46, 230, 208, 0.2), transparent 70%),
+    linear-gradient(180deg, #24123e, #0e1a3a 60%, #071a2c);
+}
+
+/* Carrera: la carretera de la costa, con arena a los lados y el mar detrás. */
+.juegos-root.s4 .race-app::before {
+  background:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.08) 0 25%, transparent 0 50%) left bottom / 24px 24px repeat-x,
+    radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1.5px) 0 0 / 6px 6px,
+    radial-gradient(60% 30% at 50% 0%, rgba(255, 138, 76, 0.18), transparent 70%),
+    radial-gradient(ellipse at 50% 0%, #1f3a52, #0e2236 60%, #081626);
+}
+
+/* Ruleta: un tapete color laguna con el borde de bambú. */
+.juegos-root.s4 .roulette-live::before {
+  background:
+    radial-gradient(ellipse at 50% 40%, transparent 55%, rgba(0, 0, 0, 0.5)),
+    radial-gradient(circle, rgba(0, 0, 0, 0.08) 1px, transparent 1.5px) 0 0 / 4px 4px,
+    radial-gradient(ellipse at 50% 0%, #138a86, #0a4a55 60%, #06303d);
+  box-shadow:
+    inset 0 0 0 6px rgba(214, 170, 96, 0.5),
+    inset 0 0 0 9px rgba(120, 82, 40, 0.5),
+    inset 0 0 0 12px rgba(214, 170, 96, 0.28);
+}
+
+/* Torre: el cielo del atardecer sobre el mar (la torre pinta el suyo en la escena). */
+.juegos-root.s4 .tw-app::before {
+  background:
+    radial-gradient(1px 1px at 15% 15%, #fff, transparent),
+    radial-gradient(1px 1px at 75% 10%, #fff, transparent),
+    radial-gradient(1px 1px at 90% 35%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(60% 40% at 50% 100%, rgba(255, 138, 76, 0.24), transparent 70%),
+    linear-gradient(180deg, #14123c, #2a1f58 55%, #4a2a5c 78%, #0a3448 88%, #061f30);
+}
+
+/* Inmobiliaria: el plano de la isla, con la cuadrícula sobre la arena y el agua. */
+.juegos-root.s4 .im-app::before {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px) 0 0 / 48px 48px,
+    radial-gradient(ellipse at 50% 0%, #136a72, #0a3a4a 60%, #062530);
+}
+
+/* Suiza: la cuenta en los Alpes sigue siendo de nieve (es la gracia), pero bajo el mismo cielo de la temporada. */
+.juegos-root.s4 .sz-app::before {
+  background:
+    radial-gradient(50% 30% at 80% 0%, rgba(255, 107, 90, 0.16), transparent 70%),
+    radial-gradient(ellipse at 50% 0%, #22306a, #0b1430 70%, #061629);
+}
+
+/* ============================== Cabecera de cada juego ==============================
+   El título con el degradado del atardecer y la línea de debajo como una ola. */
+.juegos-root.s4 .app > .top {
+  border-color: rgba(143, 227, 255, 0.14);
+  background:
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.16), transparent 45%),
+    rgba(7, 22, 40, 0.55);
+}
+
+/* ============================== Ruleta ============================== */
+/* El cero y las casillas verdes pasan a turquesa de laguna; rojos y negros se quedan para que se lean igual. */
+.juegos-root.s4 .roulette-live {
+  --green: #109c8e;
+  --line: rgba(255, 246, 232, 0.6);
+}
+
+/* ============================== Subasta ============================== */
+/* El escenario de la caja: la playa de noche, con el mar al fondo y la arena donde se posa la caja. */
+.juegos-root.s4 .au-scene {
+  background:
+    radial-gradient(ellipse at 24% 0%, color-mix(in srgb, var(--tone) 16%, transparent), transparent 60%),
+    radial-gradient(1px 1px at 70% 8%, #fff, transparent),
+    radial-gradient(1px 1px at 86% 14%, #fff, transparent),
+    radial-gradient(1px 1px at 58% 5%, rgba(255, 255, 255, 0.8), transparent),
+    linear-gradient(180deg, transparent 78%, rgba(233, 207, 152, 0.16) 78%, rgba(233, 207, 152, 0.08)),
+    linear-gradient(180deg, #23163e 0%, #13284a 55%, #0b3a52 78%, #0a2232 100%);
+}
+
+/* ============================== Bingo ============================== */
+.juegos-root.s4 .bingo-live .bingo__buy .primary {
+  background: linear-gradient(180deg, #ffe36e, #ffb547 55%, #ff8a4c);
+  color: #3a1604;
+}
+
+/* ============================== Plinko ============================== */
+/* El tablero: el mar de noche con la luna reflejada; los clavos son perlas. */
+.juegos-root.s4 .plinko__board {
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255, 95, 162, 0.3), transparent 70%),
+    radial-gradient(ellipse 50% 30% at 50% 100%, rgba(46, 230, 208, 0.18), transparent 70%),
+    radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1.5px) 0 0 / 18px 18px,
+    linear-gradient(180deg, #2a1650, #13244e 60%, #0a1c34);
+}
+.juegos-root.s4 .plinko-app .plinko__drop button.primary {
+  background: linear-gradient(180deg, #ffe36e, #ffb547);
+}
+.juegos-root.s4 .plinko-app .plinko__drop button.primary:not(:disabled):hover {
+  background: linear-gradient(180deg, #fff3a8, #ffc35a);
+}
+
+/* ============================== Rana ============================== */
+/* La laguna más turquesa y clara, con la orilla de arena alrededor. */
+.juegos-root.s4 .frog__pond {
+  background:
+    radial-gradient(ellipse 60% 40% at 30% 20%, rgba(255, 255, 255, 0.12), transparent 70%),
+    linear-gradient(180deg, #2fc4bf, #179aa0 45%, #0b5a70);
+  box-shadow:
+    0 0 0 6px rgba(233, 207, 152, 0.55),
+    0 0 0 10px rgba(180, 140, 80, 0.35),
+    inset 0 0 40px rgba(0, 40, 60, 0.45);
+}
+
+/* ============================== Torre ============================== */
+/* Cielo tropical: atardecer naranja y rosa al empezar, noche estrellada arriba. */
+.juegos-root.s4 .tw-sky__dusk {
+  background: linear-gradient(180deg, #2a2a7a 0%, #b04a8a 42%, #ff7a5a 72%, #ffd36e 100%);
+}
+.juegos-root.s4 .tw-sky__night {
+  background: linear-gradient(180deg, #070b2a 0%, #14205e 55%, #2a3f8a 100%);
+}
+
+/* ============================== Atraco ============================== */
+/* La noche de la costa: el cielo pasa de azul a un rastro del atardecer sobre el mar. */
+.juegos-root.s4 .hs-sky {
+  background:
+    radial-gradient(1.5px 1.5px at 8% 6%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 24% 14%, #cfe3ff 50%, transparent 51%),
+    radial-gradient(1px 1px at 41% 5%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 63% 11%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 78% 4%, #cfe3ff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 93% 15%, #fff 50%, transparent 51%),
+    linear-gradient(180deg, #0a0f2e 0%, #1a1d4e 30%, #4a2a5c 48%, #0e2a3a 60%, #0a1820 100%);
+}
+
+/* ============================== Ascensor ============================== */
+/* Un hotel de playa: paredes de estuco en colores de la isla, zócalo de azulejo y una palmera en maceta. */
+.juegos-root.s4 .pv-landing--lobby {
+  --wall:
+    linear-gradient(180deg, transparent 78%, #1f8f8a 78% 79%, transparent 79%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px 3.2cqw) 0 100% / 100% 22% no-repeat,
+    linear-gradient(180deg, transparent 78%, #48c2b6 78%),
+    linear-gradient(180deg, #ffe7c8, #ffcfa6);
+  --ink: #4a2414;
+}
+.juegos-root.s4 .pv-landing--office {
+  --wall:
+    linear-gradient(180deg, transparent 80%, #2aa59a 80%),
+    linear-gradient(180deg, #ffd9b8, #f4b48a);
+  --ink: #4a2414;
+}
+.juegos-root.s4 .pv-landing--high {
+  --wall: linear-gradient(180deg, #2a5a7a, #173a58);
+}
+.juegos-root.s4 .pv-landing--sky {
+  --wall: linear-gradient(180deg, #1c1a48, #0e1838);
+}
+.juegos-root.s4 .pv-landing--roof {
+  --wall: linear-gradient(180deg, #120f40 0%, #6a2a7a 50%, #ff7a5a 85%, #ffc35a 100%);
+}
+/* Por la ventana se ve el mar y el atardecer en vez de la ciudad. */
+.juegos-root.s4 .pv-sky--high {
+  background: linear-gradient(180deg, #3a2a7a, #ff6b5a 62%, #ffc35a 72%, #2ec4c0 72%, #0b6a7a);
+}
+.juegos-root.s4 .pv-sky--sky {
+  background: linear-gradient(180deg, #060a22, #16205a 68%, #0b3a52 68%, #071f30);
+}
+.juegos-root.s4 .pv-city i {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 6px, rgba(255, 220, 140, 0.5) 6px 8px),
+    #13203a;
+}
+.juegos-root.s4 .pv-sky--high .pv-city i {
+  background: #3a1f4a;
+}
+/* La planta del vestíbulo es una palmera en maceta: tronco curvado, penacho de hojas y maceta de terracota. */
+.juegos-root.s4 .pv-plant {
+  background:
+    radial-gradient(70% 14% at 18% 22%, #2fae5e 60%, transparent 62%),
+    radial-gradient(70% 14% at 82% 20%, #3cc46c 60%, transparent 62%),
+    radial-gradient(56% 12% at 26% 10%, #3cc46c 60%, transparent 62%),
+    radial-gradient(56% 12% at 74% 9%, #24934e 60%, transparent 62%),
+    radial-gradient(40% 14% at 50% 14%, #2fae5e 60%, transparent 62%),
+    repeating-linear-gradient(180deg, #a8743e 0 6%, #8a5a2c 6% 8%) 46% 18% / 12% 58% no-repeat,
+    linear-gradient(180deg, transparent 76%, #ff7a5a 76% 80%, #d8502f 80%);
+}
+
+/* La costa al pie de la torre (Tower.jsx): volcán y palmera en silueta y el mar con destellos. */
+.juegos-root.s4 .tw-city {
+  fill: #0a1230;
+}
+.juegos-root.s4 .tw-city__sea {
+  fill: #0b4a5e;
+}
+.juegos-root.s4 .tw-city__lights {
+  fill: #8fe3ff;
+}
+/* Los muros de la torre, de piedra volcánica cálida. */
+.juegos-root.s4 .tw-tower {
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(255, 160, 100, calc(0.22 - var(--h) * 0.15)), transparent 70%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.45), transparent 14%, transparent 86%, rgba(0, 0, 0, 0.45)),
+    repeating-linear-gradient(180deg, transparent 0 23px, rgba(255, 255, 255, 0.025) 23px 24px),
+    linear-gradient(180deg, #2a1a40, #2e1f3a);
+  border-image: repeating-linear-gradient(180deg, #6a4a5a 0 18px, #3e2a3c 18px 20px, #5a3e50 20px 38px, #3e2a3c 38px 40px) 12;
+}
+
+/* ============================== Ajedrez ==============================
+   El tablero gigante pasa a una terraza de piedra volcánica junto al mar, de noche: losas de arenisca clara y basalto,
+   antorchas de bambú y la bruma del mar en vez de la niebla de la cámara. */
+.juegos-root.s4 .chess-app {
+  --cz-light: #e6d2b0;
+  --cz-dark: #2a2630;
+  --cz-fire: 255, 140, 70;
+}
+.juegos-root.s4 .chess-app::before {
+  background:
+    radial-gradient(1px 1px at 12% 8%, #fff, transparent),
+    radial-gradient(1px 1px at 34% 14%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 66% 6%, #fff, transparent),
+    radial-gradient(1px 1px at 84% 16%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(28% 38% at 4% 40%, rgba(var(--cz-fire), 0.24), transparent 70%),
+    radial-gradient(28% 38% at 96% 40%, rgba(var(--cz-fire), 0.24), transparent 70%),
+    radial-gradient(60% 18% at 50% 30%, rgba(255, 107, 90, 0.16), transparent 70%),
+    linear-gradient(180deg, transparent 30%, rgba(10, 60, 80, 0.55) 30%, rgba(8, 40, 58, 0.3) 44%, transparent 44%),
+    repeating-linear-gradient(0deg, transparent 0 58px, rgba(0, 0, 0, 0.3) 58px 61px) 0 100% / 100% 56% no-repeat,
+    linear-gradient(180deg, #120f36 0%, #1d1a4a 30%, #0e2a3c 30%, #0a2030 44%, #1a1620 44%, #100d14 100%);
+}
+/* Antorchas tiki: caña de bambú con sus nudos. */
+.juegos-root.s4 .cz-torch {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 18px, rgba(60, 36, 12, 0.6) 18px 21px),
+    linear-gradient(90deg, #8a5a24, #d6a35a 50%, #8a5a24);
+}
+.juegos-root.s4 .cz-torch::before {
+  background: linear-gradient(180deg, #a8743e, #5a3a18);
+}
+.juegos-root.s4 .cz-mist {
+  background:
+    radial-gradient(40% 50% at 25% 70%, rgba(143, 227, 255, 0.1), transparent 70%),
+    radial-gradient(45% 45% at 70% 65%, rgba(143, 227, 255, 0.08), transparent 70%),
+    radial-gradient(60% 40% at 50% 100%, rgba(143, 227, 255, 0.1), transparent 75%);
+}

@@ -41,13 +41,14 @@ export const CAR_INFO = [
 // Los circuitos (el trazado y el decorado están en raceArt.js, en el mismo orden): unos de tres vueltas y otros de
 // aceleración (`drag`: una sola recta de la salida a la meta). Solo cambian el aspecto: los coches siguen igual de rápidos y el
 // sorteo del servidor no los mira.
+// Season 4 · Islas: los seis circuitos son de la isla (solo cambian el nombre y el dibujo, no las reglas).
 export const CIRCUITS = [
-  { name: 'Neón City', tag: 'Circuito urbano', color: '#3cc8ff', laps: 3 },
-  { name: 'Desierto Dorado', tag: 'Rectas largas y horquilla', color: '#ff8c3c', laps: 3 },
-  { name: 'Glaciar Polar', tag: 'Horquilla sobre el hielo', color: '#9ab8ff', laps: 3 },
-  { name: 'Selva Esmeralda', tag: 'Eses en la jungla', color: '#9cff5a', laps: 3 },
-  { name: 'Autopista Neón', tag: 'Aceleración · 402 m', color: '#ff4fd8', laps: 1, drag: true },
-  { name: 'Lago Helado', tag: 'Aceleración sobre hielo', color: '#d6f2ff', laps: 1, drag: true },
+  { name: 'Paseo Marítimo', tag: 'Circuito urbano junto al mar', color: '#3cc8ff', laps: 3 },
+  { name: 'Dunas Doradas', tag: 'Rectas largas entre dunas', color: '#ffb547', laps: 3 },
+  { name: 'Malpaís del Volcán', tag: 'Horquilla sobre la lava', color: '#ff6b3c', laps: 3 },
+  { name: 'Barranco Esmeralda', tag: 'Eses entre palmeras', color: '#9cff5a', laps: 3 },
+  { name: 'Avenida de la Playa', tag: 'Aceleración · 402 m', color: '#ff4f8b', laps: 1, drag: true },
+  { name: 'Lengua de Lava', tag: 'Aceleración junto al volcán', color: '#ff8a4c', laps: 1, drag: true },
 ]
 
 export const DRAW_MS = 4300 // el sorteo del circuito se ve al abrirse las apuestas, durante este rato

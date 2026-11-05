@@ -76,12 +76,12 @@ const DRAG_POLE = 400
 
 const THEMES = {
   city: {
-    ground: ['#0d2a1d', '#0b2418'], base: '#071219', speck: '160,255,190', outside: 'city', trees: 'round', leaf: ['#2f7d4a', '#0f3a24'],
+    ground: ['#0d2a1d', '#0b2418'], base: '#071219', speck: '160,255,190', outside: 'city', trees: 'palm', leaf: ['#3fae4f', '#0e4a1f'],
     water: ['#0f4a63', '#082a3a', '120,230,255'], neon: '60,210,255', neonHi: '120,240,255',
     kerb: ['#c42f35', '#f4f1ea'], runoff: '#0d1a20', asphalt: '#2a2f36', wet: true, lamp: '255,236,190',
   },
   desert: {
-    ground: ['#4a3016', '#432a12'], base: '#2a1a0c', speck: '255,214,150', outside: 'dunes', trees: 'cactus', leaf: ['#6f9a45', '#2f4f1c'],
+    ground: ['#4a3016', '#432a12'], base: '#2a1a0c', speck: '255,214,150', outside: 'dunes', trees: 'palm', leaf: ['#5fbf4f', '#1f5a24'],
     water: ['#1f8a8a', '#0d4d55', '140,255,235'], neon: '255,140,60', neonHi: '255,200,120',
     kerb: ['#d9541e', '#fbe7c6'], runoff: '#3a2614', asphalt: '#34302d', wet: false, lamp: '255,210,150',
   },
@@ -89,6 +89,12 @@ const THEMES = {
     ground: ['#8fa3b5', '#869aac'], base: '#6f8396', speck: '255,255,255', outside: 'snow', trees: 'pine', leaf: ['#3f6b5c', '#173a33'],
     water: ['#bfe9ff', '#7cc4e8', '255,255,255'], neon: '120,170,255', neonHi: '200,225,255',
     kerb: ['#2f62d9', '#ffffff'], runoff: '#5d6e7e', asphalt: '#30363e', wet: true, lamp: '220,235,255',
+  },
+  // Season 4: malpaís volcánico, roca negra con ríos de lava y tabaibas.
+  volcano: {
+    ground: ['#2a1d1d', '#251a1a'], base: '#120c0c', speck: '255,150,90', outside: 'lava', trees: 'round', leaf: ['#7aa84a', '#2f4f1c'],
+    water: ['#0f6b7a', '#073a45', '150,255,235'], neon: '255,110,60', neonHi: '255,180,120',
+    kerb: ['#e0451e', '#f4ece0'], runoff: '#1c1414', asphalt: '#2e2a2a', wet: false, lamp: '255,200,150',
   },
   jungle: {
     ground: ['#123b1c', '#0f3318'], base: '#06150a', speck: '190,255,160', outside: 'jungle', trees: 'palm', leaf: ['#3fae4f', '#0e4a1f'],
@@ -120,14 +126,14 @@ export const LAYOUTS = [
     theme: THEMES.desert,
   },
   {
-    // Glaciar Polar: un triángulo rápido con una horquilla profunda que se mete en el campo de hielo.
+    // Malpaís del Volcán: un triángulo rápido con una horquilla profunda que se mete en la lava.
     ctrl: [
       [1400, 1420], [2050, 1420], [2350, 1350], [2470, 1150], [2380, 900], [2150, 720], [1950, 520], [1800, 300], [1580, 230], [1420, 360],
       [1420, 600], [1300, 830], [1060, 830], [940, 600], [880, 350], [680, 240], [440, 300], [300, 500], [300, 800], [260, 1080], [380, 1330],
       [700, 1420],
     ],
     lake: [1950, 1060, 200, 90, 0.1],
-    theme: THEMES.snow,
+    theme: THEMES.volcano,
   },
   {
     // Selva Esmeralda: eses enlazadas por toda la jungla.
@@ -141,7 +147,7 @@ export const LAYOUTS = [
   },
   // Rectas de aceleración.
   { drag: true, theme: THEMES.city },
-  { drag: true, theme: THEMES.snow },
+  { drag: true, theme: THEMES.volcano },
 ]
 
 export function buildTrack(ctrl) {
@@ -530,6 +536,41 @@ function snowfield(g, R) {
   glows(g, lights, 44)
 }
 
+// Malpaís: coladas de roca negra con grietas de lava encendida y algún río de lava que brilla.
+function lava(g, R) {
+  const hot = []
+  for (let i = 0; i < many(170); i++) {
+    const x = R() * decoW
+    const y = R() * decoH
+    if (!outside(x, y)) continue
+    // río de lava: una línea quebrada que brilla
+    if (R() < 0.6) {
+      g.strokeStyle = '#ff7a2a'
+      g.lineWidth = 2 + R() * 3
+      g.lineCap = 'round'
+      g.beginPath()
+      let px = x
+      let py = y
+      g.moveTo(px, py)
+      for (let k = 0; k < 5; k++) {
+        px += 16 + R() * 26
+        py += (R() - 0.5) * 30
+        g.lineTo(px, py)
+        if (k % 2 === 0) hot.push([px, py, '255,110,40', 0.45])
+      }
+      g.stroke()
+    }
+  }
+  for (let i = 0; i < many(260); i++) {
+    const x = R() * decoW
+    const y = R() * decoH
+    if (!outside(x, y)) continue
+    rock(g, x, y, 8 + R() * 18, R, '#1e1818', '#3a3030')
+    if (R() < 0.05) hot.push([x, y, '255,90,30', 0.35])
+  }
+  glows(g, hot, 46)
+}
+
 // Selva: copas de árboles muy juntas, flores y luciérnagas.
 function jungle(g, R) {
   for (let i = 0; i < many(2600); i++) {
@@ -663,7 +704,7 @@ function ground(g, R, T) {
   }
 }
 
-const OUTSIDE = { city, dunes, snow: snowfield, jungle }
+const OUTSIDE = { city, dunes, snow: snowfield, lava, jungle }
 const CROWD = ['#ff5a5a', '#ffd35a', '#5ad2ff', '#f1e9d6', '#a97bff', '#ffffff']
 
 // ---------- fondo: el decorado de la pista actual ----------
