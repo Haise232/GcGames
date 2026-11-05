@@ -1,71 +1,63 @@
-// Reglas puras de Buceo de Perlas (Season 4): las usa la pantalla (Buceo.jsx) para pintar y el servidor
-// (api/_juegos/solo.mjs) para sortear. Bajas al fondo del mar tramo a tramo abriendo una ostra en cada uno: si sale perla,
-// el premio crece; si te sale un tiburón o se te acaba el aire, pierdes la apuesta. Subes y cobras cuando quieras.
+// Reglas puras de Buceo de Perlas (Season 4): las usan la pantalla (Buceo.jsx) para pintar y el servidor
+// (api/_juegos/solo.mjs) para sortear y pagar. Se juega manteniendo pulsado: mientras mantienes, el buzo baja; al soltar,
+// sube. Cuanto más hondo llegues y consigas volver, más cobras.
 //
-// Cada tramo se sortea en el servidor al bajarlo. Puede salir:
-// - un tiburón o el aire que se acaba (probabilidad risk de la zona): se pierde todo;
-// - una perla negra (BLACK): el premio se multiplica por 2·f;
-// - una perla normal (el resto): el premio se multiplica por f.
-// f = 1 / (1 − risk + BLACK), así que cada tramo vale de media lo mismo que lo que llevas: bajes lo que bajes, de media se
-// recupera el HOUSE (96 %) de la apuesta. El tope (MAX_MULT) y redondear hacia abajo solo lo bajan un poco.
+// Dos peligros:
+// - El tiburón: al tirarte, el servidor decide en secreto a qué profundidad aparece (como el punto de explosión del
+//   Cohete). Si llegas a esa profundidad bajando, te pilla y pierdes la apuesta. La probabilidad de no cruzártelo hasta d
+//   metros es e^(−λ·d), y el premio a d metros es HOUSE · e^(λ·d): bajes hasta donde bajes, de media se recupera el 96 %.
+// - El aire: la botella dura AIR_MS y se gasta bajando y subiendo, y subir es más lento que bajar (UP_MPS < DOWN_MPS).
+//   Si sueltas tan abajo que no te llega el aire para volver, te ahogas por el camino y pierdes. Se ve en la botella: no
+//   cambia el 96 %, solo pone un límite a lo hondo que se puede llegar.
+// El servidor mide la bajada con su propio reloj, desde que te tiras hasta que sueltas.
 
 export const MIN_BET = 10
 export const MAX_BET = 2000
 export const STEP = 10
 export const HOUSE = 0.96
-export const MAX_MULT = 500 // tope del premio: abajo del todo en el Abismo con perlas negras se llega
-export const MAX_DEPTH = 10 // tramos que dura la botella de aire: en el último subes solo
-export const METERS = 4 // metros por tramo (solo se ve)
-export const BLACK = 0.04 // probabilidad de perla negra en cada tramo
+export const MAX_M = 40 // el fondo: más abajo no se puede
+export const DOWN_MPS = 2.5 // metros por segundo bajando
+export const UP_MPS = 1.25 // y subiendo (la mitad: subir cuesta)
+export const AIR_MS = 40000 // lo que dura la botella, bajando y subiendo
+export const PEARL_M = 4 // una ostra cada 4 m (solo se ve: las perlas que recoges al pasar)
 
-// Zonas: cuanto más hondo, más tiburones y más paga cada perla.
+// Zonas: lo que pagaría llegar al fondo (40 m) sin cruzarte el tiburón. Cuanto más paga, antes suele aparecer.
 export const ZONES = {
-  laguna: { name: 'Laguna', risk: 0.15 },
-  arrecife: { name: 'Arrecife', risk: 0.25 },
-  abismo: { name: 'Abismo', risk: 0.4 },
+  laguna: { name: 'Laguna', top: 4 },
+  arrecife: { name: 'Arrecife', top: 15 },
+  abismo: { name: 'Abismo', top: 80 },
 }
 
 export const validBet = (bet) => Number.isInteger(bet) && bet >= MIN_BET && bet <= MAX_BET && bet % STEP === 0
 export const validZone = (zone) => typeof zone === 'string' && Object.hasOwn(ZONES, zone)
 
-// Lo que multiplica una perla normal en esa zona (la negra, el doble).
-export const factorOf = (zone) => 1 / (1 - ZONES[zone].risk + BLACK)
+// λ de cada zona: cuánto crece el premio (y el riesgo) por metro.
+export const rateOf = (zone) => Math.log(ZONES[zone].top / HOUSE) / MAX_M
 
-// Multiplicador guardado con 4 decimales, para que el navegador y el servidor lleguen al mismo número.
-const round4 = (m) => Math.round(m * 10000) / 10000
+// Profundidad tras `ms` bajando.
+export const depthAt = (ms) => Math.max(0, Math.min(MAX_M, (ms / 1000) * DOWN_MPS))
+// Lo que se tarda en subir desde `d` metros.
+export const upMs = (d) => (d / UP_MPS) * 1000
+// ¿Llega el aire para subir desde d metros si llevas `downMs` bajando?
+export const canReturn = (downMs, d) => downMs + upMs(d) <= AIR_MS
+// Lo más hondo desde lo que aún se puede volver (bajando sin parar y subiendo justo después): unos 33 m.
+export const SAFE_M = Math.min(MAX_M, AIR_MS / 1000 / (1 / DOWN_MPS + 1 / UP_MPS))
 
-// El multiplicador tras un tramo con perla: el primero parte del HOUSE; después se multiplica lo que ya llevabas.
-export function nextMult(zone, mult, black) {
-  const base = mult > 0 ? mult : HOUSE
-  return round4(Math.min(MAX_MULT, base * factorOf(zone) * (black ? 2 : 1)))
+// Multiplicador a d metros (centésimas hacia abajo; el 1e-6 evita que la coma flotante baje una de más).
+export const multAt = (zone, d) => Math.floor(HOUSE * Math.exp(rateOf(zone) * Math.max(0, d)) * 100 + 1e-6) / 100
+export const payout = (bet, mult) => Math.floor(bet * mult + 1e-6)
+
+// La profundidad del tiburón: rand(n) es un entero de 0 a n−1. P(más hondo que d) = e^(−λ·d). Si sale más allá del
+// fondo, esta vez no hay tiburón.
+export function sharkDepth(zone, rand) {
+  const u = (rand(1_000_000_000) + 1) / 1_000_000_000
+  return -Math.log(u) / rateOf(zone)
 }
-
-// Lo que se ve y se cobra: a la centésima hacia abajo. El 1e-6 evita que la coma flotante baje una centésima de más
-// (11,53 × 100 da 1152,999…).
-export const shownMult = (mult) => Math.floor(mult * 100 + 1e-6) / 100
-export const payout = (bet, mult) => Math.floor(bet * shownMult(mult) + 1e-6)
-
-// Lo que pagaría el siguiente tramo con perla normal (para enseñarlo antes de bajar).
-export const nextIfPearl = (zone, mult) => shownMult(nextMult(zone, mult, false))
-
-// Un tramo: rand(n) es un entero de 0 a n−1. Devuelve 'shark', 'air', 'black' o el color de una perla normal.
-const PEARLS = ['white', 'pink', 'gold', 'blue']
-export function diveRoll(zone, rand) {
-  const r = rand(10000)
-  const lose = Math.round(ZONES[zone].risk * 10000)
-  if (r < lose) return r % 2 === 0 ? 'shark' : 'air'
-  if (r < lose + Math.round(BLACK * 10000)) return 'black'
-  return PEARLS[r % PEARLS.length]
-}
-export const isLoss = (kind) => kind === 'shark' || kind === 'air'
+// Cuándo te pilla bajando (ms desde que te tiras), o Infinity si no llega a aparecer.
+export const sharkMs = (shark) => (shark < MAX_M ? (shark / DOWN_MPS) * 1000 : Infinity)
 
 // --- Ayudas de la pantalla ---
 export const maxBetFor = (balance) => Math.min(MAX_BET, Math.floor(balance / STEP) * STEP)
 export const clampBet = (bet, max) => Math.max(MIN_BET, Math.min(Math.max(max, MIN_BET), Math.round(bet / STEP) * STEP))
 export const fmtMult = (m) => `×${m.toLocaleString('es-ES', { maximumFractionDigits: 2 })}`
-// Lo que se lleva quien baja n tramos con perla normal (sin perlas negras), para la ayuda y el panel.
-export function multAfter(zone, n) {
-  let m = 0
-  for (let i = 0; i < n; i++) m = nextMult(zone, m, false)
-  return shownMult(m)
-}
+export const fmtM = (d) => `${Math.floor(d)} m`

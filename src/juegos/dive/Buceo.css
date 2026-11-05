@@ -118,25 +118,36 @@
   white-space: nowrap;
 }
 
-/* La botella de aire: diez rayitas. */
+/* La botella de aire: lo que queda (--left) y, con una raya blanca, lo que hace falta para volver (--need). */
 .juegos-root .bz-tank {
-  display: flex;
-  gap: 3px;
-  padding: 3px 0 2px;
-}
-.juegos-root .bz-tank i {
-  width: 7px;
-  height: 16px;
-  border-radius: 3px;
+  position: relative;
+  display: block;
+  width: 110px;
+  height: 14px;
+  margin: 4px 0 2px;
+  overflow: hidden;
+  border-radius: 7px;
   background: rgba(255, 255, 255, 0.16);
-  transition: background 0.3s;
 }
-.juegos-root .bz-tank i.is-on {
-  background: linear-gradient(180deg, #8fe3ff, #2ee6d0);
+.juegos-root .bz-tank__air {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--left) * 100%);
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2ee6d0, #8fe3ff);
 }
-.juegos-root .bz-tank.is-low i.is-on {
-  background: linear-gradient(180deg, #ffb547, #ff4f6a);
-  animation: bz-blink 0.8s ease-in-out infinite alternate;
+.juegos-root .bz-tank__need {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: calc(var(--need) * 100%);
+  width: 3px;
+  background: #fff;
+  box-shadow: 0 0 6px #fff;
+}
+.juegos-root .bz-tank.is-low .bz-tank__air {
+  background: linear-gradient(90deg, #ff4f6a, #ffb547);
+  animation: bz-blink 0.5s ease-in-out infinite alternate;
 }
 @keyframes bz-blink {
   to {
@@ -533,5 +544,90 @@
   }
   .juegos-root :is(.bz-gain, .bz-shark) {
     animation-duration: 0.01s;
+  }
+}
+
+/* ---------- Mantener para bajar ---------- */
+/* Mientras el buzo se mueve, la cámara y el buzo siguen al fotograma, sin transiciones que los retrasen. */
+.juegos-root .bz-window.is-moving :is(.bz-world, .bz-diver) {
+  transition: none;
+}
+.juegos-root .bz-diver.is-swim .bz-diver__body {
+  rotate: 75deg;
+}
+.juegos-root .bz-diver.is-up .bz-diver__body {
+  rotate: -75deg;
+}
+.juegos-root .bz-diver__body {
+  transition: rotate 0.3s;
+}
+/* El límite del aire: una línea discontinua en el agua. */
+.juegos-root .bz-limit line {
+  stroke: #ff8a8a;
+  stroke-width: 3;
+  stroke-dasharray: 14 10;
+  opacity: 0.7;
+}
+.juegos-root .bz-limit text {
+  fill: #ffb0b0;
+  font-size: 18px;
+  font-weight: 800;
+}
+.juegos-root .bz-gauge__safe {
+  position: absolute;
+  top: calc(var(--s) * 100%);
+  right: -3px;
+  left: -3px;
+  height: 3px;
+  background: #ff8a8a;
+}
+.juegos-root .bz-stage.is-warn {
+  box-shadow:
+    0 0 0 3px #ff4f6a,
+    0 0 40px rgba(255, 79, 106, 0.5);
+}
+/* El botón grande: se mantiene pulsado. */
+.juegos-root .bz-hold {
+  min-height: 84px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  background: linear-gradient(180deg, #8fe3ff, #2ea0d8);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 6px 0 #135a8a,
+    0 12px 30px rgba(46, 160, 216, 0.4);
+  color: #04223a;
+}
+.juegos-root .bz-hold__text {
+  display: grid;
+  justify-items: center;
+}
+.juegos-root .bz-hold__text b {
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 400;
+}
+.juegos-root .bz-hold__text small {
+  font-size: 13px;
+  font-weight: 700;
+}
+.juegos-root .bz-hold.is-held {
+  translate: 0 4px;
+  background: linear-gradient(180deg, #ffe36e, #ff8a4c);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 2px 0 #a2381c;
+  color: #2a0f2e;
+}
+.juegos-root .bz-hold.is-held.is-warn {
+  background: linear-gradient(180deg, #ff9a8a, #e0485a);
+  animation: bz-blink 0.4s ease-in-out infinite alternate;
+}
+@media (max-width: 860px) {
+  .juegos-root .bz-hold {
+    position: sticky;
+    bottom: 8px;
   }
 }

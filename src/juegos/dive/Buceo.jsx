@@ -1,13 +1,14 @@
-// Buceo de Perlas (Season 4): bajas al fondo del mar tramo a tramo y en cada uno abres una ostra. Si sale perla, el premio
-// crece (la perla negra lo dobla); si sale un tiburón o se acaba el aire, pierdes la apuesta. Subes y cobras cuando
-// quieras, o eliges hasta dónde bajar y el buzo lo hace solo. Cada tramo lo sortea el servidor al bajarlo (reglas en
-// dive.js); aquí solo se anima.
+// Buceo de Perlas (Season 4): se juega manteniendo pulsado. Mientras mantienes (espacio o el botón), el buzo baja; al
+// soltar, sube. Cuanto más hondo llegues y consigas volver, más cobras. Dos peligros: el tiburón, que aparece a una
+// profundidad que el servidor sortea en secreto al tirarte, y el aire, que se gasta bajando y subiendo (subir es más
+// lento): si sueltas tan abajo que no llegas, te ahogas por el camino. Reglas en dive.js; el servidor mide la bajada con
+// su reloj y aquí solo se anima.
 // La escena es un mar en vertical de 0 a 40 m (un SVG alto) y la cámara sigue al buzo. Cada zona tiene su paisaje:
 // la Laguna clara, el Arrecife con corales y el Abismo a oscuras, con la linterna del buzo como única luz.
 // El panel (apuesta, zonas, récord del día) usa las piezas de Tesoro en la Arena (ar-*, dig/Arena.css).
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useEffectEvent } from '../comun/useEffectEvent.js'
-import { BLACK, MAX_DEPTH, MAX_MULT, METERS, MIN_BET, STEP, ZONES, clampBet, fmtMult, isLoss, maxBetFor, multAfter, nextIfPearl, payout, shownMult } from './dive.js'
+import { AIR_MS, DOWN_MPS, MAX_M, MIN_BET, PEARL_M, SAFE_M, STEP, UP_MPS, ZONES, clampBet, depthAt, fmtM, fmtMult, maxBetFor, multAt, payout, upMs } from './dive.js'
 import { eur } from '../comun/money.js'
 import { buzz, isMuted, playBubbles, playCash, playChip, playGasp, playGrowl, playLose, playPearl, playSplash, playWin, setMuted } from '../comun/sound.js'
 import { useCountUp } from '../comun/useCountUp.js'
@@ -17,26 +18,28 @@ import Avatar from '../comun/Avatar.jsx'
 import '../dig/Arena.css'
 import './Buceo.css'
 
-const DIVE_MS = 700 // lo que tarda el buzo en bajar un tramo antes de abrir la ostra
-const AUTO_GAP_MS = 550 // pausa entre tramos en el buceo automático, para que se vea cada ostra
 const HISTORY = 12
 const MEDALS = ['🥇', '🥈', '🥉']
 const ICONS = { laguna: '🐢', arrecife: '🪸', abismo: '🦑' }
-const PEARL_NAMES = { white: 'Perla blanca', pink: 'Perla rosa', gold: 'Perla dorada', blue: 'Perla azul', black: '¡Perla negra!', shark: '¡Tiburón!', air: 'Sin aire' }
-const PEARL_COLORS = { white: ['#ffffff', '#d8d4e4'], pink: ['#ffe8f0', '#f39ab8'], gold: ['#fff4b8', '#e0a630'], blue: ['#e6f8ff', '#6ab8e8'], black: ['#8a76b0', '#120c22'] }
-const AUTOS = [null, 3, 5, 7, 10] // tramos del buceo automático (null: a mano)
+const PEARL_COLORS = [
+  ['#ffffff', '#d8d4e4'],
+  ['#ffe8f0', '#f39ab8'],
+  ['#fff4b8', '#e0a630'],
+  ['#e6f8ff', '#6ab8e8'],
+]
+const WARN_MS = 3500 // aviso de «¡sube ya!» cuando queda menos aire que esto de margen para volver
 
 // --- El mundo: coordenadas del SVG ---
 const W = 600
 const H = 1480
 const SURFACE = 70
-const FIRST = 190 // y del primer tramo
-const GAP = 120 // de un tramo al siguiente
-const SEABED = FIRST + (MAX_DEPTH - 1) * GAP + 90
-const stepY = (n) => (n <= 0 ? SURFACE : FIRST + (n - 1) * GAP) // y del tramo n (0: la superficie)
+const MAX_DEPTH = MAX_M / PEARL_M // ostras: una cada 4 m
+const METERS = PEARL_M
+const yOf = (d) => SURFACE + d * 30 // de metros a la y del dibujo (40 m: 1270)
+const stepY = (n) => yOf(n * PEARL_M)
+const SEABED = yOf(MAX_M) + 90
 const sideOf = (n) => (n % 2 ? 'l' : 'r') // las ostras van alternando de pared
 const oysterX = (n) => (sideOf(n) === 'l' ? 96 : W - 96)
-const diverX = (n) => (n <= 0 ? W / 2 : sideOf(n) === 'l' ? 200 : W - 200)
 
 // Colores del agua de cada zona: de la superficie al fondo.
 const WATER = {
@@ -47,33 +50,28 @@ const WATER = {
 
 // --- Piezas del dibujo ---
 
-function Oyster({ n, kind, fresh }) {
+// Una ostra en su repisa: se abre al pasar por su lado y enseña la perla.
+function Oyster({ n, open, color }) {
   const x = oysterX(n)
   const y = stepY(n)
-  const open = kind !== undefined && kind !== 'air'
-  const pearl = open && !isLoss(kind)
   const flip = sideOf(n) === 'r' ? -1 : 1
-  const [hi, lo] = PEARL_COLORS[kind] ?? PEARL_COLORS.white
+  const [hi, lo] = PEARL_COLORS[color % PEARL_COLORS.length]
   return (
-    <g className={`bz-oyster ${open ? 'is-open' : ''} ${fresh ? 'is-fresh' : ''} ${kind === 'black' ? 'is-black' : ''} ${isLoss(kind) ? 'is-loss' : ''}`} transform={`translate(${x} ${y + 14}) scale(${flip} 1)`}>
-      {/* La repisa de roca. */}
+    <g className={`bz-oyster ${open ? 'is-open is-fresh' : ''}`} transform={`translate(${x} ${y + 14}) scale(${flip} 1)`}>
       <path d="M-80 18 Q-40 6 30 10 Q48 14 44 26 Q0 34 -80 32 Z" fill="#2a3a48" stroke="#101a24" strokeWidth="3" />
       <path d="M-76 20 Q-30 12 26 14" fill="none" stroke="#4a6070" strokeWidth="3" strokeLinecap="round" />
-      {/* Concha de abajo. */}
       <path d="M-26 8 Q0 26 26 8 Q0 14 -26 8 Z" fill="#8a7a9a" stroke="#2a1a3a" strokeWidth="2.5" strokeLinejoin="round" />
-      {/* Tapa: cerrada, o abierta hacia atrás. */}
       <g className="bz-oyster__lid">
         <path d={open ? 'M-26 8 Q-22 -22 0 -24 Q22 -22 26 8 Q0 -2 -26 8 Z' : 'M-26 8 Q0 -6 26 8 Q0 18 -26 8 Z'} fill="#a898b8" stroke="#2a1a3a" strokeWidth="2.5" strokeLinejoin="round" />
         {open && <path d="M-16 0 Q0 -12 16 0" stroke="#c8b8d8" strokeWidth="2" fill="none" />}
       </g>
-      {pearl && (
+      {open && (
         <g className="bz-pearl">
           <circle cx="0" cy="8" r="9" fill={lo} />
           <circle cx="0" cy="8" r="9" fill={hi} opacity="0.55" />
           <circle cx="-3" cy="5" r="2.6" fill="#fff" />
         </g>
       )}
-      {kind === 'black' && <circle className="bz-shock" cx="0" cy="8" r="20" fill="none" stroke="#c49cff" strokeWidth="4" />}
     </g>
   )
 }
@@ -241,18 +239,15 @@ function Scenery({ zone }) {
   )
 }
 
-// El mar entero, con la cámara que sigue al buzo y la linterna en el Abismo.
-function Sea({ zone, pearls, fresh, at, diving, lostKind, finished }) {
-  const depthShown = Math.min(at + (diving ? 1 : 0), MAX_DEPTH)
-  const ending = lostKind === 'air'
-  const dx = diverX(depthShown)
-  const dy = ending ? stepY(depthShown) - 60 : stepY(depthShown) - (depthShown > 0 ? 6 : 0)
-  const face = depthShown <= 0 ? 1 : sideOf(depthShown) === 'l' ? -1 : 1
-  const state = lostKind ? 'lost' : diving ? 'swim' : finished ? 'up' : 'idle'
+// El mar entero, con la cámara siguiendo al buzo (a la profundidad `depth`, en metros) y la linterna en el Abismo.
+function Sea({ zone, depth, reached, state, shark, seed, moving }) {
+  const dx = W / 2 + Math.sin(depth * 0.35) * 40
+  const dy = yOf(depth)
+  const face = state === 'up' ? 1 : -1
   const [c0, c1, c2, c3] = WATER[zone]
-  const dark = zone === 'abismo' ? Math.min(0.88, 0.25 + depthShown * 0.07) : zone === 'arrecife' ? Math.min(0.45, depthShown * 0.04) : Math.min(0.25, depthShown * 0.025)
+  const dark = zone === 'abismo' ? Math.min(0.88, 0.25 + depth * 0.018) : zone === 'arrecife' ? Math.min(0.45, depth * 0.011) : Math.min(0.25, depth * 0.006)
   return (
-    <div className="bz-window">
+    <div className={`bz-window ${moving ? 'is-moving' : ''}`}>
       <svg className="bz-world" viewBox={`0 0 ${W} ${H}`} style={{ '--dy': dy, '--w': W, '--h': H }} aria-hidden="true">
         <defs>
           <linearGradient id="bz-water" x1="0" y1="0" x2="0" y2="1">
@@ -275,11 +270,10 @@ function Sea({ zone, pearls, fresh, at, diving, lostKind, finished }) {
           </radialGradient>
           <mask id="bz-dark">
             <rect width={W} height={H} fill="#fff" />
-            <circle className="bz-lamp" r="170" fill="url(#bz-lamp)" style={{ transform: `translate(${dx}px, ${dy}px)` }} />
+            <circle r="170" fill="url(#bz-lamp)" transform={`translate(${dx} ${dy})`} />
           </mask>
         </defs>
         <rect width={W} height={H} fill="url(#bz-water)" />
-        {/* El cielo y la barca arriba. */}
         <rect width={W} height={SURFACE - 30} fill="#ffcf8a" />
         <circle cx="470" cy={SURFACE - 30} r="26" fill="#ffe36e" />
         <path className="bz-surface" d={`M-20 ${SURFACE - 30} Q0 ${SURFACE - 38} 20 ${SURFACE - 30} T60 ${SURFACE - 30} T100 ${SURFACE - 30} T140 ${SURFACE - 30} T180 ${SURFACE - 30} T220 ${SURFACE - 30} T260 ${SURFACE - 30} T300 ${SURFACE - 30} T340 ${SURFACE - 30} T380 ${SURFACE - 30} T420 ${SURFACE - 30} T460 ${SURFACE - 30} T500 ${SURFACE - 30} T540 ${SURFACE - 30} T580 ${SURFACE - 30} T620 ${SURFACE - 30} V${SURFACE - 20} H-20 Z`} fill="#c8f6ff" opacity="0.8" />
@@ -288,46 +282,37 @@ function Sea({ zone, pearls, fresh, at, diving, lostKind, finished }) {
           <path d="M34 14 V-24 L58 8 Z" fill="#fff6e8" stroke="#5a2a10" strokeWidth="2" />
         </g>
         <Scenery zone={zone} />
+        {/* Hasta dónde se puede bajar y aún volver con el aire de la botella. */}
+        <g className="bz-limit">
+          <line x1="0" x2={W} y1={yOf(SAFE_M)} y2={yOf(SAFE_M)} />
+          <text x={W / 2} y={yOf(SAFE_M) - 8} textAnchor="middle">
+            Límite del aire · {fmtM(SAFE_M)}
+          </text>
+        </g>
         {Array.from({ length: MAX_DEPTH }, (_, i) => (
-          <Oyster key={i} n={i + 1} kind={pearls[i]} fresh={fresh === i + 1} />
+          <Oyster key={i} n={i + 1} open={reached >= (i + 1) * PEARL_M} color={seed + i} />
         ))}
-        {lostKind === 'shark' && <Shark y={stepY(at)} from={sideOf(at) === 'l' ? 'r' : 'l'} />}
+        {shark !== null && <Shark y={yOf(shark)} from="r" />}
         <Diver x={dx} y={dy} face={face} state={state} />
-        {/* Oscuridad del fondo, con la luz de la linterna alrededor del buzo. */}
         <rect className="bz-dark" width={W} height={H} fill="#01030c" opacity={dark} mask="url(#bz-dark)" />
-        {zone === 'abismo' && depthShown > 0 && <circle className="bz-lamp" r="130" fill="url(#bz-glow)" style={{ transform: `translate(${dx + face * 40}px, ${dy}px)` }} />}
+        {zone === 'abismo' && depth > 0 && <circle r="130" fill="url(#bz-glow)" transform={`translate(${dx - 40} ${dy})`} />}
       </svg>
-      {/* Regla de profundidad a la izquierda de la ventana. */}
-      <div className="bz-gauge" style={{ '--p': depthShown / MAX_DEPTH }} aria-hidden="true">
+      <div className="bz-gauge" style={{ '--p': depth / MAX_M }} aria-hidden="true">
         <span className="bz-gauge__fill" />
-        <b>{depthShown * METERS} m</b>
+        <span className="bz-gauge__safe" style={{ '--s': SAFE_M / MAX_M }} />
+        <b>{fmtM(depth)}</b>
       </div>
     </div>
   )
 }
 
-// La botella de aire: diez segmentos que se van apagando.
-function Tank({ left }) {
+// La botella: el aire que queda y la marca de lo que hace falta para volver desde donde estás.
+function Tank({ left, need, warn }) {
   return (
-    <span className={`bz-tank ${left <= 2 ? 'is-low' : ''}`} aria-label={`Aire: ${left} de ${MAX_DEPTH} tramos`}>
-      {Array.from({ length: MAX_DEPTH }, (_, i) => (
-        <i key={i} className={i < left ? 'is-on' : ''} />
-      ))}
+    <span className={`bz-tank ${warn ? 'is-low' : ''}`} style={{ '--left': Math.max(0, left) / AIR_MS, '--need': Math.min(1, need / AIR_MS) }} aria-label={`Aire: ${Math.max(0, Math.ceil(left / 1000))} s`}>
+      <span className="bz-tank__air" />
+      <span className="bz-tank__need" />
     </span>
-  )
-}
-
-// El collar con las perlas de esta inmersión.
-function Necklace({ pearls }) {
-  const list = pearls.filter((p) => !isLoss(p))
-  if (!list.length) return null
-  return (
-    <div className="bz-necklace" aria-label={`Llevas ${list.length} perla${list.length === 1 ? '' : 's'}`}>
-      {list.map((p, i) => {
-        const [hi, lo] = PEARL_COLORS[p]
-        return <i key={i} className={p === 'black' ? 'is-black' : ''} style={{ '--hi': hi, '--lo': lo }} />
-      })}
-    </div>
   )
 }
 
@@ -336,14 +321,11 @@ function Necklace({ pearls }) {
 function Buceo({ onExit, juegos }) {
   const [bet, setBet] = useState(50)
   const [zone, setZone] = useState('arrecife')
-  const [auto, setAuto] = useState(null) // tramos hasta los que baja solo (null: a mano)
-  const [autoRun, setAutoRun] = useState(false) // el buceo automático está en marcha
   const [sound, setSound] = useState(() => !isMuted())
-  const [run, setRun] = useState(null) // { bet, zone, depth, mult, pearls } mientras hay una inmersión
+  const [run, setRun] = useState(null) // { bet, zone, start } mientras bajas (start: hora del servidor)
+  const [rise, setRise] = useState(null) // la subida que se está animando: { from, to, at (hora local), ms, result }
+  const [holding, setHolding] = useState(false)
   const [asking, setAsking] = useState(false)
-  const [diving, setDiving] = useState(false)
-  const [fresh, setFresh] = useState(null) // el último tramo abierto, para su animación
-  const [gain, setGain] = useState(null) // { id, text, black } lo que subió el premio en el último tramo
   const [last, setLast] = useState(null)
   const [history, setHistory] = useState([])
   const [ranking, setRanking] = useState([])
@@ -351,210 +333,260 @@ function Buceo({ onExit, juegos }) {
   const [bank, setBank] = useState(null)
   const [ready, setReady] = useState(false)
   const [shake, setShake] = useState(false)
-  const lock = useRef(false)
-  const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
+  const [, setFrame] = useState(0)
+  const skew = useRef(0)
+  const held = useRef(false) // el dedo (o la tecla) sigue apretado
+  const sent = useRef(false) // ya se mandó el «up» de esta inmersión
+  const passed = useRef(0) // ostras por las que ya has pasado (para el sonido)
+  const landedRound = useRef(null) // la inmersión cuyo resultado ya se enseñó
   const { request } = juegos
   const serverBalance = juegos.me?.balance ?? 0
   const [balance, setBalance] = useState(serverBalance)
   useEffect(() => {
-    if (!asking && !diving) setBalance(serverBalance)
-  }, [serverBalance, asking, diving])
+    if (!asking && !run && (!rise || rise.done)) setBalance(serverBalance)
+  }, [serverBalance, asking, run, rise])
   const shownBank = useCountUp(balance)
+  const clock = useCallback(() => Date.now() + skew.current, [])
 
   const record = (result) => {
     setLast(result)
     setHistory((list) => (list.some((h) => h.id === result.round) ? list : [{ id: result.round, mult: result.net >= 0 ? result.mult : 0 }, ...list].slice(0, HISTORY)))
   }
 
-  const apply = (v) => {
-    if (v.ranking) setRanking(v.ranking)
-    if (v.bet > 0) {
-      setRun({ bet: v.bet, zone: v.zone, depth: v.depth, mult: v.mult, pearls: v.pearls })
-      setZone(v.zone)
-      setBet(v.bet)
-    } else setRun(null)
-  }
+  // Una petición al servidor (sin bloquear las demás: la espera larga va a la vez que el «up»).
+  const ask = useCallback(
+    async (message) => {
+      const before = Date.now()
+      const body = await request({ t: 'solo_dive', ...message })
+      const after = Date.now()
+      const v = body?.solo ?? null
+      if (v && message.a !== 'wait' && after - before < 1500) skew.current = v.now - (before + after) / 2
+      if (v && body.abuse) v.abuse = body.abuse
+      if (v?.ranking) setRanking(v.ranking)
+      return v
+    },
+    [request],
+  )
 
-  const resync = useEffectEvent(async () => {
-    const body = await request({ t: 'solo_dive', a: 'sync' })
-    const v = body?.solo
-    if (!v) return
-    apply(v)
-    if (v.last) record(v.last)
-    setBalance(v.balance)
-  })
   useEffect(() => {
     let alive = true
-    resync().then(() => alive && setReady(true))
+    ask({ a: 'sync' }).then((v) => {
+      if (!alive) return
+      if (v) {
+        if (v.bet > 0) {
+          setRun({ bet: v.bet, zone: v.zone, start: v.start })
+          setZone(v.zone)
+        }
+        if (v.last) record(v.last)
+        setBalance(v.balance)
+      }
+      setReady(true)
+    })
     return () => {
       alive = false
     }
-  }, [])
+  }, [ask])
 
-  async function act(message) {
-    if (lock.current) return null
-    lock.current = true
-    setAsking(true)
-    const body = await request({ t: 'solo_dive', ...message })
-    lock.current = false
-    setAsking(false)
-    const v = body?.solo ?? null
-    if (!v) await resync()
-    else if (body.abuse) v.abuse = body.abuse
-    return v
-  }
-
-  const shownZone = run?.zone ?? zone
-  const depth = run?.depth ?? 0
-  const maxBet = maxBetFor(balance)
-  const shownBet = run ? run.bet : clampBet(bet, maxBet)
-  const busy = asking || !ready || diving
-  const canBet = !run && !asking && maxBet >= MIN_BET
-  const worth = run && depth > 0 ? payout(run.bet, run.mult) : 0
-  const liveWorth = useCountUp(worth, 450)
-  const risk = Math.round(ZONES[shownZone].risk * 100)
-  const next = nextIfPearl(shownZone, run?.mult ?? 0)
-  const air = MAX_DEPTH - depth
-
-  async function start() {
-    if (busy || run || shownBet > balance) return
-    playChip()
-    setBurst(null)
-    setLast(null)
-    setBank(null)
-    setFresh(null)
-    setGain(null)
-    const v = await act({ a: 'start', bet: shownBet, zone })
-    if (!v) return
-    playSplash()
-    setBalance(v.balance)
-    apply(v)
-    if (auto) setAutoRun(true)
-  }
-
-  async function down() {
-    if (busy || !run) return
-    setDiving(true)
-    playBubbles()
-    const before = run.mult
-    const [v] = await Promise.all([act({ a: 'dive' }), new Promise((ok) => setTimeout(ok, reduced ? 0 : DIVE_MS))])
-    setDiving(false)
-    if (!v) {
-      setAutoRun(false)
-      return
-    }
-    const lost = v.ev === 'shark' || v.ev === 'air'
-    const kind = lost ? v.ev : v.kind
-    const at = (v.bet > 0 ? v.depth : v.last?.depth) ?? 0
-    setFresh(at)
-    if (lost) {
-      setAutoRun(false)
-      if (v.ev === 'shark') {
-        playGrowl()
-        setTimeout(playLose, 260)
-      } else playGasp()
+  // La inmersión acabó (soltaste, el tiburón o el aire): se anima la subida y, al llegar, el resultado.
+  const finishRun = useEffectEvent((v) => {
+    const result = v.last
+    setRun(null)
+    sent.current = true
+    if (result.lost === 'shark') {
+      playGrowl()
+      setTimeout(playLose, 260)
       buzz([40, 40, 160])
       setShake(true)
       setTimeout(() => setShake(false), 500)
-      if (v.abuse) setBank({ round: v.last.round, ...v.abuse })
-      apply(v)
-      record(v.last)
-      setBalance(v.balance)
+      setRise({ from: result.depth, to: result.depth, at: Date.now(), ms: 0, result, abuse: v.abuse })
       return
     }
-    playPearl(kind === 'black')
-    if (kind === 'black') buzz([30, 30, 30])
-    const now = v.bet > 0 ? v.mult : (v.last?.mult ?? 0)
-    setGain({ id: Date.now(), at, black: kind === 'black', text: before > 0 ? `${fmtMult(shownMult(now) / shownMult(before))} → ${fmtMult(shownMult(now))}` : fmtMult(shownMult(now)) })
-    apply(v)
-    if (v.ev === 'top') {
-      setAutoRun(false)
-      record(v.last)
-      setBalance(v.balance)
-      finish(v.last, v.abuse)
-    }
-  }
-
-  async function cash() {
-    if (busy || !run || depth < 1) return
-    setAutoRun(false)
-    const v = await act({ a: 'cash' })
-    if (!v) return
-    playSplash()
-    apply(v)
-    record(v.last)
-    setBalance(v.balance)
-    finish(v.last, v.abuse)
-  }
-
-  function finish(result, abuse) {
-    if (abuse) setBank({ round: result.round, ...abuse })
-    if (result.net <= 0) return
-    playCash(Math.min(10, Math.round(result.mult)))
-    playWin(result.mult >= 10)
-    buzz([60, 40, 80])
-    const blacks = result.pearls.filter((p) => p === 'black').length
-    setBurst({ id: result.round, amount: result.net + (abuse?.extra ?? 0), mult: result.mult, depth: result.depth, blacks, extra: abuse?.extra ?? 0 })
-  }
-
-  // Buceo automático: baja tramo a tramo con una pausa y sube al llegar a lo elegido.
-  const autoStep = useEffectEvent(() => {
-    if (!autoRun || !run || busy) return
-    if (auto && run.depth >= auto) cash()
-    else down()
+    // Subiendo: hasta la superficie, o hasta donde se acaba el aire.
+    const to = result.lost === 'air' ? result.lostAt : 0
+    setRise({ from: result.depth, to, at: Date.now(), ms: ((result.depth - to) / UP_MPS) * 1000, result, abuse: v.abuse })
   })
-  useEffect(() => {
-    if (!autoRun || !run || busy) return
-    const timer = setTimeout(() => autoStep(), run.depth === 0 ? 350 : reduced ? 150 : AUTO_GAP_MS)
-    return () => clearTimeout(timer)
-  }, [autoRun, run, busy, reduced])
 
-  const onKeys = useEffectEvent((event) => {
-    if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return
+  // Al acabar la animación de la subida: el resultado, el saldo y la celebración.
+  const landed = useEffectEvent(() => {
+    if (!rise || rise.done || landedRound.current === rise.result.round) return
+    landedRound.current = rise.result.round
+    const { result, abuse } = rise
+    record(result)
+    setBalance((b) => b + (result.net > 0 ? result.payout : 0) + (abuse?.extra ?? 0))
+    if (abuse) setBank({ round: result.round, ...abuse })
+    if (result.lost === 'air') {
+      playGasp()
+      setTimeout(playLose, 300)
+      buzz([40, 40, 160])
+    } else if (!result.lost) {
+      playSplash()
+      playCash(Math.min(10, Math.round(result.mult)))
+      playWin(result.mult >= 10)
+      buzz([60, 40, 80])
+      setBurst({ id: result.round, amount: result.net + (abuse?.extra ?? 0), mult: result.mult, depth: result.depth, extra: abuse?.extra ?? 0 })
+    }
+    setRise((r) => (r ? { ...r, done: true } : r))
+  })
+
+  async function start() {
+    if (run || (rise && !rise.done) || asking || !ready) return
+    const amount = clampBet(bet, maxBetFor(balance))
+    if (amount > balance) return
+    playChip()
+    setBurst(null)
+    setBank(null)
+    setRise(null)
+    setLast(null)
+    sent.current = false
+    passed.current = 0
+    setAsking(true)
+    const v = await ask({ a: 'start', bet: amount, zone })
+    setAsking(false)
+    if (!v || !(v.bet > 0)) return
+    playSplash()
+    setBalance(v.balance)
+    setRun({ bet: v.bet, zone: v.zone, start: v.start })
+    // Si soltaste mientras se tiraba, sube ya.
+    if (!held.current) up()
+  }
+
+  async function up() {
+    if (sent.current) return
+    sent.current = true
+    const v = await ask({ a: 'up' })
+    if (v?.last && v.bet === 0) finishRun(v)
+  }
+
+  // Mientras bajas: una espera larga que el servidor contesta cuando el tiburón te alcanzaría o se acabaría el aire.
+  useEffect(() => {
+    if (!run) return
+    let gone = false
+    const loop = async () => {
+      while (!gone) {
+        const v = await ask({ a: 'wait' })
+        if (gone) return
+        if (v && v.bet === 0 && v.last) {
+          if (!sent.current || v.last.lost) finishRun(v)
+          return
+        }
+        if (!v) await new Promise((ok) => setTimeout(ok, 1000))
+      }
+    }
+    loop()
+    return () => {
+      gone = true
+    }
+  }, [run, ask])
+
+  // Mantener y soltar: espacio, o el botón grande (ratón o dedo).
+  const press = () => {
+    if (held.current) return
+    held.current = true
+    setHolding(true)
+    if (!run) start()
+  }
+  const release = () => {
+    if (!held.current) return
+    held.current = false
+    setHolding(false)
+    if (run) up()
+  }
+  const onKeyDown = useEffectEvent((event) => {
+    if (event.code !== 'Space' || event.repeat) return
     const target = event.target instanceof Element ? event.target : null
     if (target?.matches('input, select, textarea')) return
-    if ((event.code === 'KeyC' || event.code === 'Enter' || event.code === 'ArrowUp') && run) {
-      event.preventDefault()
-      cash()
-    } else if ((event.code === 'Space' || event.code === 'ArrowDown') && !target?.matches('button:focus-visible')) {
-      event.preventDefault()
-      if (autoRun) setAutoRun(false)
-      else if (run) down()
-      else start()
-    }
+    event.preventDefault()
+    press()
   })
+  const onKeyUp = useEffectEvent((event) => {
+    if (event.code !== 'Space') return
+    event.preventDefault()
+    release()
+  })
+  const onBlur = useEffectEvent(() => release())
   useEffect(() => {
-    window.addEventListener('keydown', onKeys)
-    return () => window.removeEventListener('keydown', onKeys)
+    const down = (e) => onKeyDown(e)
+    const upKey = (e) => onKeyUp(e)
+    const blur = () => onBlur()
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', upKey)
+    window.addEventListener('blur', blur)
+    return () => {
+      window.removeEventListener('keydown', down)
+      window.removeEventListener('keyup', upKey)
+      window.removeEventListener('blur', blur)
+    }
   }, [])
 
-  // Lo que se ve en el mar: durante la inmersión, lo bajado; al acabar, la última (con cómo acabó) si es de esta zona.
-  const ended = !run && last && last.zone === zone ? last : null
-  const pearls = run ? run.pearls : (ended?.pearls ?? [])
-  const lostKind = ended?.lost ? ended.pearls[ended.pearls.length - 1] : null
-  const at = run ? depth : ended ? (ended.lost ? ended.depth : 0) : 0
+  // Un fotograma por refresco de pantalla mientras el buzo se mueve.
+  const moving = Boolean(run) || (rise && !rise.done)
+  useEffect(() => {
+    if (!moving) return
+    let frame
+    const tick = () => {
+      setFrame((n) => n + 1)
+      frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [moving])
 
-  let status = 'Elige la zona y tu apuesta, y tírate al agua.'
+  // Dónde está el buzo ahora.
+  const shownZone = run?.zone ?? zone
+  let depth = 0
+  let downMs = 0
+  let upElapsed = 0
+  let state = 'idle'
+  if (run) {
+    downMs = Math.max(0, clock() - run.start)
+    depth = depthAt(downMs)
+    state = sent.current ? 'up' : 'swim'
+  } else if (rise) {
+    const k = rise.ms > 0 ? Math.min(1, (Date.now() - rise.at) / rise.ms) : 1
+    depth = rise.from - (rise.from - rise.to) * k
+    downMs = (rise.from / DOWN_MPS) * 1000
+    upElapsed = ((rise.from - depth) / UP_MPS) * 1000
+    state = rise.result.lost ? 'lost' : k < 1 ? 'up' : 'idle'
+    if (k >= 1 && !rise.done) queueMicrotask(landed)
+  }
+  const reached = run ? depth : (rise?.from ?? 0)
+  // Sonido al pasar por cada ostra.
+  useEffect(() => {
+    const n = Math.floor(reached / PEARL_M)
+    if (run && n > passed.current) {
+      passed.current = n
+      if (n % 2) playBubbles()
+      else playPearl(false)
+    }
+  })
+
+  const airLeft = run || rise ? AIR_MS - downMs - upElapsed : AIR_MS
+  const need = run ? upMs(depth) : 0
+  const warn = Boolean(run) && airLeft - need < WARN_MS
+  const shownBet = run ? run.bet : rise ? rise.result.stake : clampBet(bet, maxBetFor(balance))
+  const mult = multAt(shownZone, run ? depth : reached)
+  const worth = run ? payout(run.bet, mult) : 0
+  const maxBet = maxBetFor(balance)
+  const locked = Boolean(run) || (rise && !rise.done) || asking
+  const result = rise?.done ? rise.result : null
+
+  let status = 'Elige la zona y la apuesta. Mantén pulsado para bajar y suelta para subir.'
   let tone = ''
   if (juegos.error) status = juegos.error
   else if (!ready) status = 'Preparando el equipo…'
-  else if (diving) status = `Bajando a ${(depth + 1) * METERS} m…`
-  else if (run && depth === 0) status = `Baja al primer tramo y abre la ostra. En ${ZONES[run.zone].name} hay un ${risk} % de peligro en cada tramo.`
-  else if (run) {
-    const k = run.pearls[run.pearls.length - 1]
-    status =
-      k === 'black'
-        ? `¡Perla negra a ${depth * METERS} m! El premio se dobla: llevas ${eur(worth)}.`
-        : `${PEARL_NAMES[k]} a ${depth * METERS} m. Llevas ${eur(worth)}; el siguiente tramo vale ${fmtMult(next)}.`
-  } else if (last?.net > 0) {
-    status = `¡Subiste con ${fmtMult(last.mult)} desde ${last.depth * METERS} m! Ganaste ${eur(last.net + (bank?.round === last.round ? bank.extra : 0))}.`
+  else if (run && !sent.current) status = warn ? '¡Sube ya! Te queda el aire justo para volver.' : `Bajando: ${fmtM(depth)}. Si sueltas ahora, cobras ${eur(worth)} (${fmtMult(mult)}).`
+  else if (run) status = 'Subiendo…'
+  else if (rise && !rise.done) status = rise.result.lost === 'shark' ? '¡Un tiburón!' : rise.result.lost === 'air' ? 'Subiendo… ¡se acaba el aire!' : `Subiendo desde ${fmtM(rise.from)}…`
+  else if (result && result.net > 0) {
+    status = `¡Subiste desde ${fmtM(result.depth)}! ${fmtMult(result.mult)}: ganaste ${eur(result.net + (bank?.round === result.round ? bank.extra : 0))}.`
     tone = 'good'
-  } else if (last && bank?.round === last.round && bank.extra > 0) status = `¡Te pilló el mar! Pero el Admin Abuse te devuelve ${eur(bank.extra)}.`
-  else if (last) {
-    const why = last.pearls[last.pearls.length - 1] === 'shark' ? 'Un tiburón te espantó' : 'Te quedaste sin aire'
-    status = `${why} a ${last.depth * METERS} m. Perdiste ${eur(last.stake)}.`
+  } else if (result && bank?.round === result.round && bank.extra > 0) status = `¡Te pilló el mar! Pero el Admin Abuse te devuelve ${eur(bank.extra)}.`
+  else if (result) {
+    status = result.lost === 'shark' ? `Un tiburón te pilló a ${fmtM(result.depth)}. Perdiste ${eur(result.stake)}.` : `Te quedaste sin aire subiendo, a ${fmtM(result.lostAt)}. Perdiste ${eur(result.stake)}.`
     tone = 'bad'
   } else if (balance < MIN_BET) status = 'Te quedaste sin saldo esta semana. El domingo a las 23:59 vuelves a empezar.'
+
+  const seed = (rise?.result.round ?? run?.start ?? 0) % 97
 
   return (
     <main className="app ar-app bz-app">
@@ -588,28 +620,29 @@ function Buceo({ onExit, juegos }) {
             </button>
             <Help className="tg tg--help" title="Cómo se juega al Buceo de Perlas">
               <p>
-                Elige la zona y tu apuesta y tírate al agua. Con <b>Bajar</b> (o <kbd>Espacio</kbd>) bajas {METERS} metros y abres una ostra: si
-                sale <b>perla</b>, tu premio crece; si sale un <b>tiburón</b> o se te acaba el <b>aire</b>, pierdes la apuesta.
+                <b>Mantén pulsado</b> (la barra espaciadora o el botón) para bajar y <b>suelta</b> para subir. Cuanto más hondo llegues, más
+                cobras al volver a la superficie: el premio sube con cada metro.
               </p>
               <p>
-                Subes y cobras cuando quieras con <b>Subir</b> (o <kbd>C</kbd>). La botella da para {MAX_DEPTH} tramos: en el último subes solo. Si
-                llegas al tope de {fmtMult(MAX_MULT)}, también. Con <b>Bajar solo hasta</b> eliges a qué profundidad subir y el buzo lo hace por ti
-                (lo paras cuando quieras).
+                <b>El tiburón:</b> al tirarte, el servidor decide en secreto a qué profundidad aparece. Si llegas hasta él bajando, te pilla y pierdes
+                la apuesta. Nadie sabe dónde está: unas veces aparece enseguida y otras ni aparece.
               </p>
               <p>
-                A veces sale una <b>perla negra</b> ({Math.round(BLACK * 100)} % de las veces): ese tramo paga el doble.
+                <b>El aire:</b> la botella dura {AIR_MS / 1000} segundos y se gasta bajando y subiendo, y subir es el doble de lento. La marca de la
+                botella te dice cuánto aire hace falta para volver desde donde estás: si sueltas tan abajo que no te llega, te ahogas por el camino.
+                Bajando sin parar, el límite está en unos {fmtM(SAFE_M)}.
               </p>
               <ul>
                 {Object.entries(ZONES).map(([id, z]) => (
                   <li key={id}>
-                    <b>{z.name}:</b> {Math.round(z.risk * 100)} % de peligro en cada tramo. El primero paga {fmtMult(multAfter(id, 1))}, y los{' '}
-                    {MAX_DEPTH}, {fmtMult(multAfter(id, MAX_DEPTH))} (sin perlas negras).
+                    <b>{z.name}:</b> a 10 m paga {fmtMult(multAt(id, 10))}, a 20 m {fmtMult(multAt(id, 20))} y en el límite del aire{' '}
+                    {fmtMult(multAt(id, SAFE_M))}. Cuanto más paga, antes suele aparecer el tiburón.
                   </li>
                 ))}
               </ul>
               <p>
-                Cada tramo se sortea en el servidor al bajarlo, así que no hay truco: subas cuando subas, de media se recupera el 96 %. Con el Admin
-                Abuse, la banca multiplica lo que ganes o te devuelve lo que pierdas, y tienes más suerte al bajar.
+                El servidor mide con su reloj cuánto bajaste, desde que te tiras hasta que sueltas. Bajes hasta donde bajes, de media se recupera el
+                96 %. Con el Admin Abuse, la banca multiplica lo que ganes o te devuelve lo que pierdas, y el tiburón suele aparecer más hondo.
               </p>
             </Help>
           </div>
@@ -617,59 +650,52 @@ function Buceo({ onExit, juegos }) {
       </header>
 
       <div className="ar fill">
-        <section className={`bz-stage bz-stage--${shownZone} ${shake ? 'is-shake' : ''} ${tone === 'good' ? 'is-win' : ''} ${run ? 'is-run' : ''}`} aria-label="El mar">
-          <Sea zone={shownZone} pearls={pearls} fresh={fresh} at={at} diving={diving} lostKind={lostKind} finished={Boolean(ended && !ended.lost)} />
+        <section className={`bz-stage bz-stage--${shownZone} ${shake ? 'is-shake' : ''} ${tone === 'good' ? 'is-win' : ''} ${warn ? 'is-warn' : ''}`} aria-label="El mar">
+          <Sea
+            zone={shownZone}
+            depth={depth}
+            reached={reached}
+            state={state}
+            shark={rise?.result.lost === 'shark' ? rise.result.depth : null}
+            seed={seed}
+            moving={moving}
+          />
 
           <div className="ar-top bz-top">
             <span className="ar-chip">
-              <small>{run ? 'Si subes ahora' : 'Profundidad'}</small>
-              <b>{run ? eur(liveWorth) : `${at * METERS} m`}</b>
+              <small>{run ? 'Si sueltas ahora' : 'Profundidad'}</small>
+              <b>{run ? eur(worth) : fmtM(depth)}</b>
+            </span>
+            <span className="ar-chip ar-chip--next">
+              <small>Premio</small>
+              <b>{fmtMult(mult)}</b>
             </span>
             <span className="ar-chip bz-air">
               <small>Aire</small>
-              <Tank left={run ? air : MAX_DEPTH} />
+              <Tank left={airLeft} need={need} warn={warn} />
             </span>
-            {run && (
-              <span className="ar-chip ar-chip--next">
-                <small>Siguiente</small>
-                <b>
-                  {fmtMult(next)} · {risk} % 🦈
-                </b>
-              </span>
-            )}
           </div>
 
-          {gain && (
-            <span key={gain.id} className={`bz-gain ${gain.black ? 'is-black' : ''}`} aria-hidden="true">
-              {gain.black && <small>¡Perla negra! ×2</small>}
-              {gain.text}
-            </span>
-          )}
-
-          <p className={`ar-status bz-status ${tone ? `is-${tone}` : ''}`} role="status">
+          <p className={`ar-status bz-status ${tone ? `is-${tone}` : ''} ${warn ? 'is-bad' : ''}`} role="status">
             {status}
           </p>
-          {run && depth > 0 && (
-            <button type="button" className="ar-cash-float" disabled={busy} onClick={cash}>
-              Subir con {eur(liveWorth)}
-            </button>
-          )}
         </section>
 
         <aside className="ar-panel">
           <div className="ar-loot-box">
             {run ? (
               <>
-                <small>{depth > 0 ? 'Si subes ahora' : 'Baja al primer tramo'}</small>
-                <b>{eur(depth > 0 ? liveWorth : 0)}</b>
-                <span className="ar-loot-box__mult">{depth > 0 ? fmtMult(shownMult(run.mult)) : `Siguiente: ${fmtMult(next)}`}</span>
-                <Necklace pearls={run.pearls} />
+                <small>Si sueltas ahora</small>
+                <b>{eur(worth)}</b>
+                <span className="ar-loot-box__mult">
+                  {fmtMult(mult)} · {fmtM(depth)}
+                </span>
               </>
             ) : (
               <>
-                <small>{auto ? `Bajando hasta ${auto * METERS} m` : 'Bajando 5 tramos'}</small>
-                <b>{eur(Math.floor(shownBet * multAfter(zone, auto ?? 5)))}</b>
-                <span className="ar-loot-box__mult">{fmtMult(multAfter(zone, auto ?? 5))}</span>
+                <small>Si llegas a 20 m y vuelves</small>
+                <b>{eur(payout(shownBet, multAt(zone, 20)))}</b>
+                <span className="ar-loot-box__mult">{fmtMult(multAt(zone, 20))}</span>
               </>
             )}
           </div>
@@ -678,14 +704,12 @@ function Buceo({ onExit, juegos }) {
             <h2>Zona</h2>
             <div className="ar-modes bz-zones" role="radiogroup" aria-label="Zona">
               {Object.entries(ZONES).map(([id, z]) => (
-                <button key={id} type="button" role="radio" aria-checked={zone === id} className={`ar-mode bz-zone--${id}`} disabled={Boolean(run) || asking} onClick={() => setZone(id)}>
+                <button key={id} type="button" role="radio" aria-checked={zone === id} className={`ar-mode bz-zone--${id}`} disabled={Boolean(locked)} onClick={() => setZone(id)}>
                   <span className="ar-mode__ico" aria-hidden="true">
                     {ICONS[id]}
                   </span>
                   <b>{z.name}</b>
-                  <small>
-                    {Math.round(z.risk * 100)} % 🦈 · {fmtMult(multAfter(id, 1))}
-                  </small>
+                  <small>hasta {fmtMult(multAt(id, SAFE_M))}</small>
                 </button>
               ))}
             </div>
@@ -694,11 +718,11 @@ function Buceo({ onExit, juegos }) {
           <div className="ar-group">
             <h2>Apuesta</h2>
             <div className="ar-bet">
-              <button type="button" disabled={!canBet} onClick={() => setBet(clampBet(shownBet - STEP * 5, maxBet))} aria-label="Bajar la apuesta">
+              <button type="button" disabled={Boolean(locked)} onClick={() => setBet(clampBet(shownBet - STEP * 5, maxBet))} aria-label="Bajar la apuesta">
                 −
               </button>
               <span>{eur(shownBet)}</span>
-              <button type="button" disabled={!canBet} onClick={() => setBet(clampBet(shownBet + STEP * 5, maxBet))} aria-label="Subir la apuesta">
+              <button type="button" disabled={Boolean(locked)} onClick={() => setBet(clampBet(shownBet + STEP * 5, maxBet))} aria-label="Subir la apuesta">
                 +
               </button>
             </div>
@@ -709,80 +733,55 @@ function Buceo({ onExit, juegos }) {
               max={Math.max(maxBet, MIN_BET)}
               step={STEP}
               value={shownBet}
-              disabled={!canBet}
+              disabled={Boolean(locked)}
               aria-label="Apuesta"
               onChange={(e) => setBet(Number(e.target.value))}
             />
             <div className="ar-quick">
-              <button type="button" disabled={!canBet} onClick={() => setBet(MIN_BET)}>
+              <button type="button" disabled={Boolean(locked)} onClick={() => setBet(MIN_BET)}>
                 Mín
               </button>
-              <button type="button" disabled={!canBet} onClick={() => setBet(clampBet(shownBet / 2, maxBet))}>
+              <button type="button" disabled={Boolean(locked)} onClick={() => setBet(clampBet(shownBet / 2, maxBet))}>
                 ½
               </button>
-              <button type="button" disabled={!canBet} onClick={() => setBet(clampBet(shownBet * 2, maxBet))}>
+              <button type="button" disabled={Boolean(locked)} onClick={() => setBet(clampBet(shownBet * 2, maxBet))}>
                 ×2
               </button>
-              <button type="button" disabled={!canBet} onClick={() => setBet(maxBet)}>
+              <button type="button" disabled={Boolean(locked)} onClick={() => setBet(maxBet)}>
                 Máx
               </button>
             </div>
           </div>
 
-          <div className="ar-group">
-            <h2>Bajar solo hasta</h2>
-            <div className="bz-autos" role="radiogroup" aria-label="Buceo automático">
-              {AUTOS.map((n) => (
-                <button key={n ?? 'mano'} type="button" role="radio" aria-checked={auto === n} disabled={Boolean(run) || asking} onClick={() => setAuto(n)}>
-                  {n ? `${n * METERS} m` : 'A mano'}
-                  {n && <small>{fmtMult(multAfter(zone, n))}</small>}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {!run ? (
-            <button type="button" className="ar-go" disabled={busy || shownBet > balance || balance < MIN_BET} onClick={start}>
-              {asking ? 'Preparando el equipo…' : auto ? `¡Al agua hasta ${auto * METERS} m!` : '¡Al agua!'}
-              <kbd>Espacio</kbd>
-            </button>
-          ) : autoRun ? (
-            <div className="bz-actions">
-              <button type="button" className="ar-go bz-stop" onClick={() => setAutoRun(false)}>
-                Parar el buceo automático
-                <kbd>Espacio</kbd>
-              </button>
-              <button type="button" className="ar-go ar-go--cash" disabled={busy || depth < 1} onClick={cash}>
-                {depth < 1 ? (
-                  'Bajando…'
-                ) : (
-                  <span className="ar-go__cash">
-                    <small>Subir ya</small>
-                    <b>{eur(liveWorth)}</b>
-                  </span>
-                )}
-                <kbd>C</kbd>
-              </button>
-            </div>
-          ) : (
-            <div className="bz-actions">
-              <button type="button" className="ar-go bz-down" disabled={busy || air < 1} onClick={down}>
-                {diving ? 'Bajando…' : `Bajar a ${(depth + 1) * METERS} m`}
-                <kbd>Espacio</kbd>
-              </button>
-              <button type="button" className="ar-go ar-go--cash" disabled={busy || depth < 1} onClick={cash}>
-                {depth < 1 ? (
-                  'Baja al menos un tramo'
-                ) : (
-                  <span className="ar-go__cash">
-                    <small>Subir y cobrar</small>
-                    <b>{eur(liveWorth)}</b>
-                  </span>
-                )}
-                <kbd>C</kbd>
-              </button>
-            </div>
-          )}
+          <button
+            type="button"
+            className={`ar-go bz-hold ${holding ? 'is-held' : ''} ${warn ? 'is-warn' : ''}`}
+            disabled={!ready || (!run && (Boolean(rise && !rise.done) || asking || balance < MIN_BET))}
+            onPointerDown={(e) => {
+              e.currentTarget.setPointerCapture?.(e.pointerId)
+              press()
+            }}
+            onPointerUp={release}
+            onPointerCancel={release}
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            <span className="bz-hold__text">
+              {run && !sent.current ? (
+                <>
+                  <b>Suelta para subir</b>
+                  <small>
+                    {eur(worth)} · {fmtM(depth)}
+                  </small>
+                </>
+              ) : (
+                <>
+                  <b>Mantén para bajar</b>
+                  <small>suelta para subir y cobrar</small>
+                </>
+              )}
+            </span>
+            <kbd>Espacio</kbd>
+          </button>
 
           <div className="ar-group">
             <h2>Récord del día</h2>
@@ -820,7 +819,7 @@ function Buceo({ onExit, juegos }) {
         <WinBurst
           key={burst.id}
           amount={burst.amount}
-          caption={`${fmtMult(burst.mult)} desde ${burst.depth * METERS} m${burst.blacks ? ` · ${burst.blacks} perla${burst.blacks === 1 ? '' : 's'} negra${burst.blacks === 1 ? '' : 's'}` : ''}`}
+          caption={`${fmtMult(burst.mult)} desde ${fmtM(burst.depth)}`}
           coins={Math.min(70, 20 + Math.round(burst.mult) * 3)}
           big={burst.mult >= 10}
           who={juegos.me?.name}

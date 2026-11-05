@@ -11,7 +11,7 @@ import { storedTimers } from './engine/timers.mjs'
 import { weekOf } from './engine/week.mjs'
 import { PUBLIC_SEATS, GAMES, nextNumber, pickTable } from './engine/lobby.mjs'
 import { CHESS_CHECK_SQL, SCHEMA_SQL } from './schema.mjs'
-import { SOLO_GAMES, SOLO_PLAY, crashDue, crashView, crashWaitMs, raceDue, raceView, regattaDue, regattaView, rouletteDue, rouletteView } from './solo.mjs'
+import { SOLO_GAMES, SOLO_PLAY, crashDue, diveDueAt, crashView, crashWaitMs, raceDue, raceView, regattaDue, regattaView, rouletteDue, rouletteView } from './solo.mjs'
 import { GACHA_ERRORS, createGacha, priceOf } from './gacha.mjs'
 import { BINGO_ERRORS, createBingo } from './bingo.mjs'
 import { AUCTION_ERRORS, createAuction } from './subasta.mjs'
@@ -44,6 +44,7 @@ const CHAT_KEEP = 50
 const CHAT_GAP_MS = 700
 const CRASH_WAIT_MAX_MS = 20000 // el vuelo más largo del cohete dura 18 s
 const CRASH_WAIT_PAD_MS = 25
+const DIVE_WAIT_MAX_MS = 20000 // la espera larga del buceo: como mucho esto, y el navegador vuelve a preguntar
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const MAX_SCORES = 200
 const NO_DAYS = [null, null, null, null, null, null, null]
@@ -999,9 +1000,19 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         if (reply.solo) await liveExtras(live.game, msg, reply)
         return reply
       }
+      case 'solo_dive':
+        // Espera larga mientras bajas: se responde justo cuando el tiburón te alcanzaría o se acabaría el aire (sin
+        // tocar la BD mientras tanto), así el navegador se entera al momento sin preguntar cada poco.
+        if (msg.a === 'wait') {
+          const saved = (await db.query(`select estado from public.juegos_solo where usuario_id = $1 and juego = 'dive'`, [user.id])).rows[0]?.estado
+          const due = diveDueAt(saved)
+          const wait = Number.isFinite(due) ? Math.min(due - now(), DIVE_WAIT_MAX_MS) : 0
+          if (wait > 0) await sleep(wait + CRASH_WAIT_PAD_MS)
+          msg = { ...msg, a: 'sync' }
+        }
+      // falls through
       case 'solo_fish':
       case 'solo_dig':
-      case 'solo_dive':
       case 'solo_plinko':
       case 'solo_frog':
       case 'solo_tower':
