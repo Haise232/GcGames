@@ -69,6 +69,13 @@
     var(--paper);
   background-size: 90px 90px;
 }
+/* El confeti, solo en el papel: debajo de las casillas va una plancha lisa para que no asome entre ellas ni pise sus
+   bordes. */
+.juegos-root .rs-ticket--carnaval .rs-body {
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: 0 0 0 6px var(--paper);
+}
 .juegos-root .rs-ticket--islas {
   --paper: #e8f6ff;
   --ink: #0b3a5c;
@@ -187,7 +194,7 @@
   gap: 10px;
 }
 .juegos-root .rs-cell--winning {
-  width: clamp(64px, 9vw, 86px);
+  width: clamp(54px, 20%, 86px);
   border-style: solid;
   border-color: var(--title);
   border-radius: 50%;
@@ -380,6 +387,64 @@
   to {
     translate: 0 -6px;
     filter: drop-shadow(0 0 10px rgba(255, 210, 94, 0.9));
+  }
+}
+
+/* En pantallas bajas (portátiles) el cartón tiene que caber a lo alto: si no, la última fila de casillas se metía
+   bajo el pie y la capa de rascar quedaba cortada. El escenario es un contenedor y el ancho del cartón sale de su
+   altura: alto del cartón ≈ --fit-a × ancho + --fit-b (medido en cada tipo); 170px son las fichas, el letrero y los
+   márgenes del escenario. */
+@media (min-width: 861px) {
+  .juegos-root .rs-stage {
+    container-type: size;
+  }
+  .juegos-root .rs-ticket {
+    --fit-a: 1;
+    --fit-b: 102px;
+    width: min(100%, 470px, (100cqh - 170px - var(--fit-b)) / var(--fit-a));
+  }
+  .juegos-root .rs-ticket--carnaval,
+  .juegos-root .rs-ticket--drago {
+    --fit-a: 0.641;
+    --fit-b: 204px;
+  }
+  .juegos-root .rs-ticket--islas {
+    --fit-a: 0.553;
+    --fit-b: 199px;
+  }
+  /* Escenario bajo: cartón más apretado (sin la frase de la cabecera, casillas de números más apaisadas) para que no
+     quede un cartón estrecho con el título partido. */
+  @container (max-height: 640px) {
+    .juegos-root .rs-ticket {
+      gap: 6px;
+      padding: 10px 12px;
+      --fit-a: 1;
+      --fit-b: 70px;
+    }
+    .juegos-root .rs-ticket__head span {
+      display: none;
+    }
+    .juegos-root .rs-ticket__head b {
+      font-size: 24px;
+    }
+    .juegos-root .rs-numbers {
+      gap: 4px;
+    }
+    .juegos-root .rs-mine .rs-cell {
+      aspect-ratio: 1.7;
+    }
+    .juegos-root .rs-cell--winning {
+      width: clamp(50px, 15%, 74px);
+    }
+    .juegos-root .rs-ticket--carnaval,
+    .juegos-root .rs-ticket--drago {
+      --fit-a: 0.494;
+      --fit-b: 153px;
+    }
+    .juegos-root .rs-ticket--islas {
+      --fit-a: 0.747;
+      --fit-b: 74px;
+    }
   }
 }
 
