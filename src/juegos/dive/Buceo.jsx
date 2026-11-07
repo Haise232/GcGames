@@ -1,19 +1,21 @@
-// Apnea (Season 4): se juega manteniendo pulsado y aguantando la respiración. Mientras mantienes (espacio o el botón), el
-// buzo baja; al soltar, sube. Cuanto más hondo llegues y consigas volver, más cobras. Dos peligros: el tiburón, que aparece
-// a una profundidad que el servidor sortea en secreto al tirarte, y el aire de los pulmones, que se gasta bajando y
-// subiendo (subir es más lento): si sueltas tan abajo que no llegas, te ahogas por el camino. Reglas en dive.js; el
-// servidor mide la bajada con su reloj y aquí solo se anima.
+// Apnea (Season 4): tú llevas al buzo. Manteniendo «Bajar» (espacio o ↓) bajas, manteniendo «Subir» (↑) subes y sin
+// pulsar nada haces una parada. Cuanto más hondo llegues y consigas volver a la superficie, más cobras. Tres peligros: los
+// oídos (bajar y subir les mete presión y en las paradas se compensa; si llega arriba, revientan), el aire (los pulmones
+// aguantan AIR_MS desde que te tiras, paradas incluidas) y, solo en el Abismo, el tiburón, que aparece a una profundidad
+// que el servidor sortea en secreto. Reglas en dive.js: la inmersión es una simulación por pasos que aquí se juega con el
+// reloj del servidor y el servidor repite con tus cambios de dirección para pagar (y, en el Abismo, a cada metro nuevo,
+// para saber al momento si te pilla el tiburón).
 // La escena es un mar en vertical de 0 a 40 m (un SVG alto) y la cámara sigue al buzo. Cada zona tiene su paisaje: la
 // Laguna clara, el Arrecife con corales y el Abismo a oscuras, con la linterna del buzo y unos ojos que miran.
-// La tensión es lo central: con el margen de aire que te queda (lo que sobra después de reservar lo que cuesta volver)
-// se calcula un nivel de 0 a 1 que cierra la visión en túnel, apaga los colores, enrojece los bordes y acelera un latido,
-// y que se alivia según subes. Los pulmones enseñan el aire que queda y, con una raya, el que hace falta para volver.
+// La tensión (el margen de aire y la presión de los oídos) cierra la visión en túnel, apaga los colores, enrojece los
+// bordes y acelera un latido. Los pulmones enseñan el aire que queda y, con una raya, el que hace falta para volver; al
+// lado, la presión de los oídos.
 // El panel (apuesta, zonas, récord del día) usa las piezas de Tesoro en la Arena (ar-*, dig/Arena.css).
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useEffectEvent } from '../comun/useEffectEvent.js'
-import { AIR_MS, DOWN_MPS, MAX_M, MIN_BET, SAFE_M, STEP, UP_MPS, ZONES, clampBet, depthAt, fmtM, fmtMult, maxBetFor, multAt, payout, upMs } from './dive.js'
+import { AIR_MS, AIR_TICKS, EAR_MAX, EAR_WARN, MAX_M, MIN_BET, STEP, TICK_MS, ZONES, clampBet, diveStart, diveStep, fmtM, fmtMult, hasShark, maxBetFor, multAt, payout, returnMs } from './dive.js'
 import { eur } from '../comun/money.js'
-import { buzz, isMuted, playBubbles, playCash, playGasp, playGrowl, playInhale, playLose, playPulse, playSplash, playSurfaceGasp, playWin, setMuted } from '../comun/sound.js'
+import { buzz, isMuted, playBoom, playBubbles, playCash, playGasp, playGrowl, playInhale, playLose, playPulse, playSplash, playSurfaceGasp, playWin, setMuted } from '../comun/sound.js'
 import { useCountUp } from '../comun/useCountUp.js'
 import WinBurst from '../comun/WinBurst.jsx'
 import Help from '../comun/Help.jsx'
@@ -267,7 +269,6 @@ function Sea({ zone, depth, state, shark, moving, tense, leak, beat, relief }) {
   const face = state === 'up' ? 1 : -1
   const [c0, c1, c2, c3] = WATER[zone]
   const dark = zone === 'abismo' ? Math.min(0.88, 0.25 + depth * 0.018) : zone === 'arrecife' ? Math.min(0.45, depth * 0.011) : Math.min(0.25, depth * 0.006)
-  const sy = yOf(SAFE_M)
   return (
     <div
       className={`bz-window ${moving ? 'is-moving' : ''}`}
@@ -291,14 +292,6 @@ function Sea({ zone, depth, state, shark, moving, tense, leak, beat, relief }) {
             <stop offset="0" stopColor="#fff" stopOpacity="0.3" />
             <stop offset="1" stopColor="#fff" stopOpacity="0" />
           </linearGradient>
-          <linearGradient id="bz-nogo" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#ff2a4a" stopOpacity="0.32" />
-            <stop offset="1" stopColor="#ff2a4a" stopOpacity="0.08" />
-          </linearGradient>
-          <pattern id="bz-hatch" width="26" height="26" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <rect width="26" height="26" fill="url(#bz-nogo)" />
-            <rect width="9" height="26" fill="#ff2a4a" fillOpacity="0.22" />
-          </pattern>
           <radialGradient id="bz-glow">
             <stop offset="0" stopColor="#fff2c0" stopOpacity="0.32" />
             <stop offset="1" stopColor="#fff2c0" stopOpacity="0" />
@@ -338,17 +331,6 @@ function Sea({ zone, depth, state, shark, moving, tense, leak, beat, relief }) {
             <Eyes x={W / 2 - 60} y={yOf(MAX_M) + 20} size={2.6} i={4} />
           </g>
         )}
-        {/* El límite del aire, que se ve incluso a oscuras: más abajo de esta raya ya no te da el aire para volver. */}
-        <g className="bz-limit">
-          <rect x="0" y={sy} width={W} height={H - sy} fill="url(#bz-hatch)" />
-          <line x1="0" x2={W} y1={sy} y2={sy} />
-          <text x={W / 2} y={sy - 12} textAnchor="middle">
-            LÍMITE DEL AIRE · {fmtM(SAFE_M)}
-          </text>
-          <text className="bz-limit__sub" x={W / 2} y={sy + 28} textAnchor="middle">
-            Más abajo ya no vuelves
-          </text>
-        </g>
       </svg>
       {/* La luz que vuelve al subir. */}
       <div className="bz-relief" aria-hidden="true" />
@@ -362,7 +344,6 @@ function Sea({ zone, depth, state, shark, moving, tense, leak, beat, relief }) {
             {m}
           </em>
         ))}
-        <span className="bz-gauge__safe" style={{ '--s': SAFE_M / MAX_M }} />
         <b>{fmtM(depth)}</b>
       </div>
     </div>
@@ -414,15 +395,39 @@ function Lungs({ left, need, margin, live, warn }) {
   )
 }
 
+// Los oídos: la presión que llevan. Sube bajando y subiendo y baja en las paradas; si llega arriba, revientan.
+function Ears({ ear, live, dir }) {
+  const p = Math.min(1, ear / EAR_MAX)
+  const level = ear >= 90 ? 'is-burst' : ear >= EAR_WARN ? 'is-hot' : ''
+  return (
+    <div className={`bz-ears ${level} ${live ? 'is-live' : ''}`} role="img" aria-label={`Presión en los oídos: ${Math.round(ear)} de ${EAR_MAX}`}>
+      <small>Oídos</small>
+      <div className="bz-ears__bar" style={{ '--p': p.toFixed(3), '--w': EAR_WARN / EAR_MAX }}>
+        <span className="bz-ears__fill" />
+        <span className="bz-ears__warn" />
+      </div>
+      <b>{!live ? 'Compensados' : dir === 0 ? 'Compensando…' : ear >= EAR_WARN ? '¡Para!' : `${Math.round(ear)} %`}</b>
+    </div>
+  )
+}
+
+const LOST_TEXT = {
+  shark: (r) => `Un tiburón te pilló a ${fmtM(r.lostAt)}.`,
+  ears: (r) => `¡Te explotaron los oídos a ${fmtM(r.lostAt)}! Hay que parar a compensar.`,
+  air: (r) => `Te quedaste sin aire a ${fmtM(r.lostAt)}.`,
+}
+const LOST_ICON = { shark: '🦈', ears: '💥', air: '🫧' }
+
 // --- Juego ---
 
 function Buceo({ onExit, juegos }) {
   const [bet, setBet] = useState(50)
   const [zone, setZone] = useState('arrecife')
   const [sound, setSound] = useState(() => !isMuted())
-  const [run, setRun] = useState(null) // { bet, zone, start } mientras bajas (start: hora del servidor)
-  const [rise, setRise] = useState(null) // la subida que se está animando: { from, to, at (hora local), ms, result }
-  const [holding, setHolding] = useState(false)
+  const [run, setRun] = useState(null) // { bet, zone, start } durante la inmersión (start: hora del servidor)
+  const [sim, setSim] = useState(null) // el estado de la inmersión que se pinta (copia de dv.current.st)
+  const [ended, setEnded] = useState(null) // la inmersión acabada que se está enseñando: { result, abuse, st }
+  const [dirShown, setDirShown] = useState(0) // lo que estás pulsando: 1 bajar, −1 subir, 0 nada
   const [asking, setAsking] = useState(false)
   const [last, setLast] = useState(null)
   const [history, setHistory] = useState([])
@@ -432,36 +437,33 @@ function Buceo({ onExit, juegos }) {
   const [ready, setReady] = useState(false)
   const [shake, setShake] = useState(false)
   const [gulp, setGulp] = useState(null) // la ronda cuya bocanada de la superficie se está enseñando
-  const [, setFrame] = useState(0)
   const skew = useRef(0)
-  const held = useRef(false) // el dedo (o la tecla) sigue apretado
-  const sent = useRef(false) // ya se mandó el «up» de esta inmersión
+  const keys = useRef({ down: false, up: false }) // lo que está apretado (teclas y botones)
+  const dv = useRef(null) // la inmersión en marcha: { start, zone, st, dir, moves, probed, sent }
   const passed = useRef(0) // decenas de metros por las que ya has pasado (para el sonido)
-  const prizeTimer = useRef(0) // el temporizador que enseña el premio tras la bocanada
-  const landedRound = useRef(null) // la inmersión cuyo resultado ya se enseñó
+  const prizeTimer = useRef(0)
   const { request } = juegos
   const serverBalance = juegos.me?.balance ?? 0
   const [balance, setBalance] = useState(serverBalance)
   useEffect(() => {
-    if (!asking && !run && (!rise || rise.done) && gulp === null) setBalance(serverBalance)
-  }, [serverBalance, asking, run, rise, gulp])
+    if (!asking && !run && gulp === null) setBalance(serverBalance)
+  }, [serverBalance, asking, run, gulp])
   const shownBank = useCountUp(balance)
   useEffect(() => () => clearTimeout(prizeTimer.current), [])
   const clock = useCallback(() => Date.now() + skew.current, [])
 
   const record = (result) => {
     setLast(result)
-    setHistory((list) => (list.some((h) => h.id === result.round) ? list : [{ id: result.round, mult: result.net >= 0 ? result.mult : 0 }, ...list].slice(0, HISTORY)))
+    setHistory((list) => (list.some((h) => h.id === result.round) ? list : [{ id: result.round, mult: result.lost ? 0 : result.mult, lost: result.lost }, ...list].slice(0, HISTORY)))
   }
 
-  // Una petición al servidor (sin bloquear las demás: la espera larga va a la vez que el «up»).
   const ask = useCallback(
     async (message) => {
       const before = Date.now()
       const body = await request({ t: 'solo_dive', ...message })
       const after = Date.now()
       const v = body?.solo ?? null
-      if (v && message.a !== 'wait' && after - before < 1500) skew.current = v.now - (before + after) / 2
+      if (v && after - before < 1500) skew.current = v.now - (before + after) / 2
       if (v && body.abuse) v.abuse = body.abuse
       if (v?.ranking) setRanking(v.ranking)
       return v
@@ -469,15 +471,15 @@ function Buceo({ onExit, juegos }) {
     [request],
   )
 
+  // Al entrar: el último resultado (y, si había una inmersión a medias, se da por perdida).
   useEffect(() => {
     let alive = true
-    ask({ a: 'sync' }).then((v) => {
+    ask({ a: 'sync' }).then(async (v) => {
+      if (!alive) return
+      // Una inmersión a medias (recargaste o cambiaste de pantalla): no se puede retomar y cuenta como ahogado.
+      if (v?.bet > 0) v = (await ask({ a: 'quit' })) ?? v
       if (!alive) return
       if (v) {
-        if (v.bet > 0) {
-          setRun({ bet: v.bet, zone: v.zone, start: v.start })
-          setZone(v.zone)
-        }
         if (v.last) record(v.last)
         setBalance(v.balance)
       }
@@ -488,58 +490,73 @@ function Buceo({ onExit, juegos }) {
     }
   }, [ask])
 
-  // La inmersión acabó (soltaste, el tiburón o el aire): se anima la subida y, al llegar, el resultado.
-  const finishRun = useEffectEvent((v) => {
+  // La inmersión acabó: el resultado del servidor, el saldo y la celebración.
+  const finish = useEffectEvent((v, st) => {
     const result = v.last
+    dv.current = null
     setRun(null)
-    sent.current = true
-    if (result.lost === 'shark') {
-      playGrowl()
-      setTimeout(playLose, 260)
+    setDirShown(0)
+    record(result)
+    setEnded({ result, abuse: v.abuse ?? null, st })
+    const abuse = v.abuse
+    const credit = () => setBalance((b) => b + (result.net > 0 ? result.payout : 0) + (abuse?.extra ?? 0))
+    if (abuse) setBank({ round: result.round, ...abuse })
+    if (result.lost) {
+      credit()
+      if (result.lost === 'shark') {
+        playGrowl()
+        setTimeout(playLose, 260)
+      } else if (result.lost === 'ears') {
+        playBoom()
+        setTimeout(playLose, 300)
+      } else {
+        playGasp()
+        setTimeout(playLose, 300)
+      }
       buzz([40, 40, 160])
       setShake(true)
       setTimeout(() => setShake(false), 500)
-      setRise({ from: result.depth, to: result.depth, at: Date.now(), ms: 0, result, abuse: v.abuse })
       return
     }
-    // Subiendo: hasta la superficie, o hasta donde se acaba el aire.
-    const to = result.lost === 'air' ? result.lostAt : 0
-    setRise({ from: result.depth, to, at: Date.now(), ms: ((result.depth - to) / UP_MPS) * 1000, result, abuse: v.abuse })
+    // Primero la bocanada de aire al salir a la superficie y, un instante después, el premio.
+    playSplash()
+    setTimeout(playSurfaceGasp, 120)
+    buzz([30, 30, 60])
+    setGulp(result.round)
+    prizeTimer.current = setTimeout(() => {
+      setGulp(null)
+      credit()
+      playCash(Math.min(10, Math.round(result.mult)))
+      playWin(result.mult >= 10)
+      buzz([60, 40, 80])
+      setBurst({ id: result.round, amount: result.net + (abuse?.extra ?? 0), mult: result.mult, depth: result.depth, extra: abuse?.extra ?? 0 })
+    }, GULP_MS)
   })
 
-  // Al acabar la animación de la subida: el resultado, el saldo y la celebración.
-  const landed = useEffectEvent(() => {
-    if (!rise || rise.done || landedRound.current === rise.result.round) return
-    landedRound.current = rise.result.round
-    const { result, abuse } = rise
-    record(result)
-    const credit = () => setBalance((b) => b + (result.net > 0 ? result.payout : 0) + (abuse?.extra ?? 0))
-    if (abuse) setBank({ round: result.round, ...abuse })
-    if (result.lost) credit()
-    if (result.lost === 'air') {
-      playGasp()
-      setTimeout(playLose, 300)
-      buzz([40, 40, 160])
-    } else if (!result.lost) {
-      // Primero la bocanada de aire al salir a la superficie y, un instante después, el premio.
-      playSplash()
-      setTimeout(playSurfaceGasp, 120)
-      buzz([30, 30, 60])
-      setGulp(result.round)
-      prizeTimer.current = setTimeout(() => {
-        setGulp(null)
-        credit()
-        playCash(Math.min(10, Math.round(result.mult)))
-        playWin(result.mult >= 10)
-        buzz([60, 40, 80])
-        setBurst({ id: result.round, amount: result.net + (abuse?.extra ?? 0), mult: result.mult, depth: result.depth, extra: abuse?.extra ?? 0 })
-      }, GULP_MS)
+  // Manda la inmersión al servidor: a mitad (el tiburón del Abismo) o al acabar. Al acabar, si el servidor aún no la da
+  // por acabada (su reloj va un poco por detrás), se reintenta enseguida.
+  const send = useEffectEvent(async (final) => {
+    const d = dv.current
+    if (!d) return
+    const v = await ask({ a: 'move', moves: d.moves, ticks: d.st.tick, final })
+    if (dv.current !== d) return
+    if (v && v.bet === 0 && v.last) {
+      finish(v, d.st)
+      return
     }
-    setRise((r) => (r ? { ...r, done: true } : r))
+    if (final && !d.done) {
+      d.done = true
+      setTimeout(() => {
+        if (dv.current === d) {
+          d.done = false
+          send(true)
+        }
+      }, 400)
+    }
   })
 
   async function start() {
-    if (run || (rise && !rise.done) || asking || !ready) return
+    if (run || asking || !ready) return
     const amount = clampBet(bet, maxBetFor(balance))
     if (amount > balance) return
     playInhale()
@@ -547,9 +564,8 @@ function Buceo({ onExit, juegos }) {
     setGulp(null)
     setBurst(null)
     setBank(null)
-    setRise(null)
+    setEnded(null)
     setLast(null)
-    sent.current = false
     passed.current = 0
     setAsking(true)
     const v = await ask({ a: 'start', bet: amount, zone })
@@ -557,65 +573,81 @@ function Buceo({ onExit, juegos }) {
     if (!v || !(v.bet > 0)) return
     playSplash()
     setBalance(v.balance)
+    dv.current = { start: v.start, zone: v.zone, st: diveStart(), dir: 1, moves: [], probed: 0, sentEnd: false }
     setRun({ bet: v.bet, zone: v.zone, start: v.start })
-    // Si soltaste mientras se tiraba, sube ya.
-    if (!held.current) up()
+    setSim(diveStart())
   }
 
-  async function up() {
-    if (sent.current) return
-    sent.current = true
-    const v = await ask({ a: 'up' })
-    if (v?.last && v.bet === 0) finishRun(v)
+  // Lo que quieres hacer según lo que está apretado: bajar, subir o parar (si aprietas los dos, para).
+  const wanted = () => (keys.current.down && !keys.current.up ? 1 : keys.current.up && !keys.current.down ? -1 : 0)
+  const pressed = () => {
+    const w = wanted()
+    setDirShown(w)
+    if (w === 1 && !dv.current) start()
   }
 
-  // Mientras bajas: una espera larga que el servidor contesta cuando el tiburón te alcanzaría o se acabaría el aire.
+  // Un paso tras otro con el reloj del servidor mientras dura la inmersión.
   useEffect(() => {
     if (!run) return
-    let gone = false
-    const loop = async () => {
-      while (!gone) {
-        const v = await ask({ a: 'wait' })
-        if (gone) return
-        if (v && v.bet === 0 && v.last) {
-          if (!sent.current || v.last.lost) finishRun(v)
-          return
+    let frame
+    const loop = () => {
+      frame = requestAnimationFrame(loop)
+      const d = dv.current
+      if (!d || d.st.end) return
+      const target = Math.min(AIR_TICKS, Math.floor((clock() - d.start) / TICK_MS))
+      let changed = false
+      while (d.st.tick < target && !d.st.end) {
+        const w = wanted()
+        if (w !== d.dir) {
+          d.dir = w
+          d.moves.push([d.st.tick, w])
         }
-        if (!v) await new Promise((ok) => setTimeout(ok, 1000))
+        d.st = diveStep(d.st, d.zone, d.dir, null)
+        changed = true
+      }
+      if (!changed) return
+      setSim(d.st)
+      // Burbujas al pasar cada diez metros.
+      const n = Math.floor(d.st.max / 10)
+      if (n > passed.current) {
+        passed.current = n
+        playBubbles()
+      }
+      if (d.st.end) {
+        // Aquí no hay tiburón (no se sabe dónde está): lo dirá el servidor al repetirla.
+        send(true)
+      } else if (hasShark(d.zone) && Math.floor(d.st.max) > d.probed) {
+        // Cada metro nuevo en el Abismo: ¿te ha pillado el tiburón?
+        d.probed = Math.floor(d.st.max)
+        send(false)
       }
     }
-    loop()
-    return () => {
-      gone = true
-    }
-  }, [run, ask])
+    frame = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(frame)
+  }, [run, clock])
 
-  // Mantener y soltar: espacio, o el botón grande (ratón o dedo).
-  const press = () => {
-    if (held.current) return
-    held.current = true
-    setHolding(true)
-    if (!run) start()
-  }
-  const release = () => {
-    if (!held.current) return
-    held.current = false
-    setHolding(false)
-    if (run) up()
-  }
+  // Teclas: espacio o ↓ para bajar y ↑ para subir (mantenidas).
+  const KEYS = { Space: 'down', ArrowDown: 'down', KeyS: 'down', ArrowUp: 'up', KeyW: 'up' }
   const onKeyDown = useEffectEvent((event) => {
-    if (event.code !== 'Space' || event.repeat) return
+    const k = KEYS[event.code]
+    if (!k || event.repeat) return
     const target = event.target instanceof Element ? event.target : null
     if (target?.matches('input, select, textarea')) return
     event.preventDefault()
-    press()
+    keys.current[k] = true
+    pressed()
   })
   const onKeyUp = useEffectEvent((event) => {
-    if (event.code !== 'Space') return
+    const k = KEYS[event.code]
+    if (!k) return
     event.preventDefault()
-    release()
+    keys.current[k] = false
+    pressed()
   })
-  const onBlur = useEffectEvent(() => release())
+  const onBlur = useEffectEvent(() => {
+    keys.current = { down: false, up: false }
+    pressed()
+  })
   useEffect(() => {
     const down = (e) => onKeyDown(e)
     const upKey = (e) => onKeyUp(e)
@@ -629,94 +661,77 @@ function Buceo({ onExit, juegos }) {
       window.removeEventListener('blur', blur)
     }
   }, [])
-
-  // Un fotograma por refresco de pantalla mientras el buzo se mueve.
-  const moving = Boolean(run) || (rise && !rise.done)
-  useEffect(() => {
-    if (!moving) return
-    let frame
-    const tick = () => {
-      setFrame((n) => n + 1)
-      frame = requestAnimationFrame(tick)
-    }
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
-  }, [moving])
-
-  // Dónde está el buzo ahora.
-  const shownZone = run?.zone ?? zone
-  let depth = 0
-  let downMs = 0
-  let upElapsed = 0
-  let state = 'idle'
-  if (run) {
-    downMs = Math.max(0, clock() - run.start)
-    depth = depthAt(downMs)
-    state = sent.current ? 'up' : 'swim'
-  } else if (rise) {
-    const k = rise.ms > 0 ? Math.min(1, (Date.now() - rise.at) / rise.ms) : 1
-    depth = rise.from - (rise.from - rise.to) * k
-    downMs = (rise.from / DOWN_MPS) * 1000
-    upElapsed = ((rise.from - depth) / UP_MPS) * 1000
-    state = rise.result.lost ? 'lost' : k < 1 ? 'up' : 'idle'
-    if (k >= 1 && !rise.done) queueMicrotask(landed)
-  }
-  const reached = run ? depth : (rise?.from ?? 0)
-  // Burbujas al pasar cada diez metros.
-  useEffect(() => {
-    const n = Math.floor(reached / 10)
-    if (run && n > passed.current) {
-      passed.current = n
-      playBubbles()
-    }
+  const hold = (k) => ({
+    onPointerDown: (e) => {
+      e.currentTarget.setPointerCapture?.(e.pointerId)
+      keys.current[k] = true
+      pressed()
+    },
+    onPointerUp: () => {
+      keys.current[k] = false
+      pressed()
+    },
+    onPointerCancel: () => {
+      keys.current[k] = false
+      pressed()
+    },
+    onContextMenu: (e) => e.preventDefault(),
   })
 
-  const live = Boolean(run) || Boolean(rise && !rise.done)
-  const airLeft = live ? AIR_MS - downMs - upElapsed : AIR_MS
-  const need = live ? upMs(depth) : 0
+  // Dónde está el buzo ahora.
+  const shownZone = run?.zone ?? ended?.result.zone ?? zone
+  const st = run ? sim : ended ? { ...ended.st, depth: ended.result.lost ? ended.result.lostAt : 0 } : null
+  const live = Boolean(run)
+  const depth = st?.depth ?? 0
+  const reached = st?.max ?? 0
+  const ear = live ? (st?.ear ?? 0) : 0
+  const dir = live ? (st?.dir ?? 1) : 0
+  const state = ended?.result.lost ? 'lost' : !live ? 'idle' : dir > 0 ? 'swim' : dir < 0 ? 'up' : 'idle'
+  const elapsed = live ? (st?.tick ?? 0) * TICK_MS : 0
+  const airLeft = AIR_MS - elapsed
+  const need = live ? returnMs(shownZone, depth, reached, ear) : 0
   const margin = airLeft - need // lo que sobra de aire después de reservar lo que cuesta volver (negativo: ya no llegas)
-  const warn = Boolean(run) && margin < WARN_MS
-  // La tensión (de 0 a 1): crece según se acaba el margen. Al subir con margen se alivia a medida que sales; si ya no
-  // llegas, no se alivia nunca. Con un tiburón no hay tensión de aire.
+  const warn = live && margin < WARN_MS
+  const earWarn = live && ear >= EAR_WARN && dir !== 0
+  // La tensión (de 0 a 1): crece según se acaba el margen de aire o la presión de los oídos se acerca al máximo.
   let tense = 0
-  if (live && rise?.result.lost !== 'shark') {
-    const raw = Math.min(1, Math.max(0, 1 - margin / TENSE_MS))
-    if (run && !sent.current) tense = raw
-    else tense = margin < 0 ? 1 : raw * Math.min(1, depth / 10)
-  }
+  if (live) tense = Math.max(Math.min(1, Math.max(0, 1 - margin / TENSE_MS)), Math.max(0, (ear - EAR_WARN) / (EAR_MAX - EAR_WARN)))
   const beat = tense < 0.2 ? 0 : tense < 0.5 ? 1 : tense < 0.8 ? 2 : 3
   const leak = tense > 0.8 ? 3 : tense > 0.55 ? 2 : tense > 0.3 ? 1 : 0
-  const relief = state === 'up' && !rise?.result.lost ? Math.min(1, Math.max(0, 1 - depth / 18)) : 0
-  const asc = Boolean(rise && !rise.done) || (Boolean(run) && sent.current)
-  // El latido: suena al ritmo del que se ve en los bordes, y se reinicia con cada cambio de nivel.
+  const relief = live && dir < 0 ? Math.min(1, Math.max(0, 1 - depth / 18)) : 0
   useEffect(() => {
     if (!beat) return
     playPulse(beat)
     const id = setInterval(() => playPulse(beat), BEAT_MS[beat])
     return () => clearInterval(id)
   }, [beat])
-  const shownBet = run ? run.bet : rise ? rise.result.stake : clampBet(bet, maxBetFor(balance))
-  const mult = multAt(shownZone, run ? depth : reached)
-  // Lo que cobrarías: soltando ahora (bajando) o llegando arriba (subiendo, si no te quedas sin aire ni te pilla el tiburón).
-  const worth = run ? payout(run.bet, mult) : rise && !rise.result.lost ? rise.result.payout : 0
+  const shownBet = run ? run.bet : ended ? ended.result.stake : clampBet(bet, maxBetFor(balance))
+  const mult = multAt(shownZone, reached)
+  const worth = live ? payout(run.bet, mult) : ended && !ended.result.lost ? ended.result.payout : 0
   const maxBet = maxBetFor(balance)
-  const locked = Boolean(run) || (rise && !rise.done) || asking
-  const result = rise?.done ? rise.result : null
+  const locked = live || asking
+  const result = ended?.result ?? null
 
-  let status = 'Elige la zona y la apuesta. Mantén pulsado para bajar aguantando la respiración y suelta para subir.'
+  let status = 'Elige la zona y la apuesta. Mantén «Bajar» para tirarte; haz paradas para compensar los oídos y vuelve a la superficie con «Subir».'
   let tone = ''
   if (juegos.error) status = juegos.error
   else if (!ready) status = 'Respira hondo…'
-  else if (run && !sent.current) status = warn ? '¡Sube ya! Te queda el aire justo para volver.' : `Aguantando a ${fmtM(depth)}. Si sueltas ahora, cobras ${eur(worth)} (${fmtMult(mult)}).`
-  else if (run) status = 'Subiendo…'
+  else if (live && margin < 0) status = '¡No te llega el aire! Sube ya.'
+  else if (live && warn) status = '¡Sube ya! Te queda el aire justo para volver.'
+  else if (live && earWarn) status = '¡Te van a explotar los oídos! Suelta y para a compensar.'
+  else if (live && dir === 0) status = `Parada a ${fmtM(depth)}: compensando los oídos (el aire sigue corriendo).`
+  else if (live && dir > 0) status = `Bajando: ${fmtM(depth)}. Si vuelves ahora, cobras ${eur(worth)} (${fmtMult(mult)}).`
+  else if (live) status = `Subiendo desde ${fmtM(reached)}: ${fmtM(depth)} para la superficie.`
   else if (gulp !== null) status = '¡Respiras!'
-  else if (rise && !rise.done) status = rise.result.lost === 'shark' ? '¡Un tiburón!' : rise.result.lost === 'air' ? 'Subiendo… ¡se acaba el aire!' : `Subiendo desde ${fmtM(rise.from)}…`
   else if (result && result.net > 0) {
-    status = `¡Respiras! Subiste desde ${fmtM(result.depth)}. ${fmtMult(result.mult)}: ganaste ${eur(result.net + (bank?.round === result.round ? bank.extra : 0))}.`
+    status = `¡Respiras! Llegaste a ${fmtM(result.depth)} y volviste. ${fmtMult(result.mult)}: ganaste ${eur(result.net + (bank?.round === result.round ? bank.extra : 0))}.`
     tone = 'good'
+  } else if (result && !result.lost) {
+    status = `Volviste desde ${fmtM(result.depth)}: ${fmtMult(result.mult)}, no cubre la apuesta. Hay que apurar más.`
+    tone = 'bad'
   } else if (result && bank?.round === result.round && bank.extra > 0) status = `¡Te pilló el mar! Pero el Admin Abuse te devuelve ${eur(bank.extra)}.`
   else if (result) {
-    status = result.lost === 'shark' ? `Un tiburón te pilló a ${fmtM(result.depth)}. Perdiste ${eur(result.stake)}.` : `Se te acabó el aire subiendo, a ${fmtM(result.lostAt)}. Perdiste ${eur(result.stake)}.`
+    status = `${LOST_TEXT[result.lost]?.(result) ?? 'Perdiste.'} Perdiste ${eur(result.stake)}.`
     tone = 'bad'
   } else if (balance < MIN_BET) status = 'Te quedaste sin saldo esta semana. El domingo a las 23:59 vuelves a empezar.'
 
@@ -752,30 +767,34 @@ function Buceo({ onExit, juegos }) {
             </button>
             <Help className="tg tg--help" title="Cómo se juega a la Apnea">
               <p>
-                <b>Mantén pulsado</b> (la barra espaciadora o el botón) para bajar aguantando la respiración y <b>suelta</b> para subir.
-                Cuanto más hondo llegues, más cobras al volver a la superficie: el premio sube con cada metro.
+                Tú llevas al buzo: mantén <b>Bajar</b> (la barra espaciadora o ↓) para bajar, mantén <b>Subir</b> (↑) para subir y{' '}
+                <b>no pulses nada para hacer una parada</b>. Cobras al volver a la superficie, según lo más hondo a lo que llegaste.
               </p>
               <p>
-                <b>El tiburón:</b> al tirarte, el servidor decide en secreto a qué profundidad aparece. Si llegas hasta él bajando, te pilla y pierdes
-                la apuesta. Nadie sabe dónde está: unas veces aparece enseguida y otras ni aparece.
+                <b>Los oídos:</b> bajar y subir les mete presión, y al subir más cuanto más hondo llegaste (hay que descomprimir). En
+                las paradas se compensa, y más deprisa cuanto más presión llevas: apurar hasta cerca del rojo cunde más, pero si la
+                presión llega arriba, <b>te explotan los oídos</b> y pierdes la apuesta.
               </p>
               <p>
-                <b>El aire:</b> tus pulmones aguantan {AIR_MS / 1000} segundos y se gastan bajando y subiendo, y subir es el doble de lento. La raya
-                blanca de los pulmones te dice cuánto aire hace falta para volver desde donde estás, y el margen son los segundos que te sobran:
-                si sueltas tan abajo que no te llega, te ahogas por el camino. A medida que el margen se acaba, la vista se cierra y el corazón se
-                acelera. Bajando sin parar, el límite está en unos {fmtM(SAFE_M)}.
+                <b>El aire:</b> tus pulmones aguantan {AIR_MS / 1000} segundos desde que te tiras, también en las paradas, y subir es el doble
+                de lento que bajar. La raya blanca de los pulmones es el aire que hace falta para volver desde donde estás (con sus
+                paradas): si se te acaba antes de llegar arriba, te ahogas.
+              </p>
+              <p>
+                <b>El tiburón</b> solo vive en el <b>Abismo</b>: al tirarte, el servidor decide en secreto a qué profundidad aparece y, si llegas
+                hasta él, te pilla. En la Laguna y el Arrecife no hay tiburón: todo depende de cómo bajes y subas.
               </p>
               <ul>
                 {Object.entries(ZONES).map(([id, z]) => (
                   <li key={id}>
-                    <b>{z.name}:</b> a 10 m paga {fmtMult(multAt(id, 10))}, a 20 m {fmtMult(multAt(id, 20))} y en el límite del aire{' '}
-                    {fmtMult(multAt(id, SAFE_M))}. Cuanto más paga, antes suele aparecer el tiburón.
+                    <b>{z.name}:</b> a 20 m paga {fmtMult(multAt(id, 20))}, a 30 m {fmtMult(multAt(id, 30))} y a 35 m {fmtMult(multAt(id, 35))}.{' '}
+                    {z.shark ? 'Con tiburón: cuanto más hondo, más fácil que aparezca.' : id === 'arrecife' ? 'Sin tiburón, pero con corrientes: los oídos sufren más.' : 'Sin tiburón y con el agua en calma.'}
                   </li>
                 ))}
               </ul>
               <p>
-                El servidor mide con su reloj cuánto bajaste, desde que te tiras hasta que sueltas. Bajes hasta donde bajes, de media se recupera el
-                96 %. Con el Admin Abuse, la banca multiplica lo que ganes o te devuelve lo que pierdas, y el tiburón suele aparecer más hondo.
+                Bajar poco no cubre la apuesta: el premio está en apurar el aire y los oídos. El servidor repite tu inmersión con su reloj para
+                pagarla. Con el Admin Abuse, la banca multiplica lo que ganes o te devuelve lo que pierdas, y el tiburón suele aparecer más hondo.
               </p>
             </Help>
           </div>
@@ -783,29 +802,45 @@ function Buceo({ onExit, juegos }) {
       </header>
 
       <div className="ar fill">
-        <section className={`bz-stage bz-stage--${shownZone} ${shake ? 'is-shake' : ''} ${tone === 'good' ? 'is-win' : ''} ${warn ? 'is-warn' : ''} ${live ? 'is-live' : ''}`} aria-label="El mar">
-          <Sea zone={shownZone} depth={depth} state={state} shark={rise?.result.lost === 'shark' ? rise.result.depth : null} moving={moving} tense={tense} leak={leak} beat={beat} relief={relief} />
+        <section className={`bz-stage bz-stage--${shownZone} ${shake ? 'is-shake' : ''} ${tone === 'good' ? 'is-win' : ''} ${warn || earWarn ? 'is-warn' : ''} ${live ? 'is-live' : ''}`} aria-label="El mar">
+          <Sea zone={shownZone} depth={depth} state={state} shark={result?.lost === 'shark' ? result.lostAt : null} moving={live} tense={tense} leak={leak} beat={beat} relief={relief} />
 
           <div className="bz-hud">
             <div className={`bz-read ${warn ? 'is-low' : ''}`}>
-              <small>{rise && !rise.done ? 'Subiendo' : 'Profundidad'}</small>
+              <small>{live ? (dir === 0 ? 'Parada' : dir < 0 ? 'Subiendo' : 'Bajando') : 'Profundidad'}</small>
               <b className="bz-read__depth">
                 {Math.floor(depth)}
                 <i>m</i>
               </b>
               <span className="bz-read__prize">
-                <small>{run && !asc ? 'Si sueltas ahora' : rise && !rise.done ? (rise.result.lost ? 'Premio' : 'Si llegas arriba') : 'Premio'}</small>
-                <b>{run || (rise && !rise.result.lost) ? eur(worth) : fmtMult(mult)}</b>
-                {(run || (rise && !rise.result.lost)) && <em>{fmtMult(mult)}</em>}
+                <small>{live ? `Si vuelves (máx. ${fmtM(reached)})` : 'Premio'}</small>
+                <b>{live || (result && !result.lost) ? eur(worth) : fmtMult(mult)}</b>
+                {(live || (result && !result.lost)) && <em>{fmtMult(mult)}</em>}
               </span>
             </div>
-            <Lungs left={airLeft} need={need} margin={margin} live={live} warn={warn} />
+            <div className="bz-hud__side">
+              <Lungs left={airLeft} need={need} margin={margin} live={live} warn={warn} />
+              <Ears ear={ear} live={live} dir={dir} />
+            </div>
           </div>
 
-          {run && !asc && warn && (
+          {live && (warn || earWarn) && (
             <p className="bz-alert" aria-hidden="true">
-              <span>▲</span> ¡Sube ya!
+              {earWarn && !warn ? (
+                <>
+                  <span>■</span> ¡Para!
+                </>
+              ) : (
+                <>
+                  <span>▲</span> ¡Sube ya!
+                </>
+              )}
             </p>
+          )}
+          {result?.lost === 'ears' && !live && (
+            <div key={result.round} className="bz-pop" aria-hidden="true">
+              <b>¡PLOF!</b>
+            </div>
           )}
           {gulp !== null && (
             <div key={gulp} className="bz-gulp" aria-hidden="true">
@@ -816,26 +851,26 @@ function Buceo({ onExit, juegos }) {
             </div>
           )}
 
-          <p className={`ar-status bz-status ${tone ? `is-${tone}` : ''} ${warn ? 'is-bad' : ''}`} role="status">
+          <p className={`ar-status bz-status ${tone ? `is-${tone}` : ''} ${warn || earWarn ? 'is-bad' : ''}`} role="status">
             {status}
           </p>
         </section>
 
         <aside className="ar-panel">
           <div className="ar-loot-box">
-            {run ? (
+            {live ? (
               <>
-                <small>Si sueltas ahora</small>
+                <small>Si vuelves a la superficie</small>
                 <b>{eur(worth)}</b>
                 <span className="ar-loot-box__mult">
-                  {fmtMult(mult)} · {fmtM(depth)}
+                  {fmtMult(mult)} · máx. {fmtM(reached)}
                 </span>
               </>
             ) : (
               <>
-                <small>Si llegas a 20 m y vuelves</small>
-                <b>{eur(payout(shownBet, multAt(zone, 20)))}</b>
-                <span className="ar-loot-box__mult">{fmtMult(multAt(zone, 20))}</span>
+                <small>Si llegas a 30 m y vuelves</small>
+                <b>{eur(payout(shownBet, multAt(zone, 30)))}</b>
+                <span className="ar-loot-box__mult">{fmtMult(multAt(zone, 30))}</span>
               </>
             )}
           </div>
@@ -849,7 +884,7 @@ function Buceo({ onExit, juegos }) {
                     {ICONS[id]}
                   </span>
                   <b>{z.name}</b>
-                  <small>hasta {fmtMult(multAt(id, SAFE_M))}</small>
+                  <small>{z.shark ? `🦈 · 30 m ${fmtMult(multAt(id, 30))}` : `30 m ${fmtMult(multAt(id, 30))}`}</small>
                 </button>
               ))}
             </div>
@@ -893,35 +928,28 @@ function Buceo({ onExit, juegos }) {
             </div>
           </div>
 
-          <button
-            type="button"
-            className={`ar-go bz-hold ${holding ? 'is-held' : ''} ${warn ? 'is-warn' : ''}`}
-            disabled={!ready || (!run && (Boolean(rise && !rise.done) || asking || balance < MIN_BET))}
-            onPointerDown={(e) => {
-              e.currentTarget.setPointerCapture?.(e.pointerId)
-              press()
-            }}
-            onPointerUp={release}
-            onPointerCancel={release}
-            onContextMenu={(e) => e.preventDefault()}
-          >
-            <span className="bz-hold__text">
-              {run && !sent.current ? (
-                <>
-                  <b>{warn ? '¡Suelta ya!' : 'Suelta para subir'}</b>
-                  <small>
-                    {eur(worth)} · {fmtM(depth)}
-                  </small>
-                </>
-              ) : (
-                <>
-                  <b>Mantén para bajar</b>
-                  <small>aguanta la respiración · suelta para subir</small>
-                </>
-              )}
-            </span>
-            <kbd>Espacio</kbd>
-          </button>
+          <div className="bz-pad">
+            <button
+              type="button"
+              className={`ar-go bz-hold bz-hold--down ${dirShown === 1 ? 'is-held' : ''}`}
+              disabled={!ready || (!run && (asking || balance < MIN_BET))}
+              {...hold('down')}
+            >
+              <span className="bz-hold__text">
+                <b>{run ? '▼ Bajar' : '▼ Tirarse'}</b>
+                <small>{run ? 'mantén' : `mantén para bajar · ${eur(shownBet)}`}</small>
+              </span>
+              <kbd>Espacio</kbd>
+            </button>
+            <button type="button" className={`ar-go bz-hold bz-hold--up ${dirShown === -1 ? 'is-held' : ''} ${warn ? 'is-warn' : ''}`} disabled={!run} {...hold('up')}>
+              <span className="bz-hold__text">
+                <b>▲ Subir</b>
+                <small>{run ? 'mantén · suelta para parar' : 'durante la inmersión'}</small>
+              </span>
+              <kbd>↑</kbd>
+            </button>
+          </div>
+          {run && <p className="bz-padhint">Sin pulsar nada haces una parada y compensas los oídos.</p>}
 
           <div className="ar-group">
             <h2>Récord del día</h2>
@@ -945,8 +973,8 @@ function Buceo({ onExit, juegos }) {
             {history.length > 0 && (
               <ol className="ar-history" aria-label="Últimas inmersiones">
                 {history.map((h) => (
-                  <li key={h.id} className={h.mult > 0 ? 'is-win' : 'is-lose'}>
-                    {h.mult > 0 ? fmtMult(h.mult) : '🦈'}
+                  <li key={h.id} className={h.mult >= 1 ? 'is-win' : 'is-lose'}>
+                    {h.lost ? (LOST_ICON[h.lost] ?? '✕') : fmtMult(h.mult)}
                   </li>
                 ))}
               </ol>

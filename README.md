@@ -160,10 +160,12 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
   cuando quieras: cuanto más pesas, más cobras (de ×0,28 a ×10). Si te comen, pierdes la apuesta.
 - **Tesoro en la Arena**: una playa de 5×5 con 3, 5, 9 o 15 cangrejos escondidos. Cada hoyo con tesoro sube el premio
   y cobras cuando quieras; si sale un cangrejo, pierdes. Al acabar se ve dónde estaban todos.
-- **Apnea**: aguanta la respiración mientras mantienes pulsado para bajar y suelta para subir. Cuanto más hondo llegues
-  y consigas volver, más cobras. El tiburón aparece a una profundidad que el servidor sortea en secreto, y el aire de los
-  pulmones se gasta bajando y subiendo (subir es el doble de lento): si sueltas demasiado abajo, te ahogas por el camino.
-  Una marca en los pulmones te dice el aire que necesitas para volver. En Laguna, Arrecife o Abismo.
+- **Apnea**: tú llevas al buzo: mantén «Bajar» para bajar, mantén «Subir» para subir y sin pulsar nada haces una
+  parada. Cobras al volver a la superficie según lo más hondo a lo que llegaste. Bajar y subir mete presión en los oídos
+  (al subir, más cuanto más hondo llegaste: hay que descomprimir) y en las paradas se compensa, más deprisa cuanto más
+  presión llevas; si llega al máximo, te explotan los oídos. Los pulmones aguantan 60 s, paradas incluidas. El tiburón
+  solo vive en el Abismo, a una profundidad que el servidor sortea en secreto; en la Laguna y el Arrecife todo depende de
+  cómo bajes y subas. El servidor repite la inmersión con tus cambios de dirección (simulación determinista) para pagar.
 - **La Torre**: sube piso a piso sin pisar una baldosa rota, en cuatro dificultades.
 - **El Atraco**: monta tu banda con tus cartas del gacha y baja planta a planta hasta la cámara acorazada.
 - **Plinko**: suelta bolas y que caigan en las orillas.

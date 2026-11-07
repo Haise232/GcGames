@@ -874,42 +874,47 @@ export function digPlay(msg, balance, saved, rand, ctx) {
   return { delta: 0, played: true, saved: state, result: digView(state, balance, { ev: 'loot', cell: msg.cell }) }
 }
 
-// --- Buceo de Perlas: se juega manteniendo pulsado (dive.js). Al tirarte («start») se sortea en secreto a qué
-// profundidad aparece el tiburón; mientras mantienes, bajas a dive.DOWN_MPS con el reloj del servidor, y al soltar («up»)
-// subes: si el tiburón ya te había alcanzado, o no te llega el aire para volver, pierdes; si no, cobras el multiplicador
-// de la profundidad a la que llegaste. saved: { bet, zone, week, start, shark, last, best } con bet > 0 mientras estás
-// bajando. shark no sale nunca del servidor mientras dura la inmersión.
+// --- Apnea: tú llevas al buzo (dive.js). Al tirarte («start») se sortea en secreto, solo en el Abismo, a qué profundidad
+// aparece el tiburón. La inmersión es una simulación por pasos: el navegador manda sus cambios de dirección («move»:
+// moves y ticks) y el servidor la repite con el tiburón y su propio reloj (no se pueden contar más pasos de los que han
+// pasado). Mientras bajas por el Abismo el navegador la manda a cada metro nuevo para saber al momento si te pilla el
+// tiburón; al acabar (superficie, oídos o aire) la manda con final y se paga. saved: { v, bet, zone, week, start, shark,
+// last, best } con bet > 0 mientras dura; shark no sale nunca del servidor mientras dura la inmersión.
+const DIVE_VERSION = 2
+const DIVE_GRACE_MS = 1500 // lo que se perdona de retraso al reloj del navegador
+const DIVE_ABANDON_MS = 5000 // sin noticias pasado el aire más esto, la inmersión se da por perdida (ahogado)
 function diveView(state, balance, now, extra = {}) {
   const live = state.bet > 0
   return { now, bet: live ? state.bet : 0, zone: live ? state.zone : null, start: live ? state.start : null, last: state.last ?? null, best: state.best ?? null, balance, ev: null, ...extra }
 }
 
-// Cuándo acaba sola una inmersión en marcha: el tiburón te alcanza bajando o se acaba el aire sin haber soltado.
-export const diveDueAt = (saved) => (saved?.bet > 0 && saved.start != null ? saved.start + Math.min(dive.sharkMs(saved.shark), dive.AIR_MS) : Infinity)
+// Cuándo acaba sola una inmersión que el navegador abandonó.
+export const diveDueAt = (saved) => (saved?.bet > 0 && saved.start != null ? saved.start + dive.AIR_MS + DIVE_ABANDON_MS : Infinity)
 
-// msg.a: «sync» (ponerse al día; liquida la inmersión si ya acabó sola), «start» (bet, zone) o «up» (soltar y subir).
+// msg.a: «sync» (ponerse al día), «start» (bet, zone), «move» (moves, ticks y final si el navegador cree que acabó) o
+// «quit» (dejar la inmersión a medias: cuenta como ahogado).
 export function divePlay(msg, balance, saved, rand, ctx) {
   let state = saved && saved.week === ctx.week ? { ...saved } : { last: saved?.last ?? null }
   if (state.best && state.best.day !== ctx.day) state.best = null
   const t = ctx.now
-  const settle = ({ depth, lost, lostAt = depth }) => {
-    const mult = lost ? 0 : dive.multAt(state.zone, depth)
+  const settle = (st) => {
+    const lost = st.end === 'surface' ? null : st.end
+    const mult = lost ? 0 : dive.multAt(state.zone, st.max)
     const paid = lost ? 0 : dive.payout(state.bet, mult)
-    const last = { round: t, stake: state.bet, zone: state.zone, depth, lost, lostAt, mult, payout: paid, net: paid - state.bet }
+    const last = { round: t, stake: state.bet, zone: state.zone, depth: st.max, lost, lostAt: st.lostAt ?? st.depth, mult, payout: paid, net: paid - state.bet, ms: st.tick * dive.TICK_MS }
     if (paid > 0 && (!state.best || mult > state.best.mult)) state.best = { day: ctx.day, mult, payout: paid, mode: state.zone }
     state = { ...state, bet: 0, start: null, shark: null, last }
     return paid
   }
-  // Una inmersión guardada con las reglas de antes (por tramos, sin start): se devuelve la apuesta.
-  if (state.bet > 0 && state.start == null) {
+  // Una inmersión guardada con las reglas de antes (mantener y soltar): se devuelve la apuesta.
+  if (state.bet > 0 && state.v !== DIVE_VERSION) {
     const back = state.bet
-    state = { ...state, bet: 0, depth: 0, mult: 0, pearls: [] }
+    state = { ...state, bet: 0, start: null, shark: null }
     return { delta: back, played: true, saved: state, result: diveView(state, balance + back, t) }
   }
-  // 1. La inmersión que acabó sola mientras bajabas: el tiburón, o el aire si no soltaste a tiempo.
+  // Una inmersión abandonada (se cerró la pestaña): te quedaste sin aire.
   if (t >= diveDueAt(state)) {
-    const shark = dive.sharkMs(state.shark) <= dive.AIR_MS
-    settle({ depth: shark ? state.shark : dive.depthAt(dive.AIR_MS), lost: shark ? 'shark' : 'air' })
+    settle({ end: 'air', max: 0, depth: 0, lostAt: 0, tick: dive.AIR_TICKS })
     return { delta: 0, played: true, saved: state, result: diveView(state, balance, t, { ev: 'lost' }) }
   }
   const live = state.bet > 0
@@ -920,23 +925,29 @@ export function divePlay(msg, balance, saved, rand, ctx) {
     if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
     // Con suerte del Admin Abuse (ctx.luck 2 o 3), el tiburón se sortea tantas veces y vale el más hondo.
     let shark = dive.sharkDepth(msg.zone, rand)
-    for (let i = 1; i < (ctx.luck ?? 1); i++) shark = Math.max(shark, dive.sharkDepth(msg.zone, rand))
-    state = { ...state, bet: msg.bet, zone: msg.zone, start: t, shark, week: ctx.week }
+    for (let i = 1; shark !== null && i < (ctx.luck ?? 1); i++) shark = Math.max(shark, dive.sharkDepth(msg.zone, rand))
+    state = { ...state, v: DIVE_VERSION, bet: msg.bet, zone: msg.zone, start: t, shark, week: ctx.week }
     return { delta: -msg.bet, played: true, saved: state, result: diveView(state, balance - msg.bet, t, { ev: 'start' }) }
   }
-  if (msg.a !== 'up') return { error: 'BAD_MESSAGE' }
-  if (!live) return { error: 'BAD_PHASE' }
-  // 2. Soltaste: hasta dónde llegaste y si te llega el aire para volver.
-  const downMs = t - state.start
-  const depth = dive.depthAt(downMs)
-  if (!dive.canReturn(downMs, depth)) {
-    // Te ahogas subiendo, donde se acaba el aire.
-    const lostAt = Math.max(0, depth - (dive.UP_MPS * (dive.AIR_MS - downMs)) / 1000)
-    settle({ depth, lost: 'air', lostAt })
-    return { delta: 0, played: true, saved: state, result: diveView(state, balance, t, { ev: 'up' }) }
+  // Volviste a la pantalla a mitad de una inmersión: no se puede retomar (no se sabe qué pulsaste), así que te ahogas.
+  if (msg.a === 'quit') {
+    if (!live) return { error: 'BAD_PHASE' }
+    settle({ end: 'air', max: 0, depth: 0, lostAt: 0, tick: Math.min(dive.AIR_TICKS, Math.floor((t - state.start) / dive.TICK_MS)) })
+    return { delta: 0, played: true, saved: state, result: diveView(state, balance, t, { ev: 'lost' }) }
   }
-  const paid = settle({ depth, lost: null })
-  return { delta: paid, played: true, saved: state, result: diveView(state, balance + paid, t, { ev: 'up' }) }
+  if (msg.a !== 'move') return { error: 'BAD_MESSAGE' }
+  if (!live) return { error: 'BAD_PHASE' }
+  if (!dive.validMoves(msg.moves) || !Number.isSafeInteger(msg.ticks) || msg.ticks < 1 || msg.ticks > dive.AIR_TICKS) return { error: 'BAD_MESSAGE' }
+  // No se pueden contar más pasos de los que han pasado desde que te tiraste.
+  const allowed = Math.floor((t - state.start + DIVE_GRACE_MS) / dive.TICK_MS)
+  const st = dive.simulate(state.zone, msg.moves, Math.min(msg.ticks, allowed), state.shark)
+  if (!st.end) {
+    // Sigue bajo el agua: bien (una comprobación a mitad), o va adelantado si el navegador creía que había acabado.
+    if (msg.final === true) return { error: 'BAD_PHASE' }
+    return { delta: 0, played: false, saved: null, result: diveView(state, balance, t, { ev: 'ok' }) }
+  }
+  const paid = settle(st)
+  return { delta: paid, played: true, saved: state, result: diveView(state, balance + paid, t, { ev: st.end }) }
 }
 
 // --- Bola Canaria: también una jugada sin nada guardado. Con suerte del Admin Abuse se tira varias veces y vale la mejor.

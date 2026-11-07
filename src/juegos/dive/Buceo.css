@@ -759,6 +759,146 @@
   animation: bz-blink 0.4s ease-in-out infinite alternate;
 }
 
+/* Los dos mandos: Bajar (y tirarse) y Subir. Sin pulsar ninguno, parada. */
+.juegos-root .bz-pad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.juegos-root .bz-pad .bz-hold {
+  min-height: 86px;
+  padding-inline: 8px;
+}
+.juegos-root .bz-pad .bz-hold__text b {
+  font-size: 23px;
+}
+.juegos-root .bz-pad .bz-hold__text small {
+  font-size: 11.5px;
+  text-align: center;
+}
+.juegos-root .bz-hold--up {
+  background: linear-gradient(180deg, #b6ffd8, #2ec48a);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 6px 0 #17714e,
+    0 12px 30px rgba(46, 196, 138, 0.35);
+  color: #042a1c;
+}
+.juegos-root .bz-hold--up:disabled {
+  opacity: 0.45;
+}
+.juegos-root .bz-padhint {
+  margin: -4px 0 0;
+  color: #cfeaff;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Los oídos: una barra que se llena con la presión, con la raya del aviso. */
+.juegos-root .bz-hud__side {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+}
+.juegos-root .bz-ears {
+  display: grid;
+  gap: 4px;
+  width: 112px;
+  padding: 7px 9px 8px;
+  border-radius: 16px;
+  background: rgba(7, 22, 40, 0.68);
+  box-shadow: inset 0 0 0 1px rgba(200, 246, 255, 0.28);
+  color: #fff;
+}
+.juegos-root .bz-ears > small {
+  color: #cfeaff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.juegos-root .bz-ears > b {
+  font-size: 12.5px;
+  font-weight: 800;
+  text-align: center;
+}
+.juegos-root .bz-ears__bar {
+  position: relative;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.juegos-root .bz-ears__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--p) * 100%);
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2ee6d0, #ffe36e 65%, #ff5a4a);
+  background-size: calc(100% / max(var(--p), 0.01)) 100%;
+  transition: width 0.08s linear;
+}
+.juegos-root .bz-ears__warn {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--w) * 100%);
+  width: 2px;
+  background: rgba(255, 255, 255, 0.8);
+}
+.juegos-root .bz-ears.is-hot {
+  box-shadow:
+    inset 0 0 0 2px #ffb547,
+    0 0 18px rgba(255, 181, 71, 0.45);
+}
+.juegos-root .bz-ears.is-burst {
+  box-shadow:
+    inset 0 0 0 2px #ff5a4a,
+    0 0 22px rgba(255, 90, 74, 0.6);
+  animation: bz-blink 0.3s ease-in-out infinite alternate;
+}
+
+/* ¡PLOF!: los oídos que revientan. */
+.juegos-root .bz-pop {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 90, 74, 0.35), transparent 60%);
+  animation: bz-pop 1.4s ease-out both;
+}
+.juegos-root .bz-pop b {
+  color: #fff;
+  font-family: var(--display);
+  font-size: clamp(48px, 9vw, 96px);
+  font-weight: 400;
+  text-shadow:
+    0 4px 0 #a2381c,
+    0 0 30px rgba(255, 90, 74, 0.8);
+  rotate: -6deg;
+}
+@keyframes bz-pop {
+  0% {
+    scale: 0.4;
+    opacity: 0;
+  }
+  18% {
+    scale: 1.15;
+    opacity: 1;
+  }
+  70% {
+    scale: 1;
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 @media (max-width: 860px) {
   .juegos-root .app.bz-app {
     height: auto;
@@ -799,11 +939,18 @@
     width: 34px;
     left: 10px;
   }
-  /* El botón de mantener sigue al pulgar: grande y pegado al borde de abajo. */
-  .juegos-root .bz-hold {
+  /* Los mandos siguen al pulgar: grandes y pegados al borde de abajo. */
+  .juegos-root .bz-pad {
     position: sticky;
     bottom: 8px;
-    min-height: 104px;
+    z-index: 5;
+  }
+  .juegos-root .bz-pad .bz-hold {
+    min-height: 96px;
+  }
+  .juegos-root .bz-ears {
+    width: 92px;
+    padding: 6px 7px;
   }
 }
 
@@ -812,7 +959,7 @@
   .juegos-root :is(.bz-world, .bz-diver, .bz-gauge__fill, .bz-gauge b, .bz-dark, .bz-lungs__air, .bz-lungs__reserve) {
     transition: none !important;
   }
-  .juegos-root :is(.bz-pulse, .bz-alert, .bz-lungs.is-low, .bz-hold.is-held.is-warn, .bz-rays, .bz-surface, .bz-school, .bz-turtle, .bz-flipper, .bz-caustics, .bz-kelp, .bz-moray, .bz-clown, .bz-jelly, .bz-lure, .bz-eyes__in, .bz-leviathan, .bz-snow, .bz-fins, .bz-diver__body, .bz-breath circle) {
+  .juegos-root :is(.bz-pulse, .bz-alert, .bz-ears.is-burst, .bz-pop, .bz-lungs.is-low, .bz-hold.is-held.is-warn, .bz-rays, .bz-surface, .bz-school, .bz-turtle, .bz-flipper, .bz-caustics, .bz-kelp, .bz-moray, .bz-clown, .bz-jelly, .bz-lure, .bz-eyes__in, .bz-leviathan, .bz-snow, .bz-fins, .bz-diver__body, .bz-breath circle) {
     animation: none;
   }
   .juegos-root .bz-pulse {
