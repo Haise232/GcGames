@@ -1981,3 +1981,92 @@
     animation: none;
   }
 }
+
+/* === Escena del Campeonato de Pesca (PescaArt.jsx) === */
+.juegos-root .pcs-shimmer path {
+  animation: is4-twinkle 2.6s ease-in-out infinite;
+}
+.juegos-root .pcs-shimmer path:nth-child(2n) {
+  animation-delay: -1.1s;
+}
+.juegos-root .pcs-shimmer path:nth-child(3n) {
+  animation-delay: -1.8s;
+}
+.juegos-root .pcs-hooked {
+  animation: pcs-thrash 0.9s ease-in-out infinite alternate;
+}
+@keyframes pcs-thrash {
+  0% {
+    translate: -4px 3px;
+    rotate: -14deg;
+  }
+  100% {
+    translate: 4px -3px;
+    rotate: 14deg;
+  }
+}
+.juegos-root .pcs-rod {
+  transform-origin: 62px 58px;
+  animation: pcs-tip 1.8s ease-in-out infinite alternate;
+}
+@keyframes pcs-tip {
+  to {
+    rotate: -1.8deg;
+  }
+}
+.juegos-root .pcs-drop {
+  animation: pcs-drop 1.1s ease-out infinite;
+}
+.juegos-root .pcs-drop--b {
+  animation-delay: -0.4s;
+}
+.juegos-root .pcs-drop--c {
+  animation-delay: -0.75s;
+}
+@keyframes pcs-drop {
+  0% {
+    translate: 0 4px;
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    translate: 0 -6px;
+    opacity: 0;
+  }
+}
+.juegos-root .pcs-boat {
+  animation: pcs-rock 3s ease-in-out infinite alternate;
+}
+@keyframes pcs-rock {
+  to {
+    translate: 0 2px;
+    rotate: 2deg;
+  }
+}
+.juegos-root .pcs-school {
+  animation: pcs-swim 5s ease-in-out infinite alternate;
+}
+@keyframes pcs-swim {
+  to {
+    translate: 10px -2px;
+  }
+}
+.juegos-root .pcs-marlin {
+  animation: pcs-swim 7s ease-in-out infinite alternate-reverse;
+}
+.juegos-root .pcs-bunting {
+  transform-origin: 120px 6px;
+  animation: pcs-flutter 2.4s ease-in-out infinite alternate;
+}
+@keyframes pcs-flutter {
+  to {
+    rotate: 0.8deg;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root :is(.pcs-shimmer path, .pcs-hooked, .pcs-rod, .pcs-drop, .pcs-boat, .pcs-school, .pcs-marlin, .pcs-bunting) {
+    animation: none;
+  }
+}

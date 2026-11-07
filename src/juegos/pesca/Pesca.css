@@ -1,0 +1,1406 @@
+/* Escrito a mano (no generado): el Campeonato de Pesca en vivo (Pesca.jsx). A la izquierda el mar de La Restinga visto
+   desde arriba (SVG: el agua al atardecer, la lava a los lados, las sombras de los peces y el muelle con los pescadores);
+   encima, la inscripción, el podio, los avisos y la pelea. A la derecha la cuenta atrás, los botes, la clasificación,
+   las capturas y la Liga de la Cofradía. En pantallas estrechas, el lado va debajo y la página se desplaza. */
+.juegos-root .pc-app {
+  --accent: #46e0c8;
+  --accent-rgb: 70, 224, 200;
+  --pc-gold: #ffd25e;
+  --pc-ink: #04121f;
+  --pc-panel: rgba(6, 24, 42, 0.72);
+  --pc-line: rgba(143, 227, 255, 0.16);
+}
+.juegos-root .pc-app::before {
+  background:
+    radial-gradient(55% 30% at 50% 0%, rgba(255, 138, 76, 0.24), transparent 70%),
+    repeating-radial-gradient(ellipse at 50% 130%, transparent 0 40px, rgba(200, 246, 255, 0.035) 40px 42px),
+    linear-gradient(180deg, #1a1446, #0c2c4a 38%, #07243a 72%, #05172a);
+}
+
+.juegos-root .pc {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(270px, 24vw, 340px);
+  gap: clamp(12px, 1.6vw, 24px);
+  margin-top: clamp(8px, 1.4vh, 16px);
+}
+
+/* ---------- El mar ---------- */
+.juegos-root .pc-stage {
+  position: relative;
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1000 / 640;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 22px;
+  background:
+    linear-gradient(#0a4d6e, #0a4d6e) padding-box,
+    linear-gradient(135deg, #ffe36e, #ff8a4c 45%, #2ee6d0) border-box;
+  box-shadow:
+    0 0 36px rgba(46, 230, 208, 0.18),
+    0 22px 50px rgba(4, 6, 20, 0.6);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+@supports not (aspect-ratio: 1 / 1) {
+  .juegos-root .pc-stage {
+    height: 60vh;
+  }
+}
+.juegos-root .pc-sea {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .pc-sea--cast {
+  cursor: crosshair;
+}
+
+/* Luz bajo el agua: dos capas de cáusticas que se cruzan despacio. */
+.juegos-root .pc-caustics rect {
+  opacity: 0.055;
+}
+.juegos-root .pc-caustics__a {
+  animation: pc-caustic 38s linear infinite;
+}
+.juegos-root .pc-caustics__b {
+  opacity: 0.04 !important;
+  scale: 1.4 1.2;
+  transform-origin: 50% 0;
+  animation: pc-caustic 56s linear infinite reverse;
+}
+@keyframes pc-caustic {
+  to {
+    translate: 160px 0;
+  }
+}
+.juegos-root .pc-glints path {
+  fill: none;
+  stroke: #c8f6ff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.25;
+  animation: pc-glint 3.2s ease-in-out infinite alternate;
+}
+.juegos-root .pc-glints--sun path {
+  stroke: #ffd9a0;
+  stroke-width: 2.4;
+}
+@keyframes pc-glint {
+  from {
+    opacity: 0.05;
+    translate: -6px 0;
+  }
+  to {
+    opacity: 0.4;
+    translate: 6px 2px;
+  }
+}
+
+/* La costa de lava negra: roca con luz de atardecer, grietas calientes y espuma que rompe. */
+.juegos-root .pc-lava {
+  fill: url(#pc-rock);
+}
+.juegos-root .pc-lava__edge {
+  fill: none;
+  stroke: #0b0710;
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+.juegos-root .pc-rim {
+  fill: none;
+  stroke: rgba(255, 150, 96, 0.38);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.juegos-root .pc-shallows {
+  fill: none;
+  stroke: #5fe0cc;
+  stroke-width: 30;
+  stroke-linecap: round;
+  opacity: 0.22;
+}
+.juegos-root .pc-pore {
+  fill: #000;
+  opacity: 0.35;
+}
+.juegos-root .pc-crack {
+  fill: none;
+  stroke: #ff7a3c;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.38;
+}
+.juegos-root .pc-foam {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 2.4;
+  stroke-dasharray: 18 10 5 12;
+  stroke-linecap: round;
+  animation: pc-foam 3.4s linear infinite;
+}
+.juegos-root .pc-foam--soft {
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 9;
+  stroke-dasharray: 40 24;
+  animation-duration: 5.1s;
+  animation-direction: reverse;
+}
+@keyframes pc-foam {
+  to {
+    stroke-dashoffset: -90;
+  }
+}
+.juegos-root .pc-rock {
+  fill: #1f1829;
+  stroke: #0b0710;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.juegos-root .pc-rock__hi {
+  fill: #4b3a58;
+  opacity: 0.85;
+}
+.juegos-root .pc-rock__dk {
+  fill: #07040b;
+  opacity: 0.7;
+}
+.juegos-root .pc-rock__foam {
+  fill: rgba(255, 255, 255, 0.08);
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pc-rockfoam 2.6s ease-in-out infinite;
+}
+@keyframes pc-rockfoam {
+  from {
+    scale: 0.85;
+    opacity: 0.9;
+  }
+  to {
+    scale: 1.25;
+    opacity: 0.2;
+  }
+}
+
+/* Las sombras: oscuras y algo borrosas (el filtro va en el grupo), con un halo suave de agua. */
+.juegos-root .pc-fish path {
+  fill: rgba(2, 14, 26, 0.8);
+  stroke: rgba(2, 14, 26, 0.3);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+.juegos-root .pc-fish--marlin path {
+  fill: rgba(4, 16, 54, 0.9);
+  stroke: rgba(4, 16, 54, 0.3);
+}
+.juegos-root .pc-sil .pc-fish path {
+  fill: #cfeeff;
+  stroke: none;
+}
+.juegos-root .pc-sil .pc-fish--marlin path {
+  fill: #7fb8ff;
+}
+
+.juegos-root .pc-line {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 1.6;
+}
+.juegos-root .pc-line--slack {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1.2;
+}
+.juegos-root .pc-hooked--me .pc-line {
+  stroke: #ffe36e;
+  stroke-width: 2.2;
+}
+.juegos-root .pc-splash {
+  fill: rgba(255, 255, 255, 0.16);
+  stroke: rgba(255, 255, 255, 0.7);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pc-splash 0.5s ease-out infinite;
+}
+@keyframes pc-splash {
+  from {
+    scale: 0.6;
+    opacity: 0.9;
+  }
+  to {
+    scale: 1.25;
+    opacity: 0;
+  }
+}
+.juegos-root .pc-hooked__who {
+  fill: #fff;
+  font: 400 17px var(--display, system-ui);
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--pc-ink);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.juegos-root .pc-bobber {
+  fill: #ff5a4a;
+  stroke: #fff;
+  stroke-width: 2;
+}
+.juegos-root .pc-lure--me .pc-bobber {
+  fill: #ffd25e;
+}
+.juegos-root .pc-ripple {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.7);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pc-ripple 1.1s ease-out infinite;
+}
+@keyframes pc-ripple {
+  from {
+    scale: 0.5;
+    opacity: 1;
+  }
+  to {
+    scale: 3;
+    opacity: 0;
+  }
+}
+
+.juegos-root .pc-aim circle {
+  fill: rgba(255, 227, 110, 0.08);
+  stroke: rgba(255, 227, 110, 0.85);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+}
+.juegos-root .pc-aim .pc-aim__dot {
+  fill: #ffe36e;
+  stroke: none;
+}
+.juegos-root .pc-aim__path {
+  stroke: rgba(255, 227, 110, 0.35);
+  stroke-width: 2;
+  stroke-dasharray: 2 8;
+}
+.juegos-root .pc-aim text {
+  fill: #ffe36e;
+  font: 400 18px var(--display, system-ui);
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--pc-ink);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+/* El muelle y los pescadores. */
+.juegos-root .pc-dockfoam {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 2;
+  animation: pc-dockfoam 4s ease-in-out infinite alternate;
+}
+@keyframes pc-dockfoam {
+  to {
+    translate: -24px 0;
+  }
+}
+.juegos-root .pc-dock-edge {
+  fill: #6b4223;
+}
+.juegos-root .pc-dock-edge__hi {
+  fill: #c28a52;
+  opacity: 0.8;
+}
+.juegos-root .pc-bunting__string {
+  fill: none;
+  stroke: rgba(30, 12, 0, 0.75);
+  stroke-width: 1.4;
+}
+.juegos-root .pc-bunting path:not(.pc-bunting__string) {
+  stroke: rgba(30, 12, 0, 0.35);
+  stroke-width: 0.8;
+  stroke-linejoin: round;
+}
+.juegos-root .pc-post {
+  fill: #5a3519;
+  stroke: #2a1608;
+  stroke-width: 1.4;
+}
+.juegos-root .pc-post__cap {
+  fill: #8a5a30;
+  stroke: #2a1608;
+  stroke-width: 1.2;
+}
+.juegos-root .pc-lamp__arm {
+  stroke: #2a1608;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.juegos-root .pc-lamp__body {
+  fill: #3a2a1c;
+  stroke: #1a0e06;
+  stroke-width: 1.4;
+}
+.juegos-root .pc-lamp__flame {
+  fill: #ffd36b;
+  animation: pc-flicker 1.6s ease-in-out infinite alternate;
+}
+.juegos-root .pc-lamp__roof {
+  fill: #b4381f;
+  stroke: #1a0e06;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.juegos-root .pc-lamp__glow {
+  pointer-events: none;
+  animation: pc-flicker 2.2s ease-in-out infinite alternate;
+}
+@keyframes pc-flicker {
+  from {
+    opacity: 0.72;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.juegos-root .pc-bollard__body {
+  fill: #2c2218;
+  stroke: #120b05;
+  stroke-width: 1.4;
+}
+.juegos-root .pc-bollard__top {
+  fill: #5b4a38;
+  stroke: #120b05;
+  stroke-width: 1.2;
+}
+.juegos-root .pc-rope {
+  fill: none;
+  stroke: #e0c48a;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 3 1.4;
+}
+.juegos-root .pc-rope--long {
+  stroke-width: 2.2;
+  opacity: 0.85;
+}
+.juegos-root .pc-buoy {
+  fill: #f4efe4;
+  stroke: #7a1e14;
+  stroke-width: 1.6;
+}
+.juegos-root .pc-buoy__hole {
+  fill: #6a4222;
+  stroke: #7a1e14;
+  stroke-width: 1.4;
+}
+.juegos-root .pc-buoy__band {
+  stroke: #d8392a;
+  stroke-width: 4.5;
+  stroke-linecap: butt;
+}
+.juegos-root .pc-man__shadow {
+  fill: rgba(0, 0, 0, 0.32);
+}
+.juegos-root .pc-man__pants {
+  fill: #1c3358;
+  stroke: #0a1a30;
+  stroke-width: 1.2;
+}
+.juegos-root .pc-man__boot {
+  fill: #2a1a10;
+  stroke: #0a0604;
+  stroke-width: 1;
+}
+.juegos-root .pc-man__shirt {
+  fill: #2f6fd6;
+  stroke: #0a1a30;
+  stroke-width: 1.6;
+}
+.juegos-root .pc-man__stripe {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 2.4;
+}
+.juegos-root .pc-man__arm {
+  fill: none;
+  stroke: #1f4fa0;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.juegos-root .pc-man--me .pc-man__arm {
+  stroke: #d98a20;
+}
+.juegos-root .pc-man__head {
+  fill: #f2c39a;
+  stroke: #0a1a30;
+  stroke-width: 1.5;
+}
+.juegos-root .pc-man__eye {
+  fill: #1a0e06;
+}
+.juegos-root .pc-man__smile {
+  fill: none;
+  stroke: #8a4a2a;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+}
+.juegos-root .pc-man__cap {
+  fill: #e2462f;
+  stroke: #0a1a30;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.juegos-root .pc-man__brim {
+  fill: #b4301c;
+  stroke: #0a1a30;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.juegos-root .pc-man__rod {
+  stroke: #2a1a0a;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.juegos-root .pc-man__rod-hi {
+  stroke: rgba(255, 230, 180, 0.5);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+.juegos-root .pc-man__reel {
+  fill: #c9ced6;
+  stroke: #1a1f28;
+  stroke-width: 1.2;
+}
+.juegos-root .pc-man--me .pc-man__shirt {
+  fill: #ffb547;
+}
+.juegos-root .pc-man--fight {
+  animation: pc-tug 0.18s ease-in-out infinite alternate;
+}
+@keyframes pc-tug {
+  to {
+    translate: 0 -2px;
+  }
+}
+.juegos-root .pc-man__tag {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  padding: 1px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(4, 18, 31, 0.82);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.juegos-root .pc-man--me .pc-man__tag {
+  border-color: transparent;
+  background: linear-gradient(180deg, #ffd25e, #ffa43c);
+  color: var(--pc-ink);
+}
+.juegos-root .pc-man__tag b {
+  min-width: 16px;
+  border-radius: 999px;
+  background: #46e0c8;
+  color: var(--pc-ink);
+  text-align: center;
+}
+.juegos-root .pc-empty {
+  fill: #fff7e6;
+  font: 400 24px var(--display, system-ui);
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #3a2210;
+  stroke-width: 6px;
+  stroke-linejoin: round;
+}
+
+/* ---------- Encima del mar ---------- */
+.juegos-root .pc-veil {
+  position: absolute;
+  inset: 0 0 12.5% 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: clamp(10px, 2vh, 18px);
+  padding: 16px;
+  background: radial-gradient(ellipse at 50% 45%, rgba(4, 18, 31, 0.55), rgba(4, 18, 31, 0.2) 70%, transparent);
+  color: #fff7e6;
+  font: 400 clamp(16px, 2vw, 22px) var(--display, system-ui);
+  letter-spacing: 0.01em;
+  text-align: center;
+  pointer-events: none;
+}
+.juegos-root .pc-veil > * {
+  pointer-events: auto;
+}
+.juegos-root .pc-signup {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: clamp(12px, 2vh, 20px) clamp(18px, 3vw, 34px);
+  border: 1px solid rgba(255, 227, 110, 0.4);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 210, 94, 0.1), transparent 40%),
+    rgba(6, 24, 42, 0.86);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+}
+.juegos-root .pc-signup__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 3px 14px;
+  border-radius: 999px;
+  background: rgba(255, 227, 110, 0.12);
+  color: #ffe36e;
+  font-size: clamp(14px, 1.5vw, 17px);
+  letter-spacing: 0.03em;
+}
+.juegos-root .pc-signup__kicker::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #46e0c8;
+  box-shadow: 0 0 10px #46e0c8;
+  animation: pc-flicker 0.9s ease-in-out infinite alternate;
+}
+.juegos-root .pc-signup__in {
+  margin: 0;
+  color: #46e0c8;
+  font-size: clamp(18px, 2.2vw, 26px);
+  text-shadow: 0 2px 10px rgba(70, 224, 200, 0.4);
+}
+.juegos-root .pc-signup__pot {
+  margin: 0;
+  max-width: 36ch;
+  color: rgba(255, 247, 230, 0.78);
+  font: 600 13px/1.4 system-ui, sans-serif;
+  letter-spacing: 0;
+}
+.juegos-root .pc-cta {
+  padding: 13px 32px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffe36e, #ff9a3c);
+  box-shadow:
+    0 5px 0 #b4561c,
+    0 12px 26px rgba(255, 138, 76, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.5);
+  color: #3a1a06;
+  font: 400 clamp(19px, 2.2vw, 26px) var(--display, system-ui);
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    translate 0.1s,
+    box-shadow 0.1s;
+}
+.juegos-root .pc-cta:hover:not(:disabled) {
+  translate: 0 -1px;
+}
+.juegos-root .pc-cta:active:not(:disabled) {
+  translate: 0 4px;
+  box-shadow: 0 1px 0 #b4561c;
+}
+.juegos-root .pc-cta:disabled {
+  filter: grayscale(0.7);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.juegos-root .pc-podium {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+.juegos-root .pc-podium__title {
+  margin: 0;
+  color: #ffe36e;
+  font-size: clamp(15px, 1.7vw, 20px);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+.juegos-root .pc-podium__steps {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+.juegos-root .pc-step {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 2px;
+  width: clamp(92px, 11vw, 130px);
+  padding: 8px 6px 32px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 0;
+  border-radius: 14px 14px 2px 2px;
+  background: linear-gradient(180deg, rgba(200, 220, 235, 0.34), rgba(200, 220, 235, 0.06));
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  font: 600 13px/1.25 system-ui, sans-serif;
+  letter-spacing: 0;
+}
+.juegos-root .pc-step b {
+  max-width: 100%;
+  overflow: hidden;
+  font: 400 15px var(--display, system-ui);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.juegos-root .pc-step em {
+  color: #46e0c8;
+  font-style: normal;
+  font-weight: 800;
+}
+.juegos-root .pc-step i {
+  position: absolute;
+  bottom: 5px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #c9d4de;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  color: #1c2a38;
+  font: 400 15px var(--display, system-ui);
+  font-style: normal;
+}
+.juegos-root .pc-step--1 {
+  min-height: 150px;
+  border-color: rgba(255, 210, 94, 0.6);
+  background: linear-gradient(180deg, rgba(255, 210, 94, 0.5), rgba(255, 210, 94, 0.08));
+}
+.juegos-root .pc-step--1 i {
+  background: linear-gradient(180deg, #ffe36e, #ffb02e);
+}
+.juegos-root .pc-step--2 {
+  min-height: 124px;
+}
+.juegos-root .pc-step--3 {
+  min-height: 108px;
+  background: linear-gradient(180deg, rgba(220, 150, 90, 0.38), rgba(220, 150, 90, 0.06));
+}
+.juegos-root .pc-step--3 i {
+  background: linear-gradient(180deg, #f0b27a, #c97a3c);
+}
+.juegos-root .pc-step--none {
+  visibility: hidden;
+}
+.juegos-root .pc-step.is-me {
+  outline: 2px solid #ffb547;
+}
+.juegos-root .pc-podium__marlin {
+  margin: 8px 0 0;
+  max-width: 44ch;
+  color: var(--pc-gold);
+  font: 700 14px/1.35 system-ui, sans-serif;
+  letter-spacing: 0;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+.juegos-root .pc-banner {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  max-width: min(80%, 540px);
+  padding: 7px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(4, 18, 31, 0.84);
+  color: #fff7e6;
+  font: 700 14px system-ui, sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+.juegos-root .pc-banner--soft {
+  top: auto;
+  bottom: calc(12.5% + 10px);
+  left: 50%;
+  translate: -50% 0;
+  color: rgba(255, 247, 230, 0.85);
+}
+.juegos-root .pc-marlin {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1f5fb8, #3d8cff);
+  box-shadow: 0 0 20px rgba(61, 140, 255, 0.6);
+  color: #fff;
+  font: 400 clamp(13px, 1.4vw, 17px) var(--display, system-ui);
+  pointer-events: none;
+  animation: pc-pulse 1s ease-in-out infinite alternate;
+}
+@keyframes pc-pulse {
+  to {
+    box-shadow: 0 0 34px rgba(255, 210, 94, 0.8);
+  }
+}
+
+.juegos-root .pc-toasts {
+  position: absolute;
+  top: 56px;
+  left: 12px;
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+.juegos-root .pc-toast {
+  max-width: min(360px, 70vw);
+  padding: 7px 14px 7px 12px;
+  border-left: 4px solid #8fe3ff;
+  border-radius: 6px 14px 14px 6px;
+  background: rgba(4, 18, 31, 0.88);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font: 600 13px/1.3 system-ui, sans-serif;
+  animation: pc-toast-in 0.25s ease-out;
+}
+.juegos-root .pc-toast--good {
+  border-color: #46e0c8;
+  font-weight: 800;
+}
+.juegos-root .pc-toast--bad {
+  border-color: #ff6b6b;
+}
+.juegos-root .pc-toast--gold {
+  border-color: var(--pc-gold);
+  background: linear-gradient(90deg, rgba(90, 60, 8, 0.92), rgba(4, 18, 31, 0.9));
+  color: var(--pc-gold);
+  font-weight: 800;
+}
+@keyframes pc-toast-in {
+  from {
+    translate: -12px 0;
+    opacity: 0;
+  }
+}
+
+/* ---------- La pelea: carrete, tensión y sedal ---------- */
+.juegos-root .pc-fight {
+  --pc-reel: clamp(78px, 9vw, 96px);
+  position: absolute;
+  right: 12px;
+  bottom: calc(12.5% + 8px);
+  left: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'head reel'
+    'tension reel'
+    'line reel';
+  gap: 5px 14px;
+  align-items: center;
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 9px 12px 11px 14px;
+  border: 2px solid rgba(255, 227, 110, 0.45);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent 45%),
+    rgba(4, 18, 31, 0.86);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  color: #fff;
+  backdrop-filter: blur(5px);
+  transition: border-color 0.15s;
+}
+.juegos-root .pc-fight--slack {
+  border-color: rgba(143, 227, 255, 0.55);
+}
+.juegos-root .pc-fight--hot {
+  border-color: #ff6b6b;
+}
+.juegos-root .pc-fight--warn {
+  border-color: #ff9a3c;
+  animation: pc-shake 0.12s linear infinite;
+}
+.juegos-root .pc-fight--run {
+  border-color: #ff5a4a;
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.5),
+    0 0 26px rgba(255, 90, 74, 0.55);
+}
+@keyframes pc-shake {
+  50% {
+    translate: 2px 0;
+  }
+}
+.juegos-root .pc-fight__head {
+  grid-area: head;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px 10px;
+  font: 400 clamp(14px, 1.4vw, 17px) var(--display, system-ui);
+  letter-spacing: 0.01em;
+}
+.juegos-root .pc-fight__head b {
+  font-weight: 400;
+  color: #fff7e6;
+}
+.juegos-root .pc-fight__call {
+  padding: 1px 12px;
+  border-radius: 999px;
+  background: rgba(70, 224, 200, 0.16);
+  color: #46e0c8;
+  white-space: nowrap;
+}
+.juegos-root .pc-fight--slack .pc-fight__call {
+  background: rgba(143, 227, 255, 0.16);
+  color: #8fe3ff;
+}
+.juegos-root .pc-fight--warn .pc-fight__call {
+  background: #ff9a3c;
+  color: #2a1204;
+  animation: pc-callpulse 0.3s ease-in-out infinite alternate;
+}
+.juegos-root .pc-fight--run .pc-fight__call {
+  background: #ff3d33;
+  box-shadow: 0 0 16px rgba(255, 61, 51, 0.8);
+  color: #fff;
+  font-size: 1.12em;
+  animation: pc-callpulse 0.35s ease-in-out infinite alternate;
+}
+.juegos-root .pc-fight--hot:not(.pc-fight--run):not(.pc-fight--warn) .pc-fight__call {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff8a8a;
+}
+@keyframes pc-callpulse {
+  to {
+    scale: 1.07;
+  }
+}
+
+.juegos-root .pc-meter {
+  position: relative;
+  height: 20px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45);
+}
+.juegos-root .pc-meter--tension {
+  grid-area: tension;
+  /* floja (azul) · buena (verde) · peligro (rojo, a punto de partirse) */
+  background:
+    linear-gradient(90deg, rgba(110, 170, 230, 0.32) 0 12%, rgba(38, 190, 130, 0.6) 12% 80%, rgba(255, 70, 60, 0.82) 80% 100%);
+}
+.juegos-root .pc-meter--line {
+  grid-area: line;
+  height: 13px;
+}
+.juegos-root .pc-meter__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--v) * 100%);
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.34));
+}
+/* La aguja: el extremo del relleno marca la tensión actual. */
+.juegos-root .pc-meter--tension .pc-meter__fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 5px;
+  border-radius: 3px;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+}
+.juegos-root .pc-fight--hot .pc-meter--tension .pc-meter__fill::after {
+  background: #fff3f0;
+  box-shadow: 0 0 10px #ff3d33;
+}
+.juegos-root .pc-meter--line .pc-meter__fill {
+  background: linear-gradient(90deg, #4fb4e8, #8fe3ff);
+}
+/* Los límites de la zona buena (ni floja ni a punto de partirse). */
+.juegos-root .pc-meter__zone {
+  position: absolute;
+  inset: 0 20% 0 12%;
+  border-inline: 2px solid rgba(255, 255, 255, 0.6);
+}
+.juegos-root .pc-meter__snap {
+  position: absolute;
+  top: 0;
+  right: 8px;
+  color: rgba(255, 255, 255, 0.85);
+  font: 400 11px/20px var(--display, system-ui);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+.juegos-root .pc-meter__label {
+  position: absolute;
+  inset: 0;
+  padding-left: 10px;
+  color: rgba(255, 255, 255, 0.92);
+  font: 800 10px/20px system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  z-index: 1;
+}
+.juegos-root .pc-meter--line .pc-meter__label {
+  line-height: 13px;
+  font-size: 9px;
+}
+
+/* El botón es un carrete: aro con muescas, manivela y el texto en el buje. */
+.juegos-root .pc-reel {
+  position: relative;
+  grid-area: reel;
+  width: var(--pc-reel);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #ffeaa0, #ffb13c 55%, #d2681e);
+  box-shadow:
+    0 5px 0 #8a3a12,
+    0 10px 22px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.38),
+    inset 0 -6px 10px rgba(138, 58, 18, 0.35);
+  color: #3a1a06;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.juegos-root .pc-reel::before,
+.juegos-root .pc-reel::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.juegos-root .pc-reel::before {
+  background: repeating-conic-gradient(rgba(122, 48, 12, 0.5) 0 7deg, transparent 7deg 30deg);
+  -webkit-mask: radial-gradient(circle, transparent 66%, #000 68%);
+  mask: radial-gradient(circle, transparent 66%, #000 68%);
+}
+.juegos-root .pc-reel::after {
+  background: radial-gradient(circle at 50% 8%, #fff 0 5%, #7a300c 5.5% 8%, transparent 8.5%);
+}
+.juegos-root .pc-reel--on::before,
+.juegos-root .pc-reel--on::after,
+.juegos-root .pc-reel:active::before,
+.juegos-root .pc-reel:active::after {
+  animation: pc-spin 0.45s linear infinite;
+}
+@keyframes pc-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+.juegos-root .pc-reel__hub {
+  position: absolute;
+  inset: 17%;
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, #fff6d6, #ffd98a);
+  box-shadow:
+    inset 0 -3px 5px rgba(160, 80, 20, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.3);
+  font: 400 clamp(9px, 0.9vw, 11px) / 1.05 var(--display, system-ui);
+  letter-spacing: 0.01em;
+  text-align: center;
+  pointer-events: none;
+}
+.juegos-root .pc-reel:active,
+.juegos-root .pc-reel--on {
+  translate: 0 4px;
+  box-shadow:
+    0 1px 0 #8a3a12,
+    0 4px 10px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.38);
+}
+
+/* ---------- El lado ---------- */
+.juegos-root .pc-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+}
+.juegos-root .pc-clock,
+.juegos-root .pc-pots > div,
+.juegos-root .pc-card {
+  border: 1px solid var(--pc-line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 40%),
+    var(--pc-panel);
+  box-shadow: 0 8px 20px rgba(2, 8, 20, 0.28);
+}
+.juegos-root .pc-clock {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 2px 10px;
+  padding: 11px 16px 13px;
+  border-radius: 18px;
+}
+.juegos-root .pc-clock__label {
+  color: rgba(255, 247, 230, 0.72);
+  font: 800 12px system-ui, sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.juegos-root .pc-clock__time {
+  grid-row: span 2;
+  color: #fff7e6;
+  font: 400 clamp(30px, 3vw, 42px) var(--display, system-ui);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.juegos-root .pc-clock__time--hot {
+  color: #ff6b6b;
+}
+.juegos-root .pc-clock__me {
+  color: #46e0c8;
+  font: 700 14px system-ui, sans-serif;
+}
+.juegos-root .pc-clock__bar {
+  grid-column: 1 / -1;
+  height: 5px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.juegos-root .pc-clock__bar::after {
+  content: '';
+  display: block;
+  width: calc(var(--p, 0) * 100%);
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff8a4c, #ffe36e 60%, #46e0c8);
+}
+.juegos-root .pc-pots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.juegos-root .pc-pots > div {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 16px;
+}
+.juegos-root .pc-pots span {
+  color: rgba(255, 247, 230, 0.72);
+  font: 800 11px system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.juegos-root .pc-pots b {
+  color: #fff7e6;
+  font: 400 clamp(19px, 1.8vw, 24px) var(--display, system-ui);
+  letter-spacing: 0.01em;
+}
+.juegos-root .pc-pots small {
+  color: rgba(255, 247, 230, 0.62);
+  font-size: 11px;
+  line-height: 1.3;
+}
+.juegos-root .pc-pots__marlin {
+  border-color: rgba(255, 210, 94, 0.5) !important;
+  background: linear-gradient(160deg, rgba(31, 95, 184, 0.55), rgba(6, 24, 42, 0.8)) !important;
+}
+.juegos-root .pc-pots__marlin b {
+  color: var(--pc-gold);
+}
+.juegos-root .pc-hud-bote dd {
+  color: var(--pc-gold);
+}
+
+.juegos-root .pc-card {
+  padding: 12px 14px;
+  border-radius: 18px;
+}
+.juegos-root .pc-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  color: #ffe36e;
+  font: 400 17px var(--display, system-ui);
+  letter-spacing: 0.01em;
+}
+.juegos-root .pc-card h2::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(255, 227, 110, 0.4), transparent);
+}
+.juegos-root .pc-muted {
+  margin: 0;
+  color: rgba(255, 247, 230, 0.62);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.juegos-root .pc-rank {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .pc-rank li {
+  display: grid;
+  grid-template-columns: 22px auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+.juegos-root .pc-rank li.is-me {
+  background: linear-gradient(90deg, rgba(255, 181, 71, 0.26), rgba(255, 181, 71, 0.08));
+}
+.juegos-root .pc-rank li.is-fight .pc-rank__kg {
+  color: #ffe36e;
+}
+.juegos-root .pc-rank__pos {
+  color: rgba(255, 247, 230, 0.6);
+  font: 400 15px var(--display, system-ui);
+  text-align: center;
+}
+.juegos-root .pc-rank li:nth-child(1) .pc-rank__pos {
+  color: #ffd25e;
+}
+.juegos-root .pc-rank li:nth-child(2) .pc-rank__pos {
+  color: #d4dde6;
+}
+.juegos-root .pc-rank li:nth-child(3) .pc-rank__pos {
+  color: #e8a468;
+}
+.juegos-root .pc-rank__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.juegos-root .pc-rank__kg {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .pc-feed {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .pc-feed li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.juegos-root .pc-feed li.is-me b {
+  color: #ffb547;
+}
+.juegos-root .pc-feed__kg {
+  font-weight: 800;
+}
+.juegos-root .pc-sil {
+  display: block;
+  width: 44px;
+  height: 22px;
+}
+.juegos-root .pc-record {
+  margin: 10px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--pc-line);
+  color: rgba(255, 247, 230, 0.82);
+  font-size: 13px;
+}
+.juegos-root .pc-record b {
+  color: var(--pc-gold);
+}
+
+/* Guía de especies (en la ayuda). */
+.juegos-root .pc-guide {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.juegos-root .pc-guide__row {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: #0d3550;
+  color: #fff;
+  font-size: 13px;
+}
+.juegos-root .pc-guide__row .pc-sil {
+  width: 72px;
+  height: 34px;
+}
+.juegos-root .pc-guide__row b {
+  display: block;
+}
+
+/* ---------- Pantallas estrechas: el lado debajo y la página se desplaza ---------- */
+@media (max-width: 900px) {
+  .juegos-root .pc-app {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+  }
+  .juegos-root .pc {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .juegos-root .pc-stage {
+    max-height: none;
+  }
+  .juegos-root .pc-side {
+    overflow: visible;
+  }
+}
+@media (max-width: 560px) {
+  .juegos-root .pc-stage {
+    border-radius: 14px;
+  }
+  .juegos-root .pc-veil {
+    inset: 0 0 12.5% 0;
+    gap: 6px;
+    padding: 6px;
+  }
+  .juegos-root .pc-step {
+    width: 76px;
+    padding-bottom: 28px;
+    font-size: 11px;
+  }
+  .juegos-root .pc-step--1,
+  .juegos-root .pc-step--2,
+  .juegos-root .pc-step--3 {
+    min-height: 0;
+  }
+  .juegos-root .pc-step--1 {
+    padding-top: 12px;
+  }
+  .juegos-root .pc-step > :first-child,
+  .juegos-root .pc-podium__marlin,
+  .juegos-root .pc-signup__pot {
+    display: none;
+  }
+  .juegos-root .pc-podium__title {
+    font-size: 13px;
+  }
+  .juegos-root .pc-veil--podium {
+    gap: 4px;
+  }
+  .juegos-root .pc-cta {
+    padding: 10px 20px;
+  }
+  .juegos-root .pc-signup {
+    gap: 5px;
+    padding: 9px 12px;
+  }
+  .juegos-root .pc-signup__pot {
+    font-size: 11px;
+  }
+  /* La pelea va como una hoja fija abajo del todo: no tapa el mar y el pulgar llega al carrete. */
+  .juegos-root .pc-fight {
+    --pc-reel: 84px;
+    position: fixed;
+    right: 8px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: 8px;
+    z-index: 40;
+    padding: 8px 10px 10px 12px;
+  }
+  .juegos-root .pc-reel__hub {
+    font-size: 9.5px;
+  }
+  .juegos-root .pc-toasts {
+    top: 40px;
+    left: 8px;
+  }
+  .juegos-root .pc-toast {
+    font-size: 12px;
+  }
+  .juegos-root .pc-marlin,
+  .juegos-root .pc-banner {
+    top: 8px;
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  .juegos-root .pc-banner {
+    left: 8px;
+    max-width: 70%;
+  }
+  .juegos-root .pc-marlin {
+    right: 8px;
+  }
+  .juegos-root .pc-banner--soft {
+    top: auto;
+    bottom: calc(12.5% + 6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root :is(.pc-glints path, .pc-foam, .pc-caustics rect, .pc-dockfoam, .pc-rock__foam, .pc-lamp__flame, .pc-lamp__glow, .pc-splash, .pc-ripple, .pc-man--fight, .pc-marlin, .pc-fight--warn, .pc-toast) {
+    animation: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .pc-reel::before,
+  .juegos-root .pc-reel::after {
+    animation: none !important;
+  }
+}
+
+/* El título es largo: en el móvil se encoge para no tapar los botones de la cabecera. */
+@media (max-width: 640px) {
+  .juegos-root .pc-app > .top h1 {
+    font-size: clamp(20px, 6.4vw, 28px);
+  }
+}
+/* La etiqueta de la tensión, a la derecha (antes del ✕), para que la aguja no la pise. */
+.juegos-root .pc-meter--tension .pc-meter__label {
+  padding: 0 26px 0 0;
+  text-align: right;
+}

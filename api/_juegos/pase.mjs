@@ -60,6 +60,7 @@ const BY_GAME = [
   { id: 'fish', goal: 3, xp: 130, text: 'Juega 3 partidas a Pez Gordo' },
   { id: 'dig', goal: 4, xp: 120, text: 'Busca el tesoro 4 veces en la Arena' },
   { id: 'dive', goal: 3, xp: 120, text: 'Haz 3 inmersiones de apnea' },
+  { id: 'pesca', goal: 2, xp: 140, text: 'Pesca en 2 Campeonatos de Pesca' },
   { id: 'hilo', goal: 4, xp: 120, text: 'Juega 4 partidas a Mayor o Menor' },
   { id: 'bola', goal: 6, xp: 110, text: 'Tira 6 bolas en la Bola Canaria' },
   { id: 'tower', goal: 3, xp: 120, text: 'Sube 3 veces a la Torre' },

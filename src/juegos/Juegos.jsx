@@ -23,6 +23,8 @@ import Buceo from './dive/Buceo.jsx'
 import Hilo from './hilo/Hilo.jsx'
 import Bola from './bola/Bola.jsx'
 import Regata from './regatta/Regata.jsx'
+import Pesca from './pesca/Pesca.jsx'
+import { PescaScene } from './season4/PescaArt.jsx'
 import { ArenaScene } from './season4/ArenaArt.jsx'
 import { FishScene } from './season4/FishArt.jsx'
 import { DiveScene } from './season4/DiveArt.jsx'
@@ -79,6 +81,16 @@ const LIVE = {
 
 // Cada juego lleva su mini escena (HubArt.jsx), un color (--tint, en r, g, b) para el brillo de su tarjeta y una frase corta.
 const ALL_GAMES = [
+  {
+    id: 'pesca',
+    name: 'Campeonato de Pesca',
+    kind: 'Cada 2 minutos',
+    blurb: 'Todos pescáis en el mismo mar de La Restinga: lee las sombras, lanza por delante y aguanta la pelea. Los más pescadores se llevan el bote, y quien saque el marlín azul, el Bote del Marlín.',
+    live: true,
+    tint: '70, 224, 200',
+    isNew: true,
+    art: <PescaScene />,
+  },
   {
     id: 'elevator',
     name: 'Ascensor',
@@ -216,7 +228,7 @@ const ALL_GAMES = [
 // Season 4: los juegos se agrupan por cómo se juegan. Primero los de ronda común (todos a la vez, con la gente) y luego
 // los de a tu ritmo.
 const byId = Object.fromEntries(ALL_GAMES.map((g) => [g.id, g]))
-const ROUND_GAMES = ['regatta', 'elevator', 'auction', 'roulette', 'crash', 'race'].map((id) => byId[id])
+const ROUND_GAMES = ['pesca', 'regatta', 'elevator', 'auction', 'roulette', 'crash', 'race'].map((id) => byId[id])
 const PACE_GAMES = ['hilo', 'bola', 'fish', 'dig', 'dive', 'tower', 'heist', 'plinko', 'frog'].map((id) => byId[id])
 
 // La Inmobiliaria, destacada arriba del todo: un trozo de tablero con sus casas y un hotel.
@@ -926,7 +938,7 @@ function Notice({ title, children, actions }) {
 
 // Pantalla en la que estabas, para que al recargar la página vuelvas al mismo juego (las mesas ya las recuerda el servidor).
 const SCREEN_KEY = 'juegos-pantalla'
-const KEEP = new Set(['pase', 'bingo', 'roulette', 'crash', 'fish', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'dig', 'dive', 'regatta', 'hilo', 'bola'])
+const KEEP = new Set(['pase', 'pesca', 'bingo', 'roulette', 'crash', 'fish', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'dig', 'dive', 'regatta', 'hilo', 'bola'])
 function savedScreen() {
   try {
     const screen = sessionStorage.getItem(SCREEN_KEY)
@@ -1018,6 +1030,7 @@ function JuegosScreens() {
   if (screen === 'fish') return (<Pez onExit={exit} juegos={juegos} />)
   if (screen === 'dig') return (<Arena onExit={exit} juegos={juegos} />)
   if (screen === 'dive') return (<Buceo onExit={exit} juegos={juegos} />)
+  if (screen === 'pesca') return (<Pesca onExit={exit} juegos={juegos} />)
   if (screen === 'hilo') return (<Hilo onExit={exit} juegos={juegos} />)
   if (screen === 'bola') return (<Bola onExit={exit} juegos={juegos} />)
   if (screen === 'regatta') return (<Regata onExit={exit} juegos={juegos} />)

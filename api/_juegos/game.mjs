@@ -17,6 +17,7 @@ import { BINGO_ERRORS, createBingo } from './bingo.mjs'
 import { AUCTION_ERRORS, createAuction } from './subasta.mjs'
 import { BRIDGE_ERRORS, createBridge } from './puente.mjs'
 import { ELEVATOR_ERRORS, createElevator } from './ascensor.mjs'
+import { PESCA_ERRORS, PESCA_TOPIC, createPesca } from './pesca.mjs'
 import { INMO_ERRORS, createInmobiliaria } from './inmobiliaria.mjs'
 import { SUIZA_ERRORS, createSuiza } from './suiza.mjs'
 import { abuseExtra, abuseLuck, createBanca } from './banca.mjs'
@@ -27,7 +28,10 @@ import { PASE_ERRORS, PASE_SQL, createPase } from './pase.mjs'
 const SOLO_CHECK_SQL = `
 alter table public.juegos_solo drop constraint if exists juegos_solo_juego_check;
 alter table public.juegos_solo add constraint juegos_solo_juego_check
-  check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish', 'dig', 'dive', 'regatta', 'hilo'));
+  check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish', 'dig', 'dive', 'regatta', 'hilo', 'pesca'));
+alter table public.juegos_rondas drop constraint if exists juegos_rondas_juego_check;
+alter table public.juegos_rondas add constraint juegos_rondas_juego_check
+  check (juego in ('auction', 'bridge', 'elevator', 'pesca'));
 `
 
 // Juegos de una sola jugada: se liquidan al momento y no guardan nada en juegos_solo.
@@ -90,6 +94,7 @@ export const ERRORS = {
   ...AUCTION_ERRORS,
   ...BRIDGE_ERRORS,
   ...ELEVATOR_ERRORS,
+  ...PESCA_ERRORS,
   ...INMO_ERRORS,
   ...SUIZA_ERRORS,
   ...PASE_ERRORS,
@@ -321,7 +326,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         await db.query(
           `with meta as (insert into public.juegos_meta (id, semana) values (1, $1) on conflict (id) do nothing)
            select exists(select 1 from public.juegos_solo where juego in ('blackjack', 'bribe', 'wheel', 'dungeon')) as solo,
-                  coalesce((select pg_get_constraintdef(oid) like '%''hilo''%' from pg_constraint where conname = 'juegos_solo_juego_check'), true) as solo_check,
+                  coalesce((select pg_get_constraintdef(oid) like '%''pesca''%' from pg_constraint where conname = 'juegos_solo_juego_check'), true) as solo_check,
                   ${rows[0].duelos ? `exists(select 1 from public.juegos_duelos where estado = 'abierto')` : 'false'} as duelos`,
           [weekOf(now()).key],
         )
@@ -404,6 +409,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         await auction.sweep(q)
         await glass.sweep(q)
         await lift.sweep(q)
+        await fishing.sweep(q)
       })
       await ping('juegos-lobby')
     }
@@ -802,6 +808,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
   const auction = createAuction({ db, now, secret, move, feed: (q, amount) => bingo.feed(q, amount), abuse: () => banca.abuse(), ping })
   const glass = createBridge({ db, now, secret, move, feed: (q, amount) => bingo.feed(q, amount), abuse: () => banca.abuse() })
   const lift = createElevator({ db, now, secret, move, feed: (q, amount) => bingo.feed(q, amount), abuse: () => banca.abuse() })
+  const fishing = createPesca({ db, now, secret, move })
   const estate = createInmobiliaria({ db, now, move, ping })
   const swiss = createSuiza({ db, now, move, feed: (q, amount) => bingo.feed(q, amount) })
   const hacienda = createHacienda({ db, now, secret, move, feed: (q, amount) => bingo.feed(q, amount), ping })
@@ -1055,6 +1062,13 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         await lift.handle(user, msg, reply)
         if (reply.error) reply.error.message = ERRORS[reply.error.code] ?? 'Error.'
         else if (msg.a === 'join') reply.paseEvent = await pase.record(user.id, 'elevator')
+        return reply
+      }
+      case 'pesca': {
+        const changed = await fishing.handle(user, msg, reply)
+        if (reply.error) reply.error.message = ERRORS[reply.error.code] ?? 'Error.'
+        else if (msg.a === 'join') reply.paseEvent = await pase.record(user.id, 'pesca')
+        if (changed) await ping(PESCA_TOPIC).catch(() => {})
         return reply
       }
       case 'inmo': {

@@ -48,7 +48,7 @@ create index if not exists juegos_chat_usuario_idx on public.juegos_chat (usuari
 -- Partida en curso de los juegos en solitario (racha de la ruleta, mano del blackjack).
 create table if not exists public.juegos_solo (
   usuario_id  uuid not null references public.usuarios(id) on delete cascade,
-  juego       text not null check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish', 'dig', 'dive', 'regatta', 'hilo')),
+  juego       text not null check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish', 'dig', 'dive', 'regatta', 'hilo', 'pesca')),
   estado      jsonb not null,
   actualizado timestamptz not null default now(),
   primary key (usuario_id, juego)
@@ -165,9 +165,9 @@ create table if not exists public.juegos_bingo (
   control   jsonb not null default '[]'::jsonb
 );
 insert into public.juegos_bingo (id) values (1) on conflict (id) do nothing;
--- Últimas rondas de la Subasta, el Puente y el Ascensor (supabase/migracion_juegos_season3.sql y _ascensor.sql): quién ganó y qué pasó.
+-- Últimas rondas de la Subasta, el Puente, el Ascensor y el Campeonato de Pesca (supabase/migracion_juegos_season3.sql y _ascensor.sql): quién ganó y qué pasó.
 create table if not exists public.juegos_rondas (
-  juego  text not null check (juego in ('auction', 'bridge', 'elevator')),
+  juego  text not null check (juego in ('auction', 'bridge', 'elevator', 'pesca')),
   ronda  bigint not null,
   datos  jsonb not null,
   creado timestamptz not null default now(),

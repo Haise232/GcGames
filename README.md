@@ -109,13 +109,14 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 
 | En vivo (mesas) | Para todos a la vez | En solitario | Economía |
 |---|---|---|---|
-| Blackjack | Regata (cada 44 s) | Pez Gordo | Gacha de cartas |
-| Póker | Ruleta (cada 25 s) | Tesoro en la Arena | Inmobiliaria |
-| Ajedrez | Cohete (cada 30 s) | Apnea | Cuenta en Suiza |
-| | Carrera (cada 55 s) | La Torre | Hacienda |
-| | Ascensor (cada minuto) | El Atraco | Casa de empeños |
-| | La Subasta (cada minuto) | Plinko | |
-| | Bingo | Rana | |
+| Blackjack | Campeonato de Pesca (cada 2 min) | Pez Gordo | Gacha de cartas |
+| Póker | Regata (cada 44 s) | Tesoro en la Arena | Inmobiliaria |
+| Ajedrez | Ruleta (cada 25 s) | Apnea | Cuenta en Suiza |
+| | Cohete (cada 30 s) | La Torre | Hacienda |
+| | Carrera (cada 55 s) | El Atraco | Casa de empeños |
+| | Ascensor (cada minuto) | Plinko | |
+| | La Subasta (cada minuto) | Rana | |
+| | Bingo | | |
 | | | Mayor o Menor | |
 | | | Bola Canaria | |
 
@@ -129,6 +130,15 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
   y rendición. Tablero de piedra en perspectiva y piezas que revientan al capturarlas.
 
 **Para todos a la vez**
+- **Campeonato de Pesca**: cada 2 minutos, un campeonato en La Restinga en el que gana quien sabe pescar, no la suerte.
+  30 s de inscripción (2.000 €) y 90 s de pesca en el mismo mar para todos. Los peces son sombras (caballa, vieja, sama,
+  morena, cherne, medregal, dos atunes rojos y, a veces, el marlín azul) que salen de una semilla secreta de la ronda;
+  lanzas el anzuelo por delante de la sombra y, si cae cerca de un pez libre, es tuyo y nadie más lo puede enganchar.
+  Luego, la pelea: mantén para recoger y suelta cuando el pez corre, sin partir el sedal ni dejarlo flojo. El servidor
+  repite la pelea con tus pulsaciones (simulación determinista) para darte el pez. Gana quien saca más kilos: el bote
+  (inscripciones menos un 10 % y 500 € por pescador que pone la Cofradía desde tres) se reparte 50/30/20 entre el podio,
+  y quien saca el marlín se lleva el **Bote del Marlín**, que crece con cada campeonato (abre con 10.000 € cada semana).
+  Los puestos suman puntos en la **Liga de la Cofradía** de la semana, con su récord.
 - **Regata**: cinco veleros cada 44 s. Antes de cada regata sale el parte del tiempo: un clima (Despejado, Viento fuerte,
   Niebla, Tormenta, Remolino, Kraken, Calima o Arcoíris) que decide las probabilidades de cada velero y trae su propio
   espectáculo (rayos y lluvia, niebla que tapa la carrera, un remolino que hace girar y frena veleros, tentáculos del
