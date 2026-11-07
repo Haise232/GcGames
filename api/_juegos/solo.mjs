@@ -1,4 +1,4 @@
-// Juegos en solitario (ruleta, cohete, Plinko, la rana, la carrera de coches, la Torre, el Atraco, Pez Gordo, Tesoro en la Arena, el Rasca, Mayor o Menor y la Bola Canaria) con el saldo semanal: el servidor sortea
+// Juegos en solitario (ruleta, cohete, Plinko, la rana, la carrera de coches, la Torre, el Atraco, Pez Gordo, Tesoro en la Arena, Mayor o Menor y la Bola Canaria) con el saldo semanal: el servidor sortea
 // con randomInt y aplica las mismas reglas puras que pinta la pantalla (src/juegos/*.js), así el
 // navegador no puede elegir su resultado. Cada función devuelve { error } o el resultado con `delta`, lo que cambia
 // el saldo, y `saved`, lo que hay que guardar para la siguiente jugada (racha y apuesta de la ruleta y del cohete).
@@ -14,7 +14,6 @@ import * as frog from '../../src/juegos/frog/frog.js'
 import * as race from '../../src/juegos/race/race.js'
 import * as tower from '../../src/juegos/tower/tower.js'
 import * as heist from '../../src/juegos/heist/heist.js'
-import * as rasca from '../../src/juegos/scratch/rasca.js'
 import * as hilo from '../../src/juegos/hilo/hilo.js'
 import * as bola from '../../src/juegos/bola/bola.js'
 import { cardView } from './gacha.mjs'
@@ -31,7 +30,6 @@ export const SOLO_GAMES = {
   solo_race: 'race',
   solo_tower: 'tower',
   solo_heist: 'heist',
-  solo_scratch: 'scratch',
   solo_hilo: 'hilo',
   solo_bola: 'bola',
 }
@@ -941,23 +939,6 @@ export function divePlay(msg, balance, saved, rand, ctx) {
   return { delta: paid, played: true, saved: state, result: diveView(state, balance + paid, t, { ev: 'up' }) }
 }
 
-// --- Rasca de las Fiestas: una jugada, sin nada guardado (como el Plinko). El cartón entero sale del servidor al
-// comprarlo; la pantalla solo lo destapa. Con suerte del Admin Abuse se sortean tantos premios y se queda el mejor.
-export function scratchBuy(msg, balance, _saved, rand, ctx) {
-  if (!rasca.validType(msg.type)) return { error: 'BAD_MESSAGE' }
-  const bet = rasca.TYPES[msg.type].price
-  if (bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
-  let prize = rasca.drawPrize(msg.type, rand)
-  for (let i = 1; i < (ctx.luck ?? 1); i++) {
-    const other = rasca.drawPrize(msg.type, rand)
-    if (rasca.payout(msg.type, other) > rasca.payout(msg.type, prize)) prize = other
-  }
-  const card = rasca.makeCard(msg.type, prize, rand)
-  const paid = rasca.payout(msg.type, prize)
-  const delta = paid - bet
-  return { delta, played: true, saved: null, stake: bet, result: { id: ctx.now, type: msg.type, card, prize, bet, payout: paid, net: delta, balance: balance + delta } }
-}
-
 // --- Bola Canaria: también una jugada sin nada guardado. Con suerte del Admin Abuse se tira varias veces y vale la mejor.
 export function bolaThrow(msg, balance, _saved, rand, ctx) {
   if (!bola.validBet(msg.bet) || !bola.validStyle(msg.style)) return { error: 'BAD_MESSAGE' }
@@ -1041,4 +1022,4 @@ export function hiloPlay(msg, balance, saved, rand, ctx) {
   return { delta: 0, played: true, saved: state, result: hiloView(state, balance, 'win') }
 }
 
-export const SOLO_PLAY = { scratch: scratchBuy, hilo: hiloPlay, bola: bolaThrow, roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay, dig: digPlay, dive: divePlay, regatta: regattaLive }
+export const SOLO_PLAY = { hilo: hiloPlay, bola: bolaThrow, roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay, dig: digPlay, dive: divePlay, regatta: regattaLive }

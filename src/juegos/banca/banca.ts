@@ -125,7 +125,6 @@ export const GAME_GROUPS: { name: string; games: { id: string; name: string }[] 
       { id: 'heist', name: 'El Atraco' },
       { id: 'plinko', name: 'Plinko' },
       { id: 'frog', name: 'Rana' },
-      { id: 'scratch', name: 'Rasca de las Fiestas' },
       { id: 'hilo', name: 'Mayor o Menor' },
       { id: 'bola', name: 'Bola Canaria' },
     ],
@@ -209,9 +208,9 @@ export function abusePerks(a: Pick<Abuse, 'modo' | 'ambito'>): string[] {
   }
   if (a.ambito === 'poker') return [`Todo lo que ganes en el póker, ${m}`, 'La banca pone la diferencia']
   return [
-    `Premios ${m} en ruleta, cohete, carrera, regata, plinko, rana, rasca, mayor o menor, bola canaria, bingo, torre, atraco, subasta y ascensor`,
+    `Premios ${m} en ruleta, cohete, carrera, regata, plinko, rana, mayor o menor, bola canaria, bingo, torre, atraco, subasta y ascensor`,
     `Blackjack y póker: lo que ganes, ${m}`,
-    `Suerte ${m} en el gacha, el plinko, la torre, el atraco, la arena, la apnea, el rasca y la bola canaria`,
+    `Suerte ${m} en el gacha, el plinko, la torre, el atraco, la arena, la apnea y la bola canaria`,
     `Bingo: ${a.modo === 'x3' ? 'dos cartones' : 'un cartón'} de regalo por cada uno que compres`,
   ]
 }
@@ -225,6 +224,6 @@ export function abuseText(a: Pick<Abuse, 'modo' | 'ambito'>): { big: string; sma
   const m = a.modo === 'x3' ? '×3' : '×2'
   return {
     big: `PROBABILIDAD ${m} ${where}`,
-    small: a.ambito === 'poker' ? `Lo que ganes en el póker, ${m}.` : `Lo que ganes, ${m}, y suerte ${m} en el plinko, la torre, el atraco, la arena, la apnea, el rasca, la bola canaria y el bingo.`,
+    small: a.ambito === 'poker' ? `Lo que ganes en el póker, ${m}.` : `Lo que ganes, ${m}, y suerte ${m} en el plinko, la torre, el atraco, la arena, la apnea, la bola canaria y el bingo.`,
   }
 }

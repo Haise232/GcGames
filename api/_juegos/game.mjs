@@ -31,7 +31,7 @@ alter table public.juegos_solo add constraint juegos_solo_juego_check
 `
 
 // Juegos de una sola jugada: se liquidan al momento y no guardan nada en juegos_solo.
-const INSTANT = new Set(['plinko', 'scratch', 'bola'])
+const INSTANT = new Set(['plinko', 'bola'])
 
 export const STARTING_BALANCE = 15000 // Season 2
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -701,7 +701,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
   }
 
   // Lo apostado y lo ganado (o perdido) en la jugada que acaba de liquidarse, o null si no se liquidó ninguna.
-  // Plinko, el Rasca y la Bola se liquidan en cada jugada; los demás, cuando aparece un «last» de otra ronda o partida.
+  // Plinko y la Bola se liquidan en cada jugada; los demás, cuando aparece un «last» de otra ronda o partida.
   function settlementOf(game, msg, saved, out) {
     if (INSTANT.has(game)) return { stake: out.stake ?? msg.bet, net: out.delta }
     const last = out.saved?.last
@@ -721,7 +721,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       const accRows = (await q(`select usuario_id, saldo, dias, jugado from public.juegos_cuentas where usuario_id = $1 for update`, [user.id])).rows
       const accounts = new TxAccounts(accRows, week.day)
       const balance = accounts.get(user.id).balance
-      // Plinko, el Rasca y la Bola no guardan nada entre jugadas.
+      // Plinko y la Bola no guardan nada entre jugadas.
       const saved =
         INSTANT.has(game)
           ? null
@@ -1017,7 +1017,6 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       case 'solo_fish':
       case 'solo_dig':
       case 'solo_plinko':
-      case 'solo_scratch':
       case 'solo_bola':
       case 'solo_hilo':
       case 'solo_frog':

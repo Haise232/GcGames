@@ -21,7 +21,6 @@ export const GAME_NAMES = {
   gacha: 'Gacha',
   dive: 'Apnea',
   regatta: 'Regata',
-  scratch: 'Rasca',
   hilo: 'Mayor o Menor',
   bola: 'Bola Canaria',
 }

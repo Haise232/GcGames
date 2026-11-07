@@ -1,55 +1,6 @@
 import './fiestas.css'
-// Escenas de los juegos de las Fiestas para sus tarjetas del selector: el cartón del Rasca medio rascado, las cartas
-// de Mayor o Menor sobre el mantel de cuadros y la cancha de la Bola Canaria con el mingue. Animaciones en fiestas.css.
-export function RascaScene() {
-  const cells = ['🌳', '🥔', '🌳', '🍌', '🌳', '🌶️', null, null, null]
-  return (
-    <svg className="hub-scene" viewBox="0 0 240 160" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <linearGradient id="rss-night" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#1a1446" />
-          <stop offset="1" stopColor="#6a2a6a" />
-        </linearGradient>
-      </defs>
-      <rect width="240" height="160" fill="url(#rss-night)" />
-      <path d="M-5 10 Q120 40 245 10" stroke="#ffe7a8" strokeOpacity="0.5" fill="none" />
-      {Array.from({ length: 12 }, (_, k) => {
-        const x = 5 + k * 20
-        const t = (x + 5) / 250
-        const y = 10 + 60 * t * (1 - t)
-        return <path key={k} d={`M${x - 6} ${y} L${x + 6} ${y} L${x} ${y + 11} Z`} fill={['#e8443a', '#f2b632', '#2f8fd8', '#3fae5a'][k % 4]} />
-      })}
-      <g transform="translate(120 96) rotate(-6)">
-        <rect x="-58" y="-56" width="116" height="112" rx="10" fill="#fff6e2" stroke="#e8443a" strokeWidth="4" />
-        <text y="-40" textAnchor="middle" fontSize="11" fontWeight="800" fill="#e8443a">
-          RASCA
-        </text>
-        {cells.map((c, i) => {
-          const x = -42 + (i % 3) * 30
-          const y = -32 + Math.floor(i / 3) * 28
-          return (
-            <g key={i}>
-              <rect x={x - 2} y={y} width="26" height="24" rx="5" fill={c ? '#fff3c8' : '#c4cbd2'} className={c === '🌳' ? 'fis-win' : undefined} />
-              {c ? (
-                <text x={x + 11} y={y + 17} textAnchor="middle" fontSize="15">
-                  {c}
-                </text>
-              ) : (
-                <text x={x + 11} y={y + 17} textAnchor="middle" fontSize="13" fill="#7a8490" fontWeight="800">
-                  ?
-                </text>
-              )}
-            </g>
-          )
-        })}
-      </g>
-      <text x="196" y="150" fontSize="22" className="fis-coin">
-        🪙
-      </text>
-    </svg>
-  )
-}
-
+// Escenas de los juegos de las Fiestas para sus tarjetas del selector: las cartas de Mayor o Menor sobre el mantel de
+// cuadros y la cancha de la Bola Canaria con el mingue. Animaciones en fiestas.css.
 export function HiloScene() {
   return (
     <svg className="hub-scene" viewBox="0 0 240 160" preserveAspectRatio="xMidYMid slice">
