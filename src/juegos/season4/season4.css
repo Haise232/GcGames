@@ -869,6 +869,11 @@
   .juegos-root.s4 .s4-pace > li {
     flex: 1 1 calc((100% - 3 * clamp(14px, 1.6vw, 22px)) / 4);
   }
+  /* Si de tres en tres quedaría una tarjeta sola en la última fila (4, 7, 10… juegos), no se estira a todo el ancho:
+     la primera fila lleva cuatro. */
+  .juegos-root.s4 .s4-round:has(> li:last-child:nth-child(3n + 1)) > li:nth-child(-n + 4) {
+    flex-basis: calc((100% - 3 * clamp(14px, 1.6vw, 22px)) / 4);
+  }
   .juegos-root.s4 .s4-pace {
     gap: clamp(14px, 1.6vw, 22px);
   }
