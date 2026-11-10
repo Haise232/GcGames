@@ -6,39 +6,39 @@ import './tutorial.css'
 // Guía de Juegos: la primera vez que entras en la temporada se abre sola (y luego con el botón «Tutorial»). Cada paso
 // ilumina una zona del selector (data-tour="…") y la explica con un dibujo. Si la zona no existe (p. ej. la banca, que
 // solo ve el master), el paso se salta.
-export const TUTORIAL_KEY = 'juegos-tutorial-season4'
+export const TUTORIAL_KEY = 'juegos-tutorial-season5'
 export const START = 15000
 
 const Art = {
-  // Season 4: sol que se pone en el mar, con una palmera.
-  island: (
+  // Season 5: el árbol de Navidad con su estrella, bajo la nieve.
+  navidad: (
     <svg viewBox="0 0 120 120" aria-hidden="true">
-      <defs>
-        <linearGradient id="tut-sky" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#5a1f7a" />
-          <stop offset="0.6" stopColor="#ff6b5a" />
-          <stop offset="1" stopColor="#ffcf6b" />
-        </linearGradient>
-      </defs>
-      <circle cx="60" cy="60" r="54" fill="url(#tut-sky)" />
-      <circle className="tut-pulse" cx="68" cy="70" r="24" fill="#ffe36e" />
-      <path d="M6 76 H114 A54 54 0 0 1 6 76 Z" fill="#16466e" />
-      <path d="M20 84 q8 -4 16 0 M50 92 q8 -4 16 0 M80 86 q8 -4 16 0" stroke="#8fe3ff" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      <path d="M30 78 C 32 60, 36 46, 44 36" stroke="#1a0f2e" strokeWidth="5" fill="none" strokeLinecap="round" />
-      <path d="M44 36 c 10 -8 22 -6 28 4 c -8 -4 -16 -2 -28 -4 Z M44 36 c -10 -8 -22 -4 -26 6 c 8 -4 16 -4 26 -6 Z M44 36 c 2 -12 12 -18 22 -16 c -10 2 -16 8 -22 16 Z" fill="#1a0f2e" />
-      <text x="88" y="38" textAnchor="middle" fontSize="26" fontWeight="900" fill="#fff" stroke="#3a0f3e" strokeWidth="1.5">4</text>
+      <circle cx="60" cy="60" r="54" fill="#0f1d44" />
+      <path d="M6 82 C 30 74, 60 80, 114 74 A54 54 0 0 1 6 82 Z" fill="#eef6ff" />
+      <path d="M60 22 L40 52 L48 52 L32 74 L42 74 L26 94 L94 94 L78 74 L88 74 L72 52 L80 52 Z" fill="#1f7a4d" />
+      <rect x="55" y="94" width="10" height="8" fill="#5a3418" />
+      <circle cx="50" cy="62" r="3.5" fill="#e0303c" />
+      <circle cx="70" cy="70" r="3.5" fill="#f8c54e" />
+      <circle cx="56" cy="82" r="3.5" fill="#6cc3ff" />
+      <circle cx="76" cy="86" r="3.5" fill="#e0303c" />
+      <circle cx="42" cy="86" r="3.5" fill="#f8c54e" />
+      <path className="tut-twinkle" d="M60 8 L64 18 L74 19 L66 25 L69 35 L60 29 L51 35 L54 25 L46 19 L56 18 Z" fill="#ffe27a" />
+      <circle cx="24" cy="34" r="2" fill="#fff" />
+      <circle cx="96" cy="28" r="2.4" fill="#fff" />
+      <circle cx="90" cy="52" r="1.8" fill="#fff" />
+      <circle cx="30" cy="58" r="1.6" fill="#fff" />
+      <text x="96" y="104" textAnchor="middle" fontSize="24" fontWeight="900" fill="#fff" stroke="#7a0f18" strokeWidth="1.5">5</text>
     </svg>
   ),
-  // Pase: cofre con estrella encima.
+  // Pase: el regalo diario, con una estrella encima.
   pass: (
     <svg viewBox="0 0 120 120" aria-hidden="true">
       <g className="tut-bob">
-        <rect x="22" y="56" width="76" height="44" rx="6" fill="#b5622a" stroke="#5a2a0e" strokeWidth="3" />
-        <path d="M22 56 C 22 34, 98 34, 98 56 Z" fill="#cf7a36" stroke="#5a2a0e" strokeWidth="3" />
-        <rect x="22" y="66" width="76" height="6" fill="#ffd25e" />
-        <rect x="53" y="60" width="14" height="14" rx="3" fill="#ffe8a0" stroke="#5a2a0e" strokeWidth="2.5" />
+        <rect x="26" y="58" width="68" height="44" rx="5" fill="#c8202c" stroke="#5c0a12" strokeWidth="3" />
+        <rect x="20" y="46" width="80" height="16" rx="4" fill="#de2f3b" stroke="#5c0a12" strokeWidth="3" />
+        <rect x="53" y="46" width="14" height="56" fill="#f8c54e" stroke="#7a4a08" strokeWidth="2" />
       </g>
-      <path className="tut-twinkle" d="M60 6 L66 22 L82 24 L70 34 L74 50 L60 41 L46 50 L50 34 L38 24 L54 22 Z" fill="#ffe36e" stroke="#ff8a4c" strokeWidth="2" />
+      <path className="tut-twinkle" d="M60 6 L66 22 L82 24 L70 34 L74 50 L60 41 L46 50 L50 34 L38 24 L54 22 Z" fill="#ffe36e" stroke="#e8a92a" strokeWidth="2" />
     </svg>
   ),
   // Torre y Atraco: baldosas de cristal que suben y la puerta de una cámara acorazada.
@@ -149,9 +149,9 @@ const Art = {
 
 const STEPS = [
   {
-    art: 'island',
-    title: '¡Bienvenidos a la Season 4: Islas!',
-    text: `El casino se ha ido de vacaciones a Canarias: todo tiene aspecto nuevo, llegan Pez Gordo, Tesoro en la Arena y el Pase de las Islas, con misiones cada día, un cofre gratis y premios en euros en cada nivel. Como siempre, cada domingo a las 23:59 todos volvéis a empezar con ${eur(START)}. Te lo enseñamos en un minuto.`,
+    art: 'navidad',
+    title: '¡Bienvenidos a la Season 5: Navidad!',
+    text: `Ha nevado en el casino: todo se viste de Navidad, con luces, nieve y el Teide nevado, y empieza el Pase de Navidad desde cero, con misiones cada día, un regalo gratis y premios en euros y títulos navideños en cada nivel. Como siempre, cada domingo a las 23:59 todos volvéis a empezar con ${eur(START)}. Te lo enseñamos en un minuto.`,
     hero: true,
   },
   {
@@ -163,14 +163,14 @@ const STEPS = [
   {
     target: 'pase',
     art: 'pass',
-    title: 'El Pase de las Islas',
+    title: 'El Pase de Navidad',
     text: 'Cada jugada te da experiencia y cada día tienes tres misiones nuevas que dan mucha más (y si haces las tres, un bonus en euros). Sube de nivel para cobrar premios y títulos. El pase dura toda la temporada: no se reinicia el domingo.',
   },
   {
     target: 'pase',
     art: 'gacha',
-    title: 'El cofre diario',
-    text: `Ábrelo gratis una vez al día. Si vuelves días seguidos la racha sube y el cofre da más: del día 1 al 7, de ${eur(300)} a ${eur(2100)}. Si te saltas un día, la racha empieza de nuevo.`,
+    title: 'El regalo diario',
+    text: `Ábrelo gratis una vez al día. Si vuelves días seguidos la racha sube y el regalo da más: del día 1 al 7, de ${eur(300)} a ${eur(2100)}. Si te saltas un día, la racha empieza de nuevo.`,
   },
   {
     target: 'score',
@@ -217,7 +217,7 @@ const STEPS = [
   {
     art: 'go',
     title: '¡A jugar!',
-    text: 'Abre tu primer cofre y mira tus misiones de hoy. Puedes volver a ver esta guía cuando quieras con el botón «Tutorial» de arriba. ¡Suerte en la Season 4!',
+    text: 'Abre tu primer regalo y mira tus misiones de hoy. Puedes volver a ver esta guía cuando quieras con el botón «Tutorial» de arriba. ¡Feliz Navidad y suerte en la Season 5!',
     hero: true,
   },
 ]

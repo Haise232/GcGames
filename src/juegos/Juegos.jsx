@@ -58,13 +58,21 @@ import './estilos/responsive.css'
 import './hub/hub.css'
 // Cabecera común (volver, sonido, ayuda y título) y el fondo de cada juego: después de las hojas de cada juego.
 import './estilos/chrome.css'
-// Season 4 («Islas»): la portada, el pase y el tema tropical (todo .juegos-root.s4), después de las hojas de cada juego.
+// Season 4 («Islas»): la estructura de las temporadas (portada, pase…) y el tema tropical (todo .juegos-root.s4), después
+// de las hojas de cada juego. La Season 5 (Navidad), justo debajo, lo tiñe todo.
 import './season4/season4.css'
 import './season4/s4-juegos.css'
 import IslandScene from './season4/IslandScene.jsx'
 import PaseStrip from './season4/PaseStrip.jsx'
 import Pase from './season4/Pase.jsx'
 import PaseToasts from './season4/PaseToasts.jsx'
+// Season 5 («Navidad»): la estructura de la S4 con los colores de Navidad (s5-tinte.css, generado) y lo propio de la
+// Navidad (season5.css): portada nevada, nieve y luces. Todo bajo .juegos-root.s5.
+import './season5/s5-tinte.css'
+import './season5/season5.css'
+import NavidadScene from './season5/NavidadScene.jsx'
+import NavidadFx, { Guirnalda } from './season5/NavidadFx.jsx'
+import { navidadRgb } from './season5/tinte.js'
 // Tema de Halloween: el último, para que sus reglas (todas bajo .juegos-root.halloween) ganen a las de cada juego.
 import './temas/halloween/halloween.css'
 import { useHalloween } from './temas/halloween/halloween.js'
@@ -558,11 +566,16 @@ function LiveGame({ game, tables, loaded, online, onJoin }) {
   )
 }
 
+// El color de cada tarjeta («r, g, b»), pasado a los colores de Navidad de la Season 5.
+const navidadTint = (tint) => (typeof tint === 'string' && /^\d+,\s*\d+,\s*\d+$/.test(tint) ? navidadRgb(tint.split(',').map(Number)).join(', ') : tint)
+
 // Tarjeta de un juego: la escena, la píldora (en vivo / nuevo), el nombre y una frase. big: las de la Season 3 del escaparate.
 function GameCard({ game, big = false, connected, onPick, mission }) {
   const { id, name, kind, blurb, art, live, tint, isNew } = game
+  const halloween = useHalloween()
   return (
-    <button type="button" className={`hub-card hub-card--${id} ${big ? 'hub-card--big' : ''}`} style={{ '--tint': tint }} disabled={!connected} onClick={() => onPick(id)}>
+    <button type="button" className={`hub-card hub-card--${id} ${big ? 'hub-card--big' : ''}`} style={{ '--tint': halloween ? tint : navidadTint(tint) }} disabled={!connected} onClick={() => onPick(id)}>
+      <span className="ns5-cap" aria-hidden="true" />
       <span className="hub-card__art" aria-hidden="true">
         {art}
       </span>
@@ -636,7 +649,7 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome,
   const connected = conn === 'open' && Boolean(me)
   const balance = useCountUp(me?.balance ?? 0, 900)
   const { mine, count } = standing(scores, me)
-  // La guía se abre sola la primera vez que entras en la Season 4 (cuando ya está pintado el selector).
+  // La guía se abre sola la primera vez que entras en la Season 5 (cuando ya está pintado el selector).
   const hubReady = Boolean(me && lobby)
   useEffect(() => {
     if (!hubReady) return
@@ -677,26 +690,26 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome,
 
   return (
     <main className="app app--lobby hub">
-      {halloween && <HalloweenFx />}
+      {halloween ? <HalloweenFx /> : <NavidadFx />}
       {bank && (
         <Suspense fallback={null}>
           <BancaPanel onClose={() => setBank(false)} />
         </Suspense>
       )}
       {tour && <Tutorial onClose={() => setTour(false)} />}
-      {/* Portada de la Season 4: atardecer en las islas, con tu ficha y los botones encima. */}
+      {/* Portada de la Season 5: noche de Navidad en las islas, con tu ficha y los botones encima. */}
       <header className="hub-top s4-hero">
-        <IslandScene className="s4-hero__scene" />
-        {halloween && <Pumpkin className="hw-pumpkin" />}
+        {halloween ? <IslandScene className="s4-hero__scene" /> : <NavidadScene className="s4-hero__scene" />}
+        {halloween ? <Pumpkin className="hw-pumpkin" /> : <Guirnalda />}
         <div className="hub-top__brand s4-hero__brand">
           <small className="s4-hero__season">
-            <span>Season 4</span> Islas
+            <span>Season 5</span> Navidad
           </small>
           <div className="hub-top__title">
             <Logo className="hub-top__logo" />
             <h1>GcGames</h1>
           </div>
-          <p className="s4-hero__tag">{halloween ? 'Noche de Halloween en las islas' : 'Siempre es verano en el casino'}</p>
+          <p className="s4-hero__tag">{halloween ? 'Noche de Halloween en el casino' : 'Esta Navidad, la casa invita'}</p>
           <p className={`hub-status hub-status--${status.tone}`} role="status" aria-live="polite">
             <i aria-hidden="true" />
             {status.text}
@@ -752,7 +765,7 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome,
 
       <section id="hub-pase" aria-labelledby="pase-title" data-tour="pase">
         <h2 id="pase-title" className="hub-title">
-          Pase de las Islas <small>misiones cada día, cofre gratis y premios en cada nivel</small>
+          Pase de Navidad <small>misiones cada día, un regalo gratis y premios en cada nivel</small>
         </h2>
         <PaseStrip juegos={juegos} online={connected} onOpen={onPase} />
       </section>
@@ -1062,11 +1075,11 @@ function JuegosScreens() {
 
 // Página principal de Juegos: todo la sección de juegos vive dentro de .juegos-root para que sus estilos no toquen el resto.
 export default function Juegos() {
-  // Solo el aspecto: con la clase .halloween se aplica halloween.css. Se mira al entrar (la ventana dura días) y al
-  // cambiarlo desde el panel de la banca.
+  // Solo el aspecto: s4 es la estructura de las temporadas (portada, pase…) y s5 la Navidad encima. Con la clase
+  // .halloween se aplica halloween.css. Se mira al entrar (la ventana dura días) y al cambiarlo desde el panel de la banca.
   const halloween = useHalloween()
   return (
-    <div className={halloween ? 'juegos-root s4 halloween' : 'juegos-root s4'}>
+    <div className={halloween ? 'juegos-root s4 s5 halloween' : 'juegos-root s4 s5'}>
       <JuegosScreens />
       <BancaAvisos />
       <PaseToasts />

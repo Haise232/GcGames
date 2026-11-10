@@ -1,16 +1,17 @@
-// Pase de la Season 4 («Pase de las Islas»): lo que da motivos para entrar cada día. No se reinicia el domingo, dura toda
+// Pase de temporada, ahora el de la Season 5 («Pase de Navidad»): lo que da motivos para entrar cada día. No se reinicia el domingo, dura toda
 // la temporada (una fila por jugador en juegos_pase; si «temporada» no es la actual, se empieza de cero).
 //   - Experiencia (XP): cada jugada da PLAY_XP, hasta PLAY_CAP jugadas al día. Las misiones del día dan más.
 //   - Misiones diarias: tres por persona y día (una general y dos de juegos concretos), las mismas todo el día. Salen de
 //     un HMAC con el secreto del servidor, así que no hace falta guardarlas. Completar las tres da un bonus en € y XP.
-//   - Racha: un cofre gratis una vez al día; si lo abres días seguidos, la racha sube y el cofre da más (hasta 7 días).
+//   - Racha: un regalo gratis una vez al día; si lo abres días seguidos, la racha sube y el regalo da más (hasta 7 días).
 //   - Niveles: cada LEVEL_XP sube uno, hasta LEVELS. Cada nivel tiene un premio en € que hay que reclamar; los de cada
 //     5 niveles son más gordos y dan un título que se ve en el Score.
 // Los € van al saldo de la semana con move() (cuentan en el Score, como cualquier premio).
 import { createHmac } from 'node:crypto'
 import { weekOf } from './engine/week.mjs'
 
-export const SEASON = { id: 's4', name: 'Season 4 · Islas', ends: Date.UTC(2027, 0, 10, 23, 59) }
+// Cambiar el id empieza el pase de cero para todos (las filas con otra temporada se reinician al leerlas).
+export const SEASON = { id: 's5', name: 'Season 5 · Navidad', ends: Date.UTC(2027, 0, 10, 23, 59) }
 export const LEVELS = 30
 export const LEVEL_XP = 400
 const PLAY_XP = 10
@@ -22,19 +23,19 @@ const BONUS_XP = 150
 const BONUS_EUR = 1500
 
 export const PASE_ERRORS = {
-  PASE_CLAIMED: 'Ya has abierto el cofre de hoy. Vuelve mañana para seguir la racha.',
+  PASE_CLAIMED: 'Ya has abierto el regalo de hoy. Vuelve mañana para seguir la racha.',
   PASE_LOCKED: 'Aún no has llegado a ese nivel.',
   PASE_NOTHING: 'No tienes premios por reclamar.',
 }
 
 // Títulos de los niveles redondos (y el de quien empieza).
 const TITLES = [
-  [30, 'Leyenda del Teide'],
-  [25, 'Guanche'],
-  [20, 'Mago de la isla'],
-  [15, 'Chacho'],
-  [10, 'Surfero'],
-  [5, 'Turista'],
+  [30, 'Rey Mago'],
+  [25, 'Papá Noel'],
+  [20, 'Elfo mayor'],
+  [15, 'Turronero'],
+  [10, 'Pastorcillo'],
+  [5, 'Duende'],
   [0, 'Recién llegado'],
 ]
 export const titleOf = (level) => TITLES.find(([min]) => level >= min)[1]

@@ -1,4 +1,4 @@
-// Piezas comunes del Pase de las Islas (franja del selector y pantalla del pase).
+// Piezas comunes del pase de temporada (Season 5: Pase de Navidad) (franja del selector y pantalla del pase).
 import { eur } from '../comun/money.js'
 
 // Nombre corto de cada juego, para los botones «Ir a …» de las misiones.
@@ -115,23 +115,28 @@ export function Mission({ mission, onGo, compact = false }) {
   )
 }
 
-// Cofre cerrado (o abierto) en SVG.
+// El regalo diario (en la Season 4 era un cofre): caja roja con cinta y lazo dorados; la tapa se levanta al abrirlo.
 export function Chest({ open = false, className = '' }) {
   return (
     <svg className={`s4-chest ${open ? 'is-open' : ''} ${className}`} viewBox="0 0 100 90" aria-hidden="true">
       <ellipse cx="50" cy="84" rx="38" ry="5" fill="rgba(0,0,0,0.3)" />
-      <rect x="12" y="40" width="76" height="42" rx="6" fill="#b5622a" stroke="#5a2a0e" strokeWidth="3" />
-      <rect x="12" y="52" width="76" height="6" fill="#ffd25e" stroke="#5a2a0e" strokeWidth="2" />
-      <rect x="22" y="40" width="7" height="42" fill="#ffd25e" stroke="#5a2a0e" strokeWidth="2" />
-      <rect x="71" y="40" width="7" height="42" fill="#ffd25e" stroke="#5a2a0e" strokeWidth="2" />
+      <rect x="16" y="42" width="68" height="40" rx="4" fill="#c8202c" stroke="#5c0a12" strokeWidth="3" />
+      <rect x="16" y="42" width="68" height="40" rx="4" fill="url(#s5-gift-dots)" />
+      <rect x="44" y="42" width="12" height="40" fill="#f8c54e" stroke="#7a4a08" strokeWidth="2" />
       {open && <ellipse className="s4-chest__light" cx="50" cy="40" rx="30" ry="9" fill="#fff3b0" />}
       <g className="s4-chest__lid">
-        <path d="M12 40 C 12 18, 88 18, 88 40 Z" fill="#cf7a36" stroke="#5a2a0e" strokeWidth="3" />
-        <rect x="22" y="22" width="7" height="18" fill="#ffd25e" stroke="#5a2a0e" strokeWidth="2" />
-        <rect x="71" y="22" width="7" height="18" fill="#ffd25e" stroke="#5a2a0e" strokeWidth="2" />
+        <rect x="11" y="30" width="78" height="14" rx="3" fill="#de2f3b" stroke="#5c0a12" strokeWidth="3" />
+        <rect x="44" y="30" width="12" height="14" fill="#f8c54e" stroke="#7a4a08" strokeWidth="2" />
+        <path d="M50 30 C 40 14, 24 16, 30 26 C 33 31, 44 31, 50 30 Z" fill="#f8c54e" stroke="#7a4a08" strokeWidth="2.5" />
+        <path d="M50 30 C 60 14, 76 16, 70 26 C 67 31, 56 31, 50 30 Z" fill="#f8c54e" stroke="#7a4a08" strokeWidth="2.5" />
+        <circle cx="50" cy="29" r="4.5" fill="#ffd970" stroke="#7a4a08" strokeWidth="2" />
       </g>
-      <rect x="43" y="44" width="14" height="14" rx="3" fill="#ffe8a0" stroke="#5a2a0e" strokeWidth="2.5" />
-      <circle cx="50" cy="50" r="2.4" fill="#5a2a0e" />
+      <defs>
+        <pattern id="s5-gift-dots" width="12" height="12" patternUnits="userSpaceOnUse">
+          <circle cx="3" cy="3" r="1.6" fill="#ffffff" opacity="0.55" />
+          <circle cx="9" cy="9" r="1.6" fill="#ffffff" opacity="0.55" />
+        </pattern>
+      </defs>
     </svg>
   )
 }

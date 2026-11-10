@@ -1,15 +1,17 @@
-// Escena del Cohete en <canvas>: despega desde la isla al atardecer (Season 4: mar, volcán y palmeras abajo) y el cielo
+// Escena del Cohete en <canvas>: despega desde la isla en una noche de Navidad (Season 5: mar, volcán nevado, palmeras
+// y la luna llena abajo) y el cielo
 // se oscurece hacia el espacio según sube el multiplicador, las estrellas pasan
 // más rápido, la luna (10×) y un planeta (20×) marcan la altitud, y la explosión es el único gran momento animado.
 // No usa React: la pantalla llama a draw() en cada frame con el reloj del servidor.
 import { BETS_MS, FLIGHT_MS, MAX_MULT, ROUND_MS, fmtMult, msFor, multiplierAt } from './crash.js'
 
 const C = {
-  // Atardecer de la isla en la plataforma (violeta arriba, coral en el horizonte); espacio casi negro arriba.
-  baizeTop: [42, 26, 92],
-  baizeLow: [232, 98, 104],
-  spaceTop: [3, 4, 14],
-  spaceLow: [14, 10, 42],
+  // Noche de Navidad en la plataforma (azul noche arriba, el brillo cálido del pueblo en el horizonte); espacio casi
+  // negro arriba.
+  baizeTop: [14, 26, 66],
+  baizeLow: [92, 52, 84],
+  spaceTop: [3, 5, 14],
+  spaceLow: [8, 14, 36],
   brass: '#c8a24b',
   brassLight: '#e9cf86',
   ivory: '#f1e9d6',
@@ -18,17 +20,19 @@ const C = {
   ember: '#ff8a3d',
   red: '#c2332c',
   // La isla: el volcán, las palmeras y el mar con el reflejo del sol.
-  island: '#1a1238',
-  islandFar: '#3a1f55',
-  sea: [12, 74, 104],
-  seaDeep: [6, 32, 58],
-  sun: '#ffd36e',
+  island: '#0d1730',
+  islandFar: '#24365e',
+  snow: '#e8f0fb',
+  sea: [14, 48, 82],
+  seaDeep: [6, 22, 44],
+  sun: '#eef3ff',
 }
 // Nubes de la nebulosa: posición (fracción del lienzo), radio (fracción del ancho) y color. Aparecen al subir.
 const NEBULAS = [
-  [0.22, 0.28, 0.55, '122, 92, 255'],
-  [0.78, 0.18, 0.45, '255, 79, 154'],
-  [0.55, 0.62, 0.5, '34, 211, 238'],
+  // Season 5: aurora verde, un brillo rojo y otro de hielo.
+  [0.22, 0.28, 0.55, '61, 220, 151'],
+  [0.78, 0.18, 0.45, '224, 48, 60'],
+  [0.55, 0.62, 0.5, '108, 195, 255'],
 ]
 // Color de la curva y del halo según el multiplicador: oro, naranja, rosa y violeta.
 const tierColor = (mult) => (mult < 200 ? '255, 226, 122' : mult < 500 ? '255, 160, 70' : mult < 1000 ? '255, 92, 150' : '190, 120, 255')
@@ -392,20 +396,20 @@ export function createScene(canvas, { reduced = false } = {}) {
       ctx.restore()
     }
 
-    // 4. Horizonte: el sol que se pone, el mar y la isla de la plataforma, que se quedan abajo al despegar.
+    // 4. Horizonte: la luna llena que asoma, el mar y la isla de la plataforma, que se quedan abajo al despegar.
     const drop = Math.min(1, alt * 3) * h * 0.5
     const seaTop = h - PAD.bottom * 0.4 - h * 0.08 + drop
     const sunR = Math.min(w, h) * 0.11
     const sunX = w * 0.7
     if (seaTop - sunR * 0.4 < h) {
       const halo = ctx.createRadialGradient(sunX, seaTop, sunR * 0.6, sunX, seaTop, sunR * 3)
-      halo.addColorStop(0, 'rgba(255, 200, 110, 0.35)')
-      halo.addColorStop(1, 'rgba(255, 200, 110, 0)')
+      halo.addColorStop(0, 'rgba(220, 232, 255, 0.3)')
+      halo.addColorStop(1, 'rgba(220, 232, 255, 0)')
       ctx.fillStyle = halo
       ctx.fillRect(sunX - sunR * 3, seaTop - sunR * 3, sunR * 6, sunR * 3)
       const disc = ctx.createLinearGradient(0, seaTop - sunR, 0, seaTop)
-      disc.addColorStop(0, '#fff2a8')
-      disc.addColorStop(1, '#ff8a4c')
+      disc.addColorStop(0, '#ffffff')
+      disc.addColorStop(1, '#c9d8f0')
       ctx.fillStyle = disc
       ctx.beginPath()
       ctx.arc(sunX, seaTop, sunR, Math.PI, 0)
@@ -420,6 +424,20 @@ export function createScene(canvas, { reduced = false } = {}) {
     ctx.quadraticCurveTo(w * 0.4, seaTop - h * 0.04, w * 0.52, seaTop + 1)
     ctx.closePath()
     ctx.fill()
+    // La nieve en la cumbre del volcán.
+    ctx.fillStyle = C.snow
+    ctx.beginPath()
+    ctx.moveTo(w * 0.205, seaTop - h * 0.128)
+    ctx.lineTo(w * 0.24, seaTop - h * 0.16)
+    ctx.lineTo(w * 0.29, seaTop - h * 0.17)
+    ctx.lineTo(w * 0.318, seaTop - h * 0.14)
+    ctx.lineTo(w * 0.3, seaTop - h * 0.145)
+    ctx.lineTo(w * 0.285, seaTop - h * 0.132)
+    ctx.lineTo(w * 0.265, seaTop - h * 0.148)
+    ctx.lineTo(w * 0.24, seaTop - h * 0.13)
+    ctx.lineTo(w * 0.225, seaTop - h * 0.138)
+    ctx.closePath()
+    ctx.fill()
     ctx.fillStyle = mixRgb(C.sea, C.seaDeep, 0.2)
     ctx.fillRect(-10, seaTop, w + 20, h - seaTop + 20)
     const sea = ctx.createLinearGradient(0, seaTop, 0, h)
@@ -427,8 +445,8 @@ export function createScene(canvas, { reduced = false } = {}) {
     sea.addColorStop(1, `rgb(${C.seaDeep.join(',')})`)
     ctx.fillStyle = sea
     ctx.fillRect(-10, seaTop, w + 20, h - seaTop + 20)
-    // Reflejo del sol en el agua: rayitas que se mueven despacio.
-    ctx.fillStyle = 'rgba(255, 210, 120, 0.55)'
+    // Reflejo de la luna en el agua: rayitas que se mueven despacio.
+    ctx.fillStyle = 'rgba(220, 232, 255, 0.45)'
     for (let i = 0; i < 6; i++) {
       const lw = sunR * (1.4 - i * 0.18) * (reduced ? 1 : 0.85 + 0.15 * Math.sin(time / 500 + i))
       ctx.fillRect(sunX - lw / 2, seaTop + 4 + i * 5, lw, 2)

@@ -1,4 +1,4 @@
-// El pase en el selector: tu nivel y título, la barra de XP, las tres misiones del día, el cofre diario y los premios
+// El pase en el selector: tu nivel y título, la barra de XP, las tres misiones del día, el regalo diario y los premios
 // por reclamar. El pase completo se abre con «Ver el pase».
 import { useEffect, useState } from 'react'
 import { eur } from '../comun/money.js'
@@ -28,7 +28,7 @@ export default function PaseStrip({ juegos, online, onOpen }) {
       <button type="button" className="s4-strip__level" onClick={onOpen} disabled={!pase}>
         <LevelRing pase={pase} size={92} />
         <span className="s4-strip__who">
-          <small>Pase de las Islas</small>
+          <small>Pase de Navidad</small>
           <b>{pase ? pase.title : 'Cargando…'}</b>
           <XpBar pase={pase} />
           <span className="s4-strip__go">Ver el pase →</span>
@@ -63,7 +63,7 @@ export default function PaseStrip({ juegos, online, onOpen }) {
         <button type="button" className={`s4-chestbtn ${chestReady ? 'is-ready' : ''} ${opening ? 'is-opening' : ''}`} disabled={!online || !chestReady || opening} onClick={openChest}>
           <Chest open={!chestReady || opening} />
           <span>
-            <b>{chestReady ? '¡Cofre diario!' : 'Cofre abierto'}</b>
+            <b>{chestReady ? '¡Regalo diario!' : 'Regalo abierto'}</b>
             <small>
               {!pase
                 ? '…'

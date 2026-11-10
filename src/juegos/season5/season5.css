@@ -1,0 +1,318 @@
+/* Escrito a mano (no generado): Season 5 · Navidad. Va después de s5-tinte.css (la S4 pasada a colores de Navidad) y
+   pone lo propio de la Navidad: la portada nevada (NavidadScene.jsx), la nieve del selector (NavidadFx.jsx), los
+   títulos con estrella y guirnalda, nieve sobre las tarjetas y las rarezas del gacha. Todo cuelga de .juegos-root.s5 y,
+   como el tinte, se apaga con .halloween para que ese tema siga mandando sus días. */
+
+.juegos-root.s5:not(.halloween) {
+  --s5-red: #d42a35;
+  --s5-red-hi: #f0505a;
+  --s5-gold: #f8c54e;
+  --s5-pine: #1f7a4d;
+  --s5-snow: #f4f9ff;
+  --s5-ice: #9fd2f2;
+  --s5-night: #0a1426;
+
+  /* Rarezas del gacha: cada una de un color distinto (con el tinte automático la épica y la única salían rojas las dos). */
+  --r-comun: #d9e3ea;
+  --r-rara: #3cc47e;
+  --r-epica: #6cc3ff;
+  --r-mitica: #f8c54e;
+  --r-unica: #e0303c;
+  --rainbow: linear-gradient(120deg, #e0303c, #f8c54e, #fff6cf, #3cc47e, #6cc3ff, #f4f9ff, #e0303c);
+
+  /* Noche de invierno: azul noche arriba, un brillo rojo y otro verde, y nieve al fondo. */
+  background:
+    radial-gradient(1100px 520px at 85% -8%, rgba(212, 42, 53, 0.2), transparent 70%),
+    radial-gradient(900px 600px at -10% 40%, rgba(31, 122, 77, 0.2), transparent 70%),
+    linear-gradient(180deg, #0b1533 0%, #0d1d3a 40%, #0b1a2c 75%, #0a1622 100%) fixed;
+}
+
+/* ============================== Portada ============================== */
+.juegos-root.s5:not(.halloween) .hub-top.s4-hero {
+  background: #0b1532;
+  box-shadow:
+    0 0 0 2px rgba(244, 249, 255, 0.35),
+    0 30px 70px rgba(0, 0, 0, 0.5),
+    0 0 120px -30px rgba(255, 212, 92, 0.4);
+}
+.juegos-root.s5:not(.halloween) .hub-top.s4-hero::after {
+  background: linear-gradient(180deg, transparent 30%, rgba(6, 12, 30, 0.2) 55%, rgba(6, 12, 30, 0.8) 100%);
+}
+.juegos-root .ns5-scene {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root.s5:not(.halloween) .s4-hero__season span {
+  background: linear-gradient(180deg, var(--s5-red-hi), var(--s5-red));
+  color: #fff;
+}
+
+/* Guirnalda de luces que cuelga del borde de arriba de la portada. */
+.juegos-root .ns5-garland {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 46px);
+  grid-auto-rows: 40px;
+  height: 40px;
+  overflow: hidden;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='46' height='40'%3E%3Cpath d='M0 3 Q23 20 46 3' fill='none' stroke='%23163a2a' stroke-width='2.5'/%3E%3C/svg%3E")
+    repeat-x 0 0 / 46px 40px;
+  pointer-events: none;
+}
+.juegos-root .ns5-garland i {
+  --c: #ff4b55;
+  position: relative;
+  justify-self: center;
+  width: 9px;
+  height: 14px;
+  margin-top: 13px;
+  border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+  background: var(--c);
+  box-shadow: 0 0 9px 2px var(--c);
+  animation: ns5-blink 2.4s ease-in-out infinite;
+}
+.juegos-root .ns5-garland i::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 2px;
+  background: #2f4a3c;
+}
+.juegos-root .ns5-garland i:nth-child(4n + 2) {
+  --c: #ffd45c;
+  animation-delay: -0.6s;
+}
+.juegos-root .ns5-garland i:nth-child(4n + 3) {
+  --c: #5be08f;
+  animation-delay: -1.2s;
+}
+.juegos-root .ns5-garland i:nth-child(4n + 4) {
+  --c: #6cc3ff;
+  animation-delay: -1.8s;
+}
+
+/* --- Animaciones de la escena --- */
+.juegos-root .ns5-stars circle {
+  animation: ns5-twinkle 3s ease-in-out infinite;
+}
+.juegos-root .ns5-bigstar {
+  animation: ns5-glow 3.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.juegos-root .ns5-treestar {
+  animation: ns5-glow 2.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.juegos-root .ns5-aurora {
+  animation: ns5-aurora 12s ease-in-out infinite alternate;
+}
+.juegos-root .ns5-lights circle {
+  filter: drop-shadow(0 0 3px currentColor);
+  animation: ns5-blink 2.2s ease-in-out infinite;
+}
+.juegos-root .ns5-window {
+  animation: ns5-window 7s ease-in-out infinite;
+}
+.juegos-root .ns5-window--late {
+  animation-delay: -3s;
+}
+.juegos-root .ns5-snowfall circle {
+  animation: ns5-flake var(--d) linear var(--delay) infinite;
+}
+
+@keyframes ns5-twinkle {
+  50% {
+    opacity: 0.3;
+  }
+}
+@keyframes ns5-glow {
+  50% {
+    opacity: 0.75;
+    transform: scale(0.9);
+  }
+}
+@keyframes ns5-aurora {
+  to {
+    opacity: 0.45;
+    transform: translateX(-30px);
+  }
+}
+@keyframes ns5-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes ns5-window {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  48% {
+    opacity: 1;
+  }
+  52% {
+    opacity: 0.55;
+  }
+}
+@keyframes ns5-flake {
+  to {
+    transform: translate(var(--sway), 470px);
+  }
+}
+
+/* ============================== Selector ============================== */
+
+/* Títulos de sección: una estrella dorada en vez del sol, y una guirnalda de bombillas en vez de la ola. */
+.juegos-root.s5:not(.halloween) .app.hub .hub-title::before {
+  width: 22px;
+  height: 22px;
+  border-radius: 0;
+  background: radial-gradient(circle at 50% 45%, #fff6cf, var(--s5-gold) 60%, #d99a1e);
+  clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  box-shadow: none;
+  filter: drop-shadow(0 0 6px rgba(255, 212, 92, 0.8));
+}
+.juegos-root.s5:not(.halloween) .app.hub .hub-title::after {
+  height: 10px;
+  -webkit-mask: none;
+  mask: none;
+  background:
+    radial-gradient(circle, #ff4b55 0 3px, transparent 3.6px) 0 50% / 48px 10px repeat-x,
+    radial-gradient(circle, #ffd45c 0 3px, transparent 3.6px) 12px 50% / 48px 10px repeat-x,
+    radial-gradient(circle, #5be08f 0 3px, transparent 3.6px) 24px 50% / 48px 10px repeat-x,
+    radial-gradient(circle, #6cc3ff 0 3px, transparent 3.6px) 36px 50% / 48px 10px repeat-x,
+    linear-gradient(rgba(244, 249, 255, 0.25), rgba(244, 249, 255, 0.25)) 0 50% / 100% 1px no-repeat;
+  -webkit-mask-image: linear-gradient(90deg, #000 40%, transparent);
+  mask-image: linear-gradient(90deg, #000 40%, transparent);
+}
+
+/* Nieve acumulada encima de cada tarjeta de juego y de los paneles. */
+.juegos-root .ns5-cap {
+  display: none;
+}
+.juegos-root.s5:not(.halloween) .ns5-cap {
+  position: absolute;
+  inset: -1px 10px auto;
+  z-index: 3;
+  display: block;
+  height: 14px;
+  background:
+    radial-gradient(22px 9px at 14% 100%, var(--s5-snow) 98%, transparent),
+    radial-gradient(34px 11px at 42% 100%, var(--s5-snow) 98%, transparent),
+    radial-gradient(20px 8px at 68% 100%, var(--s5-snow) 98%, transparent),
+    radial-gradient(30px 10px at 88% 100%, var(--s5-snow) 98%, transparent),
+    linear-gradient(var(--s5-snow), var(--s5-snow)) 0 0 / 100% 5px no-repeat;
+  border-radius: 0 0 8px 8px;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
+  pointer-events: none;
+}
+.juegos-root.s5:not(.halloween) .hub-card {
+  overflow: visible;
+}
+
+/* --- Nieve que cae detrás del selector (NavidadFx.jsx): .app.hub aísla su apilado, así que z-index -1 la deja
+   detrás de todo el contenido y por delante del fondo. --- */
+.juegos-root .ns5-fx {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+.juegos-root.halloween .ns5-fx {
+  display: none;
+}
+.juegos-root .ns5-fx i {
+  position: absolute;
+  top: -10px;
+  left: var(--x);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: #fff;
+  opacity: var(--o);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+  animation: ns5-fall var(--d) linear var(--delay) infinite;
+  will-change: transform;
+}
+@keyframes ns5-fall {
+  to {
+    transform: translate3d(var(--drift), 105vh, 0);
+  }
+}
+@media (max-width: 640px) {
+  .juegos-root .ns5-fx i:nth-child(n + 22) {
+    display: none;
+  }
+}
+
+/* Fondos de las escenas de las tarjetas que vienen de hub.css (no de la S4): noche de invierno en vez de atardecer y
+   violeta. */
+.juegos-root.s5:not(.halloween) .hub-card--tower {
+  --art: linear-gradient(180deg, #070d26, #15295a 62%, #2c4f7e);
+}
+.juegos-root.s5:not(.halloween) .hub-card--auction {
+  --art: radial-gradient(80% 90% at 50% 0%, #7a1c2a, #140a1c);
+}
+.juegos-root.s5:not(.halloween) .hub-card--race {
+  --art: linear-gradient(180deg, #0f1d44, #2c4f7e 42%);
+}
+.juegos-root.s5:not(.halloween) .hub-card--plinko {
+  --art: radial-gradient(80% 100% at 50% 20%, #1f5a43, #0a1a22);
+}
+.juegos-root.s5:not(.halloween) .hub-card--pesca {
+  --art: linear-gradient(180deg, #0f1d44, #0e3a4a);
+}
+.juegos-root.s5:not(.halloween) .hub-card--hilo {
+  --art: linear-gradient(180deg, #6a1a22, #2e0c12);
+}
+
+/* Regata (dentro del juego): sale de noche, con luna en vez de sol. */
+.juegos-root.s5:not(.halloween) .rg-stage {
+  --rg-sky0: #070d26;
+  --rg-sky1: #1b3566;
+  --rg-sky2: #3d5f8f;
+  --rg-sea0: #1d5a78;
+  --rg-sea1: #0a2a44;
+  --rg-island: #16244a;
+  --rg-island2: #0f1a36;
+  --rg-sun: #eef3ff;
+}
+
+/* ============================== Pase ============================== */
+/* El cofre diario pasa a ser un regalo: la tapa roja con lazo dorado lo pone el tinte; aquí, la nieve de arriba. */
+.juegos-root.s5:not(.halloween) .s4-pase__hero {
+  background: #0b1532;
+}
+
+/* ============================== Mesas ============================== */
+/* Dorso de las cartas: rojo Navidad con un rombo de copos dorados. */
+.juegos-root.s5:not(.halloween) .card__back {
+  border-color: #f4f9ff;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 246, 207, 0.9) 0 2px, transparent 2.5px) 0 0 / 12px 12px,
+    repeating-linear-gradient(45deg, transparent 0 6px, rgba(248, 197, 78, 0.35) 6px 7px),
+    repeating-linear-gradient(-45deg, transparent 0 6px, rgba(248, 197, 78, 0.35) 6px 7px),
+    radial-gradient(circle at 50% 40%, #e8414b, #9c1420 75%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .ns5-fx,
+  .juegos-root .ns5-snowfall {
+    display: none;
+  }
+  .juegos-root :is(.ns5-stars circle, .ns5-bigstar, .ns5-treestar, .ns5-aurora, .ns5-lights circle, .ns5-window, .ns5-garland i) {
+    animation: none;
+  }
+}

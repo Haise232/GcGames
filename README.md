@@ -54,8 +54,9 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
   para esconder dinero y **Hacienda**, que reclama su parte a los que más tienen.
 - **La banca**: el master puede dar dinero, mandar avisos, activar el *Admin Abuse* (×2, ×3 o todo gratis), abrir el
   bote del bingo, lanzar redadas de Hacienda, aceptar cuentas nuevas y dar contraseñas temporales.
-- **Temporadas**. Ahora mismo, la **Season 4 · Islas**: todo el casino al atardecer en Canarias y el **Pase de las
-  Islas**, con XP por jugada, tres misiones cada día, un cofre diario con racha y 30 niveles con premios y títulos.
+- **Temporadas**. Ahora mismo, la **Season 5 · Navidad**: todo el casino en una noche de Navidad en Canarias (el Teide
+  nevado, nieve, luces y el árbol del pueblo) y el **Pase de Navidad**, con XP por jugada, tres misiones cada día, un
+  regalo diario con racha y 30 niveles con premios y títulos navideños.
 - **App instalable** en el móvil (PWA), diseño adaptado a pantallas estrechas y tema de Halloween en fechas.
 
 ## 📸 Capturas
@@ -245,7 +246,9 @@ flowchart LR
 │       ├── table/, poker/, chess/   # Mesas en vivo
 │       ├── banca/           # Panel del master y Hacienda
 │       ├── shared/          # Núcleo de blackjack, póker y ajedrez
-│       └── season4/         # Tema de las islas, el pase y las ilustraciones nuevas
+│       ├── season4/         # Estructura de la temporada (portada, pase) y las ilustraciones de las islas
+│       └── season5/         # Navidad: portada nevada, nieve y el tinte de colores (s5-tinte.css lo genera
+│                            # scripts/season5-tinte.mjs a partir de las hojas de la S4 y de cada juego)
 ├── api/_juegos/             # Servidor: un módulo por juego, banca, Hacienda, pase, auth y base de datos
 │   └── engine/              # Motor de las mesas en vivo, temporizadores y semana
 ├── worker.mjs               # Entrada del Worker de Cloudflare

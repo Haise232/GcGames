@@ -1,8 +1,8 @@
-/* Guía de Juegos (Tutorial.jsx). Va en un portal sobre <body>, fuera de .juegos-root: define sus propios colores. */
+/* Guía de Juegos (Tutorial.jsx), con los colores de la Season 5 · Navidad. Va en un portal sobre <body>, fuera de .juegos-root: define sus propios colores. */
 .tut {
-  --gold: #ffb547;
-  --ink: #fff6e8;
-  --muted: #a7cfd9;
+  --gold: #f8c54e;
+  --ink: #f6f9ff;
+  --muted: #bcd0e0;
   position: fixed;
   inset: 0;
   z-index: 9990;
@@ -46,12 +46,13 @@
   width: min(380px, calc(100vw - 24px));
   translate: -50% -50%;
   padding: 22px 22px 18px;
-  border: 1px solid rgba(242, 193, 78, 0.4);
+  border: 1px solid rgba(244, 249, 255, 0.4);
   border-radius: 22px;
   text-align: center;
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 106, 90, 0.3), transparent 60%),
-    linear-gradient(180deg, #2a1a5e, #0d2b4a);
+    radial-gradient(ellipse at 50% 0%, rgba(212, 42, 53, 0.32), transparent 60%),
+    radial-gradient(ellipse at 50% 110%, rgba(31, 122, 77, 0.35), transparent 60%),
+    linear-gradient(180deg, #13214a, #0b1730);
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
   animation: tut-pop 0.4s cubic-bezier(0.2, 1.4, 0.4, 1);
 }
@@ -97,7 +98,7 @@
   font-family: 'Lilita One', 'Abril Fatface', Georgia, serif;
   font-weight: 400;
   font-size: clamp(30px, 6vw, 40px);
-  background: linear-gradient(180deg, #ffe36e, #ff8a4c 60%, #ff4f8b);
+  background: linear-gradient(180deg, #fff6cf, #f8c54e 55%, #e8414b);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -150,13 +151,13 @@
 }
 .tut__next {
   border: 0;
-  color: #2a0f2e;
-  background: linear-gradient(180deg, #ffe36e, #ff8a4c);
-  box-shadow: 0 4px 0 #a2381c;
+  color: #fff;
+  background: linear-gradient(180deg, #f0505a, #c8202c);
+  box-shadow: 0 4px 0 #7a0f18;
 }
 .tut__next:active {
   transform: translateY(3px);
-  box-shadow: 0 1px 0 #a2381c;
+  box-shadow: 0 1px 0 #7a0f18;
 }
 .tut__btns button:focus-visible,
 .tut__dots button:focus-visible {

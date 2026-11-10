@@ -1,4 +1,4 @@
-// Avisos del pase, estés en el juego que estés: misión completada, bonus del día, nivel nuevo, cofre abierto y premios
+// Avisos del pase, estés en el juego que estés: misión completada, bonus del día, nivel nuevo, regalo abierto y premios
 // reclamados. La XP suelta de cada jugada se junta en una pastilla pequeña («+10 XP») para no tapar el juego.
 // Escucha el evento «juegos:pase» que lanza useJuegos con cada respuesta que trae paseEvent.
 import { useEffect, useRef, useState } from 'react'
@@ -15,7 +15,7 @@ function toastsOf(ev) {
   const out = []
   for (const m of ev.done ?? []) out.push({ kind: 'mission', icon: '✓', title: '¡Misión completada!', text: m.text, extra: `+${m.xp} XP` })
   if (ev.bonus) out.push({ kind: 'bonus', icon: '★', title: '¡Las tres misiones del día!', text: `Bonus: +${eur(ev.bonus.eur)}`, extra: `+${ev.bonus.xp} XP` })
-  if (ev.chest) out.push({ kind: 'chest', icon: '🧰', title: `Cofre del día ${ev.chest.day}`, text: `+${eur(ev.chest.eur)} a tu saldo`, extra: `+${ev.gained} XP` })
+  if (ev.chest) out.push({ kind: 'chest', icon: '🎁', title: `Regalo del día ${ev.chest.day}`, text: `+${eur(ev.chest.eur)} a tu saldo`, extra: `+${ev.gained} XP` })
   if (ev.claimed) {
     const n = ev.claimed.levels.length
     out.push({ kind: 'claim', icon: '🎁', title: n === 1 ? `Premio del nivel ${ev.claimed.levels[0]}` : `${n} premios reclamados`, text: `+${eur(ev.claimed.eur)} a tu saldo` })

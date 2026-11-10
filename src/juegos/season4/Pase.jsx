@@ -1,10 +1,10 @@
-// Pantalla del Pase de las Islas: tu nivel, el cofre diario con su racha, las misiones del día y el camino de 30
+// Pantalla del pase de temporada (Season 5: Pase de Navidad): tu nivel, el regalo diario con su racha, las misiones del día y el camino de 30
 // niveles con sus premios. Los datos los da el servidor ({ t: 'pase' }, api/_juegos/pase.mjs).
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Help from '../comun/Help.jsx'
 import { eur, until } from '../comun/money.js'
 import { useCountUp } from '../comun/useCountUp.js'
-import IslandScene from './IslandScene.jsx'
+import NavidadScene from '../season5/NavidadScene.jsx'
 import { Chest, LevelRing, Mission, XpBar, unclaimed } from './PaseParts.jsx'
 
 const STREAK_DAYS = 7
@@ -43,7 +43,7 @@ export default function Pase({ juegos, onExit, onGo }) {
   return (
     <main className="app s4-pase">
       <header className="top">
-        <h1>Pase de las Islas</h1>
+        <h1>Pase de Navidad</h1>
         <div className="hud">
           <dl className="money">
             <div>
@@ -61,7 +61,7 @@ export default function Pase({ juegos, onExit, onGo }) {
             </button>
             <Help className="tg tg--help" title="Cómo funciona el pase">
               <p>
-                El pase dura toda la <b>Season 4</b> (no se reinicia el domingo). Subes de nivel con experiencia (XP): cada {pase?.perLevel ?? 400} XP, un
+                El pase dura toda la <b>Season 5</b> (no se reinicia el domingo). Subes de nivel con experiencia (XP): cada {pase?.perLevel ?? 400} XP, un
                 nivel, hasta el {pase?.maxLevel ?? 30}.
               </p>
               <p>
@@ -69,7 +69,7 @@ export default function Pase({ juegos, onExit, onGo }) {
                 si completas las tres te llevas un bonus en euros. Cambian cada día a las 23:59, como el reinicio de la semana.
               </p>
               <p>
-                El <b>cofre diario</b> es gratis. Si lo abres días seguidos la racha sube y el cofre da más, hasta el día {STREAK_DAYS}. Si te saltas un
+                El <b>regalo diario</b> es gratis. Si lo abres días seguidos la racha sube y el regalo da más, hasta el día {STREAK_DAYS}. Si te saltas un
                 día, vuelve a empezar.
               </p>
               <p>
@@ -82,15 +82,15 @@ export default function Pase({ juegos, onExit, onGo }) {
       </header>
 
       <section className="s4-pase__hero">
-        <IslandScene className="s4-pase__scene" />
+        <NavidadScene className="s4-pase__scene" />
         <div className="s4-pase__me">
           <LevelRing pase={pase} size={128} />
           <div>
-            <small>{pase?.season.name ?? 'Season 4'}</small>
+            <small>{pase?.season.name ?? 'Season 5 · Navidad'}</small>
             <h2>{pase?.title ?? '…'}</h2>
             <XpBar pase={pase} />
             <p>
-              {pase && pase.level < pase.maxLevel ? `Te faltan ${pase.perLevel - pase.levelXp} XP para el nivel ${pase.level + 1}.` : pase ? 'Has completado el pase. ¡Leyenda!' : ''}
+              {pase && pase.level < pase.maxLevel ? `Te faltan ${pase.perLevel - pase.levelXp} XP para el nivel ${pase.level + 1}.` : pase ? 'Has completado el pase. ¡Eres un Rey Mago!' : ''}
               {ends && ` La temporada acaba en ${ends}.`}
             </p>
           </div>
@@ -99,12 +99,12 @@ export default function Pase({ juegos, onExit, onGo }) {
 
       <div className="s4-pase__grid">
         <section className="s4-panel s4-daily" aria-labelledby="s4-chest-title">
-          <h2 id="s4-chest-title">Cofre diario</h2>
+          <h2 id="s4-chest-title">Regalo diario</h2>
           <div className="s4-daily__row">
             <button type="button" className={`s4-chestbtn s4-chestbtn--big ${chestReady ? 'is-ready' : ''} ${opening ? 'is-opening' : ''}`} disabled={!online || !chestReady || opening} onClick={openChest}>
               <Chest open={!chestReady || opening} />
               <span>
-                <b>{chestReady ? 'Abrir el cofre' : 'Ya lo has abierto hoy'}</b>
+                <b>{chestReady ? 'Abrir el regalo' : 'Ya lo has abierto hoy'}</b>
                 <small>{chestReady ? `${eur(pase.streak.next.eur)} y ${pase.streak.next.xp} XP` : 'Vuelve mañana para seguir la racha'}</small>
               </span>
             </button>
