@@ -1,0 +1,362 @@
+/* Escrito a mano: el Trineo de Papá Noel (Trineo.jsx). Noche de Navidad con luna y estrellas; abajo, una calle nevada
+   con los tres edificios (que son los botones de la parada) y el trineo, que vuela hasta la chimenea elegida. Debajo,
+   las paradas de la noche. El panel de la derecha es el de los juegos de las Fiestas (fiestas.css). */
+.juegos-root .tr-app {
+  --accent: #f8c54e;
+  --gold: #f8c54e;
+}
+.juegos-root .tr-stage {
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  background: linear-gradient(180deg, #060b1f 0%, #0f1d44 55%, #1b3566 100%);
+  box-shadow:
+    0 0 0 2px rgba(244, 249, 255, 0.3),
+    0 20px 50px rgba(0, 0, 0, 0.45);
+}
+.juegos-root .tr-sky {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.juegos-root .tr-sky i {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #fff;
+  animation: tr-twinkle 3s ease-in-out infinite;
+}
+.juegos-root .tr-moon {
+  position: absolute;
+  top: 8%;
+  right: 9%;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #fff, #dfe8f8);
+  box-shadow: 0 0 40px rgba(223, 234, 255, 0.6);
+}
+@keyframes tr-twinkle {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* --- La calle y el trineo --- */
+.juegos-root .tr-town {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  min-height: 260px;
+  align-self: stretch;
+}
+.juegos-root .tr-street {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: clamp(6px, 2vw, 22px);
+  height: 100%;
+  padding: 0 2%;
+  animation: tr-street 0.5s ease-out both;
+}
+@keyframes tr-street {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+.juegos-root .tr-snow {
+  position: absolute;
+  inset: auto 0 46px;
+  z-index: 2;
+  height: 26px;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background: linear-gradient(#f4f9ff, #c9d8ee);
+  pointer-events: none;
+}
+.juegos-root .tr-house {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-items: center;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ivory);
+  font: inherit;
+  cursor: pointer;
+}
+.juegos-root .tr-house:disabled {
+  cursor: default;
+}
+.juegos-root .tr-bld {
+  align-self: end;
+  width: 100%;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+  transition:
+    transform 0.2s,
+    filter 0.2s;
+}
+.juegos-root .tr-house--casa .tr-bld {
+  height: 40%;
+}
+.juegos-root .tr-house--bloque .tr-bld {
+  height: 66%;
+}
+.juegos-root .tr-house--torre .tr-bld {
+  height: 94%;
+}
+@media (hover: hover) {
+  .juegos-root .tr-house:not(:disabled):hover .tr-bld {
+    transform: translateY(-4px);
+    filter: drop-shadow(0 0 14px rgba(248, 197, 78, 0.6)) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+  }
+}
+.juegos-root .tr-house:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+.juegos-root .tr-win {
+  fill: #1a2238;
+}
+.juegos-root .tr-win.is-on {
+  fill: #ffcf6b;
+}
+.juegos-root .tr-house.is-ok .tr-win {
+  fill: #ffe08a;
+  filter: drop-shadow(0 0 4px #ffcf6b);
+}
+.juegos-root .tr-house.is-caught .tr-win {
+  animation: tr-alarm 0.4s steps(2) infinite;
+}
+@keyframes tr-alarm {
+  50% {
+    fill: #ff3b48;
+  }
+}
+.juegos-root .tr-beacon {
+  animation: tr-twinkle 1.6s ease-in-out infinite;
+}
+.juegos-root .tr-house__label {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(10, 16, 36, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(248, 197, 78, 0.35);
+  line-height: 1.2;
+}
+.juegos-root .tr-house__label b {
+  font-size: clamp(12px, 1.2vw, 14px);
+  white-space: nowrap;
+}
+.juegos-root .tr-house__label kbd {
+  padding: 0 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  font: inherit;
+  font-size: 11px;
+}
+.juegos-root .tr-house__label small {
+  color: #ffe08a;
+  font-size: 12px;
+  font-weight: 700;
+}
+.juegos-root .tr-house:disabled .tr-house__label {
+  opacity: 0.7;
+}
+.juegos-root .tr-house.is-target .tr-house__label {
+  box-shadow: inset 0 0 0 2px var(--gold);
+}
+.juegos-root .tr-house__pop {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 4;
+  font-size: 34px;
+  translate: -50% 0;
+  animation: tr-pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+@keyframes tr-pop {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.4);
+  }
+}
+
+/* El trineo: vuela a la chimenea del edificio elegido (las posiciones son las de las tres columnas). */
+.juegos-root .tr-sleigh {
+  position: absolute;
+  z-index: 3;
+  top: 2%;
+  left: 34%;
+  width: clamp(120px, 30%, 210px);
+  transition:
+    left 0.9s cubic-bezier(0.45, 0, 0.3, 1),
+    top 0.9s cubic-bezier(0.45, 0, 0.3, 1),
+    transform 0.9s;
+  pointer-events: none;
+}
+.juegos-root .tr-sleigh__svg {
+  display: block;
+  width: 100%;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.5));
+}
+.juegos-root .tr-sleigh.is-idle,
+.juegos-root .tr-sleigh.is-wait {
+  animation: tr-bob 2.4s ease-in-out infinite;
+}
+.juegos-root .tr-sleigh.is-to-casa {
+  top: 38%;
+  left: 0%;
+  transform: scale(0.8);
+}
+.juegos-root .tr-sleigh.is-to-bloque {
+  top: 16%;
+  left: 33%;
+  transform: scale(0.8);
+}
+.juegos-root .tr-sleigh.is-to-torre {
+  top: -4%;
+  left: 66%;
+  transform: scale(0.8);
+}
+.juegos-root .tr-sleigh.is-caught {
+  animation: tr-caught 0.5s ease-in-out;
+}
+@keyframes tr-bob {
+  50% {
+    translate: 0 -8px;
+  }
+}
+@keyframes tr-caught {
+  20%,
+  60% {
+    translate: -8px 0;
+    rotate: -6deg;
+  }
+  40%,
+  80% {
+    translate: 8px 0;
+    rotate: 6deg;
+  }
+}
+.juegos-root .tr-nose {
+  filter: drop-shadow(0 0 4px #ff3b48);
+  animation: tr-twinkle 1.2s ease-in-out infinite;
+}
+
+/* --- Las paradas de la noche --- */
+.juegos-root .tr-route {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .tr-route li {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(10, 16, 36, 0.7);
+  font-size: 18px;
+}
+.juegos-root .tr-route li i {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+}
+.juegos-root .tr-route li.is-ok i {
+  background: #2fae6a;
+  color: #fff;
+}
+.juegos-root .tr-route li.is-caught {
+  box-shadow: inset 0 0 0 2px #ff4b55;
+}
+.juegos-root .tr-route li.is-caught i {
+  background: #e0303c;
+  color: #fff;
+}
+
+/* --- Récord del día --- */
+.juegos-root .tr-rank {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .tr-rank li {
+  display: grid;
+  grid-template-columns: 18px 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 13px;
+}
+.juegos-root .tr-rank li > span:nth-of-type(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.juegos-root .tr-rank li.is-me {
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+.juegos-root .tr-rank b {
+  color: var(--gold);
+}
+
+@media (max-width: 860px) {
+  .juegos-root .tr-town {
+    height: clamp(300px, 70vw, 420px);
+    min-height: 0;
+  }
+  .juegos-root .tr-house__label {
+    padding: 3px 6px;
+  }
+  .juegos-root .tr-house__label b {
+    font-size: 11px;
+    white-space: normal;
+    text-align: center;
+  }
+  .juegos-root .tr-house__label small {
+    font-size: 11px;
+  }
+  .juegos-root .tr-snow {
+    bottom: 50px;
+    height: 12px;
+  }
+  .juegos-root .tr-sleigh {
+    width: 34%;
+  }
+}
+/* El título es largo: en el móvil, más pequeño para que no se meta debajo de los botones. */
+@media (max-width: 560px) {
+  .juegos-root .tr-app .top h1 {
+    font-size: clamp(22px, 6.4vw, 30px);
+  }
+}

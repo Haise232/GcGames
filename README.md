@@ -111,8 +111,8 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 | En vivo (mesas) | Para todos a la vez | En solitario | Economía |
 |---|---|---|---|
 | Blackjack | Campeonato de Pesca (cada 2 min) | Pez Gordo | Gacha de cartas |
-| Póker | Regata (cada 44 s) | Tesoro en la Arena | Inmobiliaria |
-| Ajedrez | Ruleta (cada 25 s) | Apnea | Cuenta en Suiza |
+| Póker | Regata (cada 44 s) | Lotería de Navidad | Inmobiliaria |
+| Ajedrez | Ruleta (cada 25 s) | El Trineo de Papá Noel | Cuenta en Suiza |
 | | Cohete (cada 30 s) | La Torre | Hacienda |
 | | Carrera (cada 55 s) | El Atraco | Casa de empeños |
 | | Ascensor (cada minuto) | Plinko | |
@@ -159,14 +159,12 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 **En solitario**
 - **Pez Gordo**: eres un pez payaso. Come plancton y peces más pequeños para crecer, huye de los tiburones y sal del agua
   cuando quieras: cuanto más pesas, más cobras (de ×0,28 a ×10). Si te comen, pierdes la apuesta.
-- **Tesoro en la Arena**: una playa de 5×5 con 3, 5, 9 o 15 cangrejos escondidos. Cada hoyo con tesoro sube el premio
-  y cobras cuando quieras; si sale un cangrejo, pierdes. Al acabar se ve dónde estaban todos.
-- **Apnea**: tú llevas al buzo: mantén «Bajar» para bajar, mantén «Subir» para subir y sin pulsar nada haces una
-  parada. Cobras al volver a la superficie según lo más hondo a lo que llegaste. Bajar y subir mete presión en los oídos
-  (al subir, más cuanto más hondo llegaste: hay que descomprimir) y en las paradas se compensa, más deprisa cuanto más
-  presión llevas; si llega al máximo, te explotan los oídos. Los pulmones aguantan 60 s, paradas incluidas. El tiburón
-  solo vive en el Abismo, a una profundidad que el servidor sortea en secreto; en la Laguna y el Arrecife todo depende de
-  cómo bajes y subas. El servidor repite la inmersión con tus cambios de dirección (simulación determinista) para pagar.
+- **Lotería de Navidad**: compras un décimo con el número que quieras y se canta el sorteo con los dos bombos: ocho
+  quintos, dos cuartos, el tercero, el segundo y el Gordo (×400), además de la pedrea, la terminación y el reintegro.
+  El servidor sortea primero el premio y después un sorteo que lo enseña para tu número.
+- **El Trineo de Papá Noel**: es Nochebuena y repartes regalos. En cada parada eliges casita (90 %), bloque de pisos
+  (70 %) o rascacielos (50 %); cada regalo entregado multiplica el premio por 1 / p y cobras cuando quieras. Si te
+  pillan, pierdes la apuesta. Hasta 24 paradas por noche.
 - **La Torre**: sube piso a piso sin pisar una baldosa rota, en cuatro dificultades.
 - **El Atraco**: monta tu banda con tus cartas del gacha y baja planta a planta hasta la cámara acorazada.
 - **Plinko**: suelta bolas y que caigan en las orillas.
@@ -213,8 +211,8 @@ flowchart LR
   divisiones, raíces y un generador de enteros), y al acabar llegan tus movimientos y el servidor repite la partida
   entera para pagar. Repetir una partida cuesta unos 4 ms de CPU y no se admiten más pasos de los que ha dado tiempo a
   jugar.
-- **Juegos calibrados.** En La Torre y en Tesoro en la Arena el multiplicador de cada paso es `0,96 / probabilidad de
-  llegar`, en la Apnea el premio a d metros es `0,96 / probabilidad de no cruzarte el tiburón hasta ahí` y en la Regata cada resultado (ganador, exacta o trío) paga
+- **Juegos calibrados.** En La Torre y en el Trineo el multiplicador de cada paso es `0,96 / probabilidad de
+  llegar`, en la Lotería la suma de probabilidad × premio de su tabla es 0,96 y en la Regata cada resultado (ganador, exacta o trío) paga
   `0,96 / su probabilidad`: hagas lo que hagas, de media se recupera el 96 %. Así el Score no se puede «cultivar» a base de jugar mucho.
 - **Tiempo real barato.** Cuando algo cambia, el servidor manda un aviso sin datos por Supabase Realtime y cada
   navegador pide su propia vista: nadie recibe las cartas tapadas de los demás. Fuera de las mesas, el sondeo es solo un
@@ -237,7 +235,7 @@ flowchart LR
 │   └── juegos/              # El casino
 │       ├── Juegos.jsx       # Selector de juegos y pantallas
 │       ├── useJuegos.js     # Conexión con el servidor
-│       ├── <juego>/         # Un juego por carpeta (roulette/, crash/, race/, fish/, dig/…): su pantalla
+│       ├── <juego>/         # Un juego por carpeta (roulette/, crash/, race/, fish/, loteria/…): su pantalla
 │       │                    #   (*.jsx, *.css), su arte y sus reglas puras (*.js, las comparte el servidor)
 │       ├── hub/             # Selector: tarjetas, clasificación y guía
 │       ├── comun/           # Piezas compartidas: avatar, ayuda, premios, sonido, dinero, cartas

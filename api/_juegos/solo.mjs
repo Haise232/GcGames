@@ -1,12 +1,12 @@
-// Juegos en solitario (ruleta, cohete, Plinko, la rana, la carrera de coches, la Torre, el Atraco, Pez Gordo, Tesoro en la Arena, Mayor o Menor y la Bola Canaria) con el saldo semanal: el servidor sortea
+// Juegos en solitario (ruleta, cohete, Plinko, la rana, la carrera de coches, la Torre, el Atraco, Pez Gordo, la Lotería de Navidad, el Trineo de Papá Noel, Mayor o Menor y la Bola Canaria) con el saldo semanal: el servidor sortea
 // con randomInt y aplica las mismas reglas puras que pinta la pantalla (src/juegos/*.js), así el
 // navegador no puede elegir su resultado. Cada función devuelve { error } o el resultado con `delta`, lo que cambia
 // el saldo, y `saved`, lo que hay que guardar para la siguiente jugada (racha y apuesta de la ruleta y del cohete).
 import { createHmac } from 'node:crypto'
 import * as roulette from '../../src/juegos/roulette/roulette.js'
 import * as pez from '../../src/juegos/fish/pez.js'
-import * as arena from '../../src/juegos/dig/arena.js'
-import * as dive from '../../src/juegos/dive/dive.js'
+import * as loteria from '../../src/juegos/loteria/loteria.js'
+import * as trineo from '../../src/juegos/trineo/trineo.js'
 import * as regatta from '../../src/juegos/regatta/regatta.js'
 import * as plinko from '../../src/juegos/plinko/plinko.js'
 import * as crash from '../../src/juegos/crash/crash.js'
@@ -21,8 +21,8 @@ import { cardView } from './gacha.mjs'
 export const SOLO_GAMES = {
   solo_roulette: 'roulette',
   solo_fish: 'fish',
-  solo_dig: 'dig',
-  solo_dive: 'dive',
+  solo_loteria: 'loteria',
+  solo_trineo: 'trineo',
   solo_regatta: 'regatta',
   solo_plinko: 'plinko',
   solo_crash: 'crash',
@@ -820,134 +820,84 @@ export function fishPlay(msg, balance, saved, rand, ctx) {
   return { delta: paid, played: true, saved: state, result: fishView(state, balance + paid, { ev: out ? 'cash' : 'eaten' }) }
 }
 
-// --- Tesoro en la Arena: como la Torre, pero en una playa de 5×5. Cada hoyo se sortea al cavarlo (crabNext) y al acabar
-// se reparten los cangrejos que faltaban entre los hoyos sin cavar para enseñarlos. saved: { bet, mode, week, dug, last,
-// best } con bet > 0 mientras hay una partida en marcha; dug son los hoyos cavados (todos con tesoro).
-function digView(state, balance, extra = {}) {
-  const live = state.bet > 0
-  return { bet: live ? state.bet : 0, mode: live ? state.mode : null, dug: live ? (state.dug ?? []) : [], last: state.last ?? null, best: state.best ?? null, balance, ev: null, ...extra }
+// --- Lotería de Navidad: una jugada sin nada guardado (como la Bola). Se sortea el premio y después un sorteo que lo
+// enseña para tu número (loteria.drawFor). Con suerte del Admin Abuse se sortea varias veces y vale el mejor premio.
+export function loteriaBuy(msg, balance, _saved, rand, ctx) {
+  if (!loteria.validBet(msg.bet) || !loteria.validNumber(msg.number)) return { error: 'BAD_MESSAGE' }
+  if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
+  let prize = loteria.drawPrize(rand)
+  for (let i = 1; i < (ctx.luck ?? 1); i++) {
+    const other = loteria.drawPrize(rand)
+    if (loteria.better(other, prize)) prize = other
+  }
+  const draw = loteria.drawFor(msg.number, prize, rand)
+  const mult = loteria.multOf(prize)
+  const paid = loteria.payout(msg.bet, prize)
+  const delta = paid - msg.bet
+  return { delta, played: true, saved: null, result: { id: ctx.now, number: msg.number, prize, draw, mult, bet: msg.bet, payout: paid, net: delta, balance: balance + delta } }
 }
 
-// msg.a: «sync», «start» (bet, mode), «dig» (cell: de 0 a 24) o «cash».
-export function digPlay(msg, balance, saved, rand, ctx) {
+// --- El Trineo de Papá Noel: como Mayor o Menor, la apuesta sale del saldo al empezar y queda en juego. saved: { bet,
+// prod, steps, route, week, last, best } con bet > 0 mientras dura la noche; route son las paradas hechas ([casa, ok]).
+// Cada parada se sortea al bajar, así que no se puede adivinar. best: la mejor noche del día, para el récord.
+function trineoView(state, balance, ev = null) {
+  const live = state.bet > 0
+  return {
+    bet: live ? state.bet : 0,
+    steps: live ? state.steps : 0,
+    route: live ? state.route : [],
+    prod: live ? state.prod : 1,
+    mult: live ? trineo.multOf(state.prod, state.steps) : 0,
+    last: state.last ?? null,
+    best: state.best ?? null,
+    balance,
+    ev,
+  }
+}
+
+// msg.a: «sync», «start» (bet), «stop» (house: casa | bloque | torre) o «cash».
+export function trineoPlay(msg, balance, saved, rand, ctx) {
   let state = saved && saved.week === ctx.week ? { ...saved } : { last: saved?.last ?? null }
   if (state.best && state.best.day !== ctx.day) state.best = null
   const live = state.bet > 0
-  const settle = (n, bitten) => {
-    const paid = bitten === null ? arena.payout(state.bet, state.mode, n) : 0
-    const mult = bitten === null ? arena.multAt(state.mode, n) : 0
-    const crabs = arena.placeCrabs(state.mode, state.dug, bitten, rand)
-    const last = { round: ctx.now, stake: state.bet, mode: state.mode, dug: state.dug, crabs, bitten, found: n, mult, payout: paid, net: paid - state.bet }
-    if (paid > 0 && (!state.best || mult > state.best.mult)) state.best = { day: ctx.day, mult, payout: paid, mode: state.mode }
-    state = { ...state, bet: 0, dug: [], last }
+  const settle = (mult, extra = {}) => {
+    const paid = trineo.payout(state.bet, mult)
+    const last = { round: ctx.now, stake: state.bet, mult, payout: paid, net: paid - state.bet, steps: state.steps, route: state.route, ...extra }
+    if (paid > 0 && (!state.best || mult > state.best.mult)) state.best = { day: ctx.day, mult, payout: paid, mode: `${state.steps}` }
+    state = { last, best: state.best ?? null }
     return paid
   }
-  if (msg.a === 'sync') return { delta: 0, played: false, saved: null, result: digView(state, balance) }
+  if (msg.a === 'sync') return { delta: 0, played: false, saved: null, result: trineoView(state, balance) }
   if (msg.a === 'start') {
     if (live) return { error: 'BAD_PHASE' }
-    if (!arena.validBet(msg.bet) || !arena.validMode(msg.mode)) return { error: 'BAD_MESSAGE' }
+    if (!trineo.validBet(msg.bet)) return { error: 'BAD_MESSAGE' }
     if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
-    state = { ...state, bet: msg.bet, mode: msg.mode, dug: [], week: ctx.week }
-    return { delta: -msg.bet, played: true, saved: state, result: digView(state, balance - msg.bet, { ev: 'start' }) }
+    state = { bet: msg.bet, prod: 1, steps: 0, route: [], week: ctx.week, last: state.last ?? null, best: state.best ?? null }
+    return { delta: -msg.bet, played: true, saved: state, result: trineoView(state, balance - msg.bet, 'start') }
   }
   if (!live) return { error: 'BAD_PHASE' }
   if (msg.a === 'cash') {
-    if (state.dug.length < 1) return { error: 'BAD_PHASE' }
-    const paid = settle(state.dug.length, null)
-    return { delta: paid, played: true, saved: state, result: digView(state, balance + paid, { ev: 'cash' }) }
+    if (state.steps < 1) return { error: 'BAD_PHASE' }
+    const paid = settle(trineo.multOf(state.prod, state.steps))
+    return { delta: paid, played: true, saved: state, result: trineoView(state, balance + paid, 'cash') }
   }
-  if (msg.a !== 'dig' || !arena.validCell(msg.cell)) return { error: 'BAD_MESSAGE' }
-  if (state.dug.includes(msg.cell)) return { error: 'BAD_MESSAGE' }
-  // Con suerte del Admin Abuse (ctx.luck 2 o 3), el hoyo se sortea tantas veces y vale el primero sin cangrejo.
-  let crab = arena.crabNext(state.mode, state.dug.length, rand)
-  for (let i = 1; i < (ctx.luck ?? 1) && crab; i++) crab = arena.crabNext(state.mode, state.dug.length, rand)
-  if (crab) {
-    settle(state.dug.length, msg.cell)
-    return { delta: 0, played: true, saved: state, result: digView(state, balance, { ev: 'crab', cell: msg.cell }) }
+  if (msg.a !== 'stop' || !trineo.validHouse(msg.house)) return { error: 'BAD_MESSAGE' }
+  // Con suerte del Admin Abuse, si te pillan se vuelve a sortear (hasta 2 o 3 veces).
+  let ok = trineo.delivers(msg.house, rand)
+  for (let i = 1; i < (ctx.luck ?? 1) && !ok; i++) ok = trineo.delivers(msg.house, rand)
+  const route = [...state.route, [msg.house, ok]]
+  if (!ok) {
+    state = { ...state, route }
+    settle(0, { caught: msg.house })
+    return { delta: 0, played: true, saved: state, result: trineoView(state, balance, 'caught') }
   }
-  state = { ...state, dug: [...state.dug, msg.cell] }
-  // Sin más tesoro que sacar o en el tope del premio: cobras solo.
-  if (state.dug.length >= arena.maxDigs(state.mode)) {
-    const paid = settle(state.dug.length, null)
-    return { delta: paid, played: true, saved: state, result: digView(state, balance + paid, { ev: 'all', cell: msg.cell }) }
+  state = { ...state, route, prod: state.prod / trineo.HOUSES[msg.house].p, steps: state.steps + 1 }
+  const mult = trineo.multOf(state.prod, state.steps)
+  if (mult >= trineo.MAX_MULT || state.steps >= trineo.STOPS) {
+    const paid = settle(mult)
+    return { delta: paid, played: true, saved: state, result: trineoView(state, balance + paid, 'end') }
   }
-  return { delta: 0, played: true, saved: state, result: digView(state, balance, { ev: 'loot', cell: msg.cell }) }
-}
-
-// --- Apnea: tú llevas al buzo (dive.js). Al tirarte («start») se sortea en secreto, solo en el Abismo, a qué profundidad
-// aparece el tiburón. La inmersión es una simulación por pasos: el navegador manda sus cambios de dirección («move»:
-// moves y ticks) y el servidor la repite con el tiburón y su propio reloj (no se pueden contar más pasos de los que han
-// pasado). Mientras bajas por el Abismo el navegador la manda a cada metro nuevo para saber al momento si te pilla el
-// tiburón; al acabar (superficie, oídos o aire) la manda con final y se paga. saved: { v, bet, zone, week, start, shark,
-// last, best } con bet > 0 mientras dura; shark no sale nunca del servidor mientras dura la inmersión.
-const DIVE_VERSION = 2
-const DIVE_GRACE_MS = 1500 // lo que se perdona de retraso al reloj del navegador
-const DIVE_ABANDON_MS = 5000 // sin noticias pasado el aire más esto, la inmersión se da por perdida (ahogado)
-function diveView(state, balance, now, extra = {}) {
-  const live = state.bet > 0
-  return { now, bet: live ? state.bet : 0, zone: live ? state.zone : null, start: live ? state.start : null, last: state.last ?? null, best: state.best ?? null, balance, ev: null, ...extra }
-}
-
-// Cuándo acaba sola una inmersión que el navegador abandonó.
-export const diveDueAt = (saved) => (saved?.bet > 0 && saved.start != null ? saved.start + dive.AIR_MS + DIVE_ABANDON_MS : Infinity)
-
-// msg.a: «sync» (ponerse al día), «start» (bet, zone), «move» (moves, ticks y final si el navegador cree que acabó) o
-// «quit» (dejar la inmersión a medias: cuenta como ahogado).
-export function divePlay(msg, balance, saved, rand, ctx) {
-  let state = saved && saved.week === ctx.week ? { ...saved } : { last: saved?.last ?? null }
-  if (state.best && state.best.day !== ctx.day) state.best = null
-  const t = ctx.now
-  const settle = (st) => {
-    const lost = st.end === 'surface' ? null : st.end
-    const mult = lost ? 0 : dive.multAt(state.zone, st.max)
-    const paid = lost ? 0 : dive.payout(state.bet, mult)
-    const last = { round: t, stake: state.bet, zone: state.zone, depth: st.max, lost, lostAt: st.lostAt ?? st.depth, mult, payout: paid, net: paid - state.bet, ms: st.tick * dive.TICK_MS }
-    if (paid > 0 && (!state.best || mult > state.best.mult)) state.best = { day: ctx.day, mult, payout: paid, mode: state.zone }
-    state = { ...state, bet: 0, start: null, shark: null, last }
-    return paid
-  }
-  // Una inmersión guardada con las reglas de antes (mantener y soltar): se devuelve la apuesta.
-  if (state.bet > 0 && state.v !== DIVE_VERSION) {
-    const back = state.bet
-    state = { ...state, bet: 0, start: null, shark: null }
-    return { delta: back, played: true, saved: state, result: diveView(state, balance + back, t) }
-  }
-  // Una inmersión abandonada (se cerró la pestaña): te quedaste sin aire.
-  if (t >= diveDueAt(state)) {
-    settle({ end: 'air', max: 0, depth: 0, lostAt: 0, tick: dive.AIR_TICKS })
-    return { delta: 0, played: true, saved: state, result: diveView(state, balance, t, { ev: 'lost' }) }
-  }
-  const live = state.bet > 0
-  if (msg.a === 'sync') return { delta: 0, played: false, saved: null, result: diveView(state, balance, t) }
-  if (msg.a === 'start') {
-    if (live) return { error: 'BAD_PHASE' }
-    if (!dive.validBet(msg.bet) || !dive.validZone(msg.zone)) return { error: 'BAD_MESSAGE' }
-    if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
-    // Con suerte del Admin Abuse (ctx.luck 2 o 3), el tiburón se sortea tantas veces y vale el más hondo.
-    let shark = dive.sharkDepth(msg.zone, rand)
-    for (let i = 1; shark !== null && i < (ctx.luck ?? 1); i++) shark = Math.max(shark, dive.sharkDepth(msg.zone, rand))
-    state = { ...state, v: DIVE_VERSION, bet: msg.bet, zone: msg.zone, start: t, shark, week: ctx.week }
-    return { delta: -msg.bet, played: true, saved: state, result: diveView(state, balance - msg.bet, t, { ev: 'start' }) }
-  }
-  // Volviste a la pantalla a mitad de una inmersión: no se puede retomar (no se sabe qué pulsaste), así que te ahogas.
-  if (msg.a === 'quit') {
-    if (!live) return { error: 'BAD_PHASE' }
-    settle({ end: 'air', max: 0, depth: 0, lostAt: 0, tick: Math.min(dive.AIR_TICKS, Math.floor((t - state.start) / dive.TICK_MS)) })
-    return { delta: 0, played: true, saved: state, result: diveView(state, balance, t, { ev: 'lost' }) }
-  }
-  if (msg.a !== 'move') return { error: 'BAD_MESSAGE' }
-  if (!live) return { error: 'BAD_PHASE' }
-  if (!dive.validMoves(msg.moves) || !Number.isSafeInteger(msg.ticks) || msg.ticks < 1 || msg.ticks > dive.AIR_TICKS) return { error: 'BAD_MESSAGE' }
-  // No se pueden contar más pasos de los que han pasado desde que te tiraste.
-  const allowed = Math.floor((t - state.start + DIVE_GRACE_MS) / dive.TICK_MS)
-  const st = dive.simulate(state.zone, msg.moves, Math.min(msg.ticks, allowed), state.shark)
-  if (!st.end) {
-    // Sigue bajo el agua: bien (una comprobación a mitad), o va adelantado si el navegador creía que había acabado.
-    if (msg.final === true) return { error: 'BAD_PHASE' }
-    return { delta: 0, played: false, saved: null, result: diveView(state, balance, t, { ev: 'ok' }) }
-  }
-  const paid = settle(st)
-  return { delta: paid, played: true, saved: state, result: diveView(state, balance + paid, t, { ev: st.end }) }
+  return { delta: 0, played: true, saved: state, result: trineoView(state, balance, 'ok') }
 }
 
 // --- Bola Canaria: también una jugada sin nada guardado. Con suerte del Admin Abuse se tira varias veces y vale la mejor.
@@ -1033,4 +983,4 @@ export function hiloPlay(msg, balance, saved, rand, ctx) {
   return { delta: 0, played: true, saved: state, result: hiloView(state, balance, 'win') }
 }
 
-export const SOLO_PLAY = { hilo: hiloPlay, bola: bolaThrow, roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay, dig: digPlay, dive: divePlay, regatta: regattaLive }
+export const SOLO_PLAY = { loteria: loteriaBuy, trineo: trineoPlay, hilo: hiloPlay, bola: bolaThrow, roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay, regatta: regattaLive }

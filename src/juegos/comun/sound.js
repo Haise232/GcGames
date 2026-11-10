@@ -674,3 +674,22 @@ export function playClima(id) {
     ;[523, 659, 784, 1047, 1319].forEach((freq, i) => tone(ac, { freq, at: i * 0.1, dur: 0.35, type: 'triangle', peak: 0.06 }))
   }
 }
+
+// Season 5: cascabeles del trineo (unas notas agudas muy cortas, como sacudir las campanillas).
+export function playJingle(n = 6) {
+  const ac = audio()
+  if (!ac) return
+  for (let i = 0; i < n; i++) {
+    const at = i * 0.07 + (i % 2) * 0.015
+    tone(ac, { freq: 2350 + (i % 3) * 180, dur: 0.12, type: 'triangle', at, peak: 0.045 })
+    tone(ac, { freq: 3520 + (i % 2) * 240, dur: 0.08, type: 'sine', at: at + 0.01, peak: 0.025 })
+  }
+}
+
+// La bola que cae del bombo de la Lotería: un golpecito de madera y un tintineo.
+export function playBall() {
+  const ac = audio()
+  if (!ac) return
+  tone(ac, { freq: 520, to: 300, dur: 0.09, type: 'square', peak: 0.05 })
+  tone(ac, { freq: 1240, dur: 0.18, type: 'triangle', at: 0.05, peak: 0.04 })
+}

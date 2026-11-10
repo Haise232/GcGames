@@ -1835,7 +1835,12 @@
   }
 }
 .juegos-root .rgs-waves {
-  animation: ars-wave 4s ease-in-out infinite alternate;
+  animation: rgs-wave 4s ease-in-out infinite alternate;
+}
+@keyframes rgs-wave {
+  to {
+    translate: -18px 2px;
+  }
 }
 .juegos-root .rgs-bolt {
   animation: rgs-bolt 3.2s steps(1) infinite;
@@ -1870,119 +1875,8 @@
   }
 }
 
-/* Escena de Apnea (DiveArt.jsx). */
-.juegos-root .dvs-rays {
-  animation: dvs-rays 5s ease-in-out infinite alternate;
-}
-@keyframes dvs-rays {
-  to {
-    opacity: 0.5;
-    translate: 8px 0;
-  }
-}
-.juegos-root .dvs-weed {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: dvs-weed 3s ease-in-out infinite alternate;
-}
-@keyframes dvs-weed {
-  from {
-    rotate: -5deg;
-  }
-  to {
-    rotate: 5deg;
-  }
-}
-.juegos-root .dvs-shine {
-  animation: ars-shine 1.2s ease-in-out infinite alternate;
-}
-.juegos-root .dvs-shark {
-  animation: dvs-shark 5s ease-in-out infinite alternate;
-}
-@keyframes dvs-shark {
-  to {
-    translate: -26px -4px;
-  }
-}
-.juegos-root .dvs-diver {
-  animation: dvs-sink 3.2s ease-in-out infinite alternate;
-}
-@keyframes dvs-sink {
-  to {
-    translate: -6px 10px;
-  }
-}
-.juegos-root .dvs-bubbles {
-  animation: dvs-bubbles 1.8s ease-in infinite;
-}
-@keyframes dvs-bubbles {
-  to {
-    translate: 0 -16px;
-    opacity: 0;
-  }
-}
-
-/* Escena de Tesoro en la Arena (ArenaArt.jsx). */
-.juegos-root .ars-wave {
-  animation: ars-wave 4s ease-in-out infinite alternate;
-}
-@keyframes ars-wave {
-  to {
-    translate: -18px 2px;
-  }
-}
-.juegos-root .ars-shine {
-  animation: ars-shine 2.2s ease-in-out infinite alternate;
-}
-@keyframes ars-shine {
-  from {
-    opacity: 0.55;
-  }
-}
-.juegos-root .ars-chest {
-  animation: ars-hop 2.2s ease-in-out infinite;
-}
-@keyframes ars-hop {
-  50% {
-    translate: 0 -3px;
-  }
-}
-.juegos-root .ars-spark {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: is4-twinkle 1.6s ease-in-out infinite;
-}
-.juegos-root .ars-spark--2 {
-  animation-delay: -0.8s;
-}
-.juegos-root .ars-crab {
-  animation: ars-peek 3s ease-in-out infinite;
-}
-@keyframes ars-peek {
-  0%,
-  100% {
-    translate: 0 8px;
-  }
-  30%,
-  70% {
-    translate: 0 0;
-  }
-}
-.juegos-root .ars-claw {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: ars-snap 0.4s ease-in-out infinite alternate;
-}
-.juegos-root .ars-claw--r {
-  animation-delay: -0.2s;
-}
-@keyframes ars-snap {
-  to {
-    rotate: -16deg;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .juegos-root :is(.ars-wave, .ars-shine, .ars-chest, .ars-spark, .ars-crab, .ars-claw, .dvs-rays, .dvs-weed, .dvs-shine, .dvs-diver, .dvs-shark, .dvs-bubbles, .rgs-boat, .rgs-waves, .rgs-bolt, .rgs-tentacle) {
+  .juegos-root :is(.rgs-boat, .rgs-waves, .rgs-bolt, .rgs-tentacle) {
     animation: none;
   }
 }

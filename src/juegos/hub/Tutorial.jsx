@@ -193,8 +193,8 @@ const STEPS = [
   {
     target: 'solo',
     art: 'solo3',
-    title: 'A tu ritmo: Pez Gordo y la Arena',
-    text: 'Nuevos: Pez Gordo (come plancton y peces más pequeños, huye de los tiburones y sal del agua cuando quieras: cuanto más pesas, más cobras) y Tesoro en la Arena (cava en la playa sin despertar a un cangrejo: cada hoyo bueno sube el premio). Y además La Torre, El Atraco, Plinko y Rana. Cada uno tiene su botón de Ayuda arriba a la derecha.',
+    title: 'A tu ritmo: Lotería y Trineo',
+    text: 'Nuevos por Navidad: la Lotería de Navidad (compra un décimo con tu número y escucha cantar el sorteo: el Gordo paga ×400) y el Trineo de Papá Noel (en cada parada eliges casita, bloque o rascacielos: cada regalo entregado sube el premio, pero si te pillan lo pierdes). Y además Mayor o Menor, la Bola Canaria, Pez Gordo, La Torre, El Atraco, Plinko y Rana. Cada uno tiene su botón de Ayuda arriba a la derecha.',
   },
   {
     target: 'live',

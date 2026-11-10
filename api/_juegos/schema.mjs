@@ -48,7 +48,7 @@ create index if not exists juegos_chat_usuario_idx on public.juegos_chat (usuari
 -- Partida en curso de los juegos en solitario (racha de la ruleta, mano del blackjack).
 create table if not exists public.juegos_solo (
   usuario_id  uuid not null references public.usuarios(id) on delete cascade,
-  juego       text not null check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish', 'dig', 'dive', 'regatta', 'hilo', 'pesca')),
+  juego       text not null check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish', 'dig', 'dive', 'regatta', 'hilo', 'pesca', 'trineo')),
   estado      jsonb not null,
   actualizado timestamptz not null default now(),
   primary key (usuario_id, juego)

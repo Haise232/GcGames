@@ -18,16 +18,15 @@ import Tower from './tower/Tower.jsx'
 import Heist from './heist/Heist.jsx'
 import Auction from './auction/Auction.jsx'
 import Pez from './fish/Pez.jsx'
-import Arena from './dig/Arena.jsx'
-import Buceo from './dive/Buceo.jsx'
+import Loteria from './loteria/Loteria.jsx'
+import Trineo from './trineo/Trineo.jsx'
 import Hilo from './hilo/Hilo.jsx'
 import Bola from './bola/Bola.jsx'
 import Regata from './regatta/Regata.jsx'
 import Pesca from './pesca/Pesca.jsx'
 import { PescaScene } from './season4/PescaArt.jsx'
-import { ArenaScene } from './season4/ArenaArt.jsx'
 import { FishScene } from './season4/FishArt.jsx'
-import { DiveScene } from './season4/DiveArt.jsx'
+import { LoteriaScene, TrineoScene } from './season5/NavidadArt.jsx'
 import { BolaScene, HiloScene } from './season4/FiestasArt.jsx'
 import { RegattaScene } from './season4/RegattaArt.jsx'
 import Bingo from './bingo/Bingo.jsx'
@@ -151,26 +150,26 @@ const ALL_GAMES = [
     kind: 'Come y crece',
     blurb: 'Come plancton y peces más pequeños, hazte enorme y que no te coma un tiburón. Cuanto más pesas, más cobras al salir del agua.',
     tint: '46, 230, 208',
-    isNew: true,
+    isNew: false,
     art: <FishScene />,
   },
   {
-    id: 'dig',
-    name: 'Tesoro en la Arena',
-    kind: 'Cava y cobra',
-    blurb: 'Cava en la playa buscando tesoro sin despertar a un cangrejo. Cada hoyo bueno sube el premio: cobra cuando quieras.',
-    tint: '255, 181, 71',
+    id: 'loteria',
+    name: 'Lotería de Navidad',
+    kind: 'Sorteo extraordinario',
+    blurb: 'Compra un décimo con tu número y escucha cantar el sorteo: quintos, cuartos, tercero, segundo… y el Gordo, que paga ×400.',
+    tint: '248, 197, 78',
     isNew: true,
-    art: <ArenaScene />,
+    art: <LoteriaScene />,
   },
   {
-    id: 'dive',
-    name: 'Apnea',
-    kind: 'Aguanta y sube',
-    blurb: 'Baja aguantando la respiración: cuanto más hondo, más paga. Suelta a tiempo para subir antes de que te pille un tiburón o se acabe el aire.',
-    tint: '143, 227, 255',
+    id: 'trineo',
+    name: 'El Trineo de Papá Noel',
+    kind: 'Reparte y cobra',
+    blurb: 'Nochebuena: elige casita, bloque o rascacielos en cada parada. Cada regalo entregado sube el premio; si te pillan, lo pierdes.',
+    tint: '224, 48, 60',
     isNew: true,
-    art: <DiveScene />,
+    art: <TrineoScene />,
   },
   {
     id: 'hilo',
@@ -178,7 +177,7 @@ const ALL_GAMES = [
     kind: 'Baraja española',
     blurb: 'En la mesa del guachinche: ¿la siguiente carta será mayor o menor? Cada acierto sube el premio. Cobra antes de fallar.',
     tint: '232, 68, 58',
-    isNew: true,
+    isNew: false,
     art: <HiloScene />,
   },
   {
@@ -187,7 +186,7 @@ const ALL_GAMES = [
     kind: 'Arrima y cobra',
     blurb: 'Tira tu bola en la cancha de tierra: cuanto más cerca del mingue, más cobras. Arrima suave o arriesga con un bochazo ×25.',
     tint: '217, 168, 106',
-    isNew: true,
+    isNew: false,
     art: <BolaScene />,
   },
   {
@@ -237,7 +236,7 @@ const ALL_GAMES = [
 // los de a tu ritmo.
 const byId = Object.fromEntries(ALL_GAMES.map((g) => [g.id, g]))
 const ROUND_GAMES = ['pesca', 'regatta', 'elevator', 'auction', 'roulette', 'crash', 'race'].map((id) => byId[id])
-const PACE_GAMES = ['hilo', 'bola', 'fish', 'dig', 'dive', 'tower', 'heist', 'plinko', 'frog'].map((id) => byId[id])
+const PACE_GAMES = ['loteria', 'trineo', 'hilo', 'bola', 'fish', 'tower', 'heist', 'plinko', 'frog'].map((id) => byId[id])
 
 // La Inmobiliaria, destacada arriba del todo: un trozo de tablero con sus casas y un hotel.
 function InmoBanner({ onOpen }) {
@@ -951,7 +950,7 @@ function Notice({ title, children, actions }) {
 
 // Pantalla en la que estabas, para que al recargar la página vuelvas al mismo juego (las mesas ya las recuerda el servidor).
 const SCREEN_KEY = 'juegos-pantalla'
-const KEEP = new Set(['pase', 'pesca', 'bingo', 'roulette', 'crash', 'fish', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'dig', 'dive', 'regatta', 'hilo', 'bola'])
+const KEEP = new Set(['pase', 'pesca', 'bingo', 'roulette', 'crash', 'fish', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'loteria', 'trineo', 'regatta', 'hilo', 'bola'])
 function savedScreen() {
   try {
     const screen = sessionStorage.getItem(SCREEN_KEY)
@@ -962,7 +961,7 @@ function savedScreen() {
 }
 
 function JuegosScreens() {
-  // screen: lobby | pase | bingo | roulette | crash | fish | dig | plinko | frog | race | elevator | gacha | join | score
+  // screen: lobby | pase | bingo | roulette | crash | fish | loteria | trineo | plinko | frog | race | elevator | gacha | join | score
   const [params, setParams] = useSearchParams()
   // Enlace de invitación (/?juego=poker&mesa=ABCD): entra directamente a esa mesa, o a la mejor si ya no existe.
   const [view, setView] = useState(() => {
@@ -1041,8 +1040,8 @@ function JuegosScreens() {
   if (screen === 'roulette') return (<Roulette onExit={exit} juegos={juegos} />)
   if (screen === 'crash') return (<Crash onExit={exit} juegos={juegos} />)
   if (screen === 'fish') return (<Pez onExit={exit} juegos={juegos} />)
-  if (screen === 'dig') return (<Arena onExit={exit} juegos={juegos} />)
-  if (screen === 'dive') return (<Buceo onExit={exit} juegos={juegos} />)
+  if (screen === 'loteria') return (<Loteria onExit={exit} juegos={juegos} />)
+  if (screen === 'trineo') return (<Trineo onExit={exit} juegos={juegos} />)
   if (screen === 'pesca') return (<Pesca onExit={exit} juegos={juegos} />)
   if (screen === 'hilo') return (<Hilo onExit={exit} juegos={juegos} />)
   if (screen === 'bola') return (<Bola onExit={exit} juegos={juegos} />)

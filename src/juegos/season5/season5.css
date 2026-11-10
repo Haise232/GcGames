@@ -290,6 +290,14 @@
   --rg-sun: #eef3ff;
 }
 
+/* «A tu ritmo»: los dos juegos nuevos de la Navidad (Lotería y Trineo) van a medias en la primera fila, y los demás
+   de cuatro en cuatro. */
+@media (min-width: 1101px) {
+  .juegos-root.s5 .s4-pace > li.is-big {
+    flex-basis: calc((100% - clamp(14px, 1.6vw, 22px)) / 2);
+  }
+}
+
 /* ============================== Pase ============================== */
 /* El cofre diario pasa a ser un regalo: la tapa roja con lazo dorado lo pone el tinte; aquí, la nieve de arriba. */
 .juegos-root.s5:not(.halloween) .s4-pase__hero {
