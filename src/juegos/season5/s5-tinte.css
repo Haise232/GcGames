@@ -2880,54 +2880,6 @@
   color: #ffffff;
 }
 
-/* ===== bola/Bola.css ===== */
-.juegos-root.s5:where(:not(.halloween)) .bl-stage {
-  background: radial-gradient(ellipse at 50% 0%, rgba(249, 204, 100, 0.25), transparent 60%),
-    linear-gradient(180deg, #2a4839, #182e23);
-}
-.juegos-root.s5:where(:not(.halloween)) .bl-court {
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
-}
-.juegos-root.s5:where(:not(.halloween)) .bl-ring circle {
-  fill: none;
-  stroke: rgba(254, 247, 231, 0.45);
-}
-.juegos-root.s5:where(:not(.halloween)) .bl-ring.is-pay circle {
-  fill: rgba(249, 204, 100, 0.1);
-  stroke: rgba(249, 209, 116, 0.8);
-}
-.juegos-root.s5:where(:not(.halloween)) .bl-ring.is-part circle {
-  fill: rgba(255, 255, 255, 0.05);
-}
-.juegos-root.s5:where(:not(.halloween)) .bl-ring text,
-.juegos-root.s5:where(:not(.halloween)) .bl-old text,
-.juegos-root.s5:where(:not(.halloween)) .bl-label {
-  fill: #ffffff;
-  stroke: rgba(53, 32, 13, 0.7);
-}
-.juegos-root.s5:where(:not(.halloween)) .bl-ring.is-pay text {
-  fill: #f9d174;
-}
-.juegos-root.s5:where(:not(.halloween)) .bl-verdict {
-  background: rgba(45, 13, 17, 0.85);
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25);
-}
-.juegos-root.s5:where(:not(.halloween)) .bl-verdict.is-good {
-  box-shadow: inset 0 0 0 2px var(--gold);
-  color: #fce4ab;
-}
-.juegos-root.s5:where(:not(.halloween)) .bl-verdict.is-bad {
-  box-shadow: inset 0 0 0 2px #dd2e3a;
-  color: #e9767e;
-}
-.juegos-root.s5:where(:not(.halloween)) .bl-aim-label {
-  stroke: rgba(36, 21, 8, 0.85);
-}
-.juegos-root.s5:where(:not(.halloween)) .bl-hint {
-  background: rgba(45, 13, 17, 0.85);
-  color: #fce4ab;
-}
-
 /* ===== bingo/Bingo.css ===== */
 .juegos-root.s5:where(:not(.halloween)) .bingo__pot {
   background: radial-gradient(120% 70% at 50% 30%, rgba(249, 208, 113, 0.16), transparent 70%),
@@ -9363,9 +9315,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#1b2b40" i] {
   fill: #202a3b;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#1c1a3c" i] {
-  fill: #1e2838;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#1f86d1" i] {
   fill: #4e85a9;
 }
@@ -9390,9 +9339,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#2a1a00" i] {
   fill: #281d02;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#2a5a3a" i] {
-  fill: #2a4839;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#2b1b45" i] {
   fill: #212738;
 }
@@ -9410,9 +9356,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#2ee6d0" i] {
   fill: #33ba77;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#2f6ab0" i] {
-  fill: #527994;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#2f8a4a" i] {
   fill: #336c50;
@@ -9551,9 +9494,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#d79d6c" i] {
   fill: #cb9668;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#d8352a" i] {
-  fill: #ae2029;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#d8453a" i] {
   fill: #b7242e;
@@ -9723,9 +9663,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#075a60" i] {
   stroke: #11482c;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#0a1a30" i] {
-  stroke: #0f192b;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#0a4a64" i] {
   stroke: #1b5342;
 }
@@ -9734,9 +9671,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#14586a" i] {
   stroke: #245a4a;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#163a6a" i] {
-  stroke: #203860;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#1a0f2e" i] {
   stroke: #141825;
@@ -9807,23 +9741,14 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#3fbf7a" i] {
   stroke: #46956d;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#4a1f78" i] {
-  stroke: #2d3a5e;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#5a120c" i] {
   stroke: #530e12;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#5a3a1a" i] {
-  stroke: #51351d;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#5a3a1e" i] {
   stroke: #513721;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#5c0a12" i] {
   stroke: #530e12;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#6a120c" i] {
-  stroke: #601015;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#6a4a2a" i] {
   stroke: #60452c;
@@ -9833,9 +9758,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#6ee3ff" i] {
   stroke: #9ac3dd;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#7a42b8" i] {
-  stroke: #526494;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#7a4a08" i] {
   stroke: #6c3b10;
@@ -9857,9 +9779,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#8fe3ff" i] {
   stroke: #b4d2e6;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#9a8a6a" i] {
-  stroke: #988b6c;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#9be08a" i] {
   stroke: #72c59c;
@@ -9900,14 +9819,8 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#e58f6e" i] {
   stroke: #db3540;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#e6c8ff" i] {
-  stroke: #b6c5ed;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#e6d4ff" i] {
   stroke: #bfccef;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#e8dcc0" i] {
-  stroke: #e6dbc2;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#e9d7b8" i] {
   stroke: #e7daba;
@@ -9954,12 +9867,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#fff6e8" i] {
   stroke: #fef8e9;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#fffae6" i] {
-  stroke: #fef7e7;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#fffbe0" i] {
-  stroke: #fef5e1;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#06223d" i] {
   stop-color: #0d1c36;
 }
@@ -9971,9 +9878,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#0a4a64" i] {
   stop-color: #1b5342;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#0a4a6a" i] {
-  stop-color: #1c5846;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#0d4a68" i] {
   stop-color: #1e5746;
@@ -10083,9 +9987,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#a8407a" i] {
   stop-color: #902a37;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#a8723a" i] {
-  stop-color: #98683f;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#a8761a" i] {
   stop-color: #a27b20;
 }
@@ -10127,9 +10028,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#d9a860" i] {
   stop-color: #cc915d;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#d9a86a" i] {
-  stop-color: #cd9666;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#dcae68" i] {
   stop-color: #d7b76d;

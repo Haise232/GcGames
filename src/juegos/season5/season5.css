@@ -278,18 +278,6 @@
   --art: linear-gradient(180deg, #6a1a22, #2e0c12);
 }
 
-/* Regata (dentro del juego): sale de noche, con luna en vez de sol. */
-.juegos-root.s5:not(.halloween) .rg-stage {
-  --rg-sky0: #070d26;
-  --rg-sky1: #1b3566;
-  --rg-sky2: #3d5f8f;
-  --rg-sea0: #1d5a78;
-  --rg-sea1: #0a2a44;
-  --rg-island: #16244a;
-  --rg-island2: #0f1a36;
-  --rg-sun: #eef3ff;
-}
-
 /* «A tu ritmo»: los dos juegos nuevos de la Navidad (Lotería y Trineo) van a medias en la primera fila, y los demás
    de cuatro en cuatro. */
 @media (min-width: 1101px) {

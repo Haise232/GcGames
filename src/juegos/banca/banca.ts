@@ -113,7 +113,6 @@ export const GAME_GROUPS: { name: string; games: { id: string; name: string }[] 
       { id: 'roulette', name: 'Ruleta' },
       { id: 'crash', name: 'Cohete' },
       { id: 'race', name: 'Carrera' },
-      { id: 'regatta', name: 'Regata' },
     ],
   },
   {
@@ -127,7 +126,8 @@ export const GAME_GROUPS: { name: string; games: { id: string; name: string }[] 
       { id: 'plinko', name: 'Plinko' },
       { id: 'frog', name: 'Rana' },
       { id: 'hilo', name: 'Mayor o Menor' },
-      { id: 'bola', name: 'Bola Canaria' },
+      { id: 'taller', name: 'Taller de Papá Noel' },
+      { id: 'criaturas', name: 'Criaturas de las Islas' },
     ],
   },
   {
@@ -209,9 +209,9 @@ export function abusePerks(a: Pick<Abuse, 'modo' | 'ambito'>): string[] {
   }
   if (a.ambito === 'poker') return [`Todo lo que ganes en el póker, ${m}`, 'La banca pone la diferencia']
   return [
-    `Premios ${m} en ruleta, cohete, carrera, regata, plinko, rana, lotería, trineo, mayor o menor, bola canaria, bingo, torre, atraco, subasta y ascensor`,
+    `Premios ${m} en ruleta, cohete, carrera, plinko, rana, lotería, trineo, criaturas, mayor o menor, bingo, torre, atraco, subasta y ascensor`,
     `Blackjack y póker: lo que ganes, ${m}`,
-    `Suerte ${m} en el gacha, el plinko, la torre, el atraco, la lotería, el trineo y la bola canaria`,
+    `Suerte ${m} en el gacha, el plinko, la torre, el atraco, la lotería y el trineo`,
     `Bingo: ${a.modo === 'x3' ? 'dos cartones' : 'un cartón'} de regalo por cada uno que compres`,
   ]
 }
@@ -225,6 +225,6 @@ export function abuseText(a: Pick<Abuse, 'modo' | 'ambito'>): { big: string; sma
   const m = a.modo === 'x3' ? '×3' : '×2'
   return {
     big: `PROBABILIDAD ${m} ${where}`,
-    small: a.ambito === 'poker' ? `Lo que ganes en el póker, ${m}.` : `Lo que ganes, ${m}, y suerte ${m} en el plinko, la torre, el atraco, la lotería, el trineo, la bola canaria y el bingo.`,
+    small: a.ambito === 'poker' ? `Lo que ganes en el póker, ${m}.` : `Lo que ganes, ${m}, y suerte ${m} en el plinko, la torre, el atraco, la lotería, el trineo y el bingo.`,
   }
 }

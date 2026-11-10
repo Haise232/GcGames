@@ -1,5 +1,8 @@
-// Escenas de las tarjetas del selector de los juegos de la Season 5: la Lotería de Navidad (los bombos y un décimo) y
-// el Trineo de Papá Noel (el trineo cruzando la luna sobre los tejados). Ya vienen con los colores de Navidad, así que
+import { CriaturaShape } from '../criaturas/CriaturaArt.jsx'
+
+// Escenas de las tarjetas del selector de los juegos de la Season 5: la Lotería de Navidad (los bombos y un décimo), el
+// Trineo de Papá Noel (el trineo cruzando la luna sobre los tejados), el Taller de Papá Noel (la nave con la cinta de
+// regalos) y Criaturas de las Islas (dos criaturas frente a frente en la nieve). Ya vienen con los colores de Navidad, así que
 // no pasan por el tinte (scripts/season5-tinte.mjs).
 
 export function LoteriaScene() {
@@ -107,6 +110,76 @@ export function TrineoScene() {
         <rect x="-6" y="-6" width="12" height="12" fill="#d42a35" />
         <rect x="-1.5" y="-6" width="3" height="12" fill="#f8c54e" />
       </g>
+    </svg>
+  )
+}
+
+export function TallerScene() {
+  return (
+    <svg className="hub-scene" viewBox="0 0 240 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <rect width="240" height="160" fill="#3a2014" />
+      {[0, 60, 120, 180].map((x) => (
+        <rect key={x} x={x} y="0" width="3" height="160" fill="#2a160c" />
+      ))}
+      <path d="M0 0 L240 0 L240 20 L0 20 Z" fill="#5a3420" />
+      {[40, 120, 200].map((x) => (
+        <g key={x} transform={`translate(${x} 34)`}>
+          <rect x="-22" y="-12" width="44" height="30" rx="12" fill="#2c4f7e" stroke="#7a4a2a" strokeWidth="4" />
+          <rect x="-18" y="10" width="36" height="5" fill="#eef6ff" />
+          <circle cx="-8" cy="-2" r="1.4" fill="#fff" />
+          <circle cx="8" cy="2" r="1.2" fill="#fff" />
+        </g>
+      ))}
+      {/* Mesas con elfos */}
+      {[50, 120, 190].map((x, i) => (
+        <g key={x} transform={`translate(${x} 92)`}>
+          <rect x="-30" y="0" width="60" height="8" fill="#a87a50" />
+          <path d="M-12 -2 L-12 -18 Q-12 -26 -4 -26 L4 -26 Q12 -26 12 -18 L12 -2 Z" fill="#2f7a4d" />
+          <circle cx="0" cy="-32" r="8" fill="#f2c9a0" />
+          <path d="M-9 -34 L0 -50 L9 -34 Z" fill={i === 1 ? '#d42a35' : '#2f7a4d'} />
+          <circle cx="0" cy="-50" r="2.5" fill="#fff" />
+          <rect x={i === 0 ? 14 : -26} y="-8" width="10" height="8" fill={['#d42a35', '#f8c54e', '#6cc3ff'][i]} />
+        </g>
+      ))}
+      {/* Cinta con regalos */}
+      <rect x="0" y="128" width="240" height="14" fill="#2a2a30" />
+      {Array.from({ length: 13 }, (_, i) => (
+        <rect key={i} x={i * 20} y="138" width="10" height="4" fill="#3a3a42" />
+      ))}
+      {[20, 70, 130, 185, 225].map((x, i) => (
+        <g key={x} transform={`translate(${x} 116)`}>
+          <rect x="-8" y="0" width="16" height="12" fill={['#d42a35', '#f8c54e', '#2f7a4d', '#6cc3ff', '#d42a35'][i]} />
+          <rect x="-1.5" y="0" width="3" height="12" fill="#fff" opacity="0.8" />
+        </g>
+      ))}
+      <rect x="0" y="142" width="240" height="18" fill="#2a160c" />
+    </svg>
+  )
+}
+
+export function CriaturasScene() {
+  return (
+    <svg className="hub-scene" viewBox="0 0 240 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="crs-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#0f1d44" />
+          <stop offset="1" stopColor="#2c4f7e" />
+        </linearGradient>
+      </defs>
+      <rect width="240" height="160" fill="url(#crs-sky)" />
+      <path d="M60 90 L120 34 L180 90 Z" fill="#24365e" />
+      <path d="M104 50 L120 34 L136 50 L128 48 L120 56 L112 48 Z" fill="#eef6ff" />
+      <path d="M0 100 C 60 88, 180 92, 240 98 L240 160 L0 160 Z" fill="#dce8f8" />
+      <ellipse cx="172" cy="104" rx="38" ry="8" fill="#b9cce6" />
+      <ellipse cx="74" cy="128" rx="40" ry="8" fill="#b9cce6" />
+      <g transform="translate(140 50) scale(0.62)">
+        <CriaturaShape sp="copito" />
+      </g>
+      <g transform="translate(112 56) scale(-0.76 0.76)">
+        <CriaturaShape sp="lavin" />
+      </g>
+      {/* Chispazo del choque */}
+      <path d="M118 70 L126 62 L124 70 L132 66 L124 78 L126 72 Z" fill="#ffd25e" />
     </svg>
   )
 }

@@ -20,7 +20,7 @@ const JUEGOS = join(ROOT, 'src/juegos')
 const OUT = join(ROOT, 'src/juegos/season5/s5-tinte.css')
 // Primero las hojas de cada juego (sus paletas propias, como el neón del Plinko) y después las de la S4, en el orden en
 // que se cargan, para que entre las reglas generadas se mantenga quién gana a quién.
-// Fuera a propósito: el gacha y el ajedrez (el color distingue rarezas y piezas), la Carrera, la Regata, la Pesca y Pez
+// Fuera a propósito: el gacha y el ajedrez (el color distingue rarezas y piezas), la Carrera, la Pesca y Pez
 // Gordo (colores de cada coche, barco o jugador que también pinta el <canvas>/SVG del juego y deben seguir casando) y
 // las hojas base de estilos/ (index.css es generado; la paleta base ya la cambian las variables de la S4).
 const SHEETS = [
@@ -32,7 +32,6 @@ const SHEETS = [
   'heist/Heist.css',
   'auction/Auction.css',
   'hilo/Hilo.css',
-  'bola/Bola.css',
   'bingo/Bingo.css',
   'elevator/Elevator.css',
   'elevator/ElevatorView.css',
@@ -73,7 +72,6 @@ const ART_FILES = [
   'src/juegos/season4/PescaArt.jsx',
   'src/juegos/season4/FishArt.jsx',
   'src/juegos/season4/FiestasArt.jsx',
-  'src/juegos/season4/RegattaArt.jsx',
   'src/juegos/season4/PaseParts.jsx',
   'src/juegos/hub/HubArt.jsx',
 ]

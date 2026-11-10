@@ -1,0 +1,528 @@
+/* Escrito a mano: Criaturas de las Islas (Criaturas.jsx). Tres pantallas en el escenario: elegir la primera criatura,
+   el campamento (tu equipo y la criatura que quiere unirse) y el combate (las dos criaturas en su peana, sus cajas de
+   vida, lo que va pasando y los ataques). El panel de la derecha es el común (fiestas.css). */
+.juegos-root .cr-app {
+  --accent: #f8c54e;
+  --gold: #f8c54e;
+}
+.juegos-root .cr-stage {
+  display: block;
+  padding: clamp(14px, 2.4vh, 22px);
+  overflow-y: auto;
+  background:
+    radial-gradient(80% 50% at 50% 0%, rgba(108, 195, 255, 0.18), transparent 70%),
+    linear-gradient(180deg, #0f1d44 0%, #1b3566 55%, #2c4f7e 100%);
+  box-shadow:
+    0 0 0 2px rgba(244, 249, 255, 0.3),
+    0 20px 50px rgba(0, 0, 0, 0.45);
+}
+.juegos-root .cr-art {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.juegos-root .cr-type {
+  justify-self: start;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c) 30%, transparent);
+  box-shadow: inset 0 0 0 1px var(--c);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* --- Elegir la primera --- */
+.juegos-root .cr-starter {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.juegos-root .cr-starter h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(24px, 3vw, 34px);
+}
+.juegos-root .cr-starter p {
+  margin: 0;
+  color: var(--muted);
+}
+.juegos-root .cr-starter ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  width: 100%;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .cr-starter__pick {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 18px;
+  background: rgba(10, 16, 36, 0.6);
+  box-shadow: inset 0 0 0 1px rgba(244, 249, 255, 0.2);
+  color: var(--ivory);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.juegos-root .cr-starter__pick .cr-art {
+  width: 110px;
+}
+.juegos-root .cr-starter__pick b {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 22px;
+}
+.juegos-root .cr-starter__pick .cr-type {
+  justify-self: center;
+}
+.juegos-root .cr-starter__pick small {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+@media (hover: hover) {
+  .juegos-root .cr-starter__pick:not(:disabled):hover {
+    transform: translateY(-4px);
+    box-shadow: inset 0 0 0 2px var(--gold);
+  }
+}
+
+/* --- Campamento --- */
+.juegos-root .cr-camp h2 {
+  margin: 0 0 10px;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 26px;
+}
+.juegos-root .cr-camp h2 small {
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--muted);
+}
+.juegos-root .cr-team {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .cr-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(10, 16, 36, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(244, 249, 255, 0.12);
+}
+.juegos-root .cr-card.is-party {
+  box-shadow: inset 0 0 0 2px rgba(248, 197, 78, 0.55);
+}
+.juegos-root .cr-card__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.juegos-root .cr-card__body b {
+  font-size: 16px;
+}
+.juegos-root .cr-card__body b small,
+.juegos-root .cr-info b small,
+.juegos-root .cr-swap span small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.juegos-root .cr-card__stats {
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.juegos-root .cr-xp {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.juegos-root .cr-xp i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #6cc3ff, #a8e4ff);
+}
+.juegos-root .cr-card__lead {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 8px;
+  border: 1px solid rgba(248, 197, 78, 0.5);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--ivory);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.juegos-root .cr-offer {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 18px;
+  background: linear-gradient(120deg, rgba(212, 42, 53, 0.35), rgba(31, 122, 77, 0.35));
+  box-shadow: inset 0 0 0 2px var(--gold);
+  animation: cr-pop 0.4s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+.juegos-root .cr-offer span {
+  display: grid;
+  gap: 2px;
+}
+.juegos-root .cr-offer small {
+  color: var(--muted);
+}
+.juegos-root .cr-offer button {
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--ivory);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.juegos-root .cr-offer__yes {
+  background: var(--gold) !important;
+  color: #2a1408 !important;
+}
+
+/* --- Combate --- */
+.juegos-root .cr-arena {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto auto;
+  grid-template-areas:
+    'rinfo rmon'
+    'mmon minfo'
+    'line line'
+    'act act';
+  align-items: center;
+  gap: 8px 16px;
+  min-height: 100%;
+}
+.juegos-root .cr-field {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 62%;
+  pointer-events: none;
+}
+.juegos-root .cr-pad {
+  position: absolute;
+  width: 34%;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #eef6ff, #b9cce6 70%, transparent);
+}
+.juegos-root .cr-pad--rival {
+  top: 34%;
+  right: 6%;
+}
+.juegos-root .cr-pad--me {
+  bottom: 2%;
+  left: 6%;
+}
+.juegos-root .cr-balls {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .cr-balls li {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, #d42a35 60%);
+}
+.juegos-root .cr-balls li.is-down {
+  background: #3a4258;
+}
+.juegos-root .cr-info {
+  z-index: 1;
+  display: grid;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: rgba(244, 249, 255, 0.92);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+  color: #1a2238;
+}
+.juegos-root .cr-info b small {
+  color: #4a5670;
+}
+.juegos-root .cr-info--rival {
+  grid-area: rinfo;
+  justify-self: start;
+  min-width: min(240px, 100%);
+}
+.juegos-root .cr-info--me {
+  grid-area: minfo;
+  justify-self: end;
+  min-width: min(260px, 100%);
+}
+.juegos-root .cr-hp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.juegos-root .cr-hp__bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: #2a3450;
+  overflow: hidden;
+}
+.juegos-root .cr-hp__bar i {
+  display: block;
+  height: 100%;
+  background: #2fae6a;
+  transition: width 0.45s ease-out;
+}
+.juegos-root .cr-hp__bar i.is-mid {
+  background: #f2c14e;
+}
+.juegos-root .cr-hp__bar i.is-low {
+  background: #e0303c;
+}
+.juegos-root .cr-hp small {
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .cr-mon {
+  z-index: 1;
+  width: clamp(110px, 18vw, 170px);
+  transition:
+    transform 0.25s,
+    opacity 0.5s,
+    filter 0.2s;
+}
+/* La entrada va en el dibujo (cada criatura nueva se monta de cero) y el golpe en el contenedor: si fueran en el mismo
+   elemento, al acabar el golpe volvería a empezar la entrada. */
+.juegos-root .cr-mon > .cr-art {
+  animation: cr-enter 0.45s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+.juegos-root .cr-mon--rival {
+  grid-area: rmon;
+  justify-self: center;
+}
+.juegos-root .cr-mon--me {
+  grid-area: mmon;
+  justify-self: center;
+  width: clamp(130px, 21vw, 200px);
+}
+.juegos-root .cr-mon--me.is-atk {
+  transform: translate(24px, -14px);
+}
+.juegos-root .cr-mon--rival.is-atk {
+  transform: translate(-24px, 14px);
+}
+.juegos-root .cr-mon.is-hit {
+  animation: cr-hit 0.45s steps(2) both;
+}
+.juegos-root .cr-mon.is-down {
+  opacity: 0;
+  transform: translateY(30px);
+}
+@keyframes cr-hit {
+  0%,
+  50% {
+    filter: brightness(2.2);
+    opacity: 0.4;
+  }
+}
+@keyframes cr-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+@keyframes cr-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+.juegos-root .cr-line {
+  grid-area: line;
+  min-height: 46px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(10, 16, 36, 0.82);
+  box-shadow: inset 0 0 0 2px rgba(244, 249, 255, 0.25);
+  font-weight: 700;
+}
+.juegos-root .cr-actions {
+  grid-area: act;
+}
+.juegos-root .cr-moves {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+.juegos-root .cr-move {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 45%, #14203e), #14203e);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 70%, transparent);
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.juegos-root .cr-move.is-hint {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--c) 70%, transparent),
+    0 0 0 2px var(--gold);
+}
+.juegos-root .cr-move kbd {
+  padding: 0 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  font: inherit;
+  font-size: 11px;
+}
+.juegos-root .cr-move small {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+}
+.juegos-root .cr-move:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.juegos-root .cr-extra {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.juegos-root .cr-extra button,
+.juegos-root .cr-swap__back,
+.juegos-root .cr-result button {
+  padding: 8px 14px;
+  border: 1px solid rgba(244, 249, 255, 0.3);
+  border-radius: 12px;
+  background: rgba(10, 16, 36, 0.6);
+  color: var(--ivory);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.juegos-root .cr-extra button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.juegos-root .cr-swap {
+  display: grid;
+  gap: 8px;
+}
+.juegos-root .cr-swap ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .cr-swap li button {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(244, 249, 255, 0.92);
+  color: #1a2238;
+  font: inherit;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+.juegos-root .cr-swap li button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.juegos-root .cr-swap li span {
+  display: grid;
+  gap: 4px;
+}
+.juegos-root .cr-result {
+  grid-area: act;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 18px;
+  text-align: center;
+  animation: cr-pop 0.4s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+.juegos-root .cr-result.is-win {
+  background: linear-gradient(120deg, rgba(248, 197, 78, 0.3), rgba(31, 122, 77, 0.3));
+  box-shadow: inset 0 0 0 2px var(--gold);
+}
+.juegos-root .cr-result.is-lose {
+  background: rgba(212, 42, 53, 0.25);
+  box-shadow: inset 0 0 0 2px #e0303c;
+}
+.juegos-root .cr-result b {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 30px;
+}
+
+@media (max-width: 860px) {
+  .juegos-root .cr-offer {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+  .juegos-root .cr-offer button {
+    grid-column: span 1;
+  }
+}
+@media (max-width: 560px) {
+  .juegos-root .cr-app .top h1 {
+    font-size: clamp(22px, 6.4vw, 30px);
+  }
+  .juegos-root .cr-arena {
+    gap: 6px 8px;
+  }
+}
+/* Las tres pantallas ocupan todo el escenario (el escenario común centra lo que tiene dentro). */
+.juegos-root .cr-stage > * {
+  width: 100%;
+}

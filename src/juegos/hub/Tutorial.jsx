@@ -193,8 +193,8 @@ const STEPS = [
   {
     target: 'solo',
     art: 'solo3',
-    title: 'A tu ritmo: Lotería y Trineo',
-    text: 'Nuevos por Navidad: la Lotería de Navidad (compra un décimo con tu número y escucha cantar el sorteo: el Gordo paga ×400) y el Trineo de Papá Noel (en cada parada eliges casita, bloque o rascacielos: cada regalo entregado sube el premio, pero si te pillan lo pierdes). Y además Mayor o Menor, la Bola Canaria, Pez Gordo, La Torre, El Atraco, Plinko y Rana. Cada uno tiene su botón de Ayuda arriba a la derecha.',
+    title: 'A tu ritmo: Criaturas, Taller y más',
+    text: 'Nuevos por Navidad: Criaturas de las Islas (forma un equipo de criaturas que dura toda la temporada y apuesta en combates por turnos), el Taller de Papá Noel (invierte en elfos y cadenas de juguetes que producen euros cada hora; pásate a recoger), la Lotería de Navidad y el Trineo de Papá Noel. Y además Mayor o Menor, Pez Gordo, La Torre, El Atraco, Plinko y Rana. Cada uno tiene su botón de Ayuda arriba a la derecha.',
   },
   {
     target: 'live',

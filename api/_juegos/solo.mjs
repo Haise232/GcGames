@@ -1,4 +1,4 @@
-// Juegos en solitario (ruleta, cohete, Plinko, la rana, la carrera de coches, la Torre, el Atraco, Pez Gordo, la Lotería de Navidad, el Trineo de Papá Noel, Mayor o Menor y la Bola Canaria) con el saldo semanal: el servidor sortea
+// Juegos en solitario (ruleta, cohete, Plinko, la rana, la carrera de coches, la Torre, el Atraco, Pez Gordo, la Lotería de Navidad, el Trineo de Papá Noel, el Taller de Papá Noel, Criaturas de las Islas y Mayor o Menor) con el saldo semanal: el servidor sortea
 // con randomInt y aplica las mismas reglas puras que pinta la pantalla (src/juegos/*.js), así el
 // navegador no puede elegir su resultado. Cada función devuelve { error } o el resultado con `delta`, lo que cambia
 // el saldo, y `saved`, lo que hay que guardar para la siguiente jugada (racha y apuesta de la ruleta y del cohete).
@@ -7,7 +7,8 @@ import * as roulette from '../../src/juegos/roulette/roulette.js'
 import * as pez from '../../src/juegos/fish/pez.js'
 import * as loteria from '../../src/juegos/loteria/loteria.js'
 import * as trineo from '../../src/juegos/trineo/trineo.js'
-import * as regatta from '../../src/juegos/regatta/regatta.js'
+import * as taller from '../../src/juegos/taller/taller.js'
+import * as cri from '../../src/juegos/criaturas/criaturas.js'
 import * as plinko from '../../src/juegos/plinko/plinko.js'
 import * as crash from '../../src/juegos/crash/crash.js'
 import * as frog from '../../src/juegos/frog/frog.js'
@@ -15,7 +16,6 @@ import * as race from '../../src/juegos/race/race.js'
 import * as tower from '../../src/juegos/tower/tower.js'
 import * as heist from '../../src/juegos/heist/heist.js'
 import * as hilo from '../../src/juegos/hilo/hilo.js'
-import * as bola from '../../src/juegos/bola/bola.js'
 import { cardView } from './gacha.mjs'
 
 export const SOLO_GAMES = {
@@ -23,7 +23,8 @@ export const SOLO_GAMES = {
   solo_fish: 'fish',
   solo_loteria: 'loteria',
   solo_trineo: 'trineo',
-  solo_regatta: 'regatta',
+  solo_taller: 'taller',
+  solo_criaturas: 'criaturas',
   solo_plinko: 'plinko',
   solo_crash: 'crash',
   solo_frog: 'frog',
@@ -31,7 +32,6 @@ export const SOLO_GAMES = {
   solo_tower: 'tower',
   solo_heist: 'heist',
   solo_hilo: 'hilo',
-  solo_bola: 'bola',
 }
 
 // --- Ruleta en vivo: una sola rueda para todos que gira cada ROUND_MS, como en un casino en directo. ---
@@ -400,183 +400,6 @@ export async function raceLive(msg, balance, saved, _rand, ctx) {
   return { delta, played: changed, saved: changed ? state : null, result: raceView(state, balance + delta, ctx) }
 }
 
-// --- Regata en vivo: una regata para todos cada regatta.ROUND_MS; se apuesta al Ganador, a la Exacta o al Trío. ---
-// Como la Carrera, todo sale de HMAC(secreto, ronda), pero en dos partes: el parte del tiempo (el clima y las
-// probabilidades de cada velero) se enseña desde que se abren las apuestas, y el orden de llegada (sorteado con esas
-// probabilidades), los tiempos, los ritmos y los efectos del clima no salen del servidor hasta que se cierran.
-const REGATTA_HISTORY = 12
-const regattaWinds = new Map()
-const regattaDraws = new Map()
-
-// El parte del tiempo de una ronda: el clima, el viento (solo se ve) y la probabilidad de cada velero en puntos básicos.
-// El clima elige el reparto: despejado con un favorito claro, tormenta muy igualada, kraken con desconocidos que pagan mucho…
-export function regattaWind(secret, round) {
-  const hit = regattaWinds.get(round)
-  if (hit) return hit
-  const rand = uniform(hmacStream(secret, `regata-viento:${round}`))
-  const clima = regatta.climaAt(rand(regatta.CLIMA_WEIGHT))
-  const profile = clima.profiles[rand(clima.profiles.length)]
-  const boats = Array.from({ length: regatta.N }, (_, i) => i)
-  for (let i = boats.length - 1; i > 0; i--) {
-    const j = rand(i + 1)
-    ;[boats[i], boats[j]] = [boats[j], boats[i]]
-  }
-  const bp = Array(regatta.N).fill(0)
-  boats.forEach((boat, k) => (bp[boat] = profile[k]))
-  const odds = bp.map((_, i) => regatta.oddsFor('win', [i], bp))
-  const wind = { clima: clima.id, name: regatta.WINDS[rand(regatta.WINDS.length)], dir: rand(360), knots: 6 + rand(19), bp, odds }
-  if (regattaWinds.size > 5000) regattaWinds.clear()
-  regattaWinds.set(round, wind)
-  return wind
-}
-
-// La regata: el orden de llegada completo (Plackett-Luce: el primero sale con las probabilidades del parte, el segundo
-// con las de los que quedan, y así), los tiempos, los ritmos y lo que hace el clima (veleros frenados, rayos).
-export function regattaDraw(secret, round) {
-  const hit = regattaDraws.get(round)
-  if (hit) return hit
-  const { bp, clima: climaId } = regattaWind(secret, round)
-  const clima = regatta.climaOf(climaId)
-  const rand = uniform(hmacStream(secret, `regata:${round}`))
-  // Orden de llegada: cada puesto se sortea entre los que quedan, con peso su probabilidad.
-  const left = Array.from({ length: regatta.N }, (_, i) => i)
-  const order = []
-  while (left.length) {
-    let pick = rand(left.reduce((sum, b) => sum + bp[b], 0))
-    let k = 0
-    while (pick >= bp[left[k]]) pick -= bp[left[k++]]
-    order.push(left.splice(k, 1)[0])
-  }
-  const winner = order[0]
-  // Tiempos: el ganador tarda 11,5-13,5 s y el resto llega detrás; a veces por muy poco (y alguna vez, foto finish).
-  const finish = Array(regatta.N).fill(0)
-  let time = 11500 + rand(2001)
-  order.forEach((boat, place) => {
-    if (place === 1) {
-      const roll = rand(100)
-      time += roll < 12 ? 10 + rand(60) : roll < 40 ? 60 + rand(140) : 200 + rand(600)
-    } else if (place > 1) {
-      time += 120 + rand(600)
-    }
-    finish[boat] = Math.min(time, regatta.SAIL_MAX_MS - 400 - (regatta.N - 1 - place) * 30)
-  })
-  // Ritmo de cada velero (rachas de viento): Σ j·|aj| < 1/π para que nunca retroceda (ver regatta.progress). La amplitud
-  // la marca el clima: despejado va suave, la tormenta y el viento fuerte se adelantan sin parar.
-  const swing = (limit) => ((rand(2 * limit + 1) - limit) / 10000) * clima.amp
-  const wobble = finish.map(() => [swing(650), swing(420), swing(240), swing(110)])
-  // Efectos del clima. Frenazos: el velero se queda quieto un rato por donde pasa y luego se suelta; siempre acaba
-  // llegando en su `finish`, así que el orden no cambia. El Kraken no se mete con el ganador.
-  const fx = clima.effects
-  const stalls = []
-  if (fx.stall) {
-    const candidates = Array.from({ length: regatta.N }, (_, i) => i).filter((b) => !(fx.notWinner && b === winner))
-    for (let i = candidates.length - 1; i > 0; i--) {
-      const j = rand(i + 1)
-      ;[candidates[i], candidates[j]] = [candidates[j], candidates[i]]
-    }
-    const count = fx.stall[0] + rand(fx.stall[1] - fx.stall[0] + 1)
-    for (const boat of candidates.slice(0, count)) {
-      const frac = fx.frac[0] + (rand(1001) / 1000) * (fx.frac[1] - fx.frac[0])
-      const at = regatta.reachAt(finish[boat], wobble[boat], frac)
-      const dur = Math.min(fx.dur[0] + rand(fx.dur[1] - fx.dur[0] + 1), finish[boat] - 500 - regatta.STALL_REC_MS - at)
-      if (dur >= 800) stalls.push({ boat, what: fx.what, at, dur })
-    }
-    stalls.sort((x, y) => x.at - y.at)
-  }
-  // Rayos: cuándo caen (ms desde la salida) y por dónde del campo (0 a 1).
-  const bolts = []
-  if (fx.bolts) {
-    const count = fx.bolts[0] + rand(fx.bolts[1] - fx.bolts[0] + 1)
-    for (let i = 0; i < count; i++) bolts.push({ at: 1200 + rand(10500), x: (8 + rand(85)) / 100 })
-    bolts.sort((x, y) => x.at - y.at)
-  }
-  const draw = { winner, order, finish, wobble, stalls, bolts, end: Math.max(...finish) }
-  if (regattaDraws.size > 5000) regattaDraws.clear()
-  regattaDraws.set(round, draw)
-  return draw
-}
-
-// ¿Hay una apuesta guardada de una regata que ya acabó? Entonces se paga antes de nada.
-export const regattaDue = (saved, t, secret) => Boolean(saved?.bets?.length) && t >= regatta.startOf(saved.round) + regattaDraw(secret, saved.round).end
-
-// Últimos resultados de regatas ya terminadas, de la más reciente a la más antigua: el podio, el clima y lo que pagaba el ganador.
-function regattaHistory(secret, t) {
-  const out = []
-  for (let r = regatta.phaseAt(t).round; out.length < REGATTA_HISTORY && r >= 0; r--) {
-    const draw = regattaDraw(secret, r)
-    if (t >= regatta.startOf(r) + draw.end) {
-      const wind = regattaWind(secret, r)
-      out.push({ boat: draw.winner, podium: draw.order.slice(0, 3), clima: wind.clima, odds: wind.odds[draw.winner] })
-    }
-  }
-  return out
-}
-
-export function regattaView(saved, balance, { now: t, secret }) {
-  const round = regatta.phaseAt(t).round
-  const wind = regattaWind(secret, round)
-  const revealed = t >= round * regatta.ROUND_MS + regatta.BETS_MS + GRACE_MS
-  const draw = revealed ? regattaDraw(secret, round) : null
-  return {
-    now: t,
-    round,
-    wind: { clima: wind.clima, name: wind.name, dir: wind.dir, knots: wind.knots, bp: wind.bp, odds: wind.odds },
-    race: draw
-      ? { start: regatta.startOf(round), finish: draw.finish, wobble: draw.wobble, winner: draw.winner, order: draw.order, stalls: draw.stalls, bolts: draw.bolts }
-      : null,
-    bets: saved?.round === round && saved.v === regatta.RULES ? (saved.bets ?? []) : [],
-    last: saved?.last ?? null,
-    history: regattaHistory(secret, t),
-    balance,
-  }
-}
-
-// msg.a: «sync» (ponerse al día) o «bet» (tus apuestas de esta regata, [{ kind, boats, amount }]; una lista vacía las retira).
-export function regattaLive(msg, balance, saved, _rand, ctx) {
-  const t = ctx.now
-  let state = { ...(saved ?? {}) }
-  let delta = 0
-  let changed = false
-  // 1. Se paga la apuesta de una regata que ya acabó (si es de otra semana, el saldo ya se reinició: se descarta).
-  if (regattaDue(state, t, ctx.secret)) {
-    const stake = regatta.totalOf(state.bets)
-    if (state.week === ctx.week && state.v !== regatta.RULES) {
-      delta += stake
-    } else if (state.week === ctx.week) {
-      const draw = regattaDraw(ctx.secret, state.round)
-      const { bp, clima } = regattaWind(ctx.secret, state.round)
-      // El detalle de cada apuesta (cuota y lo que cobró) para el aviso y la celebración.
-      const bets = state.bets.map((b) => ({ ...b, odds: regatta.oddsFor(b.kind, b.boats, bp), paid: regatta.payoutOf(b, draw.order, bp) }))
-      const total = bets.reduce((sum, b) => sum + b.paid, 0)
-      delta += total
-      // Entero (veces lo apostado, redondeado): la lista de ganadores lo lee como int en la base de datos.
-      const mult = Math.round(total / stake)
-      const best = bets.reduce((top, b) => (b.paid > (top?.paid ?? 0) ? b : top), null)
-      state = {
-        ...state,
-        last: { round: state.round, clima, winner: draw.winner, podium: draw.order.slice(0, 3), stake, payout: total, net: total - stake, mult, best, bets },
-      }
-    }
-    state = { ...state, bets: [] }
-    changed = true
-  }
-  const { round, offset } = regatta.phaseAt(t)
-  if (msg.a === 'bet') {
-    if (msg.round !== round || offset >= regatta.BETS_MS + GRACE_MS) return { error: 'BETS_CLOSED' }
-    const placed = msg.bets
-    if (!Array.isArray(placed) || !regatta.validBets(placed)) return { error: 'BAD_MESSAGE' }
-    const before = state.round === round ? regatta.totalOf(state.bets ?? []) : 0
-    const stake = regatta.totalOf(placed)
-    if (stake - before > balance + delta) return { error: 'INSUFFICIENT_FUNDS' }
-    delta += before - stake
-    state = { ...state, round, week: ctx.week, v: regatta.RULES, bets: placed.map(({ kind, boats, amount }) => ({ kind, boats: [...boats], amount })) }
-    changed = true
-  } else if (msg.a !== 'sync') {
-    return { error: 'BAD_MESSAGE' }
-  }
-  return { delta, played: changed, saved: changed ? state : null, result: regattaView(state, balance + delta, ctx) }
-}
-
 // --- Rana: la apuesta queda en juego (ya salió del saldo) y en cada salto el jugador decide si salta o cobra. ---
 // El servidor sortea cada salto con randomInt, así que la pantalla no puede adelantarse. saved: { bet, mult, week, last }
 // con bet > 0 mientras hay una rana en marcha; last es la última partida liquidada (para el aviso y el gacha).
@@ -900,20 +723,155 @@ export function trineoPlay(msg, balance, saved, rand, ctx) {
   return { delta: 0, played: true, saved: state, result: trineoView(state, balance, 'ok') }
 }
 
-// --- Bola Canaria: también una jugada sin nada guardado. Con suerte del Admin Abuse se tira varias veces y vale la mejor.
-export function bolaThrow(msg, balance, _saved, rand, ctx) {
-  if (!bola.validBet(msg.bet) || !bola.validStyle(msg.style)) return { error: 'BAD_MESSAGE' }
-  if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
-  let band = bola.drawBand(msg.style, rand)
-  for (let i = 1; i < (ctx.luck ?? 1); i++) {
-    const other = bola.drawBand(msg.style, rand)
-    if (bola.multOf(msg.style, other) > bola.multOf(msg.style, band)) band = other
+// --- Taller de Papá Noel (tycoon): lo invertido produce € por hora aunque no estés (taller.js). saved: { week, units,
+// upgrades, stored, at, invested, collected }: lo producido hasta `at` está en `stored`; lo de después se calcula al
+// momento (storedAt). Todo se reinicia con la semana, como el saldo. Recoger mete en el saldo lo del almacén.
+function tallerFresh(ctx) {
+  return { week: ctx.week, units: {}, upgrades: {}, stored: 0, at: ctx.now, invested: 0, collected: 0 }
+}
+function tallerView(state, balance, t, ev = null, extra = {}) {
+  return {
+    units: state.units,
+    upgrades: state.upgrades,
+    stored: Math.floor(taller.storedAt(state, t)),
+    rate: taller.ratePerHour(state.units, state.upgrades),
+    cap: taller.capHours(state.upgrades),
+    invested: state.invested,
+    collected: state.collected,
+    now: t,
+    balance,
+    ev,
+    ...extra,
   }
-  const at = bola.placeBall(band, rand, bola.clampAim(msg.aim))
-  const mult = bola.multOf(msg.style, band)
-  const paid = bola.payout(msg.bet, mult)
-  const delta = paid - msg.bet
-  return { delta, played: true, saved: null, result: { id: ctx.now, style: msg.style, band, at, mult, bet: msg.bet, payout: paid, net: delta, balance: balance + delta } }
+}
+
+// msg.a: «sync», «buy» (station), «upgrade» (upgrade) o «collect».
+export function tallerPlay(msg, balance, saved, _rand, ctx) {
+  const t = ctx.now
+  let state = saved && saved.week === ctx.week ? { ...saved, units: { ...saved.units }, upgrades: { ...saved.upgrades } } : tallerFresh(ctx)
+  // Antes de cambiar la producción se apunta lo producido hasta ahora.
+  const settle = () => {
+    state.stored = taller.storedAt(state, t)
+    state.at = t
+  }
+  if (msg.a === 'sync') return { delta: 0, played: false, saved: null, result: tallerView(state, balance, t) }
+  if (msg.a === 'collect') {
+    const amount = Math.floor(taller.storedAt(state, t))
+    if (amount < 1) return { error: 'BAD_PHASE' }
+    state.stored = taller.storedAt(state, t) - amount // los céntimos se quedan
+    state.at = t
+    state.collected += amount
+    return { delta: amount, played: true, saved: state, collect: amount, result: tallerView(state, balance + amount, t, 'collect', { amount }) }
+  }
+  let cost
+  if (msg.a === 'buy') {
+    if (!taller.validStation(msg.station)) return { error: 'BAD_MESSAGE' }
+    cost = taller.stationCost(msg.station, state.units[msg.station] ?? 0)
+    if (cost > balance) return { error: 'INSUFFICIENT_FUNDS' }
+    settle()
+    state.units[msg.station] = (state.units[msg.station] ?? 0) + 1
+  } else if (msg.a === 'upgrade') {
+    if (!taller.validUpgrade(msg.upgrade)) return { error: 'BAD_MESSAGE' }
+    cost = taller.upgradeCost(msg.upgrade, state.upgrades[msg.upgrade] ?? 0)
+    if (cost === null) return { error: 'BAD_PHASE' }
+    if (cost > balance) return { error: 'INSUFFICIENT_FUNDS' }
+    settle()
+    state.upgrades[msg.upgrade] = (state.upgrades[msg.upgrade] ?? 0) + 1
+  } else return { error: 'BAD_MESSAGE' }
+  state.invested += cost
+  return { delta: -cost, played: true, saved: state, result: tallerView(state, balance - cost, t, msg.a) }
+}
+
+// --- Criaturas de las Islas (rol por turnos, criaturas.js). saved: { season, team: [{ sp, lvl, xp }], battle, offer,
+// last, best }. El equipo dura toda la temporada; el combate (con su apuesta) es de la semana: si cambia la semana, el
+// saldo ya se reinició y el combate se descarta. Todo lo sortea el servidor con su generador en cada turno.
+function criaturasView(state, balance, extra = {}) {
+  const b = state.battle
+  return {
+    team: state.team,
+    battle: b
+      ? { bet: b.bet, tier: b.tier, mine: b.mine, rival: b.rival, a: b.a, b: b.b, need: b.need, party: b.party, turns: b.turns }
+      : null,
+    offer: state.offer ?? null,
+    last: state.last ?? null,
+    best: state.best ?? null,
+    balance,
+    log: [],
+    ev: null,
+    ...extra,
+  }
+}
+
+// msg.a: «sync», «starter» (sp), «lead» (idx: la pones la primera), «start» (bet, tier), «move» (move), «switch» (to),
+// «flee», «join» (aceptar la criatura que quiere unirse) o «skip» (no aceptarla).
+export function criaturasPlay(msg, balance, saved, rand, ctx) {
+  let state = saved?.season === cri.SEASON ? { ...saved, team: saved.team.map((c) => ({ ...c })) } : { season: cri.SEASON, team: [], battle: null, offer: null, last: null, best: null }
+  if (state.battle && state.battle.week !== ctx.week) state.battle = null
+  if (state.best && state.best.day !== ctx.day) state.best = null
+  const fighting = Boolean(state.battle)
+
+  const settle = (win, log) => {
+    const b = state.battle
+    const mult = win ? cri.TIERS[b.tier].mult : 0
+    const paid = win ? cri.payout(b.bet, b.tier) : 0
+    // XP para las que combatieron (la cuarta parte si se pierde) y, si se gana, quizá una del rival quiera unirse.
+    const xp = Math.max(1, Math.round(cri.xpFor(b.rival.map((c) => c.lvl), b.tier) * (win ? 1 : 0.25)))
+    const ups = []
+    b.party.forEach((idx) => {
+      const r = cri.gainXp(state.team[idx], xp)
+      state.team[idx] = r.c
+      if (r.ups) ups.push({ idx, lvl: r.c.lvl })
+    })
+    let offer = null
+    if (win && state.team.length < cri.TEAM_MAX && rand(100) < cri.JOIN_CHANCE) {
+      const c = b.rival[rand(b.rival.length)]
+      offer = { sp: c.sp, lvl: Math.max(2, Math.min(cri.MAX_LEVEL, c.lvl - 3)) }
+    }
+    if (paid > 0 && (!state.best || mult > state.best.mult)) state.best = { day: ctx.day, mult, payout: paid, mode: b.tier }
+    state = { ...state, battle: null, offer, last: { round: ctx.now, stake: b.bet, tier: b.tier, win, mult, payout: paid, net: paid - b.bet, xp, ups } }
+    return { delta: paid, played: true, saved: state, result: criaturasView(state, balance + paid, { log, ev: win ? 'win' : 'lose' }) }
+  }
+
+  if (msg.a === 'sync') return { delta: 0, played: false, saved: null, result: criaturasView(state, balance) }
+  if (msg.a === 'starter') {
+    if (state.team.length || !cri.STARTERS.includes(msg.sp)) return { error: 'BAD_MESSAGE' }
+    state.team = [{ sp: msg.sp, lvl: cri.START_LEVEL, xp: 0 }]
+    return { delta: 0, played: false, saved: state, result: criaturasView(state, balance) }
+  }
+  if (msg.a === 'lead') {
+    if (fighting || !Number.isInteger(msg.idx) || !state.team[msg.idx]) return { error: 'BAD_MESSAGE' }
+    const [c] = state.team.splice(msg.idx, 1)
+    state.team.unshift(c)
+    return { delta: 0, played: false, saved: state, result: criaturasView(state, balance) }
+  }
+  if (msg.a === 'join' || msg.a === 'skip') {
+    if (!state.offer) return { error: 'BAD_PHASE' }
+    if (msg.a === 'join' && state.team.length < cri.TEAM_MAX) state.team.push({ sp: state.offer.sp, lvl: state.offer.lvl, xp: 0 })
+    state.offer = null
+    return { delta: 0, played: false, saved: state, result: criaturasView(state, balance) }
+  }
+  if (msg.a === 'start') {
+    if (fighting || !state.team.length) return { error: 'BAD_PHASE' }
+    if (!cri.validBet(msg.bet) || !cri.validTier(msg.tier)) return { error: 'BAD_MESSAGE' }
+    if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
+    const party = state.team.slice(0, cri.PARTY).map((_, i) => i)
+    const mine = party.map((i) => cri.fighter(state.team[i].sp, state.team[i].lvl))
+    const rival = cri.rivalTeam(mine.map((c) => c.lvl), msg.tier, rand)
+    state.offer = null
+    state.battle = { bet: msg.bet, tier: msg.tier, week: ctx.week, party, mine, rival, a: 0, b: 0, need: null, turns: 0 }
+    return { delta: -msg.bet, played: true, saved: state, result: criaturasView(state, balance - msg.bet, { ev: 'start' }) }
+  }
+  if (!fighting) return { error: 'BAD_PHASE' }
+  if (msg.a === 'flee') return settle(false, [{ t: 'flee' }])
+  let action
+  if (msg.a === 'move' && typeof msg.move === 'string') action = { kind: 'move', move: msg.move }
+  else if (msg.a === 'switch' && Number.isInteger(msg.to)) action = { kind: 'switch', to: msg.to }
+  else return { error: 'BAD_MESSAGE' }
+  const r = cri.turn(state.battle, action, rand)
+  if (r.error) return { error: 'BAD_MESSAGE' }
+  state.battle = { ...state.battle, ...r.battle, turns: state.battle.turns + 1 }
+  if (r.end) return settle(r.end === 'win', r.log)
+  return { delta: 0, played: true, saved: state, result: criaturasView(state, balance, { log: r.log, ev: 'turn' }) }
 }
 
 // --- Mayor o Menor: como la rana, la apuesta sale del saldo al empezar y queda en juego. saved: { bet, card, prod,
@@ -983,4 +941,4 @@ export function hiloPlay(msg, balance, saved, rand, ctx) {
   return { delta: 0, played: true, saved: state, result: hiloView(state, balance, 'win') }
 }
 
-export const SOLO_PLAY = { loteria: loteriaBuy, trineo: trineoPlay, hilo: hiloPlay, bola: bolaThrow, roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay, regatta: regattaLive }
+export const SOLO_PLAY = { loteria: loteriaBuy, trineo: trineoPlay, taller: tallerPlay, criaturas: criaturasPlay, hilo: hiloPlay, roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay }

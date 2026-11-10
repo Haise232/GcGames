@@ -1,4 +1,4 @@
-// Piezas comunes de los juegos de las Fiestas (Season 4): Mayor o Menor y la Bola Canaria. La cabecera con el
+// Piezas comunes de los juegos con panel (Mayor o Menor y los de la Season 5). La cabecera con el
 // saldo y los botones, el panel de la apuesta y el historial. Los estilos, en fiestas.css (clases fi-*).
 import { useState } from 'react'
 import { eur } from '../comun/money.js'

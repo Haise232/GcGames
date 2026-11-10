@@ -111,15 +111,13 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 | En vivo (mesas) | Para todos a la vez | En solitario | Economía |
 |---|---|---|---|
 | Blackjack | Campeonato de Pesca (cada 2 min) | Pez Gordo | Gacha de cartas |
-| Póker | Regata (cada 44 s) | Lotería de Navidad | Inmobiliaria |
-| Ajedrez | Ruleta (cada 25 s) | El Trineo de Papá Noel | Cuenta en Suiza |
-| | Cohete (cada 30 s) | La Torre | Hacienda |
-| | Carrera (cada 55 s) | El Atraco | Casa de empeños |
-| | Ascensor (cada minuto) | Plinko | |
-| | La Subasta (cada minuto) | Rana | |
-| | Bingo | | |
+| Póker | Ruleta (cada 25 s) | Criaturas de las Islas | Inmobiliaria |
+| Ajedrez | Cohete (cada 30 s) | Taller de Papá Noel | Cuenta en Suiza |
+| | Carrera (cada 55 s) | Lotería de Navidad | Hacienda |
+| | Ascensor (cada minuto) | El Trineo de Papá Noel | Casa de empeños |
+| | La Subasta (cada minuto) | La Torre · El Atraco | |
+| | Bingo | Plinko · Rana | |
 | | | Mayor o Menor | |
-| | | Bola Canaria | |
 
 <details>
 <summary><b>Qué es cada uno</b></summary>
@@ -140,40 +138,9 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
   (inscripciones menos un 10 % y 500 € por pescador que pone la Cofradía desde tres) se reparte 50/30/20 entre el podio,
   y quien saca el marlín se lleva el **Bote del Marlín**, que crece con cada campeonato (abre con 10.000 € cada semana).
   Los puestos suman puntos en la **Liga de la Cofradía** de la semana, con su récord.
-- **Regata**: cinco veleros cada 44 s. Antes de cada regata sale el parte del tiempo: un clima (Despejado, Viento fuerte,
-  Niebla, Tormenta, Remolino, Kraken, Calima o Arcoíris) que decide las probabilidades de cada velero y trae su propio
-  espectáculo (rayos y lluvia, niebla que tapa la carrera, un remolino que hace girar y frena veleros, tentáculos del
-  Kraken que atrapan a alguno…). El servidor sortea el orden de llegada completo (modelo Plackett-Luce) y se puede
-  apostar al Ganador, a la Exacta (1.º y 2.º en orden) y al Trío (1.º, 2.º y 3.º en orden): cada resultado paga
-  `0,96 / su probabilidad` (tope ×3.000), así que apuestes a lo que apuestes se recupera el 96 %. Los efectos del
-  clima son coreografía y nunca cambian el orden ya sorteado.
-- **Ruleta**: una tirada para todos cada 25 s.
-- **Cohete**: sube para todos cada 30 s; retira antes de que explote.
-- **Carrera**: una carrera cada 55 s; apuesta a un coche y cobra si acaba en el podio.
-- **Ascensor**: todos suben y el premio crece en cada planta. Bájate antes de que se rompa el cable; el último en bajar
-  se lleva el bonus.
-- **La Subasta**: siete cajas misteriosas, pujas a la vista y prórroga en los últimos segundos. Puede ser el jackpot…
-  o una piedra.
-- **Bingo**: cartones para todos y un bote común que alimenta lo que se pierde en el resto del casino.
-
-**En solitario**
-- **Pez Gordo**: eres un pez payaso. Come plancton y peces más pequeños para crecer, huye de los tiburones y sal del agua
-  cuando quieras: cuanto más pesas, más cobras (de ×0,28 a ×10). Si te comen, pierdes la apuesta.
-- **Lotería de Navidad**: compras un décimo con el número que quieras y se canta el sorteo con los dos bombos: ocho
-  quintos, dos cuartos, el tercero, el segundo y el Gordo (×400), además de la pedrea, la terminación y el reintegro.
-  El servidor sortea primero el premio y después un sorteo que lo enseña para tu número.
-- **El Trineo de Papá Noel**: es Nochebuena y repartes regalos. En cada parada eliges casita (90 %), bloque de pisos
-  (70 %) o rascacielos (50 %); cada regalo entregado multiplica el premio por 1 / p y cobras cuando quieras. Si te
-  pillan, pierdes la apuesta. Hasta 24 paradas por noche.
-- **La Torre**: sube piso a piso sin pisar una baldosa rota, en cuatro dificultades.
-- **El Atraco**: monta tu banda con tus cartas del gacha y baja planta a planta hasta la cámara acorazada.
-- **Plinko**: suelta bolas y que caigan en las orillas.
 - **Rana**: salta de nenúfar en nenúfar y cobra cuando quieras.
 - **Mayor o Menor**: con la baraja española, en la mesa de un guachinche. Dices si la siguiente carta será mayor o igual,
   o menor o igual; cada acierto multiplica el premio y cobras cuando quieras. Tres cambios de carta gratis por partida.
-- **Bola Canaria**: coges tu bola, la estiras hacia atrás como un tirachinas y la sueltas: cuanto más estiras, más
-  fuerte (arrimar, tiro medio o bochazo) y el ángulo decide hacia qué lado va. Cuanto más cerca del mingue se queda,
-  más cobras; una arrimada de bochazo paga ×25.
 
 </details>
 
@@ -212,8 +179,8 @@ flowchart LR
   entera para pagar. Repetir una partida cuesta unos 4 ms de CPU y no se admiten más pasos de los que ha dado tiempo a
   jugar.
 - **Juegos calibrados.** En La Torre y en el Trineo el multiplicador de cada paso es `0,96 / probabilidad de
-  llegar`, en la Lotería la suma de probabilidad × premio de su tabla es 0,96 y en la Regata cada resultado (ganador, exacta o trío) paga
-  `0,96 / su probabilidad`: hagas lo que hagas, de media se recupera el 96 %. Así el Score no se puede «cultivar» a base de jugar mucho.
+  llegar`, y en la Lotería la suma de probabilidad × premio de su tabla es
+  0,96: hagas lo que hagas, de media se recupera el 96 %. Así el Score no se puede «cultivar» a base de jugar mucho.
 - **Tiempo real barato.** Cuando algo cambia, el servidor manda un aviso sin datos por Supabase Realtime y cada
   navegador pide su propia vista: nadie recibe las cartas tapadas de los demás. Fuera de las mesas, el sondeo es solo un
   respaldo (cada 60 s, y nunca con la pestaña oculta), y lo que es igual para todos se guarda unos segundos en el Worker.

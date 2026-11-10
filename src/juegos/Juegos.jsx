@@ -21,14 +21,13 @@ import Pez from './fish/Pez.jsx'
 import Loteria from './loteria/Loteria.jsx'
 import Trineo from './trineo/Trineo.jsx'
 import Hilo from './hilo/Hilo.jsx'
-import Bola from './bola/Bola.jsx'
-import Regata from './regatta/Regata.jsx'
+import Taller from './taller/Taller.jsx'
+import Criaturas from './criaturas/Criaturas.jsx'
 import Pesca from './pesca/Pesca.jsx'
 import { PescaScene } from './season4/PescaArt.jsx'
 import { FishScene } from './season4/FishArt.jsx'
-import { LoteriaScene, TrineoScene } from './season5/NavidadArt.jsx'
-import { BolaScene, HiloScene } from './season4/FiestasArt.jsx'
-import { RegattaScene } from './season4/RegattaArt.jsx'
+import { CriaturasScene, LoteriaScene, TallerScene, TrineoScene } from './season5/NavidadArt.jsx'
+import { HiloScene } from './season4/FiestasArt.jsx'
 import Bingo from './bingo/Bingo.jsx'
 import BingoCage from './bingo/BingoCage.jsx'
 import Gacha from './gacha/Gacha.jsx'
@@ -135,16 +134,6 @@ const ALL_GAMES = [
     art: <RaceScene />,
   },
   {
-    id: 'regatta',
-    name: 'Regata',
-    kind: 'Cada 44 s',
-    blurb: 'Tormenta, remolino, Kraken… cada regata trae su clima. Apuesta al ganador, a la exacta o al trío y cobra hasta ×3.000.',
-    live: true,
-    tint: '143, 227, 255',
-    isNew: true,
-    art: <RegattaScene />,
-  },
-  {
     id: 'fish',
     name: 'Pez Gordo',
     kind: 'Come y crece',
@@ -154,12 +143,30 @@ const ALL_GAMES = [
     art: <FishScene />,
   },
   {
+    id: 'criaturas',
+    name: 'Criaturas de las Islas',
+    kind: 'Rol por turnos',
+    blurb: 'Elige tu primera criatura, forma un equipo que dura toda la temporada y apuesta en combates por turnos contra rivales cada vez más duros.',
+    tint: '108, 195, 255',
+    isNew: true,
+    art: <CriaturasScene />,
+  },
+  {
+    id: 'taller',
+    name: 'Taller de Papá Noel',
+    kind: 'Tycoon',
+    blurb: 'Contrata elfos, abre cadenas de juguetes y mejora el taller: produce euros cada hora aunque no estés. Pásate a recoger.',
+    tint: '248, 197, 78',
+    isNew: true,
+    art: <TallerScene />,
+  },
+  {
     id: 'loteria',
     name: 'Lotería de Navidad',
     kind: 'Sorteo extraordinario',
     blurb: 'Compra un décimo con tu número y escucha cantar el sorteo: quintos, cuartos, tercero, segundo… y el Gordo, que paga ×400.',
     tint: '248, 197, 78',
-    isNew: true,
+    isNew: false,
     art: <LoteriaScene />,
   },
   {
@@ -168,7 +175,7 @@ const ALL_GAMES = [
     kind: 'Reparte y cobra',
     blurb: 'Nochebuena: elige casita, bloque o rascacielos en cada parada. Cada regalo entregado sube el premio; si te pillan, lo pierdes.',
     tint: '224, 48, 60',
-    isNew: true,
+    isNew: false,
     art: <TrineoScene />,
   },
   {
@@ -179,15 +186,6 @@ const ALL_GAMES = [
     tint: '232, 68, 58',
     isNew: false,
     art: <HiloScene />,
-  },
-  {
-    id: 'bola',
-    name: 'Bola Canaria',
-    kind: 'Arrima y cobra',
-    blurb: 'Tira tu bola en la cancha de tierra: cuanto más cerca del mingue, más cobras. Arrima suave o arriesga con un bochazo ×25.',
-    tint: '217, 168, 106',
-    isNew: false,
-    art: <BolaScene />,
   },
   {
     id: 'plinko',
@@ -235,8 +233,8 @@ const ALL_GAMES = [
 // Season 4: los juegos se agrupan por cómo se juegan. Primero los de ronda común (todos a la vez, con la gente) y luego
 // los de a tu ritmo.
 const byId = Object.fromEntries(ALL_GAMES.map((g) => [g.id, g]))
-const ROUND_GAMES = ['pesca', 'regatta', 'elevator', 'auction', 'roulette', 'crash', 'race'].map((id) => byId[id])
-const PACE_GAMES = ['loteria', 'trineo', 'hilo', 'bola', 'fish', 'tower', 'heist', 'plinko', 'frog'].map((id) => byId[id])
+const ROUND_GAMES = ['pesca', 'elevator', 'auction', 'roulette', 'crash', 'race'].map((id) => byId[id])
+const PACE_GAMES = ['criaturas', 'taller', 'loteria', 'trineo', 'hilo', 'fish', 'tower', 'heist', 'plinko', 'frog'].map((id) => byId[id])
 
 // La Inmobiliaria, destacada arriba del todo: un trozo de tablero con sus casas y un hotel.
 function InmoBanner({ onOpen }) {
@@ -950,7 +948,7 @@ function Notice({ title, children, actions }) {
 
 // Pantalla en la que estabas, para que al recargar la página vuelvas al mismo juego (las mesas ya las recuerda el servidor).
 const SCREEN_KEY = 'juegos-pantalla'
-const KEEP = new Set(['pase', 'pesca', 'bingo', 'roulette', 'crash', 'fish', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'loteria', 'trineo', 'regatta', 'hilo', 'bola'])
+const KEEP = new Set(['pase', 'pesca', 'bingo', 'roulette', 'crash', 'fish', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'loteria', 'trineo', 'taller', 'criaturas', 'hilo'])
 function savedScreen() {
   try {
     const screen = sessionStorage.getItem(SCREEN_KEY)
@@ -1044,8 +1042,8 @@ function JuegosScreens() {
   if (screen === 'trineo') return (<Trineo onExit={exit} juegos={juegos} />)
   if (screen === 'pesca') return (<Pesca onExit={exit} juegos={juegos} />)
   if (screen === 'hilo') return (<Hilo onExit={exit} juegos={juegos} />)
-  if (screen === 'bola') return (<Bola onExit={exit} juegos={juegos} />)
-  if (screen === 'regatta') return (<Regata onExit={exit} juegos={juegos} />)
+  if (screen === 'taller') return (<Taller onExit={exit} juegos={juegos} />)
+  if (screen === 'criaturas') return (<Criaturas onExit={exit} juegos={juegos} />)
   if (screen === 'plinko') return (<Plinko onExit={exit} juegos={juegos} />)
   if (screen === 'frog') return (<Frog onExit={exit} juegos={juegos} />)
   if (screen === 'race') return (<Race onExit={exit} juegos={juegos} />)

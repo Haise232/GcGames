@@ -1,4 +1,4 @@
-/* Escrito a mano: lo común de los juegos de las Fiestas (Hilo.jsx y Bola.jsx). A la izquierda el escenario
+/* Escrito a mano: lo común de los juegos con panel a la derecha (Mayor o Menor, Lotería, Trineo, Taller y Criaturas). A la izquierda el escenario
    de cada juego (con su fondo) y a la derecha el panel con el premio, las opciones y la apuesta. En el móvil, el panel
    va debajo. Cada juego pone su escenario en su propio CSS. */
 .juegos-root .fi-app {
@@ -390,21 +390,4 @@
 }
 .juegos-root .fis-up {
   animation: fis-bob 1s ease-in-out infinite alternate;
-}
-.juegos-root .fis-roll {
-  animation: fis-roll 3s ease-in-out infinite;
-}
-@keyframes fis-bob {
-  to {
-    translate: 0 -4px;
-  }
-}
-@keyframes fis-roll {
-  0% {
-    translate: -2px 80px;
-  }
-  60%,
-  100% {
-    translate: 0 0;
-  }
 }

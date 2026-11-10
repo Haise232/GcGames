@@ -11,7 +11,7 @@ import { storedTimers } from './engine/timers.mjs'
 import { weekOf } from './engine/week.mjs'
 import { PUBLIC_SEATS, GAMES, nextNumber, pickTable } from './engine/lobby.mjs'
 import { CHESS_CHECK_SQL, SCHEMA_SQL } from './schema.mjs'
-import { SOLO_GAMES, SOLO_PLAY, crashDue, crashView, crashWaitMs, raceDue, raceView, regattaDue, regattaView, rouletteDue, rouletteView } from './solo.mjs'
+import { SOLO_GAMES, SOLO_PLAY, crashDue, crashView, crashWaitMs, raceDue, raceView, rouletteDue, rouletteView } from './solo.mjs'
 import { GACHA_ERRORS, createGacha, priceOf } from './gacha.mjs'
 import { BINGO_ERRORS, createBingo } from './bingo.mjs'
 import { AUCTION_ERRORS, createAuction } from './subasta.mjs'
@@ -28,14 +28,14 @@ import { PASE_ERRORS, PASE_SQL, createPase } from './pase.mjs'
 const SOLO_CHECK_SQL = `
 alter table public.juegos_solo drop constraint if exists juegos_solo_juego_check;
 alter table public.juegos_solo add constraint juegos_solo_juego_check
-  check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish', 'dig', 'dive', 'regatta', 'hilo', 'pesca', 'trineo'));
+  check (juego in ('roulette', 'blackjack', 'crash', 'frog', 'race', 'dungeon', 'bribe', 'wheel', 'bingo', 'tower', 'heist', 'auction', 'bridge', 'elevator', 'inmo', 'fish', 'dig', 'dive', 'regatta', 'hilo', 'pesca', 'trineo', 'taller', 'criaturas'));
 alter table public.juegos_rondas drop constraint if exists juegos_rondas_juego_check;
 alter table public.juegos_rondas add constraint juegos_rondas_juego_check
   check (juego in ('auction', 'bridge', 'elevator', 'pesca'));
 `
 
 // Juegos de una sola jugada: se liquidan al momento y no guardan nada en juegos_solo.
-const INSTANT = new Set(['plinko', 'bola', 'loteria'])
+const INSTANT = new Set(['plinko', 'loteria'])
 
 // Lo que valía una partida de Tesoro en la Arena (retirada) con los hoyos ya cavados: las reglas de dig/arena.js de
 // entonces (25 hoyos, la casa se queda el 4 %, tope ×250), para devolvérselo a quien la dejó a medias.
@@ -336,8 +336,8 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       const pending = (
         await db.query(
           `with meta as (insert into public.juegos_meta (id, semana) values (1, $1) on conflict (id) do nothing)
-           select exists(select 1 from public.juegos_solo where juego in ('blackjack', 'bribe', 'wheel', 'dungeon', 'dig', 'dive')) as solo,
-                  coalesce((select pg_get_constraintdef(oid) like '%''trineo''%' from pg_constraint where conname = 'juegos_solo_juego_check'), true) as solo_check,
+           select exists(select 1 from public.juegos_solo where juego in ('blackjack', 'bribe', 'wheel', 'dungeon', 'dig', 'dive', 'regatta')) as solo,
+                  coalesce((select pg_get_constraintdef(oid) like '%''criaturas''%' from pg_constraint where conname = 'juegos_solo_juego_check'), true) as solo_check,
                   ${rows[0].duelos ? `exists(select 1 from public.juegos_duelos where estado = 'abierto')` : 'false'} as duelos`,
           [weekOf(now()).key],
         )
@@ -352,9 +352,12 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         // devuelve lo que valían los hoyos ya cavados (como mínimo la apuesta); en la Apnea, la apuesta de la inmersión.
         await refundRetired('dig', (estado) => (estado?.bet > 0 ? Math.max(estado.bet, arenaWorth(estado)) : 0))
         await refundRetired('dive', (estado) => (estado?.bet > 0 && estado.start != null ? estado.bet : 0))
+        // La Regata se retiró también en la Season 5 (deja sitio al Taller y a Criaturas): se devuelve lo apostado en
+        // una regata que no llegó a pagarse.
+        await refundRetired('regatta', (estado) => (estado?.bets ?? []).reduce((sum, b) => sum + (b.amount ?? 0), 0))
       }
-      // Pez Gordo y el Trineo guardan su partida en juegos_solo: en una base de datos de antes se amplía el check
-      // (migracion_juegos_pez.sql y supabase/migracion_juegos_trineo.sql).
+      // Pez Gordo, el Trineo, el Taller y Criaturas guardan su partida en juegos_solo: en una base de datos de antes se
+      // amplía el check (migracion_juegos_pez.sql, migracion_juegos_trineo.sql y migracion_juegos_taller_criaturas.sql).
       if (!pending.solo_check) await db.query(SOLO_CHECK_SQL)
       if (pending.duelos) await refundDuels()
     })().catch((error) => {
@@ -418,7 +421,8 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         await q(`update public.juegos_meta set semana = $1, semana_pasada = $2 where id = 1`, [week.key, lastWeek])
         await q(`update public.juegos_cuentas set saldo = $1, dias = $2::bigint[], jugado = false, hacienda = '{}'::jsonb`, [STARTING_BALANCE, pgArray(NO_DAYS)])
         await q(`delete from public.juegos_chat where creado < now() - interval '7 days'`)
-        await q(`delete from public.juegos_solo`)
+        // El equipo de Criaturas dura toda la temporada: su fila se queda (el combate a medias se descarta solo).
+        await q(`delete from public.juegos_solo where juego <> 'criaturas'`)
         await banca.sweep(q)
         await bingo.sweep(q)
         await auction.sweep(q)
@@ -899,7 +903,6 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
     solo_roulette: { game: 'roulette', due: rouletteDue, view: rouletteView },
     solo_crash: { game: 'crash', due: (saved, t) => crashDue(saved, t, secret), view: crashView },
     solo_race: { game: 'race', due: (saved, t) => raceDue(saved, t, secret), view: raceView },
-    solo_regatta: { game: 'regatta', due: (saved, t) => regattaDue(saved, t, secret), view: regattaView },
   }
 
   // Acciones que se aplican a la mesa en la que estás.
@@ -996,8 +999,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       }
       case 'solo_roulette':
       case 'solo_crash':
-      case 'solo_race':
-      case 'solo_regatta': {
+      case 'solo_race': {
         const live = LIVE_SOLO[msg.t]
         let play = msg
         // Espera larga del cohete: se responde justo cuando explota (sin tocar la BD mientras tanto), así cada
@@ -1028,8 +1030,9 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       case 'solo_fish':
       case 'solo_loteria':
       case 'solo_trineo':
+      case 'solo_taller':
+      case 'solo_criaturas':
       case 'solo_plinko':
-      case 'solo_bola':
       case 'solo_hilo':
       case 'solo_frog':
       case 'solo_tower':
@@ -1038,7 +1041,9 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         if (out.error) reply.error = { code: out.error, message: ERRORS[out.error] }
         else reply.solo = out.result
         if (out.settled) reply.paseEvent = await pase.record(user.id, SOLO_GAMES[msg.t], { win: out.settled.net > 0 })
-        if (['solo_tower', 'solo_heist', 'solo_fish', 'solo_trineo'].includes(msg.t) && reply.solo) reply.solo.ranking = await dayRanking(SOLO_GAMES[msg.t], user.id)
+        // El Taller no tiene jugadas que se liquiden: para el pase cuenta cada vez que recoges.
+        else if (out.collect) reply.paseEvent = await pase.record(user.id, 'taller', { win: true })
+        if (['solo_tower', 'solo_heist', 'solo_fish', 'solo_trineo', 'solo_criaturas'].includes(msg.t) && reply.solo) reply.solo.ranking = await dayRanking(SOLO_GAMES[msg.t], user.id)
         if (out.abuse) reply.abuse = out.abuse
         me.balance = (await db.query(`select saldo from public.juegos_cuentas where usuario_id = $1`, [user.id])).rows[0].saldo
         return reply

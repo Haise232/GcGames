@@ -1,6 +1,6 @@
 import './fiestas.css'
-// Escenas de los juegos de las Fiestas para sus tarjetas del selector: las cartas de Mayor o Menor sobre el mantel de
-// cuadros y la cancha de la Bola Canaria con el mingue. Animaciones en fiestas.css.
+// Escena de Mayor o Menor para su tarjeta del selector: las cartas sobre el mantel de
+// cuadros. Animaciones en fiestas.css.
 export function HiloScene() {
   return (
     <svg className="hub-scene" viewBox="0 0 240 160" preserveAspectRatio="xMidYMid slice">
@@ -38,31 +38,6 @@ export function HiloScene() {
           ▼
         </text>
       </g>
-    </svg>
-  )
-}
-
-export function BolaScene() {
-  return (
-    <svg className="hub-scene" viewBox="0 0 240 160" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <radialGradient id="bls-dirt" cx="0.5" cy="0.4" r="0.8">
-          <stop offset="0" stopColor="#d9a86a" />
-          <stop offset="1" stopColor="#a8723a" />
-        </radialGradient>
-      </defs>
-      <rect width="240" height="160" fill="#2a5a3a" />
-      <rect x="40" y="6" width="160" height="148" rx="6" fill="url(#bls-dirt)" stroke="#e8dcc0" strokeWidth="4" />
-      {[42, 28, 16].map((r) => (
-        <circle key={r} cx="120" cy="56" r={r} fill="none" stroke="#fffae6" strokeOpacity="0.55" strokeDasharray="4 3" />
-      ))}
-      <circle cx="120" cy="56" r="5" fill="#fffaf0" stroke="#9a8a6a" />
-      <circle cx="104" cy="70" r="9" fill="#2f6ab0" stroke="#163a6a" strokeWidth="1.5" />
-      <g className="fis-roll">
-        <circle cx="132" cy="62" r="9" fill="#d8352a" stroke="#6a120c" strokeWidth="1.5" />
-        <path d="M126 59 Q132 54 138 59" stroke="#fff" strokeOpacity="0.6" strokeWidth="1.5" fill="none" />
-      </g>
-      <path d="M120 140 Q124 110 130 70" stroke="#fff" strokeOpacity="0.4" strokeWidth="2" strokeDasharray="3 4" fill="none" />
     </svg>
   )
 }
