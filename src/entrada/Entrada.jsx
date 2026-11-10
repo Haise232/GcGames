@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { Eye, EyeOff, Check, Clock, Sparkles } from 'lucide-react'
+import { Eye, EyeOff, Check, Clock, Gift } from 'lucide-react'
 import '@fontsource/abril-fatface/latin.css'
 import '@fontsource-variable/instrument-sans/index.css'
 import { useAuth } from '../hooks/useAuth'
@@ -61,18 +61,92 @@ const PREVIEW = [
   { id: 'race', name: 'Carrera', note: 'Al podio', art: <RaceScene />, bg: 'linear-gradient(#2a2410, #120f05)' },
 ]
 
+// ---------- Navidad: nieve, guirnalda de luces y gorro ----------
+
+// Copos con posición, tamaño y ritmo fijos (salen del índice): sin aleatorios, cada render pinta lo mismo.
+const COPOS = Array.from({ length: 46 }, (_, i) => ({
+  x: (i * 37.3) % 100,
+  s: 2 + ((i * 7) % 5),
+  d: 9 + ((i * 13) % 11),
+  delay: -((i * 2.7) % 20),
+  drift: ((i % 5) - 2) * 14,
+  o: 0.45 + ((i * 3) % 5) * 0.11,
+}))
+
+function Nieve() {
+  return (
+    <div className="gc-snow" aria-hidden="true">
+      {COPOS.map((c, i) => (
+        <i
+          key={i}
+          style={{ '--x': `${c.x}%`, '--s': `${c.s}px`, '--d': `${c.d}s`, '--delay': `${c.delay}s`, '--drift': `${c.drift}px`, '--o': c.o }}
+        />
+      ))}
+    </div>
+  )
+}
+
+function Guirnalda() {
+  return (
+    <div className="gc-lights" aria-hidden="true">
+      {Array.from({ length: 60 }, (_, i) => (
+        <i key={i} />
+      ))}
+    </div>
+  )
+}
+
+// Gorro de Papá Noel que se pone encima del logo.
+function Gorro() {
+  return (
+    <svg className="gc-hat" viewBox="0 0 64 56" aria-hidden="true">
+      <path d="M8 44 C10 22 24 6 44 8 C54 9 60 18 58 30 L50 26 C48 20 44 18 40 20 C30 26 30 38 30 44 Z" fill="#d42a35" />
+      <path d="M40 20 C30 26 30 38 30 44 L24 44 C24 34 28 24 40 20 Z" fill="#a8141f" />
+      <rect x="4" y="40" width="34" height="11" rx="5.5" fill="#fbf7f0" />
+      <circle cx="56" cy="32" r="6.5" fill="#fbf7f0" />
+    </svg>
+  )
+}
+
+// Ramita de acebo para la esquina de la tarjeta.
+function Acebo() {
+  return (
+    <svg className="gc-holly" viewBox="0 0 72 48" aria-hidden="true">
+      <path
+        d="M34 26 C28 14 16 10 4 14 C8 17 7 21 3 23 C8 25 9 29 6 33 C17 34 28 32 34 26 Z"
+        fill="#1f7a4d"
+        stroke="#0f4a2d"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M38 26 C44 14 56 10 68 14 C64 17 65 21 69 23 C64 25 63 29 66 33 C55 34 44 32 38 26 Z"
+        fill="#2a9461"
+        stroke="#0f4a2d"
+        strokeWidth="1.5"
+      />
+      <circle cx="31" cy="30" r="5.5" fill="#d42a35" />
+      <circle cx="41" cy="30" r="5.5" fill="#c21f2b" />
+      <circle cx="36" cy="22" r="5.5" fill="#e23a44" />
+      <circle cx="34.5" cy="20.5" r="1.6" fill="#fff" opacity="0.7" />
+    </svg>
+  )
+}
+
 function Escaparate({ compacto = false }) {
   return (
     <section className={`gc-show ${compacto ? 'gc-show--compact' : ''}`} aria-label="Qué es GcGames">
       <div className="gc-show__brand">
-        <Logo className="gc-show__logo" />
+        <span className="gc-show__logo-wrap">
+          <Logo className="gc-show__logo" />
+          <Gorro />
+        </span>
         <div>
-          <p className="gc-show__eyebrow">Casino online · dinero ficticio</p>
+          <p className="gc-show__eyebrow">Casino online · Felices fiestas</p>
           <h1>GcGames</h1>
         </div>
       </div>
       <p className="gc-show__lead">
-        Mesas de blackjack, póker y ajedrez en vivo, ruletas y carreras para todos a la vez, cartas coleccionables y una semana para
+        Esta Navidad, la casa invita. Mesas de blackjack, póker y ajedrez en vivo, ruletas y carreras para todos a la vez, cartas coleccionables y una semana para
         acabar en lo más alto del Score.
       </p>
 
@@ -101,13 +175,14 @@ function Escaparate({ compacto = false }) {
           <span className="gc-chip gc-chip--a" />
           <span className="gc-chip gc-chip--b" />
           <span className="gc-chip gc-chip--c" />
+          <span className="gc-gift" />
         </div>
       </div>
 
       <ul className="gc-show__facts">
         <li>
           <b>15.000 €</b>
-          <span>para cada uno, cada semana</span>
+          <span>de aguinaldo, cada semana</span>
         </li>
         <li>
           <b>+15</b>
@@ -125,9 +200,14 @@ function Escaparate({ compacto = false }) {
 function Marco({ children, compacto = false }) {
   return (
     <main className="entrada">
+      <Nieve />
+      <Guirnalda />
       <div className="entrada__layout">
         <Escaparate compacto={compacto} />
-        <div className="entrada__card">{children}</div>
+        <div className="entrada__card">
+          <Acebo />
+          {children}
+        </div>
       </div>
     </main>
   )
@@ -136,6 +216,7 @@ function Marco({ children, compacto = false }) {
 export function Cargando() {
   return (
     <main className="entrada entrada--center" aria-busy="true">
+      <Nieve />
       <div className="entrada__loading">
         <Logo className="entrada__loading-logo" />
         <span className="entrada__spinner" aria-label="Cargando" />
@@ -204,7 +285,7 @@ export function Pendiente({ nombre }) {
           <Clock size={16} aria-hidden="true" /> El master la revisa
         </li>
         <li>
-          <Sparkles size={16} aria-hidden="true" /> A jugar con 15.000 €
+          <Gift size={16} aria-hidden="true" /> A abrir tu regalo: 15.000 €
         </li>
       </ol>
       <div className="entrada__actions">
@@ -337,11 +418,11 @@ export function Entrada() {
             </button>
           </div>
           <header className="entrada__head">
-            <h2 className="entrada__title">{modo === 'entrar' ? 'Bienvenido de nuevo' : 'Únete a la mesa'}</h2>
+            <h2 className="entrada__title">{modo === 'entrar' ? 'Vuelve a casa por Navidad' : 'Hay sitio en la mesa'}</h2>
             <p className="entrada__text">
               {modo === 'entrar'
-                ? 'Tu saldo, tus cartas y tus inmuebles te están esperando.'
-                : 'Empiezas con 15.000 € de mentira. El master acepta las cuentas nuevas.'}
+                ? 'Tu saldo, tus cartas y tus inmuebles te esperan junto al árbol.'
+                : 'Tu regalo de bienvenida: 15.000 € de mentira. El master acepta las cuentas nuevas.'}
             </p>
           </header>
         </>
