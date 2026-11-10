@@ -802,8 +802,8 @@ function criaturasView(state, balance, extra = {}) {
   }
 }
 
-// msg.a: «sync», «starter» (sp), «lead» (idx: la pones la primera), «start» (bet, tier), «move» (move), «switch» (to),
-// «flee», «join» (aceptar la criatura que quiere unirse) o «skip» (no aceptarla).
+// msg.a: «sync», «starter» (sp), «lead» (idx: la pones la primera), «train» (idx, n: toques de entrenamiento), «start»
+// (bet, tier), «move» (move), «switch» (to), «flee», «join» (aceptar la criatura que quiere unirse) o «skip».
 export function criaturasPlay(msg, balance, saved, rand, ctx) {
   let state = saved?.season === cri.SEASON ? { ...saved, team: saved.team.map((c) => ({ ...c })) } : { season: cri.SEASON, team: [], battle: null, offer: null, last: null, best: null }
   if (state.battle && state.battle.week !== ctx.week) state.battle = null
@@ -820,12 +820,14 @@ export function criaturasPlay(msg, balance, saved, rand, ctx) {
     b.party.forEach((idx) => {
       const r = cri.gainXp(state.team[idx], xp)
       state.team[idx] = r.c
-      if (r.ups) ups.push({ idx, lvl: r.c.lvl })
+      if (r.ups) ups.push({ idx, lvl: r.c.lvl, evolved: r.evolved })
     })
     let offer = null
     if (win && state.team.length < cri.TEAM_MAX && rand(100) < cri.JOIN_CHANCE) {
       const c = b.rival[rand(b.rival.length)]
-      offer = { sp: c.sp, lvl: Math.max(2, Math.min(cri.MAX_LEVEL, c.lvl - 3)) }
+      const lvl = Math.max(2, Math.min(cri.MAX_LEVEL, c.lvl - 3))
+      // Llega en la forma que le toca a su nivel (una evolucionada de nivel bajo vuelve a su forma de antes).
+      offer = { sp: cri.formAt(cri.SPECIES[c.sp].from ?? c.sp, lvl), lvl }
     }
     if (paid > 0 && (!state.best || mult > state.best.mult)) state.best = { day: ctx.day, mult, payout: paid, mode: b.tier }
     state = { ...state, battle: null, offer, last: { round: ctx.now, stake: b.bet, tier: b.tier, win, mult, payout: paid, net: paid - b.bet, xp, ups } }
@@ -843,6 +845,20 @@ export function criaturasPlay(msg, balance, saved, rand, ctx) {
     const [c] = state.team.splice(msg.idx, 1)
     state.team.unshift(c)
     return { delta: 0, played: false, saved: state, result: criaturasView(state, balance) }
+  }
+  // Entrenar: cada toque da TRAIN_XP a esa criatura. Los toques salen de un cubo que se llena a TRAIN_RATE por segundo y
+  // guarda como mucho TRAIN_BATCH: da igual cuántas peticiones mande un programa que pulse solo, no va más rápido que eso.
+  // trainAt es el instante hasta el que ya se gastó el cubo.
+  if (msg.a === 'train') {
+    if (fighting || !Number.isInteger(msg.idx) || !state.team[msg.idx] || !Number.isInteger(msg.n) || msg.n < 1) return { error: 'BAD_MESSAGE' }
+    const full = (cri.TRAIN_BATCH / cri.TRAIN_RATE) * 1000
+    const base = Math.max(state.trainAt ?? 0, ctx.now - full)
+    const taps = Math.min(msg.n, Math.floor(((ctx.now - base) / 1000) * cri.TRAIN_RATE))
+    if (taps < 1) return { delta: 0, played: false, saved: null, result: criaturasView(state, balance, { trained: { idx: msg.idx, taps: 0, ups: 0, evolved: null } }) }
+    const r = cri.gainXp(state.team[msg.idx], taps * cri.TRAIN_XP)
+    state.team[msg.idx] = r.c
+    state.trainAt = base + (taps / cri.TRAIN_RATE) * 1000
+    return { delta: 0, played: false, saved: state, result: criaturasView(state, balance, { trained: { idx: msg.idx, taps, ups: r.ups, evolved: r.evolved } }) }
   }
   if (msg.a === 'join' || msg.a === 'skip') {
     if (!state.offer) return { error: 'BAD_PHASE' }

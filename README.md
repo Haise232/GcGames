@@ -113,6 +113,7 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 | Blackjack | Campeonato de Pesca (cada 2 min) | Pez Gordo | Gacha de cartas |
 | Póker | Ruleta (cada 25 s) | Criaturas de las Islas | Inmobiliaria |
 | Ajedrez | Cohete (cada 30 s) | Taller de Papá Noel | Cuenta en Suiza |
+| Duelo de Criaturas | | | |
 | | Carrera (cada 55 s) | Lotería de Navidad | Hacienda |
 | | Ascensor (cada minuto) | El Trineo de Papá Noel | Casa de empeños |
 | | La Subasta (cada minuto) | La Torre · El Atraco | |
@@ -142,6 +143,24 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 - **Mayor o Menor**: con la baraja española, en la mesa de un guachinche. Dices si la siguiente carta será mayor o igual,
   o menor o igual; cada acierto multiplica el premio y cobras cuando quieras. Tres cambios de carta gratis por partida.
 
+- **Lotería de Navidad**: compras un décimo con el número que quieras y se canta el sorteo con los dos bombos: ocho
+  quintos, dos cuartos, el tercero, el segundo y el Gordo (×400), además de la pedrea, la terminación y el reintegro.
+  El servidor sortea primero el premio y después un sorteo que lo enseña para tu número.
+- **El Trineo de Papá Noel**: es Nochebuena y repartes regalos. En cada parada eliges casita (90 %), bloque de pisos
+  (70 %) o rascacielos (50 %); cada regalo entregado multiplica el premio por 1 / p y cobras cuando quieras. Si te
+  pillan, pierdes la apuesta. Hasta 24 paradas por noche.
+- **Taller de Papá Noel**: un tycoon. Inviertes saldo en puestos (elfos, carpintería, muñecas, bicis, consolas) que
+  producen € cada hora aunque no estés, y en mejoras; lo producido se guarda en un almacén que hay que ir vaciando. Se
+  reinicia con la semana: montándolo el lunes y recogiendo a menudo rinde un +35-45 % (`scripts/taller-ajuste.mjs`).
+- **Criaturas de las Islas**: rol por turnos con 18 criaturas originales de las islas y la Navidad. Eliges la primera
+  (Lavín, Pulpín, Draguito o Copito) y formas un equipo de hasta seis que dura toda la temporada. Se **entrenan
+  pulsando** (clic o espacio; el servidor no cuenta más de 12 toques por segundo) y ocho de ellas **evolucionan** al
+  nivel 16; al 20 aprenden un ataque definitivo. Contra la casa apuestas y eliges rival (×1,46, ×2,14, ×4,55 o ×9,7):
+  el rival tiene tantas criaturas como tú y su nivel se cuenta desde tu criatura más fuerte. Premios ajustados con
+  `scripts/criaturas-ajuste.mjs` (jugando bien ~95 %, un experto no pasa del 100 %).
+- **Duelo de Criaturas** (mesa en vivo): retas a otro jugador, apostáis lo mismo y quien gana se lleva el bote menos un
+  4 % para la casa. Los dos eligen a la vez cada turno (30 s; quien no elige pierde el turno, y a los tres, el duelo) y
+  todas las criaturas luchan en su forma final al nivel 25: cuenta el equipo y la estrategia, no lo entrenado.
 </details>
 
 ## 🔧 Por dentro

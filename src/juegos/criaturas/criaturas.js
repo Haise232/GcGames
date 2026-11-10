@@ -9,6 +9,11 @@
 //
 // Todo el combate lo decide el servidor (precisión, daño, golpes críticos y lo que hace el rival) con su generador; la
 // pantalla solo enseña lo que pasó.
+//
+// Además: las criaturas se entrenan pulsando (cada toque, TRAIN_XP de experiencia; el servidor no admite más de
+// TRAIN_RATE por segundo), evolucionan al nivel EVOLVE_LEVEL y se puede retar a otros jugadores en la mesa en vivo
+// (engine/criaturas-room.mjs). Ahí todas luchan en su forma final al nivel DUEL_LEVEL: cuenta la estrategia, no los
+// toques.
 
 export const MIN_BET = 10
 export const MAX_BET = 2000
@@ -19,6 +24,12 @@ export const TEAM_MAX = 6 // criaturas que puedes tener
 export const PARTY = 3 // las que combaten (las tres primeras)
 export const START_LEVEL = 5
 export const BIG_MOVE_LEVEL = 8 // a este nivel se aprende el ataque fuerte de su tipo
+export const ULTRA_MOVE_LEVEL = 20 // y a este, el definitivo (solo las criaturas en su forma final)
+export const EVOLVE_LEVEL = 16
+export const TRAIN_XP = 1 // experiencia por toque de entrenamiento
+export const TRAIN_RATE = 12 // toques por segundo como mucho (lo que pase de ahí no cuenta)
+export const TRAIN_BATCH = 60 // toques que se mandan juntos como mucho
+export const DUEL_LEVEL = 25 // nivel al que luchan todas en la mesa contra jugadores
 export const JOIN_CHANCE = 35 // % de que una criatura del rival quiera unirse a ti tras ganarle
 
 // Tipos: cada uno es muy eficaz (×2) contra los de `strong` y poco eficaz (×0,5) contra los de `weak`.
@@ -43,29 +54,54 @@ export const MOVES = {
   drago: { name: 'Furia del drago', type: 'planta', power: 90, acc: 80 },
   escarcha: { name: 'Escarcha', type: 'hielo', power: 55, acc: 100 },
   ventisca: { name: 'Ventisca', type: 'hielo', power: 90, acc: 80 },
+  volcan: { name: 'Corazón de volcán', type: 'fuego', power: 120, acc: 70 },
+  tsunami: { name: 'Mar de fondo', type: 'agua', power: 120, acc: 70 },
+  laurisilva: { name: 'Laurisilva', type: 'planta', power: 120, acc: 70 },
+  glaciar: { name: 'Nevada del Teide', type: 'hielo', power: 120, acc: 70 },
 }
-const TYPE_MOVES = { fuego: ['ascuas', 'erupcion'], agua: ['chorro', 'maremoto'], planta: ['latigo', 'drago'], hielo: ['escarcha', 'ventisca'] }
+const TYPE_MOVES = {
+  fuego: ['ascuas', 'erupcion', 'volcan'],
+  agua: ['chorro', 'maremoto', 'tsunami'],
+  planta: ['latigo', 'drago', 'laurisilva'],
+  hielo: ['escarcha', 'ventisca', 'glaciar'],
+}
 
-// Especies: tipo y estadísticas base [vida, ataque, defensa, velocidad].
+// Especies: tipo y estadísticas base [vida, ataque, defensa, velocidad]. `evolves`: en qué se convierte al nivel
+// EVOLVE_LEVEL. `from`: de cuál viene (las formas finales, que son las que luchan contra jugadores).
 export const SPECIES = {
-  lavin: { name: 'Lavín', type: 'fuego', base: [46, 58, 46, 58], blurb: 'Una bolita de lava del Teide que nunca se enfría.' },
-  pulpin: { name: 'Pulpín', type: 'agua', base: [50, 52, 52, 48], blurb: 'Pulpito de La Restinga; escupe tinta con mucha puntería.' },
-  draguito: { name: 'Draguito', type: 'planta', base: [54, 52, 54, 42], blurb: 'Un drago bebé de Icod. Dentro de mil años será enorme.' },
-  copito: { name: 'Copito', type: 'hielo', base: [46, 56, 46, 56], blurb: 'Muñeco de nieve de las Cañadas, con bufanda roja.' },
-  perenquen: { name: 'Perenquén', type: 'fuego', base: [40, 56, 40, 70], blurb: 'Salamanquesa de las paredes encaladas: rapidísimo.' },
-  pardela: { name: 'Pardela', type: 'agua', base: [44, 54, 40, 66], blurb: 'Ave marina que llora por las noches en los acantilados.' },
-  lagarton: { name: 'Lagartón', type: 'planta', base: [64, 56, 62, 28], blurb: 'Lagarto gigante de El Hierro: lento, pero un muro.' },
-  renito: { name: 'Renito', type: 'hielo', base: [56, 60, 50, 44], blurb: 'Reno joven que se escapó del trineo para quedarse en las islas.' },
+  lavin: { name: 'Lavín', type: 'fuego', base: [46, 58, 46, 58], evolves: 'magmon', blurb: 'Una bolita de lava del Teide que nunca se enfría.' },
+  magmon: { name: 'Magmón', type: 'fuego', base: [62, 80, 60, 74], from: 'lavin', blurb: 'Una roca volcánica con brazos: donde pisa, deja el suelo humeando.' },
+  pulpin: { name: 'Pulpín', type: 'agua', base: [50, 52, 52, 48], evolves: 'pulpazo', blurb: 'Pulpito de La Restinga; escupe tinta con mucha puntería.' },
+  pulpazo: { name: 'Pulpazo', type: 'agua', base: [68, 72, 70, 64], from: 'pulpin', blurb: 'Ocho brazos y mucha paciencia: espera a que el rival se canse.' },
+  draguito: { name: 'Draguito', type: 'planta', base: [54, 52, 54, 42], evolves: 'dragonal', blurb: 'Un drago bebé de Icod. Dentro de mil años será enorme.' },
+  dragonal: { name: 'Dragonal', type: 'planta', base: [76, 70, 76, 54], from: 'draguito', blurb: 'Un drago milenario que camina. Su savia es roja como la sangre.' },
+  copito: { name: 'Copito', type: 'hielo', base: [46, 56, 46, 56], evolves: 'ventisquero', blurb: 'Muñeco de nieve de las Cañadas, con bufanda roja.' },
+  ventisquero: { name: 'Ventisquero', type: 'hielo', base: [64, 76, 62, 72], from: 'copito', blurb: 'Tres bolas de nieve y una tormenta dentro. Lleva la bufanda de su infancia.' },
+  perenquen: { name: 'Perenquén', type: 'fuego', base: [40, 56, 40, 70], evolves: 'salamandron', blurb: 'Salamanquesa de las paredes encaladas: rapidísimo.' },
+  salamandron: { name: 'Salamandrón', type: 'fuego', base: [56, 74, 52, 92], from: 'perenquen', blurb: 'Corre por las paredes y deja chispas a su paso.' },
+  pardela: { name: 'Pardela', type: 'agua', base: [44, 54, 40, 66], evolves: 'pardelon', blurb: 'Ave marina que llora por las noches en los acantilados.' },
+  pardelon: { name: 'Pardelón', type: 'agua', base: [60, 72, 54, 88], from: 'pardela', blurb: 'Planea de isla en isla sin batir las alas.' },
+  renito: { name: 'Renito', type: 'hielo', base: [56, 60, 50, 44], evolves: 'renazo', blurb: 'Reno joven que se escapó del trineo para quedarse en las islas.' },
+  renazo: { name: 'Renazo', type: 'hielo', base: [76, 80, 66, 58], from: 'renito', blurb: 'Tira del trineo él solo. La nariz le brilla cuando se enfada.' },
+  lagarton: { name: 'Lagartón', type: 'planta', base: [72, 66, 74, 40], blurb: 'Lagarto gigante de El Hierro: lento, pero un muro.' },
+  guirre: { name: 'Guirre', type: 'fuego', base: [64, 72, 58, 76], blurb: 'Alimoche de Fuerteventura. Vuela tan alto que se tuesta al sol.' },
+  cardon: { name: 'Cardón', type: 'planta', base: [70, 68, 80, 44], blurb: 'Un cardón con mal genio: pincha a quien se acerque.' },
+  pejeverde: { name: 'Pejeverde', type: 'agua', base: [66, 70, 60, 74], blurb: 'Pez de los charcos con colores de arcoíris. Muerde fuerte.' },
 }
 export const SPECIES_IDS = Object.keys(SPECIES)
+// Las que se encuentran (las que no vienen de otra): de ellas salen los rivales.
+export const WILD_IDS = SPECIES_IDS.filter((id) => !SPECIES[id].from)
+// Su forma final (para la mesa contra jugadores) y la forma que le toca a un nivel.
+export const finalOf = (sp) => SPECIES[sp].evolves ?? sp
+export const formAt = (sp, lvl) => (SPECIES[sp].evolves && lvl >= EVOLVE_LEVEL ? SPECIES[sp].evolves : sp)
 export const STARTERS = ['lavin', 'pulpin', 'draguito', 'copito']
 
 // Rivales: cuántos niveles más (o menos) que la media de tu equipo y lo que paga ganarles.
 export const TIERS = {
-  facil: { name: 'Paseante de la playa', blurb: 'Dos niveles por debajo de tu mejor criatura.', offset: -2, mult: 1.47 },
-  normal: { name: 'Entrenadora del barrio', blurb: 'Al nivel de tu mejor criatura.', offset: 0, mult: 2.17 },
-  dificil: { name: 'Guardián del faro', blurb: 'Tres niveles por encima.', offset: 3, mult: 4.7 },
-  campeon: { name: 'Campeona del Teide', blurb: 'Seis niveles por encima. Solo para valientes.', offset: 6, mult: 10.2 },
+  facil: { name: 'Paseante de la playa', blurb: 'Dos niveles por debajo de tu mejor criatura.', offset: -2, mult: 1.46 },
+  normal: { name: 'Entrenadora del barrio', blurb: 'Al nivel de tu mejor criatura.', offset: 0, mult: 2.14 },
+  dificil: { name: 'Guardián del faro', blurb: 'Tres niveles por encima.', offset: 3, mult: 4.55 },
+  campeon: { name: 'Campeona del Teide', blurb: 'Seis niveles por encima. Solo para valientes.', offset: 6, mult: 9.7 },
 }
 export const TIER_IDS = Object.keys(TIERS)
 
@@ -81,8 +117,11 @@ export const statsOf = (sp, lvl) => {
   return { hp: Math.floor((hp * 2 * lvl) / 100) + lvl + 10, atk: s(atk), def: s(def), spd: s(spd) }
 }
 export const movesOf = (sp, lvl) => {
-  const [small, big] = TYPE_MOVES[SPECIES[sp].type]
-  return lvl >= BIG_MOVE_LEVEL ? ['placaje', small, big] : ['placaje', small]
+  const [small, big, ultra] = TYPE_MOVES[SPECIES[sp].type]
+  const out = ['placaje', small]
+  if (lvl >= BIG_MOVE_LEVEL) out.push(big)
+  if (lvl >= ULTRA_MOVE_LEVEL && !SPECIES[sp].evolves) out.push(ultra)
+  return out
 }
 export const xpToNext = (lvl) => 12 * lvl
 // Una criatura lista para combatir (con la vida llena).
@@ -93,7 +132,8 @@ export function fighter(sp, lvl) {
 // XP que da ganar un combate a cada criatura que combatió.
 export const xpFor = (rivalLevels, tier) => Math.round((rivalLevels.reduce((a, b) => a + b, 0) / rivalLevels.length) * (TIER_IDS.indexOf(tier) + 2) * 1.6)
 
-// Sube niveles con la XP ganada. Devuelve la criatura nueva y cuántos niveles subió.
+// Sube niveles con la XP ganada (y evoluciona al llegar al nivel). Devuelve la criatura nueva, cuántos niveles subió y
+// en qué evolucionó (o null).
 export function gainXp(c, xp) {
   let { lvl } = c
   let total = c.xp + xp
@@ -104,7 +144,8 @@ export function gainXp(c, xp) {
     ups++
   }
   if (lvl >= MAX_LEVEL) total = 0
-  return { c: { ...c, lvl, xp: total }, ups }
+  const sp = formAt(c.sp, lvl)
+  return { c: { ...c, sp, lvl, xp: total }, ups, evolved: sp !== c.sp ? sp : null }
 }
 
 // --- Rival ---
@@ -113,9 +154,8 @@ export function gainXp(c, xp) {
 export function rivalTeam(myLevels, tier, rand) {
   const base = Math.max(...myLevels) + TIERS[tier].offset
   return myLevels.map(() => {
-    const sp = SPECIES_IDS[rand(SPECIES_IDS.length)]
     const lvl = Math.max(2, Math.min(MAX_LEVEL + 6, base + rand(3) - 1))
-    return fighter(sp, lvl)
+    return fighter(formAt(WILD_IDS[rand(WILD_IDS.length)], lvl), lvl)
   })
 }
 
@@ -243,6 +283,66 @@ export function bestSwitch(battle) {
   return alive(battle.mine)
     .filter((i) => i !== battle.a || battle.mine[battle.a].hp <= 0)
     .reduce((best, i) => (best === -1 || expected(battle.mine[i], r, bestMove(battle.mine[i], r)) > expected(battle.mine[best], r, bestMove(battle.mine[best], r)) ? i : best), -1)
+}
+
+// --- Duelo entre jugadores (mesa en vivo) ---
+// Cada uno elige a la vez qué hace; cuando están las dos (o se acaba el tiempo) se resuelve el turno: primero los
+// cambios y después los ataques, el más rápido antes. Quien se queda sin criatura en pie pierde. duel: { sides: [{ team,
+// a, need }, …] }; acts: [acción del 0, acción del 1], cada una { kind: 'move', move } | { kind: 'switch', to } | null
+// (no eligió: pierde el turno). Devuelve { duel, log, end: null | 0 | 1 (quién gana) }. En el log, side es 0 o 1.
+export const duelFighter = (sp) => fighter(finalOf(sp), DUEL_LEVEL)
+
+export function duelTurn(duel, acts, rand) {
+  const d = { sides: duel.sides.map((s) => ({ ...s, team: s.team.map((c) => ({ ...c })) })) }
+  const log = []
+  const active = (i) => d.sides[i].team[d.sides[i].a]
+  const valid = (i, act) => {
+    if (!act) return false
+    const side = d.sides[i]
+    if (act.kind === 'switch') return Number.isInteger(act.to) && act.to !== side.a && side.team[act.to]?.hp > 0
+    if (act.kind === 'move') return !side.need && movesOf(active(i).sp, active(i).lvl).includes(act.move)
+    return false
+  }
+  const clean = acts.map((act, i) => (valid(i, act) ? act : null))
+  // Cambios forzados (te tumbaron la tuya en el turno anterior): solo cambian quienes lo necesitan, nadie ataca.
+  if (d.sides.some((s) => s.need)) {
+    d.sides.forEach((side, i) => {
+      if (!side.need) return
+      const to = clean[i]?.kind === 'switch' ? clean[i].to : alive(side.team)[0]
+      side.a = to
+      side.need = false
+      log.push({ t: 'send', side: i, idx: to })
+    })
+    return { duel: d, log, end: null }
+  }
+  // Cambios voluntarios.
+  clean.forEach((act, i) => {
+    if (act?.kind !== 'switch') return
+    d.sides[i].a = act.to
+    log.push({ t: 'send', side: i, idx: act.to })
+  })
+  // Ataques, el más rápido primero (empate: al azar).
+  const order = [0, 1].filter((i) => clean[i]?.kind === 'move')
+  if (order.length === 2) {
+    const s0 = statsOf(active(0).sp, active(0).lvl).spd
+    const s1 = statsOf(active(1).sp, active(1).lvl).spd
+    if (s1 > s0 || (s1 === s0 && rand(2) === 1)) order.reverse()
+  }
+  for (const i of order) {
+    const j = 1 - i
+    if (active(i).hp <= 0) continue
+    const r = attack(active(i), active(j), clean[i].move, rand)
+    active(j).hp = Math.max(0, active(j).hp - r.dmg)
+    log.push({ t: 'move', side: i, move: clean[i].move, ...r })
+    if (active(j).hp <= 0) {
+      log.push({ t: 'faint', side: j })
+      if (!alive(d.sides[j].team).length) return { duel: d, log, end: i }
+      d.sides[j].need = true
+      break // la tumbada no ataca este turno
+    }
+  }
+  for (const [i, act] of clean.entries()) if (!act) log.push({ t: 'idle', side: i })
+  return { duel: d, log, end: null }
 }
 
 // --- Ayudas de la pantalla ---

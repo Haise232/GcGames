@@ -1,11 +1,16 @@
 // Criaturas de las Islas (Season 5): juego de rol por turnos. Eliges tu primera criatura y vas formando un equipo que
-// dura toda la temporada. Antes de cada combate apuestas y eliges rival: si ganas cobras según su dificultad, tus
-// criaturas ganan experiencia y quizá una del rival quiera unirse a ti. Cada turno lo decide el servidor (reglas en
-// criaturas.js); aquí se enseña paso a paso lo que pasó.
+// dura toda la temporada. Las entrenas pulsando (clic o espacio) y evolucionan al nivel 16. Antes de cada combate
+// apuestas y eliges rival: si ganas cobras según su dificultad, tus criaturas ganan experiencia y quizá una del rival
+// quiera unirse a ti. Contra otros jugadores se combate en la mesa en vivo (DueloTable.jsx). Cada turno lo decide el
+// servidor (reglas en criaturas.js); aquí se enseña paso a paso lo que pasó.
 import { useEffect, useRef, useState } from 'react'
 import { useEffectEvent } from '../comun/useEffectEvent.js'
 import {
   BIG_MOVE_LEVEL,
+  DUEL_LEVEL,
+  EVOLVE_LEVEL,
+  TRAIN_RATE,
+  TRAIN_XP,
   MIN_BET,
   MOVES,
   PARTY,
@@ -29,7 +34,7 @@ import {
   xpToNext,
 } from './criaturas.js'
 import { eur } from '../comun/money.js'
-import { buzz, playCash, playChip, playClunk, playLose, playWin } from '../comun/sound.js'
+import { buzz, playCash, playChip, playClunk, playLose, playReveal, playTurn, playWin } from '../comun/sound.js'
 import { useCountUp } from '../comun/useCountUp.js'
 import WinBurst from '../comun/WinBurst.jsx'
 import { BetBox, FiestaHeader, History } from '../season4/FiestaParts.jsx'
@@ -37,6 +42,7 @@ import CriaturaArt from './CriaturaArt.jsx'
 import './Criaturas.css'
 
 const HISTORY = 14
+const TRAIN_FLUSH_MS = 700 // cada cuánto se mandan los toques acumulados
 const wait = (ms) => new Promise((ok) => setTimeout(ok, ms))
 const nameOf = (c) => SPECIES[c.sp].name
 
@@ -76,10 +82,10 @@ function InfoBox({ c, side, numbers }) {
 }
 
 // Una criatura del equipo, en el campamento.
-function TeamCard({ c, idx, inParty, busy, onLead }) {
+function TeamCard({ c, idx, inParty, busy, onLead, training, onTrain }) {
   const st = statsOf(c.sp, c.lvl)
   return (
-    <li className={`cr-card ${inParty ? 'is-party' : ''}`}>
+    <li className={`cr-card ${inParty ? 'is-party' : ''} ${training ? 'is-training' : ''}`} onClick={() => onTrain(idx)}>
       <CriaturaArt sp={c.sp} />
       <span className="cr-card__body">
         <b>
@@ -94,7 +100,16 @@ function TeamCard({ c, idx, inParty, busy, onLead }) {
         </small>
       </span>
       {idx > 0 && (
-        <button type="button" className="cr-card__lead" disabled={busy} onClick={() => onLead(idx)} title="Ponerla la primera">
+        <button
+          type="button"
+          className="cr-card__lead"
+          disabled={busy}
+          onClick={(e) => {
+            e.stopPropagation()
+            onLead(idx)
+          }}
+          title="Ponerla la primera"
+        >
           ⬆ Primera
         </button>
       )}
@@ -102,7 +117,44 @@ function TeamCard({ c, idx, inParty, busy, onLead }) {
   )
 }
 
-function Criaturas({ onExit, juegos }) {
+// Entrenamiento: la criatura grande que se pulsa, con su barra de experiencia y los «+1» que saltan.
+function Training({ c, pending, onTap, evolvedTo }) {
+  const xp = Math.min(c.xp + pending * TRAIN_XP, xpToNext(c.lvl))
+  const [pops, setPops] = useState([])
+  const tap = () => {
+    onTap()
+    const id = Math.random()
+    setPops((p) => [...p.slice(-8), { id, x: 30 + Math.random() * 40 }])
+    setTimeout(() => setPops((p) => p.filter((q) => q.id !== id)), 700)
+  }
+  return (
+    <div className="cr-train">
+      <button type="button" className="cr-train__pad" onClick={tap} aria-label={`Entrenar a ${nameOf(c)} (o pulsa espacio)`}>
+        <CriaturaArt sp={c.sp} key={c.sp} className={evolvedTo ? 'is-evolved' : ''} />
+        {pops.map((p) => (
+          <i key={p.id} className="cr-train__pop" style={{ left: `${p.x}%` }}>
+            +{TRAIN_XP}
+          </i>
+        ))}
+      </button>
+      <div className="cr-train__info">
+        <b>
+          Entrenando a {nameOf(c)} <small>Nv. {c.lvl}</small>
+        </b>
+        <span className="cr-xp cr-xp--big">
+          <i style={{ width: `${(xp / xpToNext(c.lvl)) * 100}%` }} />
+        </span>
+        <small>
+          {xp} / {xpToNext(c.lvl)} XP · pulsa la criatura o la barra espaciadora (hasta {TRAIN_RATE} toques por segundo)
+          {SPECIES[c.sp].evolves && c.lvl < EVOLVE_LEVEL ? ` · al nivel ${EVOLVE_LEVEL} evoluciona` : ''}
+        </small>
+        {evolvedTo && <em className="cr-train__evo">✨ ¡Ha evolucionado en {SPECIES[evolvedTo].name}!</em>}
+      </div>
+    </div>
+  )
+}
+
+function Criaturas({ onExit, onDuel, juegos }) {
   const [v, setV] = useState(null) // la última vista del servidor
   const [shown, setShown] = useState(null) // el combate tal como se ve (va por detrás del servidor mientras se anima)
   const [line, setLine] = useState('')
@@ -116,6 +168,10 @@ function Criaturas({ onExit, juegos }) {
   const [tier, setTier] = useState('normal')
   const [history, setHistory] = useState([])
   const [burst, setBurst] = useState(null)
+  const [trainIdx, setTrainIdx] = useState(0)
+  const [taps, setTaps] = useState(0) // toques aún sin mandar
+  const [evolved, setEvolved] = useState(null)
+  const tapsRef = useRef(0)
   const alive_ = useRef(true)
   const lock = useRef(false)
   const { request } = juegos
@@ -232,6 +288,43 @@ function Criaturas({ onExit, juegos }) {
 
   const team = v?.team ?? []
   const battle = v?.battle ?? null
+
+  // Entrenar: los toques se acumulan y se mandan juntos cada TRAIN_FLUSH_MS (el servidor no cuenta más de TRAIN_RATE por
+  // segundo). La experiencia se ve subir al momento; el nivel lo confirma el servidor.
+  const flushing = useRef(false)
+  const flush = useEffectEvent(async () => {
+    const n = tapsRef.current
+    if (!n || flushing.current || battle || !team[trainIdx]) return
+    flushing.current = true
+    tapsRef.current = 0
+    setTaps(0)
+    const body = await request({ t: 'solo_criaturas', a: 'train', idx: trainIdx, n })
+    flushing.current = false
+    const nv = body?.solo
+    if (!nv || !alive_.current) return
+    setV((old) => (old && !old.battle ? { ...old, team: nv.team } : old))
+    if (nv.trained?.ups) playTurn()
+    if (nv.trained?.evolved) {
+      playReveal()
+      buzz([60, 40, 60, 40, 120])
+      setEvolved(nv.trained.evolved)
+      setTimeout(() => alive_.current && setEvolved(null), 4000)
+    }
+  })
+  useEffect(() => {
+    const timer = setInterval(() => flush(), TRAIN_FLUSH_MS)
+    return () => clearInterval(timer)
+  }, [])
+  const tap = () => {
+    if (battle || !team[trainIdx]) return
+    tapsRef.current++
+    setTaps(tapsRef.current)
+  }
+  const chooseTrain = (idx) => {
+    if (idx === trainIdx) return
+    flush()
+    setTrainIdx(idx)
+  }
   const busy = asking || playing || !ready
   const maxBet = maxBetFor(balance)
   const shownBet = battle ? battle.bet : clampBet(bet, maxBet)
@@ -291,7 +384,10 @@ function Criaturas({ onExit, juegos }) {
         event.preventDefault()
         move(moves[k])
       }
-    } else if (!battle && event.code === 'Space' && !target?.matches('button:focus-visible')) {
+    } else if (!battle && !shown && event.code === 'Space') {
+      event.preventDefault()
+      tap()
+    } else if (!battle && !shown && event.code === 'Enter' && !target?.matches('button:focus-visible')) {
       event.preventDefault()
       start()
     }
@@ -308,6 +404,10 @@ function Criaturas({ onExit, juegos }) {
         toda la temporada: no se reinicia el domingo.
       </p>
       <p>
+        <b>Entrenar</b>: toca una criatura del equipo para elegirla y púlsala (o la barra espaciadora) para darle experiencia. Al nivel {EVOLVE_LEVEL}{' '}
+        evolucionan: cambian de aspecto y se hacen más fuertes.
+      </p>
+      <p>
         Antes de cada combate apuestas y eliges rival. El rival tiene tantas criaturas como tú y su nivel se cuenta desde tu criatura más fuerte. Si ganas,
         cobras lo que paga su dificultad; si pierdes (o huyes), pierdes la apuesta.
       </p>
@@ -319,6 +419,10 @@ function Criaturas({ onExit, juegos }) {
       <p>
         Ganar da experiencia a las que combatieron (perder, un poco) y a veces una criatura del rival quiere unirse a tu equipo. Cada turno lo sortea el
         servidor; jugando bien se recupera alrededor del 96 % de lo apostado.
+      </p>
+      <p>
+        <b>Contra jugadores</b>: en la mesa de duelos retas a otra persona y apostáis lo mismo; quien gana se lleva el bote (menos un 4 % para la casa).
+        Allí todas las criaturas luchan en su forma final al nivel {DUEL_LEVEL}, así que cuenta tu equipo y tu estrategia, no lo que hayas entrenado.
       </p>
     </>
   )
@@ -435,7 +539,14 @@ function Criaturas({ onExit, juegos }) {
             <span>
               {result.win ? `Cobras ${eur(result.payout)} (${fmtMult(result.mult)})` : `Pierdes ${eur(result.stake)}`} · +{result.xp} XP para tu equipo
             </span>
-            {result.ups?.length > 0 && <span>⬆ {result.ups.map((u) => `${team[u.idx] ? nameOf(team[u.idx]) : 'Una criatura'} sube al nivel ${u.lvl}`).join(' · ')}</span>}
+            {result.ups?.length > 0 && (
+              <span>
+                ⬆{' '}
+                {result.ups
+                  .map((u) => `${team[u.idx] ? nameOf(team[u.idx]) : 'Una criatura'} sube al nivel ${u.lvl}${u.evolved ? ` y evoluciona en ${SPECIES[u.evolved].name}` : ''}`)
+                  .join(' · ')}
+              </span>
+            )}
             <button
               type="button"
               onClick={() => {
@@ -456,9 +567,10 @@ function Criaturas({ onExit, juegos }) {
         <h2>
           Tu equipo <small>{team.length}/{TEAM_MAX} · combaten las {PARTY} primeras</small>
         </h2>
+        {team[trainIdx] && <Training c={team[trainIdx]} pending={taps} onTap={tap} evolvedTo={evolved} />}
         <ul className="cr-team">
           {team.map((c, i) => (
-            <TeamCard key={`${c.sp}-${i}`} c={c} idx={i} inParty={i < PARTY} busy={busy} onLead={lead} />
+            <TeamCard key={`${c.sp}-${i}`} c={c} idx={i} inParty={i < PARTY} busy={busy} onLead={lead} training={i === trainIdx} onTrain={chooseTrain} />
           ))}
         </ul>
         {v?.offer && (
@@ -522,8 +634,14 @@ function Criaturas({ onExit, juegos }) {
               <BetBox bet={shownBet} setBet={setBet} min={MIN_BET} max={maxBet} step={STEP} disabled={busy || maxBet < MIN_BET} clamp={clampBet} />
               <button type="button" className="fi-go" disabled={busy || !team.length || shownBet > balance || balance < MIN_BET || Boolean(shown)} onClick={start}>
                 {asking ? 'Buscando rival…' : '¡Al combate!'}
-                <kbd>Espacio</kbd>
+                <kbd>Intro</kbd>
               </button>
+              {onDuel && (
+                <button type="button" className="cr-duel-btn" disabled={busy || !team.length} onClick={onDuel}>
+                  ⚔ Retar a otros jugadores
+                  <small>Mesa en vivo · todas al nivel {DUEL_LEVEL}</small>
+                </button>
+              )}
             </>
           )}
 

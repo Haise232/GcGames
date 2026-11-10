@@ -2,7 +2,7 @@
 // bestSwitch, la de alguien que juega bien) contra el rival de cada dificultad, con equipos y niveles al azar, y dice
 // qué multiplicador dejaría el retorno en el 96 %. Uso: node scripts/criaturas-ajuste.mjs [combates]
 import { randomInt } from 'node:crypto'
-import { SPECIES_IDS, TIERS, TIER_IDS, alive, bestMove, bestSwitch, fighter, rivalTeam, turn } from '../src/juegos/criaturas/criaturas.js'
+import { TIERS, TIER_IDS, WILD_IDS, alive, bestMove, bestSwitch, fighter, formAt, rivalTeam, turn } from '../src/juegos/criaturas/criaturas.js'
 
 const N = Number(process.argv[2] ?? 20000)
 const rand = (n) => randomInt(n)
@@ -11,8 +11,11 @@ for (const tier of TIER_IDS) {
   let naive = 0
   for (let i = 0; i < N; i++) {
     const size = 1 + rand(3)
-    const lvl = 5 + rand(21)
-    const mine = Array.from({ length: size }, () => fighter(SPECIES_IDS[rand(SPECIES_IDS.length)], Math.max(2, lvl + rand(5) - 2)))
+    const lvl = 5 + rand(26)
+    const mine = Array.from({ length: size }, () => {
+      const l = Math.max(2, lvl + rand(5) - 2)
+      return fighter(formAt(WILD_IDS[rand(WILD_IDS.length)], l), l)
+    })
     const rival = rivalTeam(mine.map((c) => c.lvl), tier, rand)
     for (const smart of [true, false]) {
       let b = { mine: mine.map((c) => ({ ...c })), rival: rival.map((c) => ({ ...c })), a: 0, b: 0, need: null }

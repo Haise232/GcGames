@@ -1,0 +1,178 @@
+/* Escrito a mano: la mesa de duelos de Criaturas (DueloTable.jsx). La espera (dos asientos con su equipo y «VS» en
+   medio), el temporizador del turno y el resumen de los equipos en el panel. El combate usa las piezas de
+   Criaturas.css (cr-*). */
+.juegos-root .du-room {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.juegos-root .du-wait {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 100%;
+}
+.juegos-root .du-vs {
+  font-family: var(--display);
+  font-size: 40px;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(248, 197, 78, 0.6);
+}
+.juegos-root .du-seat {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(10, 16, 36, 0.6);
+  box-shadow: inset 0 0 0 1px rgba(244, 249, 255, 0.2);
+}
+.juegos-root .du-seat.is-empty {
+  justify-items: center;
+  min-height: 180px;
+  align-content: center;
+  border: 2px dashed rgba(244, 249, 255, 0.25);
+  box-shadow: none;
+}
+.juegos-root .du-seat.is-ready {
+  box-shadow: inset 0 0 0 2px #3cc47e;
+}
+.juegos-root .du-seat.is-mine {
+  background: rgba(30, 50, 100, 0.6);
+}
+.juegos-root .du-seat.is-away {
+  opacity: 0.6;
+}
+.juegos-root .du-seat__who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.juegos-root .du-seat__who span {
+  display: grid;
+}
+.juegos-root .du-seat__who small {
+  color: var(--muted);
+}
+.juegos-root .du-team {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .du-team li {
+  width: 70px;
+}
+.juegos-root .du-team__none {
+  width: auto !important;
+  color: var(--muted);
+  font-size: 13px;
+}
+.juegos-root .du-btn {
+  padding: 8px 14px;
+  border: 1px solid rgba(244, 249, 255, 0.3);
+  border-radius: 12px;
+  background: rgba(10, 16, 36, 0.6);
+  color: var(--ivory);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.juegos-root .du-btn--gold {
+  background: var(--gold);
+  color: #2a1408;
+}
+.juegos-root .du-left {
+  color: #4a5670;
+  font-size: 11.5px;
+}
+.juegos-root .du-timer {
+  position: relative;
+  height: 18px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: rgba(10, 16, 36, 0.7);
+}
+.juegos-root .du-timer i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, #e0303c, #f8c54e 40%, #3cc47e);
+  transition: width 0.2s linear;
+}
+.juegos-root .du-timer span {
+  position: relative;
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 18px;
+}
+.juegos-root .du-stakes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 6px;
+}
+.juegos-root .du-stakes button {
+  padding: 8px;
+  border: 1px solid rgba(248, 197, 78, 0.35);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--ivory);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.juegos-root .du-stakes button[aria-pressed='true'] {
+  background: var(--gold);
+  color: #2a1408;
+}
+.juegos-root .du-stakes button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.juegos-root .du-roster {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.juegos-root .du-roster ul {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .du-roster li {
+  width: 46px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.juegos-root .du-roster li.is-out {
+  box-shadow: inset 0 0 0 2px var(--gold);
+}
+.juegos-root .du-roster li.is-down {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+.juegos-root .du-roster small {
+  color: var(--muted);
+}
+@media (max-width: 860px) {
+  .juegos-root .du-wait {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .juegos-root .du-vs {
+    justify-self: center;
+  }
+}
+
+/* Tarjeta de «Mesas en vivo» en el selector. */
+.juegos-root .hub-live--criaturas .hub-live__head h3::before {
+  content: '⚔';
+  color: #6cc3ff;
+}
+.juegos-root .hub-table--criaturas .hub-table__felt {
+  background: radial-gradient(ellipse at 50% 60%, #2c4f7e, #0f1d44 75%);
+}

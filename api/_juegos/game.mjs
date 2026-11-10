@@ -7,6 +7,8 @@ import { randomInt } from 'node:crypto'
 import { Room } from './engine/room.mjs'
 import { PokerRoom } from './engine/poker-room.mjs'
 import { ChessRoom } from './engine/chess-room.mjs'
+import { CriaturasRoom } from './engine/criaturas-room.mjs'
+import { PARTY as CRIATURAS_PARTY, SEASON as CRIATURAS_SEASON } from '../../src/juegos/criaturas/criaturas.js'
 import { storedTimers } from './engine/timers.mjs'
 import { weekOf } from './engine/week.mjs'
 import { PUBLIC_SEATS, GAMES, nextNumber, pickTable } from './engine/lobby.mjs'
@@ -79,6 +81,7 @@ export const ERRORS = {
   BAD_MESSAGE: 'Mensaje no válido.',
   BAD_PHASE: 'No puedes hacer eso ahora.',
   NOT_YOUR_TURN: 'No es tu turno.',
+  NO_TEAM: 'Primero elige tu criatura en Criaturas de las Islas (en «A tu ritmo»).',
   INSUFFICIENT_FUNDS: 'Saldo insuficiente.',
   BETS_CLOSED: 'No va más: las apuestas de esta ronda ya están cerradas. Apuesta en la siguiente.',
   LAUNCHED: 'El cohete ya despegó: apuesta en la siguiente ronda.',
@@ -197,7 +200,22 @@ class ChessTableRoom extends ChessRoom {
   }
 }
 
-const ROOMS = { blackjack: BlackjackRoom, poker: PokerTableRoom, chess: ChessTableRoom }
+// Duelo de Criaturas con Admin Abuse: como en el ajedrez, al acabar la banca multiplica lo ganado o devuelve lo perdido.
+class CriaturasTableRoom extends CriaturasRoom {
+  finish(winner, reason) {
+    super.finish(winner, reason)
+    this.seats.forEach((seat, index) => {
+      if (!seat) return
+      const extra = abuseExtra(this.abuse, 'criaturas', seat.won - this.stake)
+      if (!extra) return
+      this.accounts.adjust(seat.token, extra)
+      seat.won += extra
+      this.result.won[index] += extra
+    })
+  }
+}
+
+const ROOMS = { blackjack: BlackjackRoom, poker: PokerTableRoom, chess: ChessTableRoom, criaturas: CriaturasTableRoom }
 
 // Al empezar ronda el motor libera el asiento de quien lleva un rato desconectado, pero no avisa a su sesión, que se queda
 // creyendo que sigue sentada: al volver no la dejaba sentarse otra vez (el motor contesta BAD_PHASE). Se corrige al abrir.
@@ -452,6 +470,13 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       [user.id, user.name, user.avatar],
     )
     return written.rows[0]
+  }
+
+  // Las especies de las criaturas que combaten de tu equipo de Criaturas (vacío si aún no tienes, o es de otra temporada).
+  async function criaturasParty(userId) {
+    const estado = (await db.query(`select estado from public.juegos_solo where usuario_id = $1 and juego = 'criaturas'`, [userId])).rows[0]?.estado
+    if (estado?.season !== CRIATURAS_SEASON || !Array.isArray(estado.team)) return []
+    return estado.team.slice(0, CRIATURAS_PARTY).map((c) => c.sp)
   }
 
   // Lo que el selector enseña de una mesa, como texto para comparar antes y después de una jugada.
@@ -915,6 +940,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
     ready: (room, s) => (room.ready ? room.ready(s) : 'BAD_MESSAGE'),
     action: (room, s, msg) => room.action(s, msg.kind, msg.amount),
     move: (room, s, msg) => (room.move ? room.move(s, msg.from, msg.to, msg.promo) : 'BAD_MESSAGE'),
+    duel: (room, s, msg) => (room.duel ? room.duel(s, msg) : 'BAD_MESSAGE'),
     rebuy: () => 'BROKE',
     kick: () => 'NOT_HOST',
     leave_room: (room, s) => room.leave(s),
@@ -1123,10 +1149,14 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
           return reply
         }
         const quiet = msg.t === 'view' || msg.t === 'tick'
-        const outcome = (quiet && (await peekTable(account.mesa, user))) || (await withTable(account.mesa, user, (room, session) => action(room, session, msg)))
+        // En el duelo de Criaturas, «listo» y la apuesta llevan tu equipo, que se lee de tu partida (no lo manda el navegador).
+        const team = msg.t === 'ready' || msg.t === 'bet' ? await criaturasParty(user.id) : null
+        const run = (room, session) =>
+          room.game === 'criaturas' && team !== null ? (msg.t === 'ready' ? room.ready(session, team) : room.bet(session, msg.amount, team)) : action(room, session, msg)
+        const outcome = (quiet && (await peekTable(account.mesa, user))) || (await withTable(account.mesa, user, run))
         // Pase: una mano de blackjack o una partida de ajedrez (al confirmar «listo») o una jugada de póker.
         const tableGame = outcome.view?.game
-        const counts = (msg.t === 'ready' && (tableGame === 'blackjack' || tableGame === 'chess')) || (msg.t === 'action' && tableGame === 'poker')
+        const counts = (msg.t === 'ready' && (tableGame === 'blackjack' || tableGame === 'chess' || tableGame === 'criaturas')) || (msg.t === 'action' && tableGame === 'poker')
         if (counts && !outcome.error) reply.paseEvent = await pase.record(user.id, tableGame)
         if (msg.t === 'leave_room') {
           reply.state = null
@@ -1145,7 +1175,8 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
     const { rows } = await db.query(`select juego, codigo from public.juegos_mesas where persistente`)
     // El ajedrez llegó después: en una base de datos de antes, el check de juegos_mesas aún no lo admite
     // (supabase/migracion_juegos_ajedrez.sql). Solo pasa la primera vez, cuando falta su «Mesa 1».
-    if (!rows.some((r) => r.juego === 'chess')) await db.query(CHESS_CHECK_SQL)
+    // Igual con los duelos de Criaturas (supabase/migracion_juegos_criaturas_duelo.sql).
+    if (!rows.some((r) => r.juego === 'criaturas')) await db.query(CHESS_CHECK_SQL)
     for (const game of GAMES) {
       if (!rows.some((r) => r.juego === game)) await createTable(game, 1, new Set(rows.map((r) => r.codigo)))
     }
