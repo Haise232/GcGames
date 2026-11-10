@@ -1,4 +1,4 @@
-// Juegos en solitario (ruleta, cohete, Plinko, la rana, la carrera de coches, la Torre, el Atraco, Pez Gordo, la Lotería de Navidad, el Trineo de Papá Noel, el Taller de Papá Noel, Criaturas de las Islas y Mayor o Menor) con el saldo semanal: el servidor sortea
+// Juegos en solitario (ruleta, cohete, Plinko, la rana, la carrera de coches, la Torre, el Atraco, Pez Gordo, la Lotería de Navidad, el Trineo de Papá Noel, el Taller de Papá Noel y Mayor o Menor) con el saldo semanal: el servidor sortea
 // con randomInt y aplica las mismas reglas puras que pinta la pantalla (src/juegos/*.js), así el
 // navegador no puede elegir su resultado. Cada función devuelve { error } o el resultado con `delta`, lo que cambia
 // el saldo, y `saved`, lo que hay que guardar para la siguiente jugada (racha y apuesta de la ruleta y del cohete).
@@ -8,7 +8,6 @@ import * as pez from '../../src/juegos/fish/pez.js'
 import * as loteria from '../../src/juegos/loteria/loteria.js'
 import * as trineo from '../../src/juegos/trineo/trineo.js'
 import * as taller from '../../src/juegos/taller/taller.js'
-import * as cri from '../../src/juegos/criaturas/criaturas.js'
 import * as plinko from '../../src/juegos/plinko/plinko.js'
 import * as crash from '../../src/juegos/crash/crash.js'
 import * as frog from '../../src/juegos/frog/frog.js'
@@ -24,7 +23,6 @@ export const SOLO_GAMES = {
   solo_loteria: 'loteria',
   solo_trineo: 'trineo',
   solo_taller: 'taller',
-  solo_criaturas: 'criaturas',
   solo_plinko: 'plinko',
   solo_crash: 'crash',
   solo_frog: 'frog',
@@ -723,171 +721,97 @@ export function trineoPlay(msg, balance, saved, rand, ctx) {
   return { delta: 0, played: true, saved: state, result: trineoView(state, balance, 'ok') }
 }
 
-// --- Taller de Papá Noel (tycoon): lo invertido produce € por hora aunque no estés (taller.js). saved: { week, units,
-// upgrades, stored, at, invested, collected }: lo producido hasta `at` está en `stored`; lo de después se calcula al
-// momento (storedAt). Todo se reinicia con la semana, como el saldo. Recoger mete en el saldo lo del almacén.
-function tallerFresh(ctx) {
-  return { week: ctx.week, units: {}, upgrades: {}, stored: 0, at: ctx.now, invested: 0, collected: 0 }
-}
-function tallerView(state, balance, t, ev = null, extra = {}) {
+// --- Taller de Papá Noel (idle tycoon, taller.js): fabricas juguetes con las plantas, el montacargas los sube al
+// almacén y el trineo los vende por galletas; con encargados, todo trabaja solo (también sin ti, hasta AWAY_MAX_S). Las
+// galletas se canjean por € en paquetes cada vez más caros dentro del día. saved: el estado de taller.fresh(), que dura
+// toda la temporada (el reinicio del domingo no lo borra). En cada mensaje se avanza el taller hasta ahora.
+function tallerView(st, balance, t, extra = {}) {
+  const done = Math.round(st.swapped / taller.PACK)
   return {
-    units: state.units,
-    upgrades: state.upgrades,
-    stored: Math.floor(taller.storedAt(state, t)),
-    rate: taller.ratePerHour(state.units, state.upgrades),
-    cap: taller.capHours(state.upgrades),
-    invested: state.invested,
-    collected: state.collected,
+    plantas: st.plantas,
+    boss: st.boss,
+    e: st.e,
+    s: st.s,
+    pile: st.pile,
+    store: st.store,
+    cookies: st.cookies,
+    work: st.work,
+    made: st.made,
+    swapped: st.swapped,
+    pack: { cost: done * taller.PACK < taller.DAILY_CAP ? taller.packCost(done) : null, done },
     now: t,
     balance,
-    ev,
     ...extra,
   }
 }
 
-// msg.a: «sync», «buy» (station), «upgrade» (upgrade) o «collect».
+// msg.a: «sync», «tap» (part: 'p' | 'e' | 's', i: la planta), «up» (part, i, n: niveles), «boss» (part, i), «unlock»
+// o «swap» (packs: paquetes de PACK € que canjeas).
 export function tallerPlay(msg, balance, saved, _rand, ctx) {
   const t = ctx.now
-  let state = saved && saved.week === ctx.week ? { ...saved, units: { ...saved.units }, upgrades: { ...saved.upgrades } } : tallerFresh(ctx)
-  // Antes de cambiar la producción se apunta lo producido hasta ahora.
-  const settle = () => {
-    state.stored = taller.storedAt(state, t)
-    state.at = t
+  let st = saved?.season === taller.SEASON && Array.isArray(saved.plantas) ? saved : taller.fresh(t)
+  if (st.day !== ctx.day) st = { ...st, day: ctx.day, swapped: 0 }
+  const awayMs = t - st.at
+  const adv = taller.advance(st, t)
+  st = adv.st
+  const extra = { earned: Math.floor(adv.earned), away: awayMs > 120000 ? Math.round(awayMs / 1000) : 0 }
+  const part = msg.part
+  const validPart = part === 'e' || part === 's' || (part === 'p' && Number.isInteger(msg.i) && msg.i >= 0 && msg.i < st.plantas.length)
+  const pay = (cost) => {
+    if (cost > st.cookies) return false
+    st.cookies -= cost
+    return true
   }
-  if (msg.a === 'sync') return { delta: 0, played: false, saved: null, result: tallerView(state, balance, t) }
-  if (msg.a === 'collect') {
-    const amount = Math.floor(taller.storedAt(state, t))
-    if (amount < 1) return { error: 'BAD_PHASE' }
-    state.stored = taller.storedAt(state, t) - amount // los céntimos se quedan
-    state.at = t
-    state.collected += amount
-    return { delta: amount, played: true, saved: state, collect: amount, result: tallerView(state, balance + amount, t, 'collect', { amount }) }
+  if (msg.a === 'sync') return { delta: 0, played: false, saved: st, result: tallerView(st, balance, t, extra) }
+  if (msg.a === 'tap') {
+    if (!validPart) return { error: 'BAD_MESSAGE' }
+    const boss = part === 'p' ? st.boss.p[msg.i] : st.boss[part]
+    const until = part === 'p' ? st.work.p[msg.i] : st.work[part]
+    if (boss || until > t) return { error: 'BAD_PHASE' }
+    if (part === 'p') st.work.p[msg.i] = t + taller.TAP_S * 1000
+    else st.work[part] = t + taller.TAP_S * 1000
+    return { delta: 0, played: false, saved: st, result: tallerView(st, balance, t, extra) }
   }
-  let cost
-  if (msg.a === 'buy') {
-    if (!taller.validStation(msg.station)) return { error: 'BAD_MESSAGE' }
-    cost = taller.stationCost(msg.station, state.units[msg.station] ?? 0)
-    if (cost > balance) return { error: 'INSUFFICIENT_FUNDS' }
-    settle()
-    state.units[msg.station] = (state.units[msg.station] ?? 0) + 1
-  } else if (msg.a === 'upgrade') {
-    if (!taller.validUpgrade(msg.upgrade)) return { error: 'BAD_MESSAGE' }
-    cost = taller.upgradeCost(msg.upgrade, state.upgrades[msg.upgrade] ?? 0)
-    if (cost === null) return { error: 'BAD_PHASE' }
-    if (cost > balance) return { error: 'INSUFFICIENT_FUNDS' }
-    settle()
-    state.upgrades[msg.upgrade] = (state.upgrades[msg.upgrade] ?? 0) + 1
-  } else return { error: 'BAD_MESSAGE' }
-  state.invested += cost
-  return { delta: -cost, played: true, saved: state, result: tallerView(state, balance - cost, t, msg.a) }
-}
-
-// --- Criaturas de las Islas (rol por turnos, criaturas.js). saved: { season, team: [{ sp, lvl, xp }], battle, offer,
-// last, best }. El equipo dura toda la temporada; el combate (con su apuesta) es de la semana: si cambia la semana, el
-// saldo ya se reinició y el combate se descarta. Todo lo sortea el servidor con su generador en cada turno.
-function criaturasView(state, balance, extra = {}) {
-  const b = state.battle
-  return {
-    team: state.team,
-    battle: b
-      ? { bet: b.bet, tier: b.tier, mine: b.mine, rival: b.rival, a: b.a, b: b.b, need: b.need, party: b.party, turns: b.turns }
-      : null,
-    offer: state.offer ?? null,
-    last: state.last ?? null,
-    best: state.best ?? null,
-    balance,
-    log: [],
-    ev: null,
-    ...extra,
+  if (msg.a === 'up') {
+    if (!validPart || !Number.isInteger(msg.n) || msg.n < 1 || msg.n > taller.MAX_BUY) return { error: 'BAD_MESSAGE' }
+    const lvl = part === 'p' ? st.plantas[msg.i] : st[part]
+    const b = taller.bulk(part, msg.i, lvl, msg.n, st.cookies)
+    if (b.n < 1 || !pay(b.total)) return { error: 'NO_COOKIES' }
+    if (part === 'p') st.plantas[msg.i] += b.n
+    else st[part] += b.n
+    return { delta: 0, played: true, saved: st, result: tallerView(st, balance, t, { ...extra, bought: b.n }) }
   }
-}
-
-// msg.a: «sync», «starter» (sp), «lead» (idx: la pones la primera), «train» (idx, n: toques de entrenamiento), «start»
-// (bet, tier), «move» (move), «switch» (to), «flee», «join» (aceptar la criatura que quiere unirse) o «skip».
-export function criaturasPlay(msg, balance, saved, rand, ctx) {
-  let state = saved?.season === cri.SEASON ? { ...saved, team: saved.team.map((c) => ({ ...c })) } : { season: cri.SEASON, team: [], battle: null, offer: null, last: null, best: null }
-  if (state.battle && state.battle.week !== ctx.week) state.battle = null
-  if (state.best && state.best.day !== ctx.day) state.best = null
-  const fighting = Boolean(state.battle)
-
-  const settle = (win, log) => {
-    const b = state.battle
-    const mult = win ? cri.TIERS[b.tier].mult : 0
-    const paid = win ? cri.payout(b.bet, b.tier) : 0
-    // XP para las que combatieron (la cuarta parte si se pierde) y, si se gana, quizá una del rival quiera unirse.
-    const xp = Math.max(1, Math.round(cri.xpFor(b.rival.map((c) => c.lvl), b.tier) * (win ? 1 : 0.25)))
-    const ups = []
-    b.party.forEach((idx) => {
-      const r = cri.gainXp(state.team[idx], xp)
-      state.team[idx] = r.c
-      if (r.ups) ups.push({ idx, lvl: r.c.lvl, evolved: r.evolved })
-    })
-    let offer = null
-    if (win && state.team.length < cri.TEAM_MAX && rand(100) < cri.JOIN_CHANCE) {
-      const c = b.rival[rand(b.rival.length)]
-      const lvl = Math.max(2, Math.min(cri.MAX_LEVEL, c.lvl - 3))
-      // Llega en la forma que le toca a su nivel (una evolucionada de nivel bajo vuelve a su forma de antes).
-      offer = { sp: cri.formAt(cri.SPECIES[c.sp].from ?? c.sp, lvl), lvl }
-    }
-    if (paid > 0 && (!state.best || mult > state.best.mult)) state.best = { day: ctx.day, mult, payout: paid, mode: b.tier }
-    state = { ...state, battle: null, offer, last: { round: ctx.now, stake: b.bet, tier: b.tier, win, mult, payout: paid, net: paid - b.bet, xp, ups } }
-    return { delta: paid, played: true, saved: state, result: criaturasView(state, balance + paid, { log, ev: win ? 'win' : 'lose' }) }
+  if (msg.a === 'boss') {
+    if (!validPart) return { error: 'BAD_MESSAGE' }
+    if (part === 'p' ? st.boss.p[msg.i] : st.boss[part]) return { error: 'BAD_PHASE' }
+    if (!pay(part === 'p' ? taller.PLANTAS[msg.i].boss : taller.CARRIERS[part].boss)) return { error: 'NO_COOKIES' }
+    if (part === 'p') st.boss.p[msg.i] = true
+    else st.boss[part] = true
+    return { delta: 0, played: true, saved: st, result: tallerView(st, balance, t, extra) }
   }
-
-  if (msg.a === 'sync') return { delta: 0, played: false, saved: null, result: criaturasView(state, balance) }
-  if (msg.a === 'starter') {
-    if (state.team.length || !cri.STARTERS.includes(msg.sp)) return { error: 'BAD_MESSAGE' }
-    state.team = [{ sp: msg.sp, lvl: cri.START_LEVEL, xp: 0 }]
-    return { delta: 0, played: false, saved: state, result: criaturasView(state, balance) }
+  if (msg.a === 'unlock') {
+    const next = st.plantas.length
+    if (next >= taller.PLANTAS.length) return { error: 'BAD_PHASE' }
+    if (!pay(taller.PLANTAS[next].unlock)) return { error: 'NO_COOKIES' }
+    st.plantas.push(1)
+    st.boss.p.push(false)
+    st.work.p.push(0)
+    return { delta: 0, played: true, saved: st, result: tallerView(st, balance, t, extra) }
   }
-  if (msg.a === 'lead') {
-    if (fighting || !Number.isInteger(msg.idx) || !state.team[msg.idx]) return { error: 'BAD_MESSAGE' }
-    const [c] = state.team.splice(msg.idx, 1)
-    state.team.unshift(c)
-    return { delta: 0, played: false, saved: state, result: criaturasView(state, balance) }
+  if (msg.a === 'swap') {
+    if (!Number.isInteger(msg.packs) || msg.packs < 1) return { error: 'BAD_MESSAGE' }
+    const done = Math.round(st.swapped / taller.PACK)
+    if (done * taller.PACK >= taller.DAILY_CAP) return { error: 'SWAP_CAP' }
+    const can = taller.packsFor(st.cookies, done)
+    const n = Math.min(msg.packs, can.n)
+    if (n < 1) return { error: 'NO_COOKIES' }
+    const cost = Array.from({ length: n }, (_, k) => taller.packCost(done + k)).reduce((sum, c) => sum + c, 0)
+    if (!pay(cost)) return { error: 'NO_COOKIES' }
+    const eur = n * taller.PACK
+    st.swapped += eur
+    return { delta: eur, played: true, swap: eur, saved: st, result: tallerView(st, balance + eur, t, { ...extra, swapped: st.swapped, got: eur }) }
   }
-  // Entrenar: cada toque da TRAIN_XP a esa criatura. Los toques salen de un cubo que se llena a TRAIN_RATE por segundo y
-  // guarda como mucho TRAIN_BATCH: da igual cuántas peticiones mande un programa que pulse solo, no va más rápido que eso.
-  // trainAt es el instante hasta el que ya se gastó el cubo.
-  if (msg.a === 'train') {
-    if (fighting || !Number.isInteger(msg.idx) || !state.team[msg.idx] || !Number.isInteger(msg.n) || msg.n < 1) return { error: 'BAD_MESSAGE' }
-    const full = (cri.TRAIN_BATCH / cri.TRAIN_RATE) * 1000
-    const base = Math.max(state.trainAt ?? 0, ctx.now - full)
-    const taps = Math.min(msg.n, Math.floor(((ctx.now - base) / 1000) * cri.TRAIN_RATE))
-    if (taps < 1) return { delta: 0, played: false, saved: null, result: criaturasView(state, balance, { trained: { idx: msg.idx, taps: 0, ups: 0, evolved: null } }) }
-    const r = cri.gainXp(state.team[msg.idx], taps * cri.TRAIN_XP)
-    state.team[msg.idx] = r.c
-    state.trainAt = base + (taps / cri.TRAIN_RATE) * 1000
-    return { delta: 0, played: false, saved: state, result: criaturasView(state, balance, { trained: { idx: msg.idx, taps, ups: r.ups, evolved: r.evolved } }) }
-  }
-  if (msg.a === 'join' || msg.a === 'skip') {
-    if (!state.offer) return { error: 'BAD_PHASE' }
-    if (msg.a === 'join' && state.team.length < cri.TEAM_MAX) state.team.push({ sp: state.offer.sp, lvl: state.offer.lvl, xp: 0 })
-    state.offer = null
-    return { delta: 0, played: false, saved: state, result: criaturasView(state, balance) }
-  }
-  if (msg.a === 'start') {
-    if (fighting || !state.team.length) return { error: 'BAD_PHASE' }
-    if (!cri.validBet(msg.bet) || !cri.validTier(msg.tier)) return { error: 'BAD_MESSAGE' }
-    if (msg.bet > balance) return { error: 'INSUFFICIENT_FUNDS' }
-    const party = state.team.slice(0, cri.PARTY).map((_, i) => i)
-    const mine = party.map((i) => cri.fighter(state.team[i].sp, state.team[i].lvl))
-    const rival = cri.rivalTeam(mine.map((c) => c.lvl), msg.tier, rand)
-    state.offer = null
-    state.battle = { bet: msg.bet, tier: msg.tier, week: ctx.week, party, mine, rival, a: 0, b: 0, need: null, turns: 0 }
-    return { delta: -msg.bet, played: true, saved: state, result: criaturasView(state, balance - msg.bet, { ev: 'start' }) }
-  }
-  if (!fighting) return { error: 'BAD_PHASE' }
-  if (msg.a === 'flee') return settle(false, [{ t: 'flee' }])
-  let action
-  if (msg.a === 'move' && typeof msg.move === 'string') action = { kind: 'move', move: msg.move }
-  else if (msg.a === 'switch' && Number.isInteger(msg.to)) action = { kind: 'switch', to: msg.to }
-  else return { error: 'BAD_MESSAGE' }
-  const r = cri.turn(state.battle, action, rand)
-  if (r.error) return { error: 'BAD_MESSAGE' }
-  state.battle = { ...state.battle, ...r.battle, turns: state.battle.turns + 1 }
-  if (r.end) return settle(r.end === 'win', r.log)
-  return { delta: 0, played: true, saved: state, result: criaturasView(state, balance, { log: r.log, ev: 'turn' }) }
+  return { error: 'BAD_MESSAGE' }
 }
 
 // --- Mayor o Menor: como la rana, la apuesta sale del saldo al empezar y queda en juego. saved: { bet, card, prod,
@@ -957,4 +881,4 @@ export function hiloPlay(msg, balance, saved, rand, ctx) {
   return { delta: 0, played: true, saved: state, result: hiloView(state, balance, 'win') }
 }
 
-export const SOLO_PLAY = { loteria: loteriaBuy, trineo: trineoPlay, taller: tallerPlay, criaturas: criaturasPlay, hilo: hiloPlay, roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay }
+export const SOLO_PLAY = { loteria: loteriaBuy, trineo: trineoPlay, taller: tallerPlay, hilo: hiloPlay, roulette: rouletteLive, fish: fishPlay, plinko: plinkoDrop, crash: crashLive, frog: frogPlay, race: raceLive, tower: towerPlay, heist: heistPlay }

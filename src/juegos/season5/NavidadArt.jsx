@@ -1,8 +1,6 @@
-import { CriaturaShape } from '../criaturas/CriaturaArt.jsx'
-
 // Escenas de las tarjetas del selector de los juegos de la Season 5: la Lotería de Navidad (los bombos y un décimo), el
-// Trineo de Papá Noel (el trineo cruzando la luna sobre los tejados), el Taller de Papá Noel (la nave con la cinta de
-// regalos) y Criaturas de las Islas (dos criaturas frente a frente en la nieve). Ya vienen con los colores de Navidad, así que
+// Trineo de Papá Noel (el trineo cruzando la luna sobre los tejados) y el Taller de Papá Noel (la nave con la cinta de
+// regalos). Ya vienen con los colores de Navidad, así que
 // no pasan por el tinte (scripts/season5-tinte.mjs).
 
 export function LoteriaScene() {
@@ -153,33 +151,6 @@ export function TallerScene() {
         </g>
       ))}
       <rect x="0" y="142" width="240" height="18" fill="#2a160c" />
-    </svg>
-  )
-}
-
-export function CriaturasScene() {
-  return (
-    <svg className="hub-scene" viewBox="0 0 240 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <defs>
-        <linearGradient id="crs-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#0f1d44" />
-          <stop offset="1" stopColor="#2c4f7e" />
-        </linearGradient>
-      </defs>
-      <rect width="240" height="160" fill="url(#crs-sky)" />
-      <path d="M60 90 L120 34 L180 90 Z" fill="#24365e" />
-      <path d="M104 50 L120 34 L136 50 L128 48 L120 56 L112 48 Z" fill="#eef6ff" />
-      <path d="M0 100 C 60 88, 180 92, 240 98 L240 160 L0 160 Z" fill="#dce8f8" />
-      <ellipse cx="172" cy="104" rx="38" ry="8" fill="#b9cce6" />
-      <ellipse cx="74" cy="128" rx="40" ry="8" fill="#b9cce6" />
-      <g transform="translate(140 50) scale(0.62)">
-        <CriaturaShape sp="copito" />
-      </g>
-      <g transform="translate(112 56) scale(-0.76 0.76)">
-        <CriaturaShape sp="lavin" />
-      </g>
-      {/* Chispazo del choque */}
-      <path d="M118 70 L126 62 L124 70 L132 66 L124 78 L126 72 Z" fill="#ffd25e" />
     </svg>
   )
 }

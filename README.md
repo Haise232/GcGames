@@ -111,14 +111,12 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 | En vivo (mesas) | Para todos a la vez | En solitario | Economía |
 |---|---|---|---|
 | Blackjack | Campeonato de Pesca (cada 2 min) | Pez Gordo | Gacha de cartas |
-| Póker | Ruleta (cada 25 s) | Criaturas de las Islas | Inmobiliaria |
+| Póker | Ruleta (cada 25 s) | Mayor o Menor | Inmobiliaria |
 | Ajedrez | Cohete (cada 30 s) | Taller de Papá Noel | Cuenta en Suiza |
-| Duelo de Criaturas | | | |
 | | Carrera (cada 55 s) | Lotería de Navidad | Hacienda |
 | | Ascensor (cada minuto) | El Trineo de Papá Noel | Casa de empeños |
 | | La Subasta (cada minuto) | La Torre · El Atraco | |
 | | Bingo | Plinko · Rana | |
-| | | Mayor o Menor | |
 
 <details>
 <summary><b>Qué es cada uno</b></summary>
@@ -149,41 +147,12 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 - **El Trineo de Papá Noel**: es Nochebuena y repartes regalos. En cada parada eliges casita (90 %), bloque de pisos
   (70 %) o rascacielos (50 %); cada regalo entregado multiplica el premio por 1 / p y cobras cuando quieras. Si te
   pillan, pierdes la apuesta. Hasta 24 paradas por noche.
-- **Taller de Papá Noel**: un tycoon. Inviertes saldo en puestos (elfos, carpintería, muñecas, bicis, consolas) que
-  producen € cada hora aunque no estés, y en mejoras; lo producido se guarda en un almacén que hay que ir vaciando. Se
-  reinicia con la semana: montándolo el lunes y recogiendo a menudo rinde un +35-45 % (`scripts/taller-ajuste.mjs`).
-- **Criaturas de las Islas**: rol por turnos con 18 criaturas originales de las islas y la Navidad. Eliges la primera
-  (Lavín, Pulpín, Draguito o Copito) y formas un equipo de hasta seis que dura toda la temporada. Se **entrenan
-  pulsando** (clic o espacio; el servidor no cuenta más de 12 toques por segundo) y ocho de ellas **evolucionan** al
-  nivel 16; al 20 aprenden un ataque definitivo. Contra la casa apuestas y eliges rival (×1,46, ×2,14, ×4,55 o ×9,7):
-  el rival tiene tantas criaturas como tú y su nivel se cuenta desde tu criatura más fuerte. Premios ajustados con
-  `scripts/criaturas-ajuste.mjs` (jugando bien ~95 %, un experto no pasa del 100 %).
-- **Duelo de Criaturas** (mesa en vivo): retas a otro jugador, apostáis lo mismo y quien gana se lleva el bote menos un
-  4 % para la casa. Los dos eligen a la vez cada turno (30 s; quien no elige pierde el turno, y a los tres, el duelo) y
-  todas las criaturas luchan en su forma final al nivel 25: cuenta el equipo y la estrategia, no lo entrenado.
-</details>
-
-## 🔧 Por dentro
-
-```mermaid
-flowchart LR
-    N["Navegador<br/>React + Vite (PWA)"]
-    subgraph CF["Cloudflare (gratis)"]
-        W["Worker <code>play</code><br/>web + API /api/juegos"]
-        H["Hyperdrive<br/>conexiones a Postgres"]
-    end
-    subgraph SB["Supabase (gratis)"]
-        A["Auth<br/>cuentas"]
-        P[("Postgres<br/>juegos_*")]
-        R["Realtime<br/>avisos"]
-    end
-    N -->|"POST /api/juegos + sesión"| W
-    N -->|entrar / registrarse| A
-    W --> H --> P
-    W -->|"aviso «cambio»"| R
-    R -->|broadcast| N
-```
-
+- **Taller de Papá Noel**: un idle tycoon con su propia moneda, las galletas 🍪. Las plantas fabrican juguetes, el
+  montacargas los sube al almacén y el trineo los reparte y los cambia por galletas; la parte más lenta manda. Al
+  principio se toca cada parte para que trabaje y después se contratan encargados que la hacen trabajar sola, también
+  sin estar (hasta 4 horas). Mejoras con hitos que doblan la producción y ocho plantas por abrir. Las galletas se
+  canjean por € en paquetes de 100 € cada vez más caros dentro del día, hasta 3.000 € al día. Dura toda la temporada;
+  ritmo ajustado con `scripts/taller-ajuste.mjs`.
 - **Sin servidor propio.** Cada acción es un `POST /api/juegos` al Worker con la sesión de Supabase. El Worker comprueba
   la firma del token con las claves públicas del proyecto (sin preguntar a Supabase Auth en cada petición), bloquea la
   fila con `FOR UPDATE`, aplica la jugada y guarda, todo en una transacción.

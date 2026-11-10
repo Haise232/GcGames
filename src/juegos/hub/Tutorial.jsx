@@ -193,8 +193,8 @@ const STEPS = [
   {
     target: 'solo',
     art: 'solo3',
-    title: 'A tu ritmo: Criaturas, Taller y más',
-    text: 'Nuevos por Navidad: Criaturas de las Islas (forma un equipo de criaturas que dura toda la temporada, entrénalas pulsando para que evolucionen y apuesta en combates por turnos contra la casa o contra otros jugadores en la mesa de duelos), el Taller de Papá Noel (invierte en elfos y cadenas de juguetes que producen euros cada hora; pásate a recoger), la Lotería de Navidad y el Trineo de Papá Noel. Y además Mayor o Menor, Pez Gordo, La Torre, El Atraco, Plinko y Rana. Cada uno tiene su botón de Ayuda arriba a la derecha.',
+    title: 'A tu ritmo: el Taller y más',
+    text: 'Nuevos por Navidad: el Taller de Papá Noel (un tycoon: fabrica juguetes, contrata elfos que trabajan solos, mejora el taller y canjea las galletas que ganas por euros), la Lotería de Navidad y el Trineo de Papá Noel. Y además Mayor o Menor, Pez Gordo, La Torre, El Atraco, Plinko y Rana. Cada uno tiene su botón de Ayuda arriba a la derecha.',
   },
   {
     target: 'live',

@@ -1,4 +1,4 @@
-/* Escrito a mano: lo común de los juegos con panel a la derecha (Mayor o Menor, Lotería, Trineo, Taller y Criaturas). A la izquierda el escenario
+/* Escrito a mano: lo común de los juegos con panel a la derecha (Mayor o Menor, Lotería y Trineo). A la izquierda el escenario
    de cada juego (con su fondo) y a la derecha el panel con el premio, las opciones y la apuesta. En el móvil, el panel
    va debajo. Cada juego pone su escenario en su propio CSS. */
 .juegos-root .fi-app {

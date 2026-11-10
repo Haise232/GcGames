@@ -22,11 +22,10 @@ import Loteria from './loteria/Loteria.jsx'
 import Trineo from './trineo/Trineo.jsx'
 import Hilo from './hilo/Hilo.jsx'
 import Taller from './taller/Taller.jsx'
-import Criaturas from './criaturas/Criaturas.jsx'
 import Pesca from './pesca/Pesca.jsx'
 import { PescaScene } from './season4/PescaArt.jsx'
 import { FishScene } from './season4/FishArt.jsx'
-import { CriaturasScene, LoteriaScene, TallerScene, TrineoScene } from './season5/NavidadArt.jsx'
+import { LoteriaScene, TallerScene, TrineoScene } from './season5/NavidadArt.jsx'
 import { HiloScene } from './season4/FiestasArt.jsx'
 import Bingo from './bingo/Bingo.jsx'
 import BingoCage from './bingo/BingoCage.jsx'
@@ -39,7 +38,6 @@ import Suiza, { SuizaBanner } from './suiza/Suiza.jsx'
 import Table from './table/Table.jsx'
 import PokerTable from './poker/PokerTable.jsx'
 import ChessTable from './chess/ChessTable.jsx'
-import DueloTable from './criaturas/DueloTable.jsx'
 import { useJuegos } from './useJuegos.js'
 import Scoreboard from './hub/Scoreboard.jsx'
 import Avatar from './comun/Avatar.jsx'
@@ -84,7 +82,6 @@ const LIVE = {
   blackjack: { name: 'Blackjack' },
   poker: { name: 'Póker' },
   chess: { name: 'Ajedrez' },
-  criaturas: { name: 'Duelo de Criaturas' },
 }
 
 // Cada juego lleva su mini escena (HubArt.jsx), un color (--tint, en r, g, b) para el brillo de su tarjeta y una frase corta.
@@ -145,19 +142,10 @@ const ALL_GAMES = [
     art: <FishScene />,
   },
   {
-    id: 'criaturas',
-    name: 'Criaturas de las Islas',
-    kind: 'Rol por turnos',
-    blurb: 'Elige tu primera criatura, forma un equipo que dura toda la temporada y apuesta en combates por turnos contra rivales cada vez más duros.',
-    tint: '108, 195, 255',
-    isNew: true,
-    art: <CriaturasScene />,
-  },
-  {
     id: 'taller',
     name: 'Taller de Papá Noel',
-    kind: 'Tycoon',
-    blurb: 'Contrata elfos, abre cadenas de juguetes y mejora el taller: produce euros cada hora aunque no estés. Pásate a recoger.',
+    kind: 'Idle tycoon',
+    blurb: 'Fabrica juguetes, contrata encargados que trabajan solos y mejora el taller. Ganas galletas incluso sin estar y las canjeas por euros.',
     tint: '248, 197, 78',
     isNew: true,
     art: <TallerScene />,
@@ -236,7 +224,7 @@ const ALL_GAMES = [
 // los de a tu ritmo.
 const byId = Object.fromEntries(ALL_GAMES.map((g) => [g.id, g]))
 const ROUND_GAMES = ['pesca', 'elevator', 'auction', 'roulette', 'crash', 'race'].map((id) => byId[id])
-const PACE_GAMES = ['criaturas', 'taller', 'loteria', 'trineo', 'hilo', 'fish', 'tower', 'heist', 'plinko', 'frog'].map((id) => byId[id])
+const PACE_GAMES = ['taller', 'loteria', 'trineo', 'hilo', 'fish', 'tower', 'heist', 'plinko', 'frog'].map((id) => byId[id])
 
 // La Inmobiliaria, destacada arriba del todo: un trozo de tablero con sus casas y un hotel.
 function InmoBanner({ onOpen }) {
@@ -298,13 +286,13 @@ function WhatsAppIcon() {
 }
 
 // Asientos de las mesas públicas (igual que en el servidor) para dibujar la mesa antes de que llegue el lobby.
-const SEATS = { blackjack: 7, poker: 6, chess: 2, criaturas: 2 }
-const CAPTION = { blackjack: 'Contra el crupier', poker: 'Ciegas de 50 y 100 €', chess: 'Uno contra uno, con apuesta', criaturas: 'Tus criaturas contra las suyas' }
+const SEATS = { blackjack: 7, poker: 6, chess: 2 }
+const CAPTION = { blackjack: 'Contra el crupier', poker: 'Ciegas de 50 y 100 €', chess: 'Uno contra uno, con apuesta' }
 
 // Posición de cada asiento en la mini mesa, en % del recuadro. Póker: óvalo completo. Blackjack: arco bajo el crupier.
 // Ajedrez: uno a cada lado del tablero.
 function seatSpot(i, n, game) {
-  if (game === 'chess' || game === 'criaturas') return { left: i === 0 ? '13%' : '87%', top: '50%' }
+  if (game === 'chess') return { left: i === 0 ? '13%' : '87%', top: '50%' }
   const [from, span] = game === 'blackjack' ? [162, -144] : [90, 360]
   const deg = game === 'blackjack' ? from + (span * i) / (n - 1) : from + (span * i) / n
   const rad = (deg * Math.PI) / 180
@@ -316,8 +304,8 @@ function seatSpot(i, n, game) {
 // Texto y tono del estado de una mesa.
 function tableState(game, t) {
   if (!t || t.players === 0) return { tone: 'free', text: 'Mesa libre' }
-  if (game === 'chess' || game === 'criaturas') {
-    if (t.phase === 'playing') return { tone: 'hand', text: game === 'chess' ? 'Partida en curso' : 'Duelo en curso' }
+  if (game === 'chess') {
+    if (t.phase === 'playing') return { tone: 'hand', text: 'Partida en curso' }
     return t.players === 1 ? { tone: 'wait', text: 'Busca rival' } : { tone: 'on', text: 'Acordando la apuesta' }
   }
   if (game === 'poker' && t.phase === 'waiting') {
@@ -950,7 +938,7 @@ function Notice({ title, children, actions }) {
 
 // Pantalla en la que estabas, para que al recargar la página vuelvas al mismo juego (las mesas ya las recuerda el servidor).
 const SCREEN_KEY = 'juegos-pantalla'
-const KEEP = new Set(['pase', 'pesca', 'bingo', 'roulette', 'crash', 'fish', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'loteria', 'trineo', 'taller', 'criaturas', 'hilo'])
+const KEEP = new Set(['pase', 'pesca', 'bingo', 'roulette', 'crash', 'fish', 'plinko', 'frog', 'race', 'elevator', 'inmo', 'suiza', 'gacha', 'score', 'tower', 'heist', 'auction', 'loteria', 'trineo', 'taller', 'hilo'])
 function savedScreen() {
   try {
     const screen = sessionStorage.getItem(SCREEN_KEY)
@@ -1012,7 +1000,7 @@ function JuegosScreens() {
 
   // Dentro de una mesa manda el servidor (también al volver tras recargar la página).
   if (juegos.room) {
-    const Kind = { poker: PokerTable, chess: ChessTable, criaturas: DueloTable }[juegos.room.state.game] ?? Table
+    const Kind = { poker: PokerTable, chess: ChessTable }[juegos.room.state.game] ?? Table
     return (
       <Kind
         room={juegos.room}
@@ -1045,7 +1033,6 @@ function JuegosScreens() {
   if (screen === 'pesca') return (<Pesca onExit={exit} juegos={juegos} />)
   if (screen === 'hilo') return (<Hilo onExit={exit} juegos={juegos} />)
   if (screen === 'taller') return (<Taller onExit={exit} juegos={juegos} />)
-  if (screen === 'criaturas') return (<Criaturas onExit={exit} juegos={juegos} onDuel={() => setView({ screen: 'join', game: 'criaturas', as: 'player' })} />)
   if (screen === 'plinko') return (<Plinko onExit={exit} juegos={juegos} />)
   if (screen === 'frog') return (<Frog onExit={exit} juegos={juegos} />)
   if (screen === 'race') return (<Race onExit={exit} juegos={juegos} />)

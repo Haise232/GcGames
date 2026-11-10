@@ -23,7 +23,6 @@ export const GAME_NAMES = {
   pesca: 'Pesca',
   hilo: 'Mayor o Menor',
   taller: 'Taller',
-  criaturas: 'Criaturas',
 }
 
 // Premios por reclamar: niveles desbloqueados que aún no se han cobrado, y su total.

@@ -45,7 +45,7 @@ const HIDDEN_TTL_MS = 3000 // igual con los juegos ocultos
 export const HIDEABLE = [
   'pesca', 'elevator', 'auction', 'roulette', 'crash', 'race',
   'fish', 'loteria', 'trineo', 'tower', 'heist', 'plinko', 'frog',
-  'hilo', 'taller', 'criaturas',
+  'hilo', 'taller',
   'blackjack', 'poker', 'chess',
   'bingo', 'gacha', 'inmo', 'suiza',
 ]

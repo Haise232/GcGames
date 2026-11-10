@@ -7,8 +7,6 @@ import { randomInt } from 'node:crypto'
 import { Room } from './engine/room.mjs'
 import { PokerRoom } from './engine/poker-room.mjs'
 import { ChessRoom } from './engine/chess-room.mjs'
-import { CriaturasRoom } from './engine/criaturas-room.mjs'
-import { PARTY as CRIATURAS_PARTY, SEASON as CRIATURAS_SEASON } from '../../src/juegos/criaturas/criaturas.js'
 import { storedTimers } from './engine/timers.mjs'
 import { weekOf } from './engine/week.mjs'
 import { PUBLIC_SEATS, GAMES, nextNumber, pickTable } from './engine/lobby.mjs'
@@ -81,7 +79,8 @@ export const ERRORS = {
   BAD_MESSAGE: 'Mensaje no válido.',
   BAD_PHASE: 'No puedes hacer eso ahora.',
   NOT_YOUR_TURN: 'No es tu turno.',
-  NO_TEAM: 'Primero elige tu criatura en Criaturas de las Islas (en «A tu ritmo»).',
+  NO_COOKIES: 'No tienes galletas suficientes.',
+  SWAP_CAP: 'Hoy ya has canjeado el máximo. Mañana más.',
   INSUFFICIENT_FUNDS: 'Saldo insuficiente.',
   BETS_CLOSED: 'No va más: las apuestas de esta ronda ya están cerradas. Apuesta en la siguiente.',
   LAUNCHED: 'El cohete ya despegó: apuesta en la siguiente ronda.',
@@ -200,22 +199,7 @@ class ChessTableRoom extends ChessRoom {
   }
 }
 
-// Duelo de Criaturas con Admin Abuse: como en el ajedrez, al acabar la banca multiplica lo ganado o devuelve lo perdido.
-class CriaturasTableRoom extends CriaturasRoom {
-  finish(winner, reason) {
-    super.finish(winner, reason)
-    this.seats.forEach((seat, index) => {
-      if (!seat) return
-      const extra = abuseExtra(this.abuse, 'criaturas', seat.won - this.stake)
-      if (!extra) return
-      this.accounts.adjust(seat.token, extra)
-      seat.won += extra
-      this.result.won[index] += extra
-    })
-  }
-}
-
-const ROOMS = { blackjack: BlackjackRoom, poker: PokerTableRoom, chess: ChessTableRoom, criaturas: CriaturasTableRoom }
+const ROOMS = { blackjack: BlackjackRoom, poker: PokerTableRoom, chess: ChessTableRoom }
 
 // Al empezar ronda el motor libera el asiento de quien lleva un rato desconectado, pero no avisa a su sesión, que se queda
 // creyendo que sigue sentada: al volver no la dejaba sentarse otra vez (el motor contesta BAD_PHASE). Se corrige al abrir.
@@ -356,7 +340,9 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
           `with meta as (insert into public.juegos_meta (id, semana) values (1, $1) on conflict (id) do nothing)
            select exists(select 1 from public.juegos_solo where juego in ('blackjack', 'bribe', 'wheel', 'dungeon', 'dig', 'dive', 'regatta')) as solo,
                   coalesce((select pg_get_constraintdef(oid) like '%''criaturas''%' from pg_constraint where conname = 'juegos_solo_juego_check'), true) as solo_check,
-                  ${rows[0].duelos ? `exists(select 1 from public.juegos_duelos where estado = 'abierto')` : 'false'} as duelos`,
+                  ${rows[0].duelos ? `exists(select 1 from public.juegos_duelos where estado = 'abierto')` : 'false'} as duelos,
+                  exists(select 1 from public.juegos_solo where juego = 'criaturas' or (juego = 'taller' and estado ? 'units'))
+                    or exists(select 1 from public.juegos_mesas where juego = 'criaturas') as s5_retirados`,
           [weekOf(now()).key],
         )
       ).rows[0]
@@ -370,14 +356,15 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         // devuelve lo que valían los hoyos ya cavados (como mínimo la apuesta); en la Apnea, la apuesta de la inmersión.
         await refundRetired('dig', (estado) => (estado?.bet > 0 ? Math.max(estado.bet, arenaWorth(estado)) : 0))
         await refundRetired('dive', (estado) => (estado?.bet > 0 && estado.start != null ? estado.bet : 0))
-        // La Regata se retiró también en la Season 5 (deja sitio al Taller y a Criaturas): se devuelve lo apostado en
+        // La Regata se retiró también en la Season 5 (dejó sitio al Taller): se devuelve lo apostado en
         // una regata que no llegó a pagarse.
         await refundRetired('regatta', (estado) => (estado?.bets ?? []).reduce((sum, b) => sum + (b.amount ?? 0), 0))
       }
-      // Pez Gordo, el Trineo, el Taller y Criaturas guardan su partida en juegos_solo: en una base de datos de antes se
-      // amplía el check (migracion_juegos_pez.sql, migracion_juegos_trineo.sql y migracion_juegos_taller_criaturas.sql).
+      // Pez Gordo, el Trineo y el Taller guardan su partida en juegos_solo: en una base de datos de antes se amplía el
+      // check (migracion_juegos_pez.sql, migracion_juegos_trineo.sql y migracion_juegos_taller_criaturas.sql).
       if (!pending.solo_check) await db.query(SOLO_CHECK_SQL)
       if (pending.duelos) await refundDuels()
+      if (pending.s5_retirados) await retireS5()
     })().catch((error) => {
       schemaReady = null
       throw error
@@ -396,6 +383,31 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         if (stake > 0) await q(`update public.juegos_cuentas set saldo = saldo + $2 where usuario_id = $1`, [id, stake])
       }
       if (rows.length) await q(`delete from public.juegos_solo where juego = 'blackjack'`)
+    })
+  }
+
+  // Criaturas de las Islas (y su mesa de duelos) se retiraron, y el Taller de Papá Noel pasó de invertir saldo a ser un
+  // tycoon con galletas. Al arrancar: se devuelve la apuesta de un combate de Criaturas a medias, la de un duelo en
+  // marcha a cada uno, y lo invertido esta semana en el Taller viejo (lo ya recogido se queda); y se borra lo viejo.
+  async function retireS5() {
+    const week = weekOf(now()).key
+    await refundRetired('criaturas', (estado) => (estado?.battle?.bet > 0 && estado.battle.week === week ? estado.battle.bet : 0))
+    await db.tx(async (q) => {
+      const old = (await q(`select usuario_id, estado from public.juegos_solo where juego = 'taller' and estado ? 'units' for update`)).rows
+      for (const { usuario_id: id, estado } of old) {
+        const back = estado.week === week ? Math.max(0, Number(estado.invested) || 0) : 0
+        if (back > 0) await q(`update public.juegos_cuentas set saldo = saldo + $2 where usuario_id = $1`, [id, back])
+      }
+      if (old.length) await q(`delete from public.juegos_solo where juego = 'taller' and estado ? 'units'`)
+      const tables = (await q(`select codigo, estado from public.juegos_mesas where juego = 'criaturas' for update`)).rows
+      for (const { codigo, estado } of tables) {
+        const room = estado.room
+        if (room.phase === 'playing' && room.stake > 0) {
+          for (const seat of room.seats) if (seat) await q(`update public.juegos_cuentas set saldo = saldo + $2 where usuario_id = $1`, [seat.token, room.stake])
+        }
+        await q(`update public.juegos_cuentas set mesa = null where mesa = $1`, [codigo])
+        await q(`delete from public.juegos_mesas where codigo = $1`, [codigo])
+      }
     })
   }
 
@@ -439,8 +451,8 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         await q(`update public.juegos_meta set semana = $1, semana_pasada = $2 where id = 1`, [week.key, lastWeek])
         await q(`update public.juegos_cuentas set saldo = $1, dias = $2::bigint[], jugado = false, hacienda = '{}'::jsonb`, [STARTING_BALANCE, pgArray(NO_DAYS)])
         await q(`delete from public.juegos_chat where creado < now() - interval '7 days'`)
-        // El equipo de Criaturas dura toda la temporada: su fila se queda (el combate a medias se descarta solo).
-        await q(`delete from public.juegos_solo where juego <> 'criaturas'`)
+        // El Taller (tycoon) dura toda la temporada: su fila se queda.
+        await q(`delete from public.juegos_solo where juego <> 'taller'`)
         await banca.sweep(q)
         await bingo.sweep(q)
         await auction.sweep(q)
@@ -470,13 +482,6 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       [user.id, user.name, user.avatar],
     )
     return written.rows[0]
-  }
-
-  // Las especies de las criaturas que combaten de tu equipo de Criaturas (vacío si aún no tienes, o es de otra temporada).
-  async function criaturasParty(userId) {
-    const estado = (await db.query(`select estado from public.juegos_solo where usuario_id = $1 and juego = 'criaturas'`, [userId])).rows[0]?.estado
-    if (estado?.season !== CRIATURAS_SEASON || !Array.isArray(estado.team)) return []
-    return estado.team.slice(0, CRIATURAS_PARTY).map((c) => c.sp)
   }
 
   // Lo que el selector enseña de una mesa, como texto para comparar antes y después de una jugada.
@@ -940,7 +945,6 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
     ready: (room, s) => (room.ready ? room.ready(s) : 'BAD_MESSAGE'),
     action: (room, s, msg) => room.action(s, msg.kind, msg.amount),
     move: (room, s, msg) => (room.move ? room.move(s, msg.from, msg.to, msg.promo) : 'BAD_MESSAGE'),
-    duel: (room, s, msg) => (room.duel ? room.duel(s, msg) : 'BAD_MESSAGE'),
     rebuy: () => 'BROKE',
     kick: () => 'NOT_HOST',
     leave_room: (room, s) => room.leave(s),
@@ -1057,7 +1061,6 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
       case 'solo_loteria':
       case 'solo_trineo':
       case 'solo_taller':
-      case 'solo_criaturas':
       case 'solo_plinko':
       case 'solo_hilo':
       case 'solo_frog':
@@ -1067,9 +1070,9 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
         if (out.error) reply.error = { code: out.error, message: ERRORS[out.error] }
         else reply.solo = out.result
         if (out.settled) reply.paseEvent = await pase.record(user.id, SOLO_GAMES[msg.t], { win: out.settled.net > 0 })
-        // El Taller no tiene jugadas que se liquiden: para el pase cuenta cada vez que recoges.
-        else if (out.collect) reply.paseEvent = await pase.record(user.id, 'taller', { win: true })
-        if (['solo_tower', 'solo_heist', 'solo_fish', 'solo_trineo', 'solo_criaturas'].includes(msg.t) && reply.solo) reply.solo.ranking = await dayRanking(SOLO_GAMES[msg.t], user.id)
+        // El Taller no tiene jugadas que se liquiden: para el pase cuenta cada vez que canjeas galletas.
+        else if (out.swap) reply.paseEvent = await pase.record(user.id, 'taller', { win: true })
+        if (['solo_tower', 'solo_heist', 'solo_fish', 'solo_trineo'].includes(msg.t) && reply.solo) reply.solo.ranking = await dayRanking(SOLO_GAMES[msg.t], user.id)
         if (out.abuse) reply.abuse = out.abuse
         me.balance = (await db.query(`select saldo from public.juegos_cuentas where usuario_id = $1`, [user.id])).rows[0].saldo
         return reply
@@ -1149,14 +1152,10 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
           return reply
         }
         const quiet = msg.t === 'view' || msg.t === 'tick'
-        // En el duelo de Criaturas, «listo» y la apuesta llevan tu equipo, que se lee de tu partida (no lo manda el navegador).
-        const team = msg.t === 'ready' || msg.t === 'bet' ? await criaturasParty(user.id) : null
-        const run = (room, session) =>
-          room.game === 'criaturas' && team !== null ? (msg.t === 'ready' ? room.ready(session, team) : room.bet(session, msg.amount, team)) : action(room, session, msg)
-        const outcome = (quiet && (await peekTable(account.mesa, user))) || (await withTable(account.mesa, user, run))
+        const outcome = (quiet && (await peekTable(account.mesa, user))) || (await withTable(account.mesa, user, (room, session) => action(room, session, msg)))
         // Pase: una mano de blackjack o una partida de ajedrez (al confirmar «listo») o una jugada de póker.
         const tableGame = outcome.view?.game
-        const counts = (msg.t === 'ready' && (tableGame === 'blackjack' || tableGame === 'chess' || tableGame === 'criaturas')) || (msg.t === 'action' && tableGame === 'poker')
+        const counts = (msg.t === 'ready' && (tableGame === 'blackjack' || tableGame === 'chess')) || (msg.t === 'action' && tableGame === 'poker')
         if (counts && !outcome.error) reply.paseEvent = await pase.record(user.id, tableGame)
         if (msg.t === 'leave_room') {
           reply.state = null
@@ -1175,8 +1174,7 @@ export function createJuegos({ db, ping = async () => {}, now = Date.now, secret
     const { rows } = await db.query(`select juego, codigo from public.juegos_mesas where persistente`)
     // El ajedrez llegó después: en una base de datos de antes, el check de juegos_mesas aún no lo admite
     // (supabase/migracion_juegos_ajedrez.sql). Solo pasa la primera vez, cuando falta su «Mesa 1».
-    // Igual con los duelos de Criaturas (supabase/migracion_juegos_criaturas_duelo.sql).
-    if (!rows.some((r) => r.juego === 'criaturas')) await db.query(CHESS_CHECK_SQL)
+    if (!rows.some((r) => r.juego === 'chess')) await db.query(CHESS_CHECK_SQL)
     for (const game of GAMES) {
       if (!rows.some((r) => r.juego === game)) await createTable(game, 1, new Set(rows.map((r) => r.codigo)))
     }

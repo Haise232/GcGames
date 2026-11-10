@@ -1,6 +1,6 @@
-// Motor de las mesas (blackjack, póker, ajedrez y duelos de Criaturas), compartido por las salas en vivo.
+// Motor de las mesas (blackjack, póker y ajedrez), compartido por las salas en vivo.
 // Mesas públicas: cualquiera con sesión entra sin código. Hay siempre una por juego y, si se llena, se abre otra.
-export const PUBLIC_SEATS = { blackjack: 7, poker: 6, chess: 2, criaturas: 2 }
+export const PUBLIC_SEATS = { blackjack: 7, poker: 6, chess: 2 }
 export const GAMES = Object.keys(PUBLIC_SEATS)
 
 export const seated = (room) => room.seats.filter(Boolean).length

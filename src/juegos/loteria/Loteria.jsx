@@ -6,16 +6,29 @@ import { useEffect, useRef, useState } from 'react'
 import { useEffectEvent } from '../comun/useEffectEvent.js'
 import { CUARTOS, MIN_BET, NUMBERS, PRIZES, PRIZE_IDS, QUINTOS, STEP, cantos, clampBet, fmtMult, fmtNumber, maxBetFor, validNumber } from './loteria.js'
 import { eur } from '../comun/money.js'
-import { buzz, playBall, playCash, playChip, playJingle, playLose, playWin } from '../comun/sound.js'
+import { buzz, playBall, playCash, playChip, playHeartbeat, playJingle, playLose, playOvation, playReelTick, playReveal, playStamp, playWin } from '../comun/sound.js'
 import { useCountUp } from '../comun/useCountUp.js'
 import WinBurst from '../comun/WinBurst.jsx'
 import { BetBox, FiestaHeader, History } from '../season4/FiestaParts.jsx'
+import { Bombos, Decimo, Ninos, enLetras } from './LoteriaArt.jsx'
 import './Loteria.css'
 
 const HISTORY = 14
 const NUMBER_KEY = 'juegos-loteria-numero' // tu número de siempre
 // Lo que tarda en cantarse cada premio (los quintos van rápido; el Gordo, con calma).
-const CANTO_MS = { quinto: 260, cuarto: 520, tercero: 900, segundo: 900, gordo: 1500 }
+// Antes del Gordo hay un silencio largo con latidos: es el momento de más tensión.
+const CANTO_MS = { quinto: 300, cuarto: 560, tercero: 950, segundo: 1100, gordo: 2900 }
+const GORDO_DIGIT_MS = 300 // el Gordo se canta cifra a cifra
+// Consuelos para cuando no toca; se elige uno según el número de compra para que no cambie al repintar.
+const CONSUELOS = ['Lo importante es la salud… y el año que viene, más.', 'Dicen que la suerte llega cuando uno deja de esperarla.', 'Los niños han cantado, pero hoy no cantaban el tuyo.', 'Se queda para los calendarios: otro décimo, otra ilusión.', 'Por lo menos queda el turrón, que ese nunca falla.']
+// Cuántas cifras seguidas, desde la izquierda, comparte tu número con el Gordo (para el «casi»).
+const cifrasComunes = (a, b) => {
+  const x = fmtNumber(a)
+  const y = fmtNumber(b)
+  let i = 0
+  while (i < 5 && x[i] === y[i]) i++
+  return i
+}
 const LUCKY = [22122, 0, 7, 13, 25012, 31122, 6011]
 
 function savedNumber() {
@@ -30,72 +43,6 @@ function savedNumber() {
 
 const shortName = { gordo: 'Gordo', segundo: '2.º', tercero: '3.º', cuarto: '4.º', quinto: '5.º' }
 
-// Los dos bombos: el grande de los números y el pequeño de los premios. Giran mientras se canta.
-function Bombos({ spinning }) {
-  const balls = (n, r, seed) =>
-    Array.from({ length: n }, (_, i) => {
-      const a = (i * 137.5 + seed) * (Math.PI / 180)
-      const d = r * Math.sqrt((i + 0.5) / n) * 0.82
-      return <circle key={i} cx={Math.cos(a) * d} cy={Math.sin(a) * d} r={r * 0.12} fill={i % 7 === 0 ? '#f8c54e' : '#fff8ec'} stroke="#b89a5a" strokeWidth="0.8" />
-    })
-  return (
-    <svg className={`lt-bombos ${spinning ? 'is-spin' : ''}`} viewBox="0 0 300 170" aria-hidden="true">
-      <defs>
-        <radialGradient id="lt-glass" cx="0.35" cy="0.3" r="0.8">
-          <stop offset="0" stopColor="#ffffff" stopOpacity="0.35" />
-          <stop offset="1" stopColor="#ffffff" stopOpacity="0.05" />
-        </radialGradient>
-      </defs>
-      {/* Bombo grande, el de los números */}
-      <g transform="translate(100 78)">
-        <rect x="-8" y="58" width="16" height="30" fill="#c99a3a" />
-        <rect x="-40" y="84" width="80" height="8" rx="3" fill="#a87a22" />
-        <g className="lt-bombo__drum">
-          {balls(34, 62, 11)}
-          <circle r="64" fill="url(#lt-glass)" stroke="#e8c26a" strokeWidth="5" />
-          {[0, 45, 90, 135].map((a) => (
-            <line key={a} x1="-64" y1="0" x2="64" y2="0" stroke="#e8c26a" strokeWidth="2" transform={`rotate(${a})`} opacity="0.7" />
-          ))}
-        </g>
-        <circle r="7" fill="#e8c26a" />
-      </g>
-      {/* Bombo pequeño, el de los premios */}
-      <g transform="translate(238 104)">
-        <rect x="-6" y="34" width="12" height="20" fill="#c99a3a" />
-        <rect x="-26" y="52" width="52" height="7" rx="3" fill="#a87a22" />
-        <g className="lt-bombo__drum lt-bombo__drum--small">
-          {balls(14, 38, 47)}
-          <circle r="40" fill="url(#lt-glass)" stroke="#e8c26a" strokeWidth="4" />
-          {[0, 60, 120].map((a) => (
-            <line key={a} x1="-40" y1="0" x2="40" y2="0" stroke="#e8c26a" strokeWidth="2" transform={`rotate(${a})`} opacity="0.7" />
-          ))}
-        </g>
-        <circle r="5" fill="#e8c26a" />
-      </g>
-    </svg>
-  )
-}
-
-// El décimo: papel crema con tu número, el precio y la estrella.
-function Decimo({ number, bet, prize, done }) {
-  return (
-    <div className={`lt-decimo ${done && prize ? 'is-prize' : ''} ${done && !prize ? 'is-blank' : ''}`} aria-label={`Tu décimo: ${fmtNumber(number)}`}>
-      <span className="lt-decimo__top">
-        <b>GcGames</b> · Sorteo extraordinario de Navidad
-      </span>
-      <span className="lt-decimo__num">{fmtNumber(number)}</span>
-      <span className="lt-decimo__row">
-        <svg viewBox="0 0 40 40" aria-hidden="true">
-          <path d="M20 2 L25 15 L39 15 L28 24 L32 38 L20 30 L8 38 L12 24 L1 15 L15 15 Z" fill="#c8202c" />
-        </svg>
-        <small>22 de diciembre</small>
-        <b>{eur(bet)}</b>
-      </span>
-      {done && prize && <span className="lt-decimo__stamp">{PRIZES[prize].name}</span>}
-    </div>
-  )
-}
-
 function Loteria({ onExit, juegos }) {
   const [bet, setBet] = useState(20)
   const [number, setNumber] = useState(savedNumber)
@@ -103,13 +50,14 @@ function Loteria({ onExit, juegos }) {
   const [asking, setAsking] = useState(false)
   const [draw, setDraw] = useState(null) // la respuesta del servidor que se está cantando (o la última)
   const [sung, setSung] = useState(0) // cuántos premios se han cantado ya
+  const [finished, setFinished] = useState(true) // el canto (con la cifra a cifra del Gordo) ya acabó y se enseña el resultado
   const [history, setHistory] = useState([])
   const [burst, setBurst] = useState(null)
   const timers = useRef([])
   const { request } = juegos
   const serverBalance = juegos.me?.balance ?? 0
   const [balance, setBalance] = useState(serverBalance)
-  const singing = draw !== null && sung < cantos(draw.draw).length
+  const singing = draw !== null && !finished
   useEffect(() => {
     if (!asking && !singing) setBalance(serverBalance)
   }, [serverBalance, asking, singing])
@@ -136,17 +84,22 @@ function Loteria({ onExit, juegos }) {
     timers.current.forEach(clearTimeout)
     timers.current = []
     setSung(cantos(v.draw).length)
+    setFinished(true)
     setBalance(v.balance)
     setHistory((h) => [{ id: v.id, mult: v.mult }, ...h].slice(0, HISTORY))
     const extra = v.abuse?.extra ?? 0
     if (v.net > 0) {
       playCash(Math.min(10, Math.round(v.mult)))
       playWin(v.mult >= 20)
+      if (v.mult >= 50) playOvation()
       buzz([60, 40, 80])
       setBurst({ id: v.id, amount: v.net + extra, mult: v.mult, prize: v.prize, extra })
     } else if (v.prize === 'reintegro') playChip()
     else if (extra > 0) playChip()
-    else playLose()
+    else {
+      playLose()
+      playStamp()
+    }
   }
 
   async function buy() {
@@ -166,6 +119,7 @@ function Loteria({ onExit, juegos }) {
     setBalance(balance - shownBet)
     setDraw(v)
     setSung(0)
+    setFinished(false)
     playJingle(4)
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     if (reduced) return finish(v)
@@ -173,14 +127,19 @@ function Loteria({ onExit, juegos }) {
     let at = 400
     steps.forEach((c, i) => {
       at += CANTO_MS[c.prize]
-      timers.current.push(
-        setTimeout(() => {
-          setSung(i + 1)
-          playBall()
-          if (c.number === v.number) playJingle(8)
-          if (i === steps.length - 1) timers.current.push(setTimeout(() => finish(v), 500))
-        }, at),
-      )
+      const t = (fn, ms) => timers.current.push(setTimeout(fn, ms))
+      if (c.prize === 'gordo') {
+        // Suspense: tres latidos mientras se hace el silencio, y la cifra a cifra con su tictac.
+        ;[1500, 900, 350].forEach((back) => t(playHeartbeat, at - back))
+        for (let k = 0; k < 5; k++) t(playReelTick, at + k * GORDO_DIGIT_MS + 60)
+      }
+      t(() => {
+        setSung(i + 1)
+        playBall()
+        if (c.prize === 'gordo') playReveal()
+        if (c.number === v.number) playJingle(8)
+        if (i === steps.length - 1) t(() => finish(v), 5 * GORDO_DIGIT_MS + 500)
+      }, at)
     })
   }
 
@@ -207,6 +166,10 @@ function Loteria({ onExit, juegos }) {
   const current = shown.at(-1) ?? null
   const mine = draw?.number
   const gordoOut = done && draw
+  const hit = current && current.number === mine // acaba de salir tu número
+  const suspense = singing && sung === list.length - 1 // solo queda el Gordo
+  const lost = done && !draw.prize && !(draw.abuse?.extra > 0)
+  const comunes = done ? cifrasComunes(draw.number, draw.draw.gordo) : 0
 
   let status = 'Elige tu número, el precio del décimo, y que canten los niños.'
   let tone = ''
@@ -219,7 +182,7 @@ function Loteria({ onExit, juegos }) {
   } else if (done && draw.prize === 'reintegro') status = `Reintegro: el Gordo acaba en ${draw.draw.gordo % 10}, como tu número. Recuperas lo jugado.`
   else if (done && draw.abuse?.extra > 0) status = `No ha tocado, pero el Admin Abuse te devuelve ${eur(draw.abuse.extra)}.`
   else if (done) {
-    status = `No ha tocado. Lo importante es la salud… y el año que viene, más.`
+    status = 'No ha tocado esta vez. El año que viene, más.'
     tone = 'bad'
   } else if (balance < MIN_BET) status = 'Te quedaste sin saldo esta semana. El domingo a las 23:59 vuelves a empezar.'
 
@@ -259,9 +222,13 @@ function Loteria({ onExit, juegos }) {
       <FiestaHeader title="Lotería de Navidad" balance={shownBank} betLabel="Décimo" bet={shownBet} onExit={onExit} help={help} helpTitle="Cómo se juega a la Lotería de Navidad" />
 
       <div className="fi fill">
-        <section className={`fi-stage lt-stage ${tone === 'good' ? 'is-win' : ''}`} aria-label="El sorteo">
+        <section className={`fi-stage lt-stage ${tone === 'good' ? 'is-win' : ''} ${suspense ? 'is-suspense' : ''} ${lost ? 'is-lost' : ''}`} aria-label="El sorteo">
           <span className="lt-curtain lt-curtain--l" aria-hidden="true" />
           <span className="lt-curtain lt-curtain--r" aria-hidden="true" />
+          <span className="lt-valance" aria-hidden="true" />
+          <span className="lt-beams" aria-hidden="true" />
+          <span className="lt-floor" aria-hidden="true" />
+          {hit && <span className="lt-flash" key={`f${sung}`} aria-hidden="true" />}
           <div className="fi-top">
             <span className="fi-chip">
               <small>Tu número</small>
@@ -273,26 +240,63 @@ function Loteria({ onExit, juegos }) {
             </span>
           </div>
 
-          <div className="lt-show">
-            <Bombos spinning={busy} />
+          <div className={`lt-show ${suspense ? 'is-suspense' : ''}`}>
+            <Bombos spinning={busy} fast={suspense} />
             <div className="lt-canto" aria-live="polite">
-              {current ? (
-                <>
-                  <span key={`n${sung}`} className={`lt-ball ${current.number === mine ? 'is-mine' : ''}`}>
-                    {fmtNumber(current.number)}
+              {suspense && (
+                <div className="lt-suspense" key="suspense">
+                  <span>Y ahora…</span>
+                  <b>el Gordo</b>
+                </div>
+              )}
+              {done ? (
+                <div className={`lt-result ${draw.prize ? 'is-win' : 'is-lose'}`} key="result">
+                  {draw.prize ? (
+                    <>
+                      <span className="lt-result__kicker">{draw.prize === 'reintegro' ? 'Reintegro' : '¡Te ha tocado!'}</span>
+                      <b className="lt-result__title">{PRIZES[draw.prize].name}</b>
+                      <span className="lt-result__sub">
+                        {draw.prize === 'reintegro' ? 'Recuperas lo jugado' : `${fmtMult(draw.mult)} · ${eur(draw.payout)}`}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="lt-result__kicker">Esta vez no</span>
+                      <b className="lt-result__title">No ha tocado</b>
+                      <span className="lt-result__sub">{CONSUELOS[draw.id % CONSUELOS.length]}</span>
+                      <span className="lt-result__near">
+                        El Gordo fue <i>{fmtNumber(draw.draw.gordo)}</i>
+                        {comunes >= 2 && ` · compartes las ${comunes} primeras cifras`}
+                      </span>
+                    </>
+                  )}
+                </div>
+              ) : current ? (
+                <div className={`lt-cantado ${hit ? 'is-hit' : ''} ${current.prize === 'gordo' ? 'is-gordo' : ''}`} key={`c${sung}`}>
+                  <span className={`lt-ball ${hit ? 'is-mine' : ''}`}>
+                    {current.prize === 'gordo'
+                      ? fmtNumber(current.number)
+                          .split('')
+                          .map((d, i) => (
+                            <i key={i} style={{ animationDelay: `${i * GORDO_DIGIT_MS}ms` }}>
+                              {d}
+                            </i>
+                          ))
+                      : fmtNumber(current.number)}
                   </span>
-                  <span key={`p${sung}`} className={`lt-ball lt-ball--prize lt-ball--${current.prize}`}>
-                    {PRIZES[current.prize].name}
-                  </span>
-                </>
+                  <span className={`lt-ball lt-ball--prize lt-ball--${current.prize}`}>{PRIZES[current.prize].name}</span>
+                  <span className="lt-letras">{enLetras(current.number)}</span>
+                  {hit && <span className="lt-hit">¡Es tu número!</span>}
+                </div>
               ) : (
                 <span className="lt-canto__wait">{busy ? '♪ ♪ ♪' : 'Los bombos esperan'}</span>
               )}
             </div>
+            <Ninos singing={singing} />
           </div>
 
           <div className="lt-mid">
-            <Decimo number={draw && (busy || done) ? draw.number : number} bet={draw && (busy || done) ? draw.bet : shownBet} prize={draw?.prize} done={done} />
+            <Decimo number={draw && (busy || done) ? draw.number : number} bet={draw && (busy || done) ? draw.bet : shownBet} prize={draw?.prize} done={done} hit={hit} />
             <ol className="lt-board" aria-label="Lista de premios">
               {row('gordo', of('gordo'), 1)}
               {row('segundo', of('segundo'), 1)}

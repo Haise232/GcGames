@@ -127,7 +127,6 @@ export const GAME_GROUPS: { name: string; games: { id: string; name: string }[] 
       { id: 'frog', name: 'Rana' },
       { id: 'hilo', name: 'Mayor o Menor' },
       { id: 'taller', name: 'Taller de Papá Noel' },
-      { id: 'criaturas', name: 'Criaturas de las Islas' },
     ],
   },
   {
@@ -209,7 +208,7 @@ export function abusePerks(a: Pick<Abuse, 'modo' | 'ambito'>): string[] {
   }
   if (a.ambito === 'poker') return [`Todo lo que ganes en el póker, ${m}`, 'La banca pone la diferencia']
   return [
-    `Premios ${m} en ruleta, cohete, carrera, plinko, rana, lotería, trineo, criaturas, mayor o menor, bingo, torre, atraco, subasta y ascensor`,
+    `Premios ${m} en ruleta, cohete, carrera, plinko, rana, lotería, trineo, mayor o menor, bingo, torre, atraco, subasta y ascensor`,
     `Blackjack y póker: lo que ganes, ${m}`,
     `Suerte ${m} en el gacha, el plinko, la torre, el atraco, la lotería y el trineo`,
     `Bingo: ${a.modo === 'x3' ? 'dos cartones' : 'un cartón'} de regalo por cada uno que compres`,
