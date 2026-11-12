@@ -389,24 +389,65 @@ export function RaceScene() {
 }
 
 export function PlinkoScene() {
+  // Tablero en triángulo de 7 filas: la bola arriba, el camino que suele hacer marcado y las casillas de premio al pie.
   const pegs = []
-  for (let r = 0; r < 5; r++) {
+  for (let r = 0; r < 7; r++) {
     const n = r + 3
-    for (let c = 0; c < n; c++) pegs.push([80 + (c - (n - 1) / 2) * 16, 16 + r * 11.5])
+    for (let c = 0; c < n; c++) pegs.push([80 + (c - (n - 1) / 2) * 13, 12 + r * 8.6])
   }
-  const slots = ['#e2463c', '#b06cff', '#5f87a0', '#5f87a0', '#5f87a0', '#b06cff', '#e2463c']
+  const slots = [
+    ['×9', '#e2463c'],
+    ['×3', '#f08a24'],
+    ['×1', '#b06cff'],
+    ['×½', '#5f87a0'],
+    ['×1', '#b06cff'],
+    ['×3', '#f08a24'],
+    ['×9', '#e2463c'],
+  ]
+  const trail = 'M80 10 Q81 13 86.5 16 Q90 19 86.5 24.6 Q83 28 86.5 33.2 Q90 37 93 41.8 Q96 46 93 50.4 Q90 54 93 59'
   return (
     <svg className="hub-scene" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="hs-pk-glow" cx="0.5" cy="0.35" r="0.6">
+          <stop offset="0" stopColor="#b06cff" stopOpacity="0.45" />
+          <stop offset="1" stopColor="#b06cff" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="hs-pk-ball" cx="0.35" cy="0.3" r="0.7">
+          <stop offset="0" stopColor="#fff4c0" />
+          <stop offset="0.45" stopColor="#ffd25e" />
+          <stop offset="1" stopColor="#c47d0e" />
+        </radialGradient>
+        <linearGradient id="hs-pk-trail" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffd25e" stopOpacity="0" />
+          <stop offset="1" stopColor="#ffd25e" stopOpacity="0.85" />
+        </linearGradient>
+      </defs>
+      <rect width="160" height="90" fill="url(#hs-pk-glow)" />
+      {/* Marco del tablero. */}
+      <path d="M80 4 L132 70 L28 70 Z" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.14)" strokeWidth="0.8" strokeLinejoin="round" />
       {pegs.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="1.9" fill="#f1e9d6" />
+        <g key={i}>
+          <circle cx={x} cy={y} r="3" fill="#f1e9d6" opacity="0.12" />
+          <circle cx={x} cy={y} r="1.5" fill="#f1e9d6" />
+        </g>
       ))}
-      {slots.map((c, i) => (
-        <rect key={i} x={24 + i * 16.2} y="73" width="14" height="13" rx="2.5" fill={c} fillOpacity="0.9" />
+      <path d={trail} fill="none" stroke="url(#hs-pk-trail)" strokeWidth="2.2" opacity="0.6" strokeLinecap="round" strokeDasharray="1.5 3" />
+      {slots.map(([label, c], i) => (
+        <g key={i} transform={`translate(${30.5 + i * 14} 72)`}>
+          <rect width="13" height="14" rx="3" fill={c} />
+          <rect width="13" height="5" rx="2.5" fill="#fff" opacity="0.22" />
+          <text x="6.5" y="10.6" textAnchor="middle" fontSize="6" fontWeight="800" fill="#fff" fontFamily="system-ui, sans-serif">
+            {label}
+          </text>
+        </g>
       ))}
       <g className="hs-pball">
-        <circle cx="80" cy="5" r="3.6" fill="#ffd25e" stroke="#8a5d0a" strokeWidth="0.8" />
-        <circle cx="79" cy="4" r="1" fill="#fff4c0" />
+        <circle cx="80" cy="5" r="6" fill="#ffd25e" opacity="0.25" />
+        <circle cx="80" cy="5" r="3.8" fill="url(#hs-pk-ball)" stroke="#8a5d0a" strokeWidth="0.6" />
       </g>
+      {/* Destellos. */}
+      <path d={spark(22, 18, 4)} fill="#fff4c0" opacity="0.8" />
+      <path d={spark(140, 30, 3)} fill="#d8b8ff" opacity="0.8" />
     </svg>
   )
 }

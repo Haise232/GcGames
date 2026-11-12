@@ -1598,12 +1598,6 @@
   .juegos-root .hub-games > li:nth-child(n + 5) {
     grid-column: auto;
   }
-  .juegos-root .hub-games > li:last-child:nth-child(odd) {
-    grid-column: 1 / -1;
-  }
-  .juegos-root .hub-games > li:last-child:nth-child(odd) .hub-card__art {
-    aspect-ratio: 16 / 6;
-  }
 }
 
 /* --- Móvil --- */

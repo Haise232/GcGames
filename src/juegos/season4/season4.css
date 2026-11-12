@@ -851,36 +851,6 @@
 .juegos-root.s4 .hub-bingo {
   border-radius: 26px;
 }
-.juegos-root.s4 .s4-round {
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-}
-/* Todos a la vez: tres por fila. A tu ritmo: los nuevos de la temporada (is-big) de tres en fila y el resto de cuatro.
-   En pantalla ancha van en flex y crecen: si la banca oculta algún juego, la última fila se estira y no quedan huecos. */
-@media (min-width: 1101px) {
-  .juegos-root.s4 .s4-round,
-  .juegos-root.s4 .s4-pace {
-    display: flex;
-    flex-wrap: wrap;
-  }
-  .juegos-root.s4 .s4-round > li,
-  .juegos-root.s4 .s4-pace > li.is-big {
-    flex: 1 1 calc((100% - 2 * clamp(14px, 1.6vw, 22px)) / 3);
-  }
-  .juegos-root.s4 .s4-pace > li {
-    flex: 1 1 calc((100% - 3 * clamp(14px, 1.6vw, 22px)) / 4);
-  }
-  /* Si de tres en tres quedaría una tarjeta sola en la última fila (4, 7, 10… juegos), no se estira a todo el ancho:
-     la primera fila lleva cuatro. */
-  .juegos-root.s4 .s4-round:has(> li:last-child:nth-child(3n + 1)) > li:nth-child(-n + 4) {
-    flex-basis: calc((100% - 3 * clamp(14px, 1.6vw, 22px)) / 4);
-  }
-  .juegos-root.s4 .s4-pace {
-    gap: clamp(14px, 1.6vw, 22px);
-  }
-}
-.juegos-root.s4 .s4-pace > li.is-big .hub-card__art {
-  aspect-ratio: 16 / 8;
-}
 
 @media (hover: hover) {
   .juegos-root.s4 .hub-card:not(:disabled):hover {
@@ -1481,19 +1451,6 @@
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
     padding: 0;
   }
-  .juegos-root.s4 .s4-round {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .juegos-root.s4 .s4-round > li {
-    grid-column: auto;
-  }
-  .juegos-root.s4 .s4-round > li:last-child:nth-child(odd) {
-    grid-column: 1 / -1;
-  }
-  .juegos-root.s4 .s4-pace > li,
-  .juegos-root.s4 .s4-pace > li.is-big {
-    grid-column: auto;
-  }
   .juegos-root .s4-pase__grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1504,18 +1461,6 @@
   }
 }
 @media (max-width: 640px) {
-  /* Todos a la vez: el carrusel horizontal del selector (hub.css), sin las columnas de arriba. */
-  .juegos-root.s4 .s4-round {
-    grid-template-columns: none;
-  }
-  .juegos-root.s4 .s4-round > li,
-  .juegos-root.s4 .s4-round > li:last-child:nth-child(odd) {
-    grid-column: auto;
-  }
-  .juegos-root.s4 .s4-round .hub-card__art,
-  .juegos-root.s4 .s4-round > li:nth-child(-n + 2) .hub-card__art {
-    aspect-ratio: 3 / 2;
-  }
   .juegos-root.s4 .hub-top.s4-hero {
     min-height: 0;
     padding: 150px 18px 20px;

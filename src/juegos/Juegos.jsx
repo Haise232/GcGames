@@ -73,6 +73,8 @@ import { navidadRgb } from './season5/tinte.js'
 // Tema de Halloween: el último, para que sus reglas (todas bajo .juegos-root.halloween) ganen a las de cada juego.
 import './temas/halloween/halloween.css'
 import { useHalloween } from './temas/halloween/halloween.js'
+// Rejilla de tarjetas y carátulas del selector: después de las temporadas, para mandar sobre su maquetación.
+import './hub/selector.css'
 import HalloweenFx, { Pumpkin } from './temas/halloween/HalloweenFx.jsx'
 
 // Panel de la banca: solo lo abre el master, así que se carga al pulsar su botón.
@@ -829,6 +831,19 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome,
                 <GachaShowcase juegos={juegos} online={connected} onOpen={onGacha} />
               </li>
             )}
+            {shown('inmo') && (
+              <li>
+                <InmoBanner onOpen={() => onPick('inmo')} />
+              </li>
+            )}
+            {shown('suiza') && (
+              <li>
+                <SuizaBanner onOpen={() => onPick('suiza')} />
+              </li>
+            )}
+          </ul>
+        </section>
+      )}
 
       {!waClosed && (
         <aside className="hub-wa-banner" aria-label="Grupo de WhatsApp de Juegos">
@@ -858,19 +873,6 @@ export function GameSelector({ juegos, onPick, onJoin, onScore, onGacha, onHome,
             ✕
           </button>
         </aside>
-      )}
-            {shown('inmo') && (
-              <li>
-                <InmoBanner onOpen={() => onPick('inmo')} />
-              </li>
-            )}
-            {shown('suiza') && (
-              <li>
-                <SuizaBanner onOpen={() => onPick('suiza')} />
-              </li>
-            )}
-          </ul>
-        </section>
       )}
     </main>
   )

@@ -1,0 +1,195 @@
+/* Selector de juegos: rejilla de tarjetas y carátulas. Va después de las hojas de las temporadas para mandar sobre su
+   maquetación; los colores de cada tema (--tint, --art, fondos) siguen viniendo de ellas.
+
+   Rejilla: columnas fijas y tarjetas del mismo tamaño. Ninguna fila se estira para llenar el ancho (antes, con flex, las
+   dos últimas de «A tu ritmo» —Plinko y Rana— salían a media pantalla cada una). El juego nuevo de «A tu ritmo» (is-big)
+   ocupa un bloque de 2×2. */
+
+/* ---------- Rejillas ---------- */
+.juegos-root .hub-showcase.s4-round,
+.juegos-root .hub-games.s4-pace {
+  display: grid;
+  gap: clamp(14px, 1.6vw, 22px);
+}
+.juegos-root .hub-showcase.s4-round > li,
+.juegos-root .hub-games.s4-pace > li {
+  grid-column: auto;
+  grid-row: auto;
+}
+
+/* Todos a la vez: tres por fila (dos en tableta; en el móvil, el carrusel de hub.css). */
+@media (min-width: 641px) {
+  .juegos-root .hub-showcase.s4-round {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 641px) and (max-width: 1100px) {
+  .juegos-root .hub-showcase.s4-round {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* A tu ritmo: cuatro columnas (tres en tableta, dos en el móvil); el nuevo, 2×2. dense rellena los huecos si la banca
+   oculta algún juego. */
+.juegos-root .hub-games.s4-pace {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-flow: dense;
+}
+.juegos-root .hub-games.s4-pace > li.is-big {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+@media (max-width: 1100px) {
+  .juegos-root .hub-games.s4-pace {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .juegos-root .hub-games.s4-pace {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .juegos-root .hub-games.s4-pace > li.is-big {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+}
+
+/* ---------- Carátulas ---------- */
+/* La escena va enmarcada dentro de la tarjeta, como la portada de un cartucho: con margen, esquinas redondas, un filo
+   de luz, viñeta y el color del juego brillando por debajo. */
+.juegos-root .hub-card {
+  padding: 8px;
+  background:
+    radial-gradient(90% 55% at 50% 0%, rgba(var(--tint), 0.24), transparent 72%),
+    radial-gradient(120% 70% at 50% 100%, rgba(var(--tint), 0.14), transparent 70%),
+    linear-gradient(180deg, rgba(22, 34, 56, 0.97), rgba(10, 17, 30, 0.98));
+}
+.juegos-root.halloween .hub-card {
+  background:
+    radial-gradient(90% 55% at 50% 0%, rgba(var(--tint), 0.24), transparent 72%),
+    radial-gradient(120% 70% at 50% 100%, rgba(var(--tint), 0.16), transparent 70%),
+    linear-gradient(180deg, rgba(42, 18, 64, 0.96), rgba(16, 7, 26, 0.98));
+}
+.juegos-root .hub-card .hub-card__art,
+.juegos-root .s4-round .hub-card .hub-card__art,
+.juegos-root .s4-pace .hub-card .hub-card__art {
+  aspect-ratio: 16 / 10;
+  border-radius: 18px;
+  isolation: isolate;
+  box-shadow:
+    0 8px 22px -10px rgba(var(--tint), 0.75),
+    0 2px 0 rgba(0, 0, 0, 0.25);
+}
+.juegos-root.s4 .hub-card {
+  border-radius: 26px;
+}
+/* El nuevo de «A tu ritmo»: la escena crece con la tarjeta y se come el alto que sobra. */
+.juegos-root .s4-pace > li.is-big .hub-card .hub-card__art {
+  flex: 1 1 auto;
+  min-height: 200px;
+  aspect-ratio: auto;
+}
+.juegos-root .s4-pace > li.is-big .hub-card__art .hub-scene {
+  position: absolute;
+  inset: 0;
+}
+.juegos-root .s4-pace > li.is-big .hub-card__body {
+  flex: none;
+}
+.juegos-root .hub-card__art .hub-scene {
+  transition: scale 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* Viñeta, filo de luz y reflejo de cristal arriba (encima de la escena, debajo de las píldoras). */
+.juegos-root .hub-card__art::after,
+.juegos-root.s4 .hub-card__art::after,
+.juegos-root.s5:where(:not(.halloween)) .hub-card__art::after {
+  inset: 0;
+  height: auto;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 26%),
+    radial-gradient(130% 95% at 50% 40%, transparent 62%, rgba(4, 8, 18, 0.4)),
+    linear-gradient(transparent 70%, rgba(4, 8, 18, 0.35));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 -18px 30px -18px rgba(var(--tint), 0.6);
+}
+.juegos-root .hub-card__tags {
+  top: 16px;
+  left: 16px;
+}
+.juegos-root .hub-card__body {
+  padding: 12px 8px 6px;
+}
+.juegos-root .hub-card__blurb {
+  align-self: start;
+}
+.juegos-root .hub-card__kind {
+  justify-self: start;
+  margin-bottom: 2px;
+}
+.juegos-root .s4-pace > li.is-big .hub-card__name {
+  font-size: clamp(26px, 2.4vw, 34px);
+}
+
+@media (hover: hover) {
+  .juegos-root .hub-card:not(:disabled):hover .hub-card__art .hub-scene {
+    scale: 1.06;
+  }
+}
+
+/* Móvil: tarjetas de dos en fila, compactas. */
+@media (max-width: 640px) {
+  .juegos-root .hub-card {
+    padding: 6px;
+  }
+  .juegos-root.s4 .hub-card {
+    border-radius: 20px;
+  }
+  .juegos-root .hub-card .hub-card__art,
+  .juegos-root .s4-round .hub-card .hub-card__art,
+  .juegos-root .s4-pace .hub-card .hub-card__art {
+    border-radius: 14px;
+  }
+  .juegos-root .s4-pace > li.is-big .hub-card .hub-card__art {
+    flex: none;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+  .juegos-root .s4-pace > li.is-big .hub-card__art .hub-scene {
+    position: static;
+  }
+  .juegos-root .s4-pace > li.is-big .hub-card__body {
+    flex: 1 1 auto;
+  }
+  .juegos-root .hub-card__tags {
+    top: 12px;
+    left: 12px;
+  }
+  .juegos-root .hub-games .hub-card__body {
+    padding: 8px 6px 4px;
+  }
+  .juegos-root.s4 .hub-games .hub-card__kind {
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+  }
+  .juegos-root.s4 .hub-games .hub-card__name {
+    font-size: 18px;
+  }
+  .juegos-root.s4 .hub-games .hub-card__blurb {
+    -webkit-line-clamp: 3;
+    max-height: calc(3 * 1.4em);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .juegos-root.s4 .s4-pace > li.is-big .hub-card__name {
+    font-size: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .hub-card__art .hub-scene {
+    transition: none;
+  }
+}
