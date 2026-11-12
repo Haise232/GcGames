@@ -391,11 +391,6 @@
 
 /* Tableta y móvil: todo en una columna y la página hace scroll. */
 @media (max-width: 1000px) {
-  .juegos-root .app--lobby {
-    height: auto;
-    min-height: 100svh;
-    overflow: visible;
-  }
   .juegos-root .picker {
     grid-template-columns: minmax(0, 1fr);
   }

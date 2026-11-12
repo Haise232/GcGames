@@ -63,7 +63,6 @@ const SHEETS = [
 
 // Ilustraciones decorativas que se tiñen por atributo (nunca piezas de juego cuyo color importe para apostar).
 const ART_FILES = [
-  'src/juegos/season4/IslandScene.jsx',
   'src/juegos/season4/BlackjackBeach.jsx',
   'src/juegos/season4/PokerBeach.jsx',
   'src/juegos/season4/PlinkoBeach.jsx',

@@ -47,7 +47,8 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 
 - **Mesas en vivo** de blackjack, póker y ajedrez (uno contra uno, con apuesta), con chat, globos de mensaje y enlaces
   de invitación.
-- **Rondas para todos a la vez**: ruleta, cohete, carrera, ascensor, subasta y bingo. Todo el casino ve la misma ronda.
+- **Rondas para todos a la vez**: ruleta, cohete, carrera, ascensor, subasta, pesca, tira y afloja y bingo. Todo el casino
+  ve la misma ronda. Y la **Feria de las Islas**, una partida de tablero para hasta 10 personas.
 - **Juegos en solitario** contra la casa, que sortea el servidor: nadie puede hacer trampas desde el navegador.
 - **Score** semanal con la evolución día a día y lo que cada uno tiene fuera del saldo (cartas, inmuebles, Suiza).
 - **Economía**: gacha de cartas coleccionables de Black Clover (con uniones que se forman juntando dos cartas y casa de empeños), una Inmobiliaria con tablero y 168 propiedades en las 7 islas (cada una con su tablero y su ciudad), una Cuenta en Suiza
@@ -110,13 +111,14 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 
 | En vivo (mesas) | Para todos a la vez | En solitario | Economía |
 |---|---|---|---|
-| Blackjack | Campeonato de Pesca (cada 2 min) | Pez Gordo | Gacha de cartas |
-| Póker | Ruleta (cada 25 s) | Mayor o Menor | Inmobiliaria |
-| Ajedrez | Cohete (cada 30 s) | Taller de Papá Noel | Cuenta en Suiza |
-| | Carrera (cada 55 s) | Lotería de Navidad | Hacienda |
-| | Ascensor (cada minuto) | El Trineo de Papá Noel | Casa de empeños |
-| | La Subasta (cada minuto) | La Torre · El Atraco | |
-| | Bingo | Plinko · Rana | |
+| Blackjack | Feria de las Islas (hasta 10) | Pez Gordo | Gacha de cartas |
+| Póker | Tira y Afloja (cada 45 s) | Mayor o Menor | Inmobiliaria |
+| Ajedrez | Campeonato de Pesca (cada 2 min) | Taller de Papá Noel | Cuenta en Suiza |
+| | Ruleta (cada 25 s) | Lotería de Navidad | Hacienda |
+| | Cohete (cada 30 s) | El Trineo de Papá Noel | Casa de empeños |
+| | Carrera (cada 55 s) | La Torre · El Atraco | |
+| | Ascensor · La Subasta (cada minuto) | Plinko · Rana | |
+| | Bingo | | |
 
 <details>
 <summary><b>Qué es cada uno</b></summary>
@@ -128,6 +130,15 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
   y rendición. Tablero de piedra en perspectiva y piezas que revientan al capturarlas.
 
 **Para todos a la vez**
+- **Feria de las Islas**: una partida de tablero para hasta 10 personas (500 € de inscripción; si al acabar la cuenta
+  atrás sois menos de 4, la casa pone feriantes). 12 rondas en las que todos tiráis los dados a la vez y avanzáis por un
+  paseo de 28 casillas: tres puestos en cada una de las siete islas y, entre isla e isla, el Muelle, la Tómbola, la Tasa
+  y la Verbena. Si caes solo en un puesto libre puedes comprarlo; si caéis varios, os lo jugáis al Tira y Afloja (10 s
+  pulsando: quien más tira se lo queda gratis); si es de otro, pagas alquiler (el doble si tiene la isla entera), y si es
+  tuyo puedes mejorarlo. Gana quien acabe con más patrimonio y el bote se reparte 50/30/20 entre los tres primeros.
+- **Tira y Afloja**: cada 45 s, rojo contra azul. Eliges equipo (200 €) y durante 12 s pulsas todo lo rápido que puedas.
+  Gana el equipo que más tira de media, así que da igual cuántos seáis, y sus miembros se reparten todas las entradas.
+  Si un equipo se queda vacío o hay empate, se devuelve la entrada.
 - **Campeonato de Pesca**: cada 2 minutos, un campeonato en La Restinga en el que gana quien sabe pescar, no la suerte.
   30 s de inscripción (2.000 €) y 90 s de pesca en el mismo mar para todos. Los peces son sombras (caballa, vieja, sama,
   morena, cherne, medregal, dos atunes rojos y, a veces, el marlín azul) que salen de una semilla secreta de la ronda;
@@ -188,19 +199,19 @@ domingo a las 23:59 (hora de Canarias) se reinician los saldos y se guarda el po
 │   ├── hooks/useAuth.jsx    # Sesión de Supabase y perfil (get_mi_perfil)
 │   ├── lib/supabase.js      # Cliente de Supabase
 │   └── juegos/              # El casino
-│       ├── Juegos.jsx       # Selector de juegos y pantallas
+│       ├── Juegos.jsx       # Pantallas: qué juego se ve y las hojas de estilo, en su orden
 │       ├── useJuegos.js     # Conexión con el servidor
 │       ├── <juego>/         # Un juego por carpeta (roulette/, crash/, race/, fish/, loteria/…): su pantalla
 │       │                    #   (*.jsx, *.css), su arte y sus reglas puras (*.js, las comparte el servidor)
-│       ├── hub/             # Selector: tarjetas, clasificación y guía
+│       ├── hub/             # Selector (Selector.jsx, catalogo.jsx y selector.css), clasificación y guía
 │       ├── comun/           # Piezas compartidas: avatar, ayuda, premios, sonido, dinero, cartas
 │       ├── estilos/         # Estilos base y la cabecera y el fondo de cada juego
 │       ├── temas/           # Temas de temporada que se encienden por fechas (Halloween)
 │       ├── table/, poker/, chess/   # Mesas en vivo
 │       ├── banca/           # Panel del master y Hacienda
 │       ├── shared/          # Núcleo de blackjack, póker y ajedrez
-│       ├── season4/         # Estructura de la temporada (portada, pase) y las ilustraciones de las islas
-│       └── season5/         # Navidad: portada nevada, nieve y el tinte de colores (s5-tinte.css lo genera
+│       ├── season4/         # Estructura de la temporada (pase) y las ilustraciones de las islas
+│       └── season5/         # Navidad: nieve, escenas y el tinte de colores (s5-tinte.css lo genera
 │                            # scripts/season5-tinte.mjs a partir de las hojas de la S4 y de cada juego)
 ├── api/_juegos/             # Servidor: un módulo por juego, banca, Hacienda, pase, auth y base de datos
 │   └── engine/              # Motor de las mesas en vivo, temporizadores y semana

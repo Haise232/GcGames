@@ -38,51 +38,6 @@
     radial-gradient(560px 380px at 8% 72%, rgba(120, 220, 60, 0.08), transparent 70%);
 }
 
-/* Marquesina: madera quemada, bombillas naranja y violeta y el interior de noche. */
-.juegos-root.halloween .hub-top {
-  background: linear-gradient(180deg, #2b1206, #120602);
-  box-shadow:
-    0 0 0 1px rgba(255, 138, 31, 0.5),
-    0 24px 60px rgba(0, 0, 0, 0.5),
-    0 0 80px -20px rgba(255, 120, 30, 0.45);
-}
-.juegos-root.halloween .hub-top::before {
-  background: conic-gradient(from var(--hub-a), #ffe0b0, #ff8a1f 10%, #6a2a9a 24%, #ff8a1f 46%, #ffe0b0 58%, #6a2a9a 78%, #ff8a1f 92%, #ffe0b0);
-  filter: drop-shadow(0 0 5px rgba(255, 130, 40, 0.65));
-}
-.juegos-root.halloween .hub-top::after {
-  background:
-    radial-gradient(60% 140% at 14% 0%, rgba(255, 138, 31, 0.22), transparent 70%),
-    radial-gradient(50% 120% at 100% 100%, rgba(150, 70, 255, 0.22), transparent 70%),
-    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 14px),
-    linear-gradient(160deg, #2a1240, #10071c);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 138, 31, 0.32),
-    inset 0 0 50px rgba(0, 0, 0, 0.5);
-}
-.juegos-root.halloween .hub-top h1 {
-  filter: drop-shadow(0 3px 0 rgba(60, 14, 0, 0.6)) drop-shadow(0 0 24px rgba(255, 120, 30, 0.45));
-}
-
-/* Calabaza en la esquina de la marquesina. */
-.juegos-root.halloween .hw-pumpkin {
-  position: absolute;
-  top: -22px;
-  right: clamp(18px, 4vw, 44px);
-  z-index: 1;
-  width: clamp(46px, 6vw, 64px);
-  pointer-events: none;
-  filter: drop-shadow(0 4px 10px rgba(255, 120, 30, 0.45));
-  transform: rotate(8deg);
-}
-
-/* Tarjetas de los juegos: fondo de noche violeta; cada juego mantiene su color (--tint). */
-.juegos-root.halloween .hub-card {
-  background:
-    radial-gradient(120% 70% at 50% 100%, rgba(var(--tint), 0.18), transparent 70%),
-    linear-gradient(180deg, rgba(42, 18, 64, 0.96), rgba(16, 7, 26, 0.98));
-}
-
 /* --- Adornos (HalloweenFx.jsx) --- */
 .juegos-root.halloween .hw-fx {
   position: absolute;
@@ -141,7 +96,6 @@
   }
 }
 
-/* --- Mesas --- */
 /* Dorso de las cartas: naranja calabaza con rombos violeta. */
 .juegos-root.halloween .card__back {
   border-color: #f3e3c8;

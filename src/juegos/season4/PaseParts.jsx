@@ -21,6 +21,8 @@ export const GAME_NAMES = {
   chess: 'Ajedrez',
   gacha: 'Gacha',
   pesca: 'Pesca',
+  feria: 'Feria',
+  soga: 'Tira y Afloja',
   hilo: 'Mayor o Menor',
   taller: 'Taller',
 }

@@ -1,0 +1,522 @@
+/* Feria de las Islas (Feria.jsx): la sala, el paseo (un óvalo de casillas redondas) con el centro para los dados, los
+   avisos y los duelos, y la clasificación al lado. */
+.juegos-root .app.fe-app {
+  --accent: #46e0c8;
+  --accent-rgb: 70, 224, 200;
+  max-width: 1280px;
+}
+.juegos-root.s4 .app.fe-app::before,
+.juegos-root .app.fe-app::before {
+  background:
+    radial-gradient(60% 50% at 50% 0%, rgba(70, 224, 200, 0.12), transparent 70%),
+    linear-gradient(180deg, #0f1826, #090e17);
+}
+
+.juegos-root .fe-card {
+  padding: clamp(16px, 2.4vw, 26px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  background: rgba(12, 19, 31, 0.72);
+}
+.juegos-root .fe-card h2 {
+  margin: 0 0 6px;
+  font: 400 clamp(20px, 3vw, 28px) / 1.15 'Lilita One', system-ui, sans-serif;
+  color: #fff;
+}
+.juegos-root .fe-btn {
+  padding: 12px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font: 700 15px/1 'Instrument Sans Variable', system-ui, sans-serif;
+  cursor: pointer;
+}
+.juegos-root .fe-btn--go {
+  border: 0;
+  background: linear-gradient(180deg, #5ff0d6, #23b8a0);
+  color: #05221d;
+  box-shadow: 0 4px 0 #107a69;
+}
+.juegos-root .fe-btn--go:not(:disabled):active {
+  translate: 0 3px;
+  box-shadow: 0 1px 0 #107a69;
+}
+.juegos-root .fe-btn:disabled {
+  filter: saturate(0.3) brightness(0.75);
+  cursor: default;
+}
+
+/* ---------- Sala ---------- */
+.juegos-root .fe-lobby {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+.juegos-root .fe-room__sub {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: #9fb0c8;
+}
+.juegos-root .fe-seats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px 8px;
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .fe-seats li {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6f7f98;
+}
+.juegos-root .fe-seats li > :first-child {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+.juegos-root .fe-seats li > i {
+  border: 2px dashed rgba(255, 255, 255, 0.16);
+}
+.juegos-root .fe-seats li.is-on {
+  color: #fff;
+}
+.juegos-root .fe-seats li.is-on > :first-child {
+  box-shadow: 0 0 0 3px var(--c);
+}
+.juegos-root .fe-seats span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.juegos-root .fe-room__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  font-size: 13px;
+  color: #9fb0c8;
+}
+.juegos-root .fe-how ul {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 18px;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #c3cede;
+}
+.juegos-root .fe-how b {
+  color: #fff;
+}
+.juegos-root .fe-podio {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 18px;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .fe-podio li {
+  display: grid;
+  grid-template-columns: 30px 30px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 14px;
+  color: #c3cede;
+}
+.juegos-root .fe-podio li.is-paid {
+  background: rgba(70, 224, 200, 0.1);
+}
+.juegos-root .fe-podio li.is-me {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  color: #fff;
+}
+.juegos-root .fe-podio li > b {
+  font: 400 18px/1 'Lilita One', system-ui, sans-serif;
+  color: #ffd25e;
+}
+.juegos-root .fe-podio span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.juegos-root .fe-podio small {
+  margin-left: 6px;
+  font-size: 11px;
+  color: #7f8fa8;
+}
+.juegos-root .fe-podio em {
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  color: #9fb0c8;
+}
+.juegos-root .fe-podio strong {
+  min-width: 70px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: #56637a;
+}
+.juegos-root .fe-podio li.is-paid strong {
+  color: #7dffb8;
+}
+.juegos-root .fe-podio li.fe-podio__pot {
+  display: block;
+  background: none;
+  font-size: 12px;
+  color: #7f8fa8;
+}
+
+/* ---------- Partida ---------- */
+.juegos-root .fe-play {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 250px;
+  align-items: start;
+  gap: 16px;
+  margin-top: 14px;
+}
+.juegos-root .fe-board {
+  position: relative;
+  width: 100%;
+  max-height: calc(100dvh - 130px);
+  margin-inline: auto;
+}
+.juegos-root .fe-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .fe-path {
+  fill: rgba(70, 224, 200, 0.03);
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 26;
+  stroke-linejoin: round;
+}
+.juegos-root .fe-island {
+  font: 700 13px 'Instrument Sans Variable', system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  dominant-baseline: middle;
+  opacity: 0.9;
+}
+.juegos-root .fe-sq {
+  cursor: pointer;
+}
+.juegos-root .fe-sq text {
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+.juegos-root .fe-sq__base {
+  fill: #141d2c;
+}
+.juegos-root .fe-sq__ring {
+  fill: none;
+  stroke-width: 2.5;
+}
+.juegos-root .fe-sq__ring.is-owned {
+  stroke-width: 5;
+}
+.juegos-root .fe-sq.is-sel .fe-sq__ring {
+  stroke: #fff;
+  stroke-width: 3.5;
+}
+.juegos-root .fe-sq__name {
+  font: 700 10.5px 'Instrument Sans Variable', system-ui, sans-serif;
+  fill: #fff;
+}
+.juegos-root .fe-sq__price {
+  font: 400 16px 'Lilita One', system-ui, sans-serif;
+  fill: #dfe6f2;
+}
+.juegos-root .fe-sq__icon {
+  font-size: 22px;
+}
+.juegos-root .fe-sq__tag {
+  font: 700 8.4px 'Instrument Sans Variable', system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  fill: #9fb0c8;
+}
+.juegos-root .fe-tokens {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.juegos-root .fe-token {
+  position: absolute;
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--c), 0 4px 8px rgba(0, 0, 0, 0.55);
+}
+.juegos-root .fe-token.is-me {
+  z-index: 2;
+  box-shadow: 0 0 0 3px var(--c), 0 0 0 5px #fff, 0 4px 10px rgba(0, 0, 0, 0.6);
+}
+.juegos-root .fe-center {
+  position: absolute;
+  inset: 21% 14%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+.juegos-root .fe-center > * {
+  max-width: 100%;
+}
+.juegos-root .fe-round {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 13px;
+  color: #9fb0c8;
+}
+.juegos-root .fe-round b {
+  font: 400 20px/1 'Lilita One', system-ui, sans-serif;
+  color: #fff;
+}
+.juegos-root .fe-round span {
+  min-width: 34px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #ffd25e;
+}
+.juegos-root .fe-round em {
+  flex-basis: 100%;
+  font-style: normal;
+  font-size: 12px;
+}
+.juegos-root .fe-dice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.juegos-root .fe-dice b {
+  margin-left: 4px;
+  font: 400 30px/1 'Lilita One', system-ui, sans-serif;
+  color: #ffd25e;
+}
+.juegos-root .fe-die {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  width: 46px;
+  height: 46px;
+  padding: 8px;
+  border-radius: 11px;
+  background: #f4efe2;
+  box-shadow: 0 4px 0 #b9b19c;
+}
+.juegos-root .fe-die.is-rolling {
+  animation: fe-roll 0.3s linear infinite;
+}
+.juegos-root .fe-die i {
+  border-radius: 50%;
+}
+.juegos-root .fe-die i.on {
+  background: #1a2233;
+}
+@keyframes fe-roll {
+  50% {
+    rotate: 12deg;
+    translate: 0 -4px;
+  }
+}
+.juegos-root .fe-msg {
+  display: grid;
+  gap: 4px;
+  min-height: 2.4em;
+  margin: 0;
+  font-size: clamp(14px, 1.6vw, 18px);
+  line-height: 1.25;
+  color: #c3cede;
+}
+.juegos-root .fe-msg b {
+  color: #fff;
+}
+.juegos-root .fe-msg small {
+  font-size: 12px;
+  color: #7dffb8;
+}
+.juegos-root .fe-note,
+.juegos-root .fe-info {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #9fb0c8;
+}
+.juegos-root .fe-duel {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+.juegos-root .fe-duel__title {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+.juegos-root .fe-duel__title b {
+  font: 400 clamp(17px, 2.2vw, 24px) / 1.1 'Lilita One', system-ui, sans-serif;
+  color: #fff;
+}
+.juegos-root .fe-duel__title span {
+  font-size: 12px;
+  color: #9fb0c8;
+}
+.juegos-root .fe-center .cu-pad {
+  max-width: 440px;
+  min-height: 84px;
+  padding: 8px;
+}
+.juegos-root .fe-bars {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .fe-bars li {
+  display: grid;
+  grid-template-columns: 26px 70px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #dfe6f2;
+}
+.juegos-root .fe-bars span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+.juegos-root .fe-bars i {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--c), var(--c)) no-repeat left / calc(var(--f) * 100%) 100%, rgba(255, 255, 255, 0.08);
+  transition: background-size 0.25s;
+}
+.juegos-root .fe-bars li.is-win b {
+  color: #7dffb8;
+}
+
+.juegos-root .fe-side {
+  display: grid;
+  gap: 12px;
+}
+.juegos-root .fe-rank,
+.juegos-root .fe-feed {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(12, 19, 31, 0.72);
+  list-style: none;
+}
+.juegos-root .fe-rank li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #dfe6f2;
+}
+.juegos-root .fe-rank li > :first-child {
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--c);
+}
+.juegos-root .fe-rank li.is-me {
+  background: rgba(255, 255, 255, 0.07);
+}
+.juegos-root .fe-rank span {
+  display: grid;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.juegos-root .fe-rank small {
+  font-size: 11px;
+  color: #7f8fa8;
+}
+.juegos-root .fe-rank b {
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .fe-feed li {
+  padding: 3px 8px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #9fb0c8;
+}
+
+@media (max-width: 1000px) {
+  .juegos-root .fe-play,
+  .juegos-root .fe-lobby {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .juegos-root .fe-board {
+    max-height: none;
+  }
+}
+@media (max-width: 760px) {
+  .juegos-root .fe-center {
+    inset: 17% 21%;
+    gap: 8px;
+  }
+  .juegos-root .fe-island {
+    font-size: 11px;
+  }
+  .juegos-root .fe-duelbox {
+    order: -1;
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    background: rgba(12, 19, 31, 0.85);
+    text-align: center;
+  }
+  .juegos-root .fe-token {
+    width: 22px;
+    height: 22px;
+    margin: -11px 0 0 -11px;
+  }
+  .juegos-root .fe-token .avatar {
+    --size: 22px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .fe-die.is-rolling {
+    animation: none;
+  }
+}
+
+/* La pantalla crece con su contenido (la base de .app es una pantalla fija sin scroll). */
+.juegos-root .app.fe-app {
+  height: auto;
+  min-height: 100svh;
+  overflow: visible;
+}
+
+/* El título es largo: más pequeño que el de los demás juegos para que la cabecera quede en una línea. */
+.juegos-root .app.fe-app > .top h1,
+.juegos-root .app.sg-app > .top h1 {
+  font-size: clamp(22px, 3.2vw, 36px);
+}

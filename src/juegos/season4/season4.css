@@ -90,121 +90,12 @@
   text-shadow: none;
 }
 
-/* --- Portada: la escena del atardecer a todo el ancho, con el título y tu ficha encima --- */
-.juegos-root.s4 .hub-top.s4-hero {
-  min-height: clamp(320px, 40vw, 460px);
-  align-items: flex-end;
-  overflow: hidden;
-  padding: clamp(26px, 3.4vw, 46px);
-  border-radius: 32px;
-  background: #1b1150;
-  box-shadow:
-    0 0 0 2px rgba(255, 228, 160, 0.35),
-    0 30px 70px rgba(0, 0, 0, 0.5),
-    0 0 120px -30px rgba(255, 120, 80, 0.55);
-}
-.juegos-root.s4 .hub-top.s4-hero::before {
-  display: none;
-}
 /* Sombra de abajo para que el texto se lea sobre el mar. */
-.juegos-root.s4 .hub-top.s4-hero::after {
-  inset: 0;
-  z-index: -1;
-  border-radius: 0;
-  background: linear-gradient(180deg, transparent 30%, rgba(6, 14, 34, 0.25) 55%, rgba(6, 14, 34, 0.82) 100%);
-  box-shadow: none;
-}
-.juegos-root .s4-hero__scene {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  width: 100%;
-  height: 100%;
-}
-.juegos-root.s4 .s4-hero__brand {
-  gap: 8px;
-}
-.juegos-root .s4-hero__season {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 16px 6px 6px;
-  border-radius: 999px;
-  background: rgba(10, 14, 40, 0.55);
-  box-shadow: inset 0 0 0 1px rgba(255, 246, 232, 0.25);
-  backdrop-filter: blur(6px);
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #fff6e8;
-}
-.juegos-root .s4-hero__season span {
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: var(--s4-sunset, linear-gradient(100deg, #ffe36e, #ff8a4c 45%, #ff4f8b));
-  color: #2a0f2e;
-  letter-spacing: 0.08em;
-  box-shadow: 0 0 18px rgba(255, 120, 80, 0.6);
-  animation: s4-pop 2.8s ease-in-out infinite;
-}
 @keyframes s4-pop {
   50% {
     scale: 1.07;
   }
 }
-.juegos-root.s4 .s4-hero h1 {
-  font-family: 'Lilita One', var(--display);
-  font-size: clamp(64px, 9.4vw, 132px);
-  line-height: 0.9;
-  letter-spacing: 0.01em;
-  background: linear-gradient(180deg, #fffbe6 0%, #ffe36e 35%, #ff8a4c 70%, #ff4f8b 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 4px 0 #3a0f3e) drop-shadow(0 8px 0 rgba(20, 6, 30, 0.55)) drop-shadow(0 0 30px rgba(255, 140, 80, 0.45));
-}
-.juegos-root.s4 .s4-hero .hub-top__logo {
-  filter: drop-shadow(0 4px 0 #3a0f3e) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5));
-  animation: s4-bob 4s ease-in-out infinite;
-}
-@keyframes s4-bob {
-  50% {
-    translate: 0 -6px;
-    rotate: -4deg;
-  }
-}
-.juegos-root .s4-hero__tag {
-  margin: 0;
-  font-size: clamp(16px, 1.6vw, 21px);
-  font-weight: 700;
-  color: #fff6e8;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-}
-.juegos-root.s4 .s4-hero .hub-status {
-  background: rgba(6, 14, 34, 0.55);
-  backdrop-filter: blur(6px);
-}
-.juegos-root.s4 .s4-hero .hub-top__who {
-  align-self: flex-end;
-}
-.juegos-root.s4 .s4-hero .hub-me {
-  border-color: rgba(255, 246, 232, 0.35);
-  background: rgba(10, 16, 40, 0.6);
-  backdrop-filter: blur(10px);
-}
-.juegos-root.s4 .s4-hero .hub-me > :first-child {
-  box-shadow:
-    0 0 0 3px #ffb547,
-    0 0 0 6px rgba(255, 79, 139, 0.45),
-    0 0 22px rgba(255, 140, 80, 0.6);
-}
-.juegos-root.s4 .s4-hero .hub-btn--ghost {
-  background: rgba(10, 16, 40, 0.55);
-  border-color: rgba(255, 246, 232, 0.25);
-  backdrop-filter: blur(6px);
-}
-
 /* Animaciones de la escena. */
 .juegos-root .is4-palm {
   transform-box: fill-box;
@@ -315,136 +206,12 @@
   }
 }
 
-/* ============================== Barra de secciones ==============================
-   Se queda pegada arriba al bajar por el selector; la sección que se está viendo va en dorado. */
-.juegos-root .hub-nav {
-  position: sticky;
-  top: 8px;
-  z-index: 20;
-  margin: 0 0 clamp(6px, 1vw, 12px);
-}
-.juegos-root .hub-nav ul {
-  display: flex;
-  gap: 6px;
-  width: fit-content;
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 6px;
-  overflow-x: auto;
-  border: 1px solid rgba(143, 227, 255, 0.18);
-  border-radius: 999px;
-  background: rgba(8, 22, 42, 0.78);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-  list-style: none;
-  scrollbar-width: none;
-}
-.juegos-root .hub-nav ul::-webkit-scrollbar {
-  display: none;
-}
-.juegos-root .hub-nav a {
-  display: block;
-  padding: 8px 16px;
-  border-radius: 999px;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-  text-decoration: none;
-  transition: background 0.15s, color 0.15s;
-}
-.juegos-root .hub-nav a:hover {
-  color: var(--ivory);
-}
-.juegos-root .hub-nav a[aria-current='true'] {
-  background: linear-gradient(180deg, #ffe36e, #ffb547);
-  color: #3a1604;
-}
-.juegos-root .hub-nav a:focus-visible {
-  outline: 2px solid var(--ivory);
-  outline-offset: 2px;
-}
 /* Al saltar desde la barra, la sección no queda tapada por ella. */
 .juegos-root .app.hub :is(section, div)[id^='hub-'] {
   scroll-margin-top: 76px;
 }
-@media (prefers-reduced-motion: reduce) {
-  .juegos-root .hub-nav a {
-    transition: none;
-  }
-}
-@media (max-width: 640px) {
-  .juegos-root .hub-nav {
-    top: 4px;
-    margin-inline: -4px;
-  }
-  .juegos-root .hub-nav a {
-    padding: 7px 12px;
-    font-size: 13px;
-  }
-}
 
 /* ============================== Pase en el selector ============================== */
-.juegos-root .s4-strip {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.4fr) minmax(0, 0.9fr);
-  gap: clamp(12px, 1.4vw, 18px);
-}
-.juegos-root .s4-strip > * {
-  min-width: 0;
-  border-radius: 24px;
-  background: var(--hub-panel);
-  box-shadow:
-    inset 0 0 0 1px rgba(143, 227, 255, 0.16),
-    0 14px 34px rgba(0, 0, 0, 0.35);
-}
-.juegos-root .s4-strip__level {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 18px 20px;
-  border: 0;
-  background:
-    radial-gradient(120% 120% at 0% 0%, rgba(255, 138, 76, 0.28), transparent 60%),
-    radial-gradient(100% 100% at 100% 100%, rgba(255, 79, 139, 0.22), transparent 60%),
-    linear-gradient(160deg, #2a1a5e, #12224a);
-  font: inherit;
-  color: var(--ivory);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    translate 0.25s,
-    box-shadow 0.25s;
-}
-.juegos-root .s4-strip__who {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-  flex: 1;
-}
-.juegos-root .s4-strip__who small {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--s4-sun, #ffe36e);
-}
-.juegos-root .s4-strip__who b {
-  font-family: var(--display);
-  font-size: clamp(22px, 2vw, 28px);
-  font-weight: 400;
-  line-height: 1.05;
-}
-.juegos-root .s4-strip__go {
-  font-size: 13px;
-  font-weight: 700;
-  color: #8fe3ff;
-}
-.juegos-root .s4-strip__missions {
-  padding: 16px 18px;
-}
-.juegos-root .s4-strip__missions h3,
 .juegos-root .s4-panel h2 {
   display: flex;
   align-items: baseline;
@@ -455,39 +222,11 @@
   font-size: 20px;
   font-weight: 400;
 }
-.juegos-root .s4-strip__missions h3 span,
 .juegos-root .s4-panel h2 span {
   font-family: var(--sans);
   font-size: 13px;
   font-weight: 700;
   color: var(--muted);
-}
-.juegos-root .s4-strip__missions ul {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.juegos-root .s4-strip__missions .hub-skel {
-  height: 34px;
-}
-.juegos-root .s4-strip__bonus {
-  margin: 10px 0 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--s4-sun, #ffe36e);
-}
-.juegos-root .s4-strip__bonus.is-done {
-  color: var(--s4-palm, #43d17c);
-}
-.juegos-root .s4-strip__side {
-  display: grid;
-  align-content: stretch;
-  gap: 10px;
-  padding: 10px;
-  background: none;
-  box-shadow: none;
 }
 
 /* Anillo de nivel. */
@@ -651,8 +390,7 @@
 }
 
 /* Cofre diario y premios por reclamar. */
-.juegos-root .s4-chestbtn,
-.juegos-root .s4-claimbtn {
+.juegos-root .s4-chestbtn {
   position: relative;
   display: flex;
   align-items: center;
@@ -671,21 +409,18 @@
   text-align: left;
   cursor: pointer;
 }
-.juegos-root .s4-chestbtn > span,
-.juegos-root .s4-claimbtn > span:last-child {
+.juegos-root .s4-chestbtn > span {
   display: grid;
   gap: 2px;
   min-width: 0;
 }
-.juegos-root .s4-chestbtn b,
-.juegos-root .s4-claimbtn b {
+.juegos-root .s4-chestbtn b {
   font-family: var(--display);
   font-size: 19px;
   font-weight: 400;
   line-height: 1.1;
 }
-.juegos-root .s4-chestbtn small,
-.juegos-root .s4-claimbtn small {
+.juegos-root .s4-chestbtn small {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--muted);
@@ -772,104 +507,17 @@
     scale: 1.35;
   }
 }
-.juegos-root .s4-claimbtn {
-  background: linear-gradient(160deg, #0e6a5a, #0b3a4a);
-  box-shadow:
-    0 0 0 2px var(--s4-sea, #2ee6d0),
-    0 0 26px -6px rgba(46, 230, 208, 0.8);
-}
-.juegos-root .s4-claimbtn > span:first-child {
-  display: grid;
-  place-items: center;
-  width: 46px;
-  font-size: 30px;
-  animation: s4-bob 2.6s ease-in-out infinite;
-}
-
-/* Pegatina de misión en las tarjetas de juego. */
-.juegos-root .s4-sticker {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 4;
-  padding: 5px 11px;
-  border-radius: 999px;
-  background: var(--s4-sunset, linear-gradient(100deg, #ffe36e, #ff8a4c 45%, #ff4f8b));
-  box-shadow:
-    0 0 0 2px rgba(10, 16, 40, 0.85),
-    0 6px 16px rgba(255, 100, 80, 0.5);
-  font-size: 12px;
-  font-style: normal;
-  font-weight: 900;
-  color: #2a0f2e;
-  rotate: 4deg;
-  animation: s4-sticker 2.6s ease-in-out infinite;
-}
-.juegos-root .s4-sticker.is-done {
-  background: var(--s4-palm, #43d17c);
-  color: #062615;
-  animation: none;
-}
-@keyframes s4-sticker {
-  50% {
-    rotate: -3deg;
-    scale: 1.06;
-  }
-}
 
 /* --- Tarjetas de juego: más redondas, borde de colores y un poco de giro al pasar --- */
-.juegos-root.s4 .hub-card {
-  border-radius: 26px;
-  border-width: 2px;
-  background:
-    radial-gradient(120% 70% at 50% 100%, rgba(var(--tint), 0.22), transparent 70%),
-    linear-gradient(180deg, rgba(22, 52, 84, 0.97), rgba(10, 24, 46, 0.98));
-}
-.juegos-root.s4 .hub-card__art::after {
-  background: linear-gradient(transparent, rgba(10, 24, 46, 0.9));
-}
-.juegos-root.s4 .hub-card__name {
-  font-size: clamp(23px, 1.9vw, 28px);
-  letter-spacing: 0.01em;
-}
-.juegos-root.s4 .hub-card__cta {
-  border-width: 2px;
-}
-.juegos-root.s4 .hub-btn--primary,
-.juegos-root.s4 .hub-bank {
+.juegos-root.s4 .hub-btn--primary {
   border-color: transparent;
   background: linear-gradient(180deg, #ffe36e, #ff8a4c);
   color: #2a0f2e;
   box-shadow: 0 6px 18px -4px rgba(255, 120, 70, 0.6);
 }
-.juegos-root.s4 .hub-bank span {
-  background: #2a0f2e;
-  color: #ffe36e;
-}
-.juegos-root.s4 .hub-live,
-.juegos-root.s4 .hub-score,
-.juegos-root.s4 .hub-bingo {
-  border-radius: 26px;
-}
 
 @media (hover: hover) {
-  .juegos-root.s4 .hub-card:not(:disabled):hover {
-    translate: 0 -8px;
-    rotate: -0.6deg;
-  }
-  .juegos-root.s4 .hub-card:not(:disabled):hover .hub-card__cta {
-    background: linear-gradient(180deg, #ffe36e, #ff8a4c);
-    color: #2a0f2e;
-  }
-  .juegos-root .s4-strip__level:not(:disabled):hover {
-    translate: 0 -4px;
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 200, 120, 0.5),
-      0 22px 44px rgba(0, 0, 0, 0.45),
-      0 0 40px -10px rgba(255, 120, 80, 0.6);
-  }
-  .juegos-root .s4-chestbtn.is-ready:hover,
-  .juegos-root .s4-claimbtn:hover {
+  .juegos-root .s4-chestbtn.is-ready:hover {
     translate: 0 -3px;
   }
   .juegos-root.s4 .hub-btn--primary:not(:disabled):hover {
@@ -925,9 +573,7 @@
   animation: s4-pop 2.4s ease-in-out infinite;
 }
 .juegos-root .s4-btn:focus-visible,
-.juegos-root .s4-chestbtn:focus-visible,
-.juegos-root .s4-claimbtn:focus-visible,
-.juegos-root .s4-strip__level:focus-visible {
+.juegos-root .s4-chestbtn:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 3px;
 }
@@ -1443,46 +1089,11 @@
 
 /* ============================== Pantallas estrechas ============================== */
 @media (max-width: 1100px) {
-  .juegos-root .s4-strip {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-  .juegos-root .s4-strip__side {
-    grid-column: 1 / -1;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-    padding: 0;
-  }
   .juegos-root .s4-pase__grid {
     grid-template-columns: minmax(0, 1fr);
   }
 }
-@media (max-width: 700px) {
-  .juegos-root .s4-strip {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
 @media (max-width: 640px) {
-  .juegos-root.s4 .hub-top.s4-hero {
-    min-height: 0;
-    padding: 150px 18px 20px;
-    border-radius: 24px;
-  }
-  .juegos-root.s4 .hub-top.s4-hero::after {
-    background: linear-gradient(180deg, transparent 15%, rgba(6, 14, 34, 0.5) 40%, rgba(6, 14, 34, 0.92) 70%);
-  }
-  .juegos-root.s4 .s4-hero h1 {
-    font-size: 60px;
-  }
-  .juegos-root .s4-hero__season {
-    font-size: 11px;
-  }
-  .juegos-root .s4-strip__level {
-    gap: 14px;
-    padding: 14px;
-  }
-  .juegos-root .s4-strip__level .s4-ring {
-    width: 76px !important;
-    height: 76px !important;
-  }
   .juegos-root .s4-pase__me {
     flex-direction: column;
     align-items: flex-start;
@@ -1505,8 +1116,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .juegos-root :is(.is4-palm, .is4-leaf, .is4-sun, .is4-halo, .is4-stars circle, .is4-clouds, .is4-shimmer rect, .is4-wave, .is4-boat, .is4-birds),
-  .juegos-root :is(.s4-hero__season span, .s4-hero .hub-top__logo, .s4-xp__fill, .s4-chestbtn, .s4-chest, .s4-sticker, .s4-btn--hot, .s4-node, .s4-claimbtn span, .s4-toast__icon) {
+  .juegos-root :is(.is4-palm, .is4-leaf, .is4-sun, .is4-halo, .is4-stars circle, .is4-clouds, .is4-shimmer rect, .is4-wave, .is4-boat, .is4-birds) {
     animation: none !important;
   }
   .juegos-root .is4-boat {

@@ -158,7 +158,7 @@ const STEPS = [
     target: 'me',
     art: 'money',
     title: 'Tu saldo de la semana',
-    text: `Aquí ves tu dinero, tu puesto y tu nivel del pase. Empiezas con ${eur(START)} y lo usas en todos los juegos. Cada domingo a las 23:59 todos vuelven a ${eur(START)}.`,
+    text: `Aquí ves tu dinero y tu puesto. Empiezas con ${eur(START)} y lo usas en todos los juegos. Cada domingo a las 23:59 todos vuelven a ${eur(START)}.`,
   },
   {
     target: 'pase',
@@ -182,7 +182,7 @@ const STEPS = [
     target: 'round',
     art: 'live3',
     title: 'Todos a la vez',
-    text: 'Ascensor, Subasta, Ruleta, Cohete y Carrera: la misma ronda para todo el casino cada pocos segundos. Las tarjetas con pegatina son las de tus misiones de hoy.',
+    text: 'Nuevos: la Feria de las Islas (una partida de tablero para hasta diez, con duelos de Tira y Afloja por los puestos) y el Tira y Afloja suelto, rojo contra azul. Y Pesca, Ascensor, Subasta, Ruleta, Cohete y Carrera: la misma ronda para todo el casino. Las tarjetas con la etiqueta «Misión» son las de tus misiones de hoy. Con los botones de arriba filtras qué juegos ver.',
   },
   {
     target: 'elevator',
@@ -217,7 +217,7 @@ const STEPS = [
   {
     art: 'go',
     title: '¡A jugar!',
-    text: 'Abre tu primer regalo y mira tus misiones de hoy. Puedes volver a ver esta guía cuando quieras con el botón «Tutorial» de arriba. ¡Feliz Navidad y suerte en la Season 5!',
+    text: 'Abre tu primer regalo y mira tus misiones de hoy. Puedes volver a ver esta guía cuando quieras con el botón de la interrogación de arriba. ¡Feliz Navidad y suerte en la Season 5!',
     hero: true,
   },
 ]

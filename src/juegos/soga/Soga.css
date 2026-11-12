@@ -1,0 +1,170 @@
+/* Tira y Afloja (Soga.jsx): una pantalla sola, con la cuerda (cuerda.css) en el centro. */
+.juegos-root .app.sg-app {
+  --accent: #ff7a5c;
+  --accent-rgb: 255, 122, 92;
+  max-width: 860px;
+}
+.juegos-root.s4 .app.sg-app::before,
+.juegos-root .app.sg-app::before {
+  background:
+    radial-gradient(50% 60% at 0% 50%, rgba(255, 90, 95, 0.16), transparent 70%),
+    radial-gradient(50% 60% at 100% 50%, rgba(61, 140, 255, 0.16), transparent 70%),
+    linear-gradient(180deg, #121a28, #0a0f18);
+}
+.juegos-root .sg-stage {
+  display: grid;
+  gap: clamp(16px, 3vh, 28px);
+  margin-top: clamp(14px, 3vh, 28px);
+  padding: clamp(16px, 3vw, 30px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  background: rgba(10, 16, 26, 0.6);
+}
+.juegos-root .sg-head {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  text-align: center;
+}
+.juegos-root .sg-head b {
+  font: 400 clamp(30px, 6vw, 46px) / 1.05 'Lilita One', system-ui, sans-serif;
+  color: #fff;
+}
+.juegos-root .sg-head--ready b {
+  font-size: clamp(56px, 12vw, 84px);
+  color: #ffd25e;
+}
+.juegos-root .sg-head--pull b {
+  color: #ff6a4d;
+}
+.juegos-root .sg-head span {
+  font-size: 14px;
+  color: #9fb0c8;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .sg-pick {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.juegos-root .sg-team {
+  display: grid;
+  gap: 4px;
+  padding: 20px 12px;
+  border: 0;
+  border-radius: 20px;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition: translate 0.15s, filter 0.15s;
+}
+.juegos-root .sg-team b {
+  font: 400 clamp(20px, 4vw, 26px) / 1.1 'Lilita One', system-ui, sans-serif;
+}
+.juegos-root .sg-team span {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.9;
+}
+.juegos-root .sg-team--r {
+  background: linear-gradient(180deg, #ff6a6e, #d6363f);
+  box-shadow: 0 6px 0 #8f1d27;
+}
+.juegos-root .sg-team--b {
+  background: linear-gradient(180deg, #5a9dff, #2a63d8);
+  box-shadow: 0 6px 0 #173d8f;
+}
+.juegos-root .sg-team:disabled {
+  filter: saturate(0.4) brightness(0.8);
+  cursor: default;
+}
+.juegos-root .sg-team:not(:disabled):active {
+  translate: 0 4px;
+}
+.juegos-root .sg-result p {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 22px 14px;
+  border-radius: 20px;
+  background: #1a2434;
+  text-align: center;
+  font: 400 clamp(20px, 4vw, 26px) / 1.15 'Lilita One', system-ui, sans-serif;
+  color: #fff;
+}
+.juegos-root .sg-result p.is-win {
+  background: linear-gradient(180deg, rgba(70, 224, 150, 0.28), rgba(70, 224, 150, 0.1));
+  color: #7dffb8;
+}
+.juegos-root .sg-result p.is-lose {
+  color: #ff9aa0;
+}
+.juegos-root .sg-result small {
+  font: 500 13px/1.4 'Instrument Sans Variable', system-ui, sans-serif;
+  color: #9fb0c8;
+}
+.juegos-root .sg-history {
+  margin-top: 18px;
+}
+.juegos-root .sg-history h2 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7f8fa8;
+}
+.juegos-root .sg-history ul,
+.juegos-root .sg-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .sg-history li {
+  display: grid;
+  gap: 1px;
+  min-width: 92px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border-left: 3px solid #56637a;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 12px;
+  color: #9fb0c8;
+}
+.juegos-root .sg-history li.is-r {
+  border-color: #ff5a5f;
+}
+.juegos-root .sg-history li.is-b {
+  border-color: #3d8cff;
+}
+.juegos-root .sg-history li b {
+  font-size: 13px;
+  color: #fff;
+}
+.juegos-root .sg-members {
+  margin-top: 14px;
+}
+.juegos-root .sg-members li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--team) 18%, transparent);
+  font-size: 12px;
+  color: #dfe6f2;
+}
+.juegos-root .sg-members b {
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+
+/* La pantalla crece con su contenido (la base de .app es una pantalla fija sin scroll). */
+.juegos-root .app.sg-app {
+  height: auto;
+  min-height: 100svh;
+  overflow: visible;
+}

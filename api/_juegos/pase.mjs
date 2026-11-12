@@ -61,6 +61,8 @@ const BY_GAME = [
   { id: 'loteria', goal: 5, xp: 110, text: 'Compra 5 décimos de la Lotería de Navidad' },
   { id: 'trineo', goal: 3, xp: 120, text: 'Sal 3 noches a repartir con el Trineo' },
   { id: 'pesca', goal: 2, xp: 140, text: 'Pesca en 2 Campeonatos de Pesca' },
+  { id: 'feria', goal: 1, xp: 150, text: 'Juega una partida a la Feria de las Islas' },
+  { id: 'soga', goal: 3, xp: 120, text: 'Tira de la cuerda en 3 rondas de Tira y Afloja' },
   { id: 'hilo', goal: 4, xp: 120, text: 'Juega 4 partidas a Mayor o Menor' },
   { id: 'taller', goal: 2, xp: 110, text: 'Canjea galletas del Taller por euros 2 veces' },
   { id: 'tower', goal: 3, xp: 120, text: 'Sube 3 veces a la Torre' },

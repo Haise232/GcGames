@@ -46,18 +46,3 @@ export default function HalloweenFx() {
     </div>
   )
 }
-
-// Calabaza para la esquina de la marquesina.
-export function Pumpkin({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 64 60" aria-hidden="true">
-      <path d="M30 10c0-5 3-8 7-9l1 3c-3 1-4 3-4 6z" fill="#4c7a2a" />
-      <ellipse cx="18" cy="35" rx="15" ry="20" fill="#d9601a" />
-      <ellipse cx="46" cy="35" rx="15" ry="20" fill="#d9601a" />
-      <ellipse cx="32" cy="35" rx="15" ry="22" fill="#f07a24" />
-      <path d="M20 30l6-6 4 6zM34 30l6-6 4 6z" fill="#2a0f00" />
-      <path d="M18 40c4 8 24 8 28 0l-5 3-3-3-3 4-3-4-3 4-3-4-3 3z" fill="#2a0f00" />
-      <path d="M22 28l4-4 2 4zM36 28l4-4 2 4z" fill="#ffd25e" opacity="0.55" />
-    </svg>
-  )
-}

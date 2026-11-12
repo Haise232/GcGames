@@ -1,195 +1,726 @@
-/* Selector de juegos: rejilla de tarjetas y carátulas. Va después de las hojas de las temporadas para mandar sobre su
-   maquetación; los colores de cada tema (--tint, --art, fondos) siguen viniendo de ellas.
+/* El selector de juegos (Selector.jsx). Diseño sobrio: un fondo liso, una barra, tres tarjetas con lo de hoy y una
+   rejilla de tarjetas iguales. Un solo color de acento (--hb-accent) que cambia con el tema; el color de cada juego
+   (--tint) solo asoma al pasar por encima de su tarjeta. Las escenas son las de siempre (hub-scene, scenes.css). */
 
-   Rejilla: columnas fijas y tarjetas del mismo tamaño. Ninguna fila se estira para llenar el ancho (antes, con flex, las
-   dos últimas de «A tu ritmo» —Plinko y Rana— salían a media pantalla cada una). El juego nuevo de «A tu ritmo» (is-big)
-   ocupa un bloque de 2×2. */
-
-/* ---------- Rejillas ---------- */
-.juegos-root .hub-showcase.s4-round,
-.juegos-root .hub-games.s4-pace {
-  display: grid;
-  gap: clamp(14px, 1.6vw, 22px);
-}
-.juegos-root .hub-showcase.s4-round > li,
-.juegos-root .hub-games.s4-pace > li {
-  grid-column: auto;
-  grid-row: auto;
-}
-
-/* Todos a la vez: tres por fila (dos en tableta; en el móvil, el carrusel de hub.css). */
-@media (min-width: 641px) {
-  .juegos-root .hub-showcase.s4-round {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-@media (min-width: 641px) and (max-width: 1100px) {
-  .juegos-root .hub-showcase.s4-round {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* A tu ritmo: cuatro columnas (tres en tableta, dos en el móvil); el nuevo, 2×2. dense rellena los huecos si la banca
-   oculta algún juego. */
-.juegos-root .hub-games.s4-pace {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-auto-flow: dense;
-}
-.juegos-root .hub-games.s4-pace > li.is-big {
-  grid-column: span 2;
-  grid-row: span 2;
-}
-@media (max-width: 1100px) {
-  .juegos-root .hub-games.s4-pace {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-@media (max-width: 640px) {
-  .juegos-root .hub-games.s4-pace {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-  .juegos-root .hub-games.s4-pace > li.is-big {
-    grid-column: 1 / -1;
-    grid-row: auto;
-  }
-}
-
-/* ---------- Carátulas ---------- */
-/* La escena va enmarcada dentro de la tarjeta, como la portada de un cartucho: con margen, esquinas redondas, un filo
-   de luz, viñeta y el color del juego brillando por debajo. */
-.juegos-root .hub-card {
-  padding: 8px;
-  background:
-    radial-gradient(90% 55% at 50% 0%, rgba(var(--tint), 0.24), transparent 72%),
-    radial-gradient(120% 70% at 50% 100%, rgba(var(--tint), 0.14), transparent 70%),
-    linear-gradient(180deg, rgba(22, 34, 56, 0.97), rgba(10, 17, 30, 0.98));
-}
-.juegos-root.halloween .hub-card {
-  background:
-    radial-gradient(90% 55% at 50% 0%, rgba(var(--tint), 0.24), transparent 72%),
-    radial-gradient(120% 70% at 50% 100%, rgba(var(--tint), 0.16), transparent 70%),
-    linear-gradient(180deg, rgba(42, 18, 64, 0.96), rgba(16, 7, 26, 0.98));
-}
-.juegos-root .hub-card .hub-card__art,
-.juegos-root .s4-round .hub-card .hub-card__art,
-.juegos-root .s4-pace .hub-card .hub-card__art {
-  aspect-ratio: 16 / 10;
-  border-radius: 18px;
+.juegos-root .app.hb {
+  --hb-bg: #0b0f14;
+  --hb-surface: #131a23;
+  --hb-surface-hi: #1a232f;
+  --hb-line: rgba(255, 255, 255, 0.08);
+  --hb-line-hi: rgba(255, 255, 255, 0.2);
+  --hb-text: #eef2f7;
+  --hb-muted: #8b98aa;
+  --hb-accent: #f5c451;
+  --hb-accent-ink: #1d1503;
+  --hb-up: #5fd38d;
+  --hb-down: #ff8a7a;
+  --hb-radius: 16px;
+  position: relative;
   isolation: isolate;
-  box-shadow:
-    0 8px 22px -10px rgba(var(--tint), 0.75),
-    0 2px 0 rgba(0, 0, 0, 0.25);
+  width: min(100%, 1240px);
+  height: auto;
+  min-height: 100svh;
+  gap: clamp(20px, 3vh, 32px);
+  overflow: visible;
+  padding: 0 clamp(14px, 3vw, 32px) clamp(32px, 6vh, 64px);
+  color: var(--hb-text);
+  font-family: 'Instrument Sans Variable', system-ui, sans-serif;
 }
-.juegos-root.s4 .hub-card {
-  border-radius: 26px;
+.juegos-root.halloween .app.hb {
+  --hb-accent: #ff8a3c;
+  --hb-accent-ink: #220d00;
 }
-/* El nuevo de «A tu ritmo»: la escena crece con la tarjeta y se come el alto que sobra. */
-.juegos-root .s4-pace > li.is-big .hub-card .hub-card__art {
-  flex: 1 1 auto;
-  min-height: 200px;
-  aspect-ratio: auto;
+/* El fondo liso tapa el de la temporada (también el de la página, por si el tema lo pinta ahí); la nieve (o los
+   murciélagos) pasan por encima, muy tenues. */
+.juegos-root:has(> .app.hb) {
+  background: #0b0f14;
 }
-.juegos-root .s4-pace > li.is-big .hub-card__art .hub-scene {
-  position: absolute;
+.juegos-root .app.hb::before {
+  content: '';
+  position: fixed;
   inset: 0;
+  z-index: -2;
+  background: var(--hb-bg);
 }
-.juegos-root .s4-pace > li.is-big .hub-card__body {
+.juegos-root .app.hb > .ns5-fx,
+.juegos-root .app.hb > .hw-fx {
+  z-index: -1;
+  opacity: 0.35;
+}
+.juegos-root .hb button,
+.juegos-root .hb a {
+  font: inherit;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+.juegos-root .hb :is(button, a):focus-visible {
+  outline: 2px solid var(--hb-accent);
+  outline-offset: 2px;
+}
+.juegos-root .hb-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Barra ---------- */
+.juegos-root .hb-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px 18px;
+  margin-inline: calc(-1 * clamp(14px, 3vw, 32px));
+  padding: 12px clamp(14px, 3vw, 32px);
+  border-bottom: 1px solid var(--hb-line);
+  background: color-mix(in srgb, var(--hb-bg) 86%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.juegos-root .hb-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.juegos-root .hb-brand__logo {
+  width: 34px;
+  height: 34px;
   flex: none;
 }
-.juegos-root .hub-card__art .hub-scene {
-  transition: scale 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+.juegos-root .hb-brand span {
+  display: grid;
 }
-/* Viñeta, filo de luz y reflejo de cristal arriba (encima de la escena, debajo de las píldoras). */
-.juegos-root .hub-card__art::after,
-.juegos-root.s4 .hub-card__art::after,
-.juegos-root.s5:where(:not(.halloween)) .hub-card__art::after {
-  inset: 0;
-  height: auto;
-  border-radius: inherit;
+.juegos-root .hb-brand h1 {
+  margin: 0;
+  font: 400 22px/1 'Lilita One', system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  color: var(--hb-text);
+}
+.juegos-root .hb-brand small {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hb-accent);
+}
+.juegos-root .hb-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 auto 0 4px;
+  font-size: 13px;
+  color: var(--hb-muted);
+}
+.juegos-root .hb-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5a6678;
+}
+.juegos-root .hb-status--on i {
+  background: var(--hb-up);
+}
+.juegos-root .hb-status--wait i {
+  background: var(--hb-accent);
+}
+.juegos-root .hb-status--err {
+  color: var(--hb-down);
+}
+.juegos-root .hb-status--err i {
+  background: var(--hb-down);
+}
+.juegos-root .hb-actions {
+  display: flex;
+  gap: 4px;
+}
+.juegos-root .hb-actions > * {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--hb-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.juegos-root .hb-actions > *:hover {
+  background: var(--hb-surface-hi);
+  color: var(--hb-text);
+}
+.juegos-root .hb-me {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 14px 4px 4px;
+  border: 1px solid var(--hb-line);
+  border-radius: 999px;
+  background: var(--hb-surface);
+}
+.juegos-root .hb-me span {
+  display: grid;
+  line-height: 1.15;
+}
+.juegos-root .hb-me b {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--hb-accent);
+}
+.juegos-root .hb-me small {
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+  color: var(--hb-muted);
+}
+
+/* ---------- Lo de hoy ---------- */
+.juegos-root .hb-today {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 12px;
+  margin-top: clamp(4px, 1vh, 10px);
+}
+.juegos-root .hb-stat {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius);
+  background: var(--hb-surface);
+  transition: border-color 0.15s;
+}
+.juegos-root .hb-stat:hover {
+  border-color: var(--hb-line-hi);
+}
+.juegos-root .hb-stat__main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 14px 12px 16px;
+  border: 0;
+  border-radius: var(--hb-radius) var(--hb-radius) 0 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.juegos-root .hb-stat__main:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.juegos-root .hb-stat__big {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--hb-surface-hi);
+  font: 400 21px/1 'Lilita One', system-ui, sans-serif;
+  color: var(--hb-text);
+}
+.juegos-root .hb-stat__big--ball {
+  background: radial-gradient(circle at 35% 30%, #fff 0 18%, var(--hb-accent) 19%);
+  color: var(--hb-accent-ink);
+}
+.juegos-root .hb-stat__text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.juegos-root .hb-stat__text small {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hb-muted);
+}
+.juegos-root .hb-stat__text b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .hb-stat__text em {
+  font-size: 12.5px;
+  font-style: normal;
+  color: var(--hb-muted);
+}
+.juegos-root .hb-stat__text em.is-up {
+  color: var(--hb-up);
+}
+.juegos-root .hb-stat__text em.is-down {
+  color: var(--hb-down);
+}
+.juegos-root .hb-stat__go {
+  width: 18px;
+  height: 18px;
+  color: var(--hb-muted);
+}
+.juegos-root .hb-stat__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 14px 8px 16px;
+  border-top: 1px solid var(--hb-line);
+  font-size: 12.5px;
+  color: var(--hb-muted);
+}
+/* El nivel del pase: el borde se va llenando con la XP del nivel. */
+.juegos-root .hb-stat__big--ring {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 26%),
-    radial-gradient(130% 95% at 50% 40%, transparent 62%, rgba(4, 8, 18, 0.4)),
-    linear-gradient(transparent 70%, rgba(4, 8, 18, 0.35));
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
-    inset 0 -18px 30px -18px rgba(var(--tint), 0.6);
+    radial-gradient(closest-side, var(--hb-surface) calc(100% - 5px), transparent calc(100% - 4px)),
+    conic-gradient(var(--hb-accent) calc(var(--f) * 1turn), var(--hb-surface-hi) 0);
 }
-.juegos-root .hub-card__tags {
-  top: 16px;
-  left: 16px;
+.juegos-root .hb-faces {
+  display: flex;
+  padding-left: 6px;
 }
-.juegos-root .hub-card__body {
-  padding: 12px 8px 6px;
+.juegos-root .hb-faces > * {
+  margin-left: -6px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--hb-surface);
 }
-.juegos-root .hub-card__blurb {
-  align-self: start;
+.juegos-root .hb-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--hb-accent) !important;
+  font-weight: 600;
+  cursor: pointer;
 }
-.juegos-root .hub-card__kind {
-  justify-self: start;
-  margin-bottom: 2px;
+.juegos-root .hb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--hb-surface-hi);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--hb-muted);
+  white-space: nowrap;
 }
-.juegos-root .s4-pace > li.is-big .hub-card__name {
-  font-size: clamp(26px, 2.4vw, 34px);
+.juegos-root .hb-chip--on {
+  background: color-mix(in srgb, var(--hb-up) 16%, transparent);
+  color: var(--hb-up);
+}
+.juegos-root .hb-chip--wait {
+  background: color-mix(in srgb, var(--hb-accent) 16%, transparent);
+  color: var(--hb-accent);
+}
+.juegos-root .hb-chip--busy {
+  background: color-mix(in srgb, var(--hb-down) 16%, transparent);
+  color: var(--hb-down);
+}
+.juegos-root button.hb-chip--go {
+  background: var(--hb-accent);
+  color: var(--hb-accent-ink);
+  cursor: pointer;
+}
+.juegos-root button.hb-chip--go:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
+/* ---------- Filtro ---------- */
+.juegos-root .hb-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: calc(-1 * clamp(4px, 1vh, 10px));
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.juegos-root .hb-tabs::-webkit-scrollbar {
+  display: none;
+}
+.juegos-root .hb-tabs button {
+  flex: none;
+  padding: 8px 14px;
+  border: 1px solid var(--hb-line);
+  border-radius: 999px;
+  background: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--hb-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.juegos-root .hb-tabs button:hover {
+  color: var(--hb-text);
+}
+.juegos-root .hb-tabs button[aria-pressed='true'] {
+  border-color: var(--hb-text);
+  background: var(--hb-text);
+  color: var(--hb-bg);
+}
+
+/* ---------- Secciones y tarjetas de juego ---------- */
+.juegos-root .hb-sec {
+  display: grid;
+  gap: 14px;
+  scroll-margin-top: 80px;
+}
+.juegos-root .hb-sec h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--hb-text);
+}
+.juegos-root .hb-sec h2 small {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hb-muted);
+}
+.juegos-root .hb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .hb-tile {
+  position: relative;
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  padding: 8px 8px 12px;
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius);
+  background: var(--hb-surface);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, translate 0.15s, background 0.15s;
+}
+.juegos-root .hb-tile:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.juegos-root .hb-tile__art {
+  display: block;
+  aspect-ratio: 16 / 10;
+  margin-bottom: 8px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--hb-surface-hi);
+}
+.juegos-root .hb-tile__art .hub-scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition: scale 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.juegos-root .hb-tile__tags {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  gap: 4px;
+}
+.juegos-root .hb-tile__tags em {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--hb-accent);
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--hb-accent-ink);
+}
+.juegos-root .hb-tile__tags em.is-mission,
+.juegos-root .hb-tile__tags em.is-done {
+  background: rgba(11, 15, 20, 0.82);
+  color: var(--hb-text);
+}
+.juegos-root .hb-tile__tags em.is-done {
+  color: var(--hb-up);
+}
+.juegos-root .hb-tile__name {
+  padding-inline: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 700;
+}
+.juegos-root .hb-tile__kind {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-inline: 6px;
+  font-size: 12.5px;
+  color: var(--hb-muted);
+}
+.juegos-root .hb-tile__kind i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hb-up);
+}
 @media (hover: hover) {
-  .juegos-root .hub-card:not(:disabled):hover .hub-card__art .hub-scene {
-    scale: 1.06;
+  .juegos-root .hb-tile:not(:disabled):hover {
+    translate: 0 -2px;
+    border-color: rgba(var(--tint), 0.7);
+    background: var(--hb-surface-hi);
+  }
+  .juegos-root .hb-tile:not(:disabled):hover .hub-scene {
+    scale: 1.05;
   }
 }
 
-/* Móvil: tarjetas de dos en fila, compactas. */
-@media (max-width: 640px) {
-  .juegos-root .hub-card {
-    padding: 6px;
+/* ---------- Mesas en vivo ---------- */
+.juegos-root .hb-tables {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+.juegos-root .hb-table {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius);
+  background: var(--hb-surface);
+}
+.juegos-root .hb-table header,
+.juegos-root .hb-table footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.juegos-root .hb-table h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+.juegos-root .hb-table__seats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+.juegos-root .hb-table__seats > i {
+  width: 30px;
+  height: 30px;
+  border: 1.5px dashed var(--hb-line-hi);
+  border-radius: 50%;
+}
+.juegos-root .hb-table__meta {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--hb-muted);
+}
+.juegos-root .hb-table__picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.juegos-root .hb-table__picker button {
+  padding: 5px 10px;
+  border: 1px solid var(--hb-line);
+  border-radius: 999px;
+  background: none;
+  font-size: 12px;
+  color: var(--hb-muted);
+  cursor: pointer;
+}
+.juegos-root .hb-table__picker button[aria-pressed='true'] {
+  border-color: var(--hb-line-hi);
+  color: var(--hb-text);
+}
+.juegos-root .hb-table footer {
+  justify-content: flex-start;
+}
+.juegos-root .hb-btn {
+  padding: 9px 18px;
+  border: 1px solid var(--hb-line-hi);
+  border-radius: 10px;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.juegos-root .hb-btn:hover {
+  background: var(--hb-surface-hi);
+}
+.juegos-root .hb-btn--go {
+  border-color: var(--hb-accent);
+  background: var(--hb-accent);
+  color: var(--hb-accent-ink) !important;
+}
+.juegos-root .hb-btn--go:hover {
+  background: color-mix(in srgb, var(--hb-accent) 88%, #fff);
+}
+.juegos-root .hb-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ---------- Tu dinero ---------- */
+.juegos-root .hb-money {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .hb-money button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius);
+  background: var(--hb-surface);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.juegos-root .hb-money button:hover {
+  border-color: var(--hb-line-hi);
+  background: var(--hb-surface-hi);
+}
+.juegos-root .hb-money button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.juegos-root .hb-money svg:first-child {
+  color: var(--hb-accent);
+}
+.juegos-root .hb-money svg:last-child {
+  color: var(--hb-muted);
+}
+.juegos-root .hb-money span {
+  display: grid;
+  gap: 2px;
+}
+.juegos-root .hb-money b {
+  font-size: 15px;
+}
+.juegos-root .hb-money small {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--hb-muted);
+}
+
+/* ---------- Aviso del grupo ---------- */
+.juegos-root .hb-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 16px;
+  border: 1px solid var(--hb-line);
+  border-radius: var(--hb-radius);
+  font-size: 13px;
+  color: var(--hb-muted);
+}
+.juegos-root .hb-note p {
+  flex: 1;
+  margin: 0;
+}
+.juegos-root .hb-note a {
+  flex: none;
+  font-weight: 600;
+  color: var(--hb-accent);
+  text-decoration: none;
+}
+.juegos-root .hb-note button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--hb-muted);
+  cursor: pointer;
+}
+
+/* ---------- Móvil ---------- */
+@media (max-width: 720px) {
+  .juegos-root .hb-bar {
+    flex-wrap: wrap;
+    padding-block: 10px;
   }
-  .juegos-root.s4 .hub-card {
-    border-radius: 20px;
+  .juegos-root .hb-status {
+    display: none;
   }
-  .juegos-root .hub-card .hub-card__art,
-  .juegos-root .s4-round .hub-card .hub-card__art,
-  .juegos-root .s4-pace .hub-card .hub-card__art {
+  .juegos-root .hb-brand {
+    margin-right: auto;
+  }
+  .juegos-root .hb-me {
+    order: 3;
+    flex: 1 1 100%;
     border-radius: 14px;
   }
-  .juegos-root .s4-pace > li.is-big .hub-card .hub-card__art {
-    flex: none;
-    min-height: 0;
-    aspect-ratio: 16 / 9;
+  .juegos-root .hb-me small {
+    max-width: none;
   }
-  .juegos-root .s4-pace > li.is-big .hub-card__art .hub-scene {
-    position: static;
+  /* Lo de hoy, en una fila que se desliza con el dedo. */
+  .juegos-root .hb-today {
+    display: flex;
+    margin-inline: calc(-1 * clamp(14px, 3vw, 32px));
+    padding-inline: clamp(14px, 3vw, 32px);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
   }
-  .juegos-root .s4-pace > li.is-big .hub-card__body {
-    flex: 1 1 auto;
+  .juegos-root .hb-today::-webkit-scrollbar {
+    display: none;
   }
-  .juegos-root .hub-card__tags {
-    top: 12px;
-    left: 12px;
+  .juegos-root .hb-stat {
+    flex: 0 0 86%;
+    scroll-snap-align: center;
   }
-  .juegos-root .hub-games .hub-card__body {
-    padding: 8px 6px 4px;
+  .juegos-root .hb-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
-  .juegos-root.s4 .hub-games .hub-card__kind {
-    font-size: 9.5px;
-    letter-spacing: 0.1em;
+  .juegos-root .hb-tile {
+    padding: 6px 6px 10px;
   }
-  .juegos-root.s4 .hub-games .hub-card__name {
-    font-size: 18px;
+  .juegos-root .hb-tile__tags {
+    top: 10px;
+    left: 10px;
   }
-  .juegos-root.s4 .hub-games .hub-card__blurb {
-    -webkit-line-clamp: 3;
-    max-height: calc(3 * 1.4em);
-    font-size: 12px;
-    line-height: 1.4;
+  .juegos-root .hb-tile__name {
+    font-size: 14px;
   }
-  .juegos-root.s4 .s4-pace > li.is-big .hub-card__name {
-    font-size: 24px;
+  .juegos-root .hb-note {
+    flex-wrap: wrap;
+  }
+  .juegos-root .hb-note p {
+    flex-basis: 70%;
   }
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .juegos-root .hub-card__art .hub-scene {
+  .juegos-root .hb-tile,
+  .juegos-root .hb-tile__art .hub-scene {
     transition: none;
   }
 }

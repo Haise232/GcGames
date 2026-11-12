@@ -107,6 +107,8 @@ export const GAME_GROUPS: { name: string; games: { id: string; name: string }[] 
   {
     name: 'Todos a la vez',
     games: [
+      { id: 'feria', name: 'Feria de las Islas' },
+      { id: 'soga', name: 'Tira y Afloja' },
       { id: 'pesca', name: 'Campeonato de Pesca' },
       { id: 'elevator', name: 'Ascensor' },
       { id: 'auction', name: 'La Subasta' },

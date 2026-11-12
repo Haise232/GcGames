@@ -1,0 +1,168 @@
+/* La cuerda del Tira y Afloja y el botón de tirar (Cuerda.jsx): los usan el juego suelto y los duelos de la Feria. */
+.juegos-root .cu {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(8px, 2vw, 18px);
+}
+.juegos-root .cu-side {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 72px;
+  transition: opacity 0.3s, scale 0.3s;
+}
+.juegos-root .cu-side b {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--team);
+}
+.juegos-root .cu-side em {
+  font: 400 26px/1 'Lilita One', system-ui, sans-serif;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+.juegos-root .cu-side.is-win {
+  scale: 1.08;
+}
+.juegos-root .cu-side.is-lose {
+  opacity: 0.45;
+}
+.juegos-root .cu-faces {
+  display: flex;
+  padding-left: 8px;
+}
+.juegos-root .cu-faces > * {
+  margin-left: -8px;
+  box-shadow: 0 0 0 2px var(--team);
+  border-radius: 50%;
+}
+.juegos-root .cu-faces > i {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: #1b2638;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  color: #fff;
+}
+.juegos-root .cu-track {
+  position: relative;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--left) 22%, transparent), transparent 42%, transparent 58%, color-mix(in srgb, var(--right) 22%, transparent));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.juegos-root .cu-mid,
+.juegos-root .cu-goal {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.35);
+}
+.juegos-root .cu-goal--left {
+  left: 16%;
+  background: var(--left);
+}
+.juegos-root .cu-goal--right {
+  left: 84%;
+  background: var(--right);
+}
+.juegos-root .cu-rope {
+  position: absolute;
+  top: 50%;
+  left: -50%;
+  width: 200%;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 6px;
+  background: repeating-linear-gradient(115deg, #d9b47a 0 7px, #b98d54 7px 14px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45);
+  transition: translate 0.28s cubic-bezier(0.3, 0.9, 0.4, 1);
+}
+.juegos-root .cu.is-pulling .cu-rope {
+  animation: cu-shake 0.18s linear infinite;
+}
+.juegos-root .cu-flag {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 14px;
+  height: 28px;
+  margin-left: -7px;
+  border-radius: 3px 3px 7px 7px;
+  background: #ff4d5a;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85), 0 4px 10px rgba(255, 77, 90, 0.6);
+}
+@keyframes cu-shake {
+  50% {
+    margin-top: -6.5px;
+  }
+}
+
+.juegos-root .cu-pad {
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  width: 100%;
+  min-height: 116px;
+  padding: 14px;
+  border: 0;
+  border-radius: 22px;
+  background: #1a2434;
+  color: #9fb0c8;
+  font: inherit;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: default;
+}
+.juegos-root .cu-pad.is-live {
+  background: linear-gradient(180deg, #ff6a4d, #e2343f);
+  color: #fff;
+  box-shadow: 0 8px 0 #9c1f2b, 0 18px 30px -10px rgba(226, 52, 63, 0.7);
+  cursor: pointer;
+}
+.juegos-root .cu-pad.is-live:active {
+  translate: 0 6px;
+  box-shadow: 0 2px 0 #9c1f2b;
+}
+.juegos-root .cu-pad__n {
+  font: 400 44px/1 'Lilita One', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .cu-pad:not(.is-live) .cu-pad__n {
+  font-size: 24px;
+}
+.juegos-root .cu-pad.is-live .cu-pad__n {
+  animation: cu-pop 0.12s ease-out;
+}
+.juegos-root .cu-pad small {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+@keyframes cu-pop {
+  from {
+    scale: 1.25;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .cu.is-pulling .cu-rope,
+  .juegos-root .cu-pad.is-live .cu-pad__n {
+    animation: none;
+  }
+}

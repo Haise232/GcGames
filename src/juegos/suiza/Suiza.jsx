@@ -323,20 +323,3 @@ export default function Suiza({ onExit, juegos }) {
     </main>
   )
 }
-
-// Banner del selector de juegos.
-export function SuizaBanner({ onOpen }) {
-  return (
-    <button type="button" className="sz-banner" onClick={onOpen}>
-      <span>
-        <span className="sz-banner__new">Nuevo</span>
-        <h3>Cuenta en Suiza</h3>
-        <p>Esconde tu efectivo donde Hacienda no mira. Sácalo cuando quieras… con comisión.</p>
-        <span className="sz-banner__cta">Abrir la cuenta</span>
-      </span>
-      <span className="sz-banner__door" aria-hidden="true">
-        <i />
-      </span>
-    </button>
-  )
-}

@@ -349,70 +349,70 @@
 }
 
 @media (hover: hover) {
-  .juegos-root .hub-card:not(:disabled):hover .hs-tw-hero {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-tw-hero {
     translate: 0 -22px;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-tw-bad {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-tw-bad {
     animation: hs-shake 0.5s linear infinite;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-hs-wheel {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-hs-wheel {
     transform: rotate(150deg);
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-lasers line {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-lasers line {
     opacity: 1;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-au-lid {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-au-lid {
     transform: translateY(-17px) rotate(-9deg);
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-au-glow {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-au-glow {
     opacity: 1;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-au-coin {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-au-coin {
     animation: hs-coin 1.5s ease-out infinite;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-au-coin--B {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-au-coin--B {
     animation-delay: 0.6s;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-br-hero {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-br-hero {
     translate: 11px -21px;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-br-bad {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-br-bad {
     animation: hs-fall 1.8s ease-in infinite;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-br-bad--2 {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-br-bad--2 {
     animation-delay: 0.5s;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-br-bad--3 {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-br-bad--3 {
     animation-delay: 1s;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-sword--l {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-sword--l {
     rotate: 7deg;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-sword--r {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-sword--r {
     rotate: -7deg;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-chip {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-chip {
     translate: 0 -3px;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-rocket {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-rocket {
     translate: 9px -10px;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-car--a {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-car--a {
     translate: 14px 0;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-car--b {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-car--b {
     translate: 8px 0;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-door--l {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-door--l {
     translate: 92px 0;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-door--r {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-door--r {
     translate: -92px 0;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-pball {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-pball {
     animation: hs-drop 2.2s ease-in infinite;
   }
-  .juegos-root .hub-card:not(:disabled):hover .hs-frog {
+  .juegos-root .hb-tile:not(:disabled):hover .hs-frog {
     animation: hs-hop 2.6s ease-in-out infinite;
   }
 }

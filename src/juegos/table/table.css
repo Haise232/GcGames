@@ -12,14 +12,6 @@
   color: var(--brass);
 }
 
-.juegos-root .lobby-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-  max-width: 720px;
-  margin: 0 auto;
-}
-
 .juegos-root .lobby-card {
   display: grid;
   gap: 14px;

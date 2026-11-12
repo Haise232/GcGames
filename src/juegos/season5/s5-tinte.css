@@ -4002,25 +4002,6 @@
     --size: 4.4cqw !important;
   }
 }
-.juegos-root.s5:where(:not(.halloween)) .im-banner {
-  border: 1px solid rgba(249, 204, 100, 0.45);
-  background: radial-gradient(70% 120% at 100% 50%, rgba(169, 28, 37, 0.35), transparent 70%),
-    linear-gradient(135deg, #142c20, #0c1b14);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 14px 34px rgba(0, 0, 0, 0.4);
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .im-banner p {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .im-banner__new {
-  background: #a91c25;
-  color: #ffffff;
-}
-.juegos-root.s5:where(:not(.halloween)) .im-banner__cta {
-  background: #f9cc64;
-  color: #1a1406;
-}
 .juegos-root.s5:where(:not(.halloween)) .im-views {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.3);
@@ -4468,36 +4449,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) .sz-movs li.is-retirada b {
   color: #e76d75;
-}
-.juegos-root.s5:where(:not(.halloween)) .sz-banner {
-  border: 1px solid rgba(212, 177, 95, 0.45);
-  background: radial-gradient(60% 120% at 100% 100%, rgba(202, 212, 219, 0.35), transparent 70%),
-    linear-gradient(135deg, #1a2841, #0e1523);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 14px 34px rgba(0, 0, 0, 0.4);
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .sz-banner p {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .sz-banner__new {
-  background: #a91c25;
-  color: #ffffff;
-}
-.juegos-root.s5:where(:not(.halloween)) .sz-banner__cta {
-  background: #d4b15f;
-  color: #1a1406;
-}
-.juegos-root.s5:where(:not(.halloween)) .sz-banner__door {
-  background: radial-gradient(circle at 35% 30%, #e4e7e9, #9aa1a6 55%, #5d6675);
-  box-shadow: 0 0 0 5px #40454f,
-    0 0 0 8px #b2b7bb,
-    0 8px 18px rgba(0, 0, 0, 0.5);
-}
-.juegos-root.s5:where(:not(.halloween)) .sz-banner__door i {
-  background: linear-gradient(0deg, transparent 45%, #f8f8f9 45% 55%, transparent 55%),
-    linear-gradient(60deg, transparent 45%, #f8f8f9 45% 55%, transparent 55%),
-    linear-gradient(120deg, transparent 45%, #f8f8f9 45% 55%, transparent 55%);
 }
 
 /* ===== table/table.css ===== */
@@ -6083,86 +6034,6 @@
     radial-gradient(640px 420px at 92% 34%, rgba(116, 144, 220, 0.1), transparent 70%),
     radial-gradient(560px 380px at 8% 72%, rgba(52, 145, 99, 0.08), transparent 70%);
 }
-.juegos-root.s5:where(:not(.halloween)) .hub-top {
-  background: linear-gradient(180deg, #2e1d0e, #150d06);
-  box-shadow: 0 0 0 1px rgba(249, 204, 100, 0.45),
-    0 24px 60px rgba(0, 0, 0, 0.45),
-    0 0 80px -20px rgba(248, 197, 77, 0.35);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-top::before {
-  background: conic-gradient(from var(--hub-a), #fdf3da, #f9cc64 10%, #765a18 24%, #f9cc64 46%, #fdf3da 58%, #765a18 78%, #f9cc64 92%, #fdf3da);
-  filter: drop-shadow(0 0 5px rgba(248, 200, 87, 0.6));
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-top::after {
-  background: radial-gradient(60% 140% at 14% 0%, rgba(249, 204, 100, 0.2), transparent 70%),
-    radial-gradient(50% 120% at 100% 100%, rgba(139, 185, 216, 0.16), transparent 70%),
-    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 14px),
-    linear-gradient(160deg, #233046, #111a2a);
-  box-shadow: inset 0 0 0 1px rgba(249, 204, 100, 0.3),
-    inset 0 0 50px rgba(0, 0, 0, 0.45);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-top__eyebrow {
-  color: var(--hub-gold);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-top__eyebrow::before,
-.juegos-root.s5:where(:not(.halloween)) .hub-top__eyebrow::after {
-  background: linear-gradient(90deg, transparent, var(--hub-gold));
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-top__logo {
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45));
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-top h1 {
-  background: linear-gradient(180deg, var(--hub-gold-hi) 8%, var(--hub-gold) 48%, var(--hub-gold-lo) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  filter: drop-shadow(0 3px 0 rgba(62, 31, 5, 0.55)) drop-shadow(0 0 24px rgba(248, 200, 87, 0.35));
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-me {
-  border: 1px solid rgba(249, 204, 100, 0.45);
-  background: linear-gradient(180deg, rgba(249, 204, 100, 0.14), rgba(0, 0, 0, 0.3));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 8px 22px rgba(0, 0, 0, 0.35);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-me > :first-child {
-  box-shadow: 0 0 0 2px var(--hub-gold),
-    0 0 18px rgba(249, 204, 100, 0.45);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-me__text small {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-me__text b {
-  background: linear-gradient(180deg, var(--hub-gold-hi), var(--hub-gold) 60%, #d9a732);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-me__rank {
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-status {
-  border: 1px solid var(--hub-line);
-  background: rgba(0, 0, 0, 0.3);
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-status i {
-  background: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-status--on i {
-  background: var(--hub-up);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-status--wait i {
-  background: var(--brass);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-status--off i,
-.juegos-root.s5:where(:not(.halloween)) .hub-status--err i {
-  background: var(--red);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-status--err {
-  border-color: rgba(155, 35, 43, 0.7);
-}
 .juegos-root.s5:where(:not(.halloween)) .hub-btn {
   border: 1px solid var(--hub-line-hi);
   background: transparent;
@@ -6178,21 +6049,8 @@
   border-color: var(--hub-line);
   background: var(--hub-surface);
 }
-.juegos-root.s5:where(:not(.halloween)) .hub-bank {
-  border-color: transparent;
-  background: linear-gradient(180deg, #fada8f, #d8a223);
-  color: #1a1406;
-  box-shadow: 0 0 18px rgba(247, 195, 72, 0.35);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-bank span {
-  background: #1a1406;
-  color: #f9d070;
-}
 .juegos-root.s5:where(:not(.halloween)) .hub-btn:focus-visible,
-.juegos-root.s5:where(:not(.halloween)) .hub-seg:focus-visible,
-.juegos-root.s5:where(:not(.halloween)) .hub-card:focus-visible,
-.juegos-root.s5:where(:not(.halloween)) .hub-score:focus-visible,
-.juegos-root.s5:where(:not(.halloween)) .hub-bingo:focus-visible {
+.juegos-root.s5:where(:not(.halloween)) .hub-seg:focus-visible {
   outline: 3px solid var(--ivory);
 }
 .juegos-root.s5:where(:not(.halloween)) .hub-title {
@@ -6214,217 +6072,6 @@
 .juegos-root.s5:where(:not(.halloween)) .app.hub .hub-title::after {
   background: linear-gradient(90deg, rgba(249, 204, 100, 0.45), transparent);
 }
-.juegos-root.s5:where(:not(.halloween)) .hub-card {
-  --tint: 200, 162, 75;
-  border: 1px solid rgba(var(--tint), 0.38);
-  background: radial-gradient(120% 70% at 50% 100%, rgba(var(--tint), 0.16), transparent 70%),
-    linear-gradient(180deg, rgba(25, 36, 55, 0.96), rgba(12, 19, 30, 0.98));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 10px 26px rgba(0, 0, 0, 0.32);
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card:disabled {
-  filter: saturate(0.5);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card__art {
-  background: var(--art, linear-gradient(#25443b, #142a23));
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card__art::after {
-  background: linear-gradient(transparent, rgba(12, 19, 30, 0.85));
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card__art::before {
-  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.3) 50%, transparent 62%);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card__badge {
-  background: linear-gradient(180deg, #e0414b, #a61b24);
-  box-shadow: 0 0 0 2px rgba(13, 20, 31, 0.9),
-    0 0 16px rgba(221, 46, 58, 0.7);
-  color: #ffffff;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card__kind {
-  color: rgb(var(--tint));
-  filter: brightness(1.25);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card__name {
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card__blurb {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card__cta {
-  border: 1px solid rgba(var(--tint), 0.55);
-  background: rgba(var(--tint), 0.16);
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--tower {
-  --art: linear-gradient(180deg, #101c32, #2e456d 62%, #465376);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--heist {
-  --art: radial-gradient(70% 90% at 50% 45%, #373f4c, #0d1015);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--auction {
-  --art: radial-gradient(80% 90% at 50% 0%, #3f4f7a, #111727);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--bridge {
-  --art: linear-gradient(180deg, #1c2b45, #365180 58%, #7294aa);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--elevator {
-  --art: linear-gradient(180deg, #101928, #23314a 60%, #292211);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--roulette {
-  --art: radial-gradient(80% 100% at 50% 50%, #1d4d35, #0b2015);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--crash {
-  --art: linear-gradient(180deg, #0d1729, #203861);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--race {
-  --art: linear-gradient(180deg, #58798f, #e39f64 42%);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--dungeon {
-  --art: linear-gradient(180deg, #4a4252, #25272b);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--plinko {
-  --art: radial-gradient(80% 100% at 50% 20%, #38456a, #111625);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--pesca {
-  --art: linear-gradient(180deg, #344a70, #1d5b48);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--hilo {
-  --art: linear-gradient(180deg, #5f3d1e, #34200f);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--bola {
-  --art: linear-gradient(180deg, #2a4839, #182e23);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--frog {
-  --art: linear-gradient(180deg, #28735d, #19493b);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-card--big {
-  border-color: rgba(var(--tint), 0.5);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 14px 34px rgba(0, 0, 0, 0.4),
-    0 0 40px -18px rgba(var(--tint), 0.7);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-pill {
-  background: rgba(21, 6, 7, 0.72);
-  box-shadow: inset 0 0 0 1px rgba(223, 57, 68, 0.45);
-  color: #e76a72;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-pill::before {
-  background: #dc2b37;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-pill--new {
-  background: rgba(33, 25, 5, 0.72);
-  box-shadow: inset 0 0 0 1px rgba(247, 194, 71, 0.55);
-  color: #fad57f;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-pill--new::before {
-  background: #f7c247;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-live {
-  border: 1px solid var(--hub-line-hi);
-  background: var(--hub-panel);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 10px 26px rgba(0, 0, 0, 0.3);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-live.is-busy {
-  border-color: rgba(249, 204, 100, 0.55);
-  background: radial-gradient(ellipse at 50% 0%, rgba(249, 204, 100, 0.14), transparent 70%),
-    var(--hub-panel);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 10px 26px rgba(0, 0, 0, 0.3),
-    0 0 36px -14px rgba(249, 204, 100, 0.6);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-live__head h3::before {
-  color: var(--hub-gold);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-live--poker .hub-live__head h3::before {
-  color: #de3742;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-live--chess .hub-live__head h3::before {
-  color: #c0d9ea;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-live__meta {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-live.is-busy .hub-live__meta {
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-chip {
-  background: var(--hub-surface-hi);
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-chip i {
-  background: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-chip--free {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-chip--wait {
-  background: rgba(195, 161, 80, 0.15);
-  color: var(--brass);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-chip--wait i {
-  background: var(--brass);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-chip--on {
-  background: rgba(81, 182, 132, 0.12);
-  color: #a9ccbb;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-chip--on i {
-  background: var(--hub-up);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-chip--hand {
-  background: rgba(195, 161, 80, 0.2);
-  color: #ecd08e;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-chip--hand i {
-  background: var(--brass);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-table__felt {
-  background: radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, 0.12), transparent 60%),
-    radial-gradient(ellipse at 50% 40%, #276747, #173f2b 66%, #0e281b);
-  box-shadow: inset 0 0 0 2px rgba(240, 232, 215, 0.14),
-    inset 0 -10px 26px rgba(0, 0, 0, 0.35),
-    0 0 0 5px #661e23,
-    0 0 0 7px #986a42,
-    0 14px 26px rgba(0, 0, 0, 0.5);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-table--chess .hub-table__felt {
-  background: #1b1815;
-  box-shadow: 0 0 0 3px #28231f,
-    0 0 0 5px #887852,
-    0 14px 26px rgba(0, 0, 0, 0.5);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-table__board {
-  background: repeating-conic-gradient(#6e6a62 0 25%, #d8cdb5 0 50%) 0 0 / 25% 25%;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-table--chess .hub-table__caption {
-  background: rgba(9, 12, 17, 0.82);
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-table__caption {
-  color: rgba(240, 232, 215, 0.78);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-table__dealer {
-  background: rgba(0, 0, 0, 0.4);
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-seat--on {
-  box-shadow: 0 0 0 2px var(--hub-gold),
-    0 0 14px rgba(249, 204, 100, 0.55),
-    0 4px 10px rgba(8, 20, 16, 0.55);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-seat--free {
-  border: 2px dashed rgba(240, 232, 215, 0.5);
-  background: rgba(0, 0, 0, 0.22);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-seat--away {
-  border: 2px solid rgba(240, 232, 215, 0.25);
-  background: rgba(240, 232, 215, 0.18);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-seat--away::after {
-  color: var(--ivory);
-}
 .juegos-root.s5:where(:not(.halloween)) .hub-segs {
   background: rgba(0, 0, 0, 0.25);
 }
@@ -6440,127 +6087,7 @@
   background: rgba(240, 232, 215, 0.12);
   box-shadow: inset 0 0 0 1px rgba(240, 232, 215, 0.2);
 }
-.juegos-root.s5:where(:not(.halloween)) .hub-faces > span,
-.juegos-root.s5:where(:not(.halloween)) .hub-faces > i {
-  border: 2px solid #19392f;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-faces > i {
-  background: var(--wood);
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-bingo {
-  border: 0;
-  background: linear-gradient(180deg, #370d10, #171009);
-  color: var(--ivory);
-  box-shadow: 0 0 0 1px rgba(249, 204, 100, 0.45),
-    0 16px 40px rgba(0, 0, 0, 0.4);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-bingo::before {
-  background: conic-gradient(from var(--hub-a), #fdf3da, #f9cc64 10%, #765a18 24%, #f9cc64 46%, #fdf3da 58%, #765a18 78%, #f9cc64 92%, #fdf3da);
-  filter: drop-shadow(0 0 4px rgba(248, 200, 87, 0.55));
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-bingo::after {
-  background: radial-gradient(70% 120% at 12% 50%, rgba(249, 208, 113, 0.26), transparent 65%),
-    radial-gradient(60% 100% at 100% 0%, rgba(155, 35, 43, 0.2), transparent 70%),
-    linear-gradient(115deg, #3a0c0f 0%, #1b120b 50%, #131c2c 100%);
-  box-shadow: inset 0 0 0 1px rgba(249, 204, 100, 0.25);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-bingo__cage {
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 22px rgba(248, 197, 77, 0.3));
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-bote {
-  background: rgba(0, 0, 0, 0.45);
-  box-shadow: inset 0 0 0 1px rgba(240, 232, 215, 0.28);
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-bote--open {
-  background: rgba(39, 106, 72, 0.28);
-  box-shadow: inset 0 0 0 1px rgba(81, 182, 132, 0.6);
-  color: #b4d6c5;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-bingo__pot small {
-  color: var(--brass);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-bingo__pot b {
-  background: linear-gradient(180deg, var(--hub-gold-hi), var(--hub-gold) 60%, #d9a732);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  filter: drop-shadow(0 0 20px rgba(248, 203, 97, 0.4));
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-bingo__when {
-  color: #f9d071;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-bingo__blurb {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-bingo__cta {
-  background: linear-gradient(180deg, #fada8f, #d19e29);
-  color: #1a1406;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    0 6px 18px rgba(194, 152, 53, 0.45);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score {
-  border: 1px solid rgba(249, 204, 100, 0.4);
-  background: radial-gradient(90% 80% at 0% 0%, rgba(249, 204, 100, 0.2), transparent 65%),
-    var(--hub-panel);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 16px 40px rgba(0, 0, 0, 0.35);
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score--stale {
-  filter: saturate(0.6);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score__rank b {
-  background: linear-gradient(180deg, var(--hub-gold-hi), var(--hub-gold) 55%, var(--hub-gold-lo));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  filter: drop-shadow(0 3px 0 rgba(62, 31, 5, 0.5)) drop-shadow(0 0 18px rgba(248, 200, 87, 0.3));
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score__rank small {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score__label {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score__hint {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score__facts {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score__delta {
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score__delta.is-up {
-  color: var(--hub-up);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score__delta.is-down {
-  color: var(--hub-down);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score__foot {
-  border-top: 1px solid var(--hub-line);
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score__top > span {
-  border: 2px solid #152135;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score__top > span:first-child {
-  box-shadow: 0 0 0 2px var(--hub-gold);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-score__go {
-  background: var(--hub-surface-hi);
-  box-shadow: inset 0 0 0 1px var(--hub-line-hi);
-  color: var(--ivory);
-}
 @media (hover: hover) {
-  .juegos-root.s5:where(:not(.halloween)) .hub-live:hover,
-  .juegos-root.s5:where(:not(.halloween)) .hub-live:focus-within {
-    border-color: rgba(249, 204, 100, 0.5);
-  }
   .juegos-root.s5:where(:not(.halloween)) .hub-btn:not(:disabled):hover {
     background: rgba(255, 255, 255, 0.08);
   }
@@ -6570,117 +6097,6 @@
   .juegos-root.s5:where(:not(.halloween)) .hub-seg:hover {
     background: rgba(240, 232, 215, 0.08);
   }
-  .juegos-root.s5:where(:not(.halloween)) .hub-card:not(:disabled):hover {
-    border-color: rgba(var(--tint), 0.9);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12),
-      0 26px 46px rgba(0, 0, 0, 0.5),
-      0 0 46px -6px rgba(var(--tint), 0.65);
-  }
-  .juegos-root.s5:where(:not(.halloween)) .hub-card:not(:disabled):hover .hub-card__cta {
-    background: linear-gradient(180deg, #fada8f, #d8a223);
-    border-color: transparent;
-    color: #1a1406;
-    box-shadow: 0 6px 18px -4px rgba(216, 162, 35, 0.6);
-  }
-  .juegos-root.s5:where(:not(.halloween)) .hub-bingo:not(:disabled):hover {
-    box-shadow: 0 0 0 1px rgba(250, 213, 127, 0.8),
-      0 24px 50px rgba(0, 0, 0, 0.5),
-      0 0 50px -8px rgba(248, 197, 77, 0.55);
-  }
-  .juegos-root.s5:where(:not(.halloween)) .hub-score:not(:disabled):hover {
-    border-color: rgba(249, 204, 100, 0.8);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 24px 50px rgba(0, 0, 0, 0.45),
-      0 0 40px -10px rgba(249, 204, 100, 0.5);
-  }
-  .juegos-root.s5:where(:not(.halloween)) .hub-score:not(:disabled):hover .hub-score__go {
-    background: var(--hub-gold);
-    color: #1a1406;
-  }
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-skel {
-  background: linear-gradient(100deg, rgba(240, 232, 215, 0.08) 30%, rgba(240, 232, 215, 0.18) 50%, rgba(240, 232, 215, 0.08) 70%) 0 0 / 220% 100%;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-gacha {
-  border: 1px solid rgba(114, 142, 220, 0.4);
-  background: radial-gradient(ellipse at 100% 0%, rgba(114, 142, 220, 0.22), transparent 62%),
-    var(--hub-panel);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 10px 26px rgba(0, 0, 0, 0.3);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-gacha.is-hot {
-  border-color: rgba(102, 196, 149, 0.55);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 10px 26px rgba(0, 0, 0, 0.3),
-    0 0 36px -14px rgba(102, 196, 149, 0.6);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-gacha__line {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-gacha__strip li.is-open .gacha-card {
-  outline: 2px solid #66c495;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-gacha__who {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-gacha__strip li.is-open .hub-gacha__who {
-  color: #66c495;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-gacha__slot,
-.juegos-root.s5:where(:not(.halloween)) .hub-gacha__strip--empty span {
-  border: 2px dashed rgba(240, 232, 215, 0.18);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-gacha__facts dt {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-gacha__facts dd.is-ready {
-  color: #66c495;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-wa {
-  border-color: rgba(53, 161, 107, 0.6);
-  background: linear-gradient(180deg, #36b375, #277f53);
-  color: #0a2115;
-  text-decoration: none;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-wa:hover {
-  filter: brightness(1.08);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-wa__icon {
-  fill: currentColor;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-wa-banner {
-  border: 1px solid rgba(53, 161, 107, 0.45);
-  background: radial-gradient(circle at 0% 50%, rgba(53, 161, 107, 0.25), transparent 45%),
-    linear-gradient(90deg, rgba(12, 31, 21, 0.92), rgba(15, 21, 31, 0.92));
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-wa-banner__icon {
-  background: linear-gradient(180deg, #36b375, #277f53);
-  color: #ffffff;
-  box-shadow: 0 0 0 4px rgba(53, 161, 107, 0.18);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-wa-banner b {
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-wa-banner span {
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-wa-banner__go {
-  background: linear-gradient(180deg, #36b375, #277f53);
-  color: #0a2115;
-  text-decoration: none;
-  box-shadow: 0 6px 18px rgba(53, 161, 107, 0.35);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-wa-banner__go:hover {
-  filter: brightness(1.08);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-wa-banner__close {
-  border: 0;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-wa-banner__close:hover {
-  color: var(--ivory);
 }
 
 /* ===== hub/score.css ===== */
@@ -7263,106 +6679,8 @@
   color: rgba(186, 200, 209, 0.9);
   text-shadow: none;
 }
-.juegos-root.s5:where(:not(.halloween)).s4 .hub-top.s4-hero {
-  background: #192a48;
-  box-shadow: 0 0 0 2px rgba(251, 225, 164, 0.35),
-    0 30px 70px rgba(0, 0, 0, 0.5),
-    0 0 120px -30px rgba(221, 47, 58, 0.55);
-}
-.juegos-root.s5:where(:not(.halloween)).s4 .hub-top.s4-hero::after {
-  background: linear-gradient(180deg, transparent 30%, rgba(10, 17, 30, 0.25) 55%, rgba(10, 17, 30, 0.82) 100%);
-  box-shadow: none;
-}
-.juegos-root.s5:where(:not(.halloween)) .s4-hero__season {
-  background: rgba(14, 22, 36, 0.55);
-  box-shadow: inset 0 0 0 1px rgba(254, 248, 233, 0.25);
-  color: #fef8e9;
-}
-.juegos-root.s5:where(:not(.halloween)) .s4-hero__season span {
-  background: var(--s4-sunset, linear-gradient(100deg, #f9d174, #dd2c38 45%, #dd2e3a));
-  color: #2d0d11;
-  box-shadow: 0 0 18px rgba(221, 47, 58, 0.6);
-}
-.juegos-root.s5:where(:not(.halloween)).s4 .s4-hero h1 {
-  background: linear-gradient(180deg, #fef7e7 0%, #f9d174 35%, #dd2c38 70%, #dd2e3a 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 4px 0 #3b0e14) drop-shadow(0 8px 0 rgba(10, 13, 23, 0.55)) drop-shadow(0 0 30px rgba(221, 47, 58, 0.45));
-}
-.juegos-root.s5:where(:not(.halloween)).s4 .s4-hero .hub-top__logo {
-  filter: drop-shadow(0 4px 0 #3b0e14) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5));
-}
-.juegos-root.s5:where(:not(.halloween)) .s4-hero__tag {
-  color: #fef8e9;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-}
-.juegos-root.s5:where(:not(.halloween)).s4 .s4-hero .hub-status {
-  background: rgba(10, 17, 30, 0.55);
-}
-.juegos-root.s5:where(:not(.halloween)).s4 .s4-hero .hub-me {
-  border-color: rgba(254, 248, 233, 0.35);
-  background: rgba(14, 22, 36, 0.6);
-}
-.juegos-root.s5:where(:not(.halloween)).s4 .s4-hero .hub-me > :first-child {
-  box-shadow: 0 0 0 3px #f09546,
-    0 0 0 6px rgba(221, 46, 58, 0.45),
-    0 0 22px rgba(221, 47, 58, 0.6);
-}
-.juegos-root.s5:where(:not(.halloween)).s4 .s4-hero .hub-btn--ghost {
-  background: rgba(14, 22, 36, 0.55);
-  border-color: rgba(254, 248, 233, 0.25);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-nav ul {
-  border: 1px solid rgba(180, 210, 230, 0.18);
-  background: rgba(12, 22, 38, 0.78);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-nav a {
-  color: var(--muted);
-  text-decoration: none;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-nav a:hover {
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-nav a[aria-current='true'] {
-  background: linear-gradient(180deg, #f9d174, #f09546);
-  color: #33080b;
-}
-.juegos-root.s5:where(:not(.halloween)) .hub-nav a:focus-visible {
-  outline: 2px solid var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .s4-strip > * {
-  background: var(--hub-panel);
-  box-shadow: inset 0 0 0 1px rgba(180, 210, 230, 0.16),
-    0 14px 34px rgba(0, 0, 0, 0.35);
-}
-.juegos-root.s5:where(:not(.halloween)) .s4-strip__level {
-  border: 0;
-  background: radial-gradient(120% 120% at 0% 0%, rgba(221, 44, 56, 0.28), transparent 60%),
-    radial-gradient(100% 100% at 100% 100%, rgba(221, 46, 58, 0.22), transparent 60%),
-    linear-gradient(160deg, #233556, #192843);
-  color: var(--ivory);
-}
-.juegos-root.s5:where(:not(.halloween)) .s4-strip__who small {
-  color: var(--s4-sun, #f9d174);
-}
-.juegos-root.s5:where(:not(.halloween)) .s4-strip__go {
-  color: #b4d2e6;
-}
-.juegos-root.s5:where(:not(.halloween)) .s4-strip__missions h3 span,
 .juegos-root.s5:where(:not(.halloween)) .s4-panel h2 span {
   color: var(--muted);
-}
-.juegos-root.s5:where(:not(.halloween)) .s4-strip__bonus {
-  color: var(--s4-sun, #f9d174);
-}
-.juegos-root.s5:where(:not(.halloween)) .s4-strip__bonus.is-done {
-  color: var(--s4-palm, #43ab77);
-}
-.juegos-root.s5:where(:not(.halloween)) .s4-strip__side {
-  background: none;
-  box-shadow: none;
 }
 .juegos-root.s5:where(:not(.halloween)) .s4-ring svg {
   filter: drop-shadow(0 0 10px rgba(221, 47, 58, 0.45));
@@ -7417,16 +6735,14 @@
 .juegos-root.s5:where(:not(.halloween)) .s4-mission__meta b {
   color: var(--s4-sun, #f9d174);
 }
-.juegos-root.s5:where(:not(.halloween)) .s4-chestbtn,
-.juegos-root.s5:where(:not(.halloween)) .s4-claimbtn {
+.juegos-root.s5:where(:not(.halloween)) .s4-chestbtn {
   border: 0;
   background: var(--hub-panel);
   box-shadow: inset 0 0 0 1px rgba(180, 210, 230, 0.16),
     0 10px 26px rgba(0, 0, 0, 0.3);
   color: var(--ivory);
 }
-.juegos-root.s5:where(:not(.halloween)) .s4-chestbtn small,
-.juegos-root.s5:where(:not(.halloween)) .s4-claimbtn small {
+.juegos-root.s5:where(:not(.halloween)) .s4-chestbtn small {
   color: var(--muted);
 }
 .juegos-root.s5:where(:not(.halloween)) .s4-chestbtn.is-ready {
@@ -7439,49 +6755,13 @@
 .juegos-root.s5:where(:not(.halloween)) .s4-chestbtn.is-ready small {
   color: #fce9bb;
 }
-.juegos-root.s5:where(:not(.halloween)) .s4-claimbtn {
-  background: linear-gradient(160deg, #175034, #173e32);
-  box-shadow: 0 0 0 2px var(--s4-sea, #33ba77),
-    0 0 26px -6px rgba(51, 186, 119, 0.8);
-}
-.juegos-root.s5:where(:not(.halloween)) .s4-sticker {
-  background: var(--s4-sunset, linear-gradient(100deg, #f9d174, #dd2c38 45%, #dd2e3a));
-  box-shadow: 0 0 0 2px rgba(14, 22, 36, 0.85),
-    0 6px 16px rgba(221, 47, 58, 0.5);
-  color: #2d0d11;
-}
-.juegos-root.s5:where(:not(.halloween)) .s4-sticker.is-done {
-  background: var(--s4-palm, #43ab77);
-  color: #091d13;
-}
-.juegos-root.s5:where(:not(.halloween)).s4 .hub-card {
-  background: radial-gradient(120% 70% at 50% 100%, rgba(var(--tint), 0.22), transparent 70%),
-    linear-gradient(180deg, rgba(30, 47, 76, 0.97), rgba(14, 24, 42, 0.98));
-}
-.juegos-root.s5:where(:not(.halloween)).s4 .hub-card__art::after {
-  background: linear-gradient(transparent, rgba(14, 24, 42, 0.9));
-}
-.juegos-root.s5:where(:not(.halloween)).s4 .hub-btn--primary,
-.juegos-root.s5:where(:not(.halloween)).s4 .hub-bank {
+.juegos-root.s5:where(:not(.halloween)).s4 .hub-btn--primary {
   border-color: transparent;
   background: linear-gradient(180deg, #f9d174, #dd2c38);
   color: #2d0d11;
   box-shadow: 0 6px 18px -4px rgba(220, 40, 52, 0.6);
 }
-.juegos-root.s5:where(:not(.halloween)).s4 .hub-bank span {
-  background: #2d0d11;
-  color: #f9d174;
-}
 @media (hover: hover) {
-  .juegos-root.s5:where(:not(.halloween)).s4 .hub-card:not(:disabled):hover .hub-card__cta {
-    background: linear-gradient(180deg, #f9d174, #dd2c38);
-    color: #2d0d11;
-  }
-  .juegos-root.s5:where(:not(.halloween)) .s4-strip__level:not(:disabled):hover {
-    box-shadow: inset 0 0 0 1px rgba(243, 174, 113, 0.5),
-      0 22px 44px rgba(0, 0, 0, 0.45),
-      0 0 40px -10px rgba(221, 47, 58, 0.6);
-  }
   .juegos-root.s5:where(:not(.halloween)).s4 .hub-btn--primary:not(:disabled):hover {
     background: linear-gradient(180deg, #fbdf9e, #f1a058);
   }
@@ -7504,9 +6784,7 @@
   color: #2d0d11;
 }
 .juegos-root.s5:where(:not(.halloween)) .s4-btn:focus-visible,
-.juegos-root.s5:where(:not(.halloween)) .s4-chestbtn:focus-visible,
-.juegos-root.s5:where(:not(.halloween)) .s4-claimbtn:focus-visible,
-.juegos-root.s5:where(:not(.halloween)) .s4-strip__level:focus-visible {
+.juegos-root.s5:where(:not(.halloween)) .s4-chestbtn:focus-visible {
   outline: 3px solid #ffffff;
 }
 .juegos-root.s5:where(:not(.halloween)) .app.s4-pase {
@@ -7678,9 +6956,6 @@
   color: #2d0d11;
 }
 @media (max-width: 640px) {
-  .juegos-root.s5:where(:not(.halloween)).s4 .hub-top.s4-hero::after {
-    background: linear-gradient(180deg, transparent 15%, rgba(10, 17, 30, 0.5) 40%, rgba(10, 17, 30, 0.92) 70%);
-  }
   .juegos-root.s5:where(:not(.halloween)) .s4-pase__hero::after {
     background: linear-gradient(180deg, rgba(10, 17, 30, 0.3), rgba(10, 17, 30, 0.9) 55%);
   }
@@ -9297,9 +8572,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#120a04" i] {
   fill: #100a05;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#1a0f2e" i] {
-  fill: #141825;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#1a0f33" i] {
   fill: #141a28;
 }
@@ -9338,9 +8610,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#2a1a00" i] {
   fill: #281d02;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#2b1b45" i] {
-  fill: #212738;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#2b3342" i] {
   fill: #2e343f;
@@ -9393,9 +8662,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#3c8cff" i] {
   fill: #74acd1;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#3d1b55" i] {
-  fill: #242c44;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#3fae5a" i] {
   fill: #448866;
 }
@@ -9431,9 +8697,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#6f8aa6" i] {
   fill: #81919c;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#7a3a7c" i] {
-  fill: #77222e;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#7a3a8c" i] {
   fill: #445172;
@@ -9498,6 +8761,9 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#d8453a" i] {
   fill: #b7242e;
 }
+.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#d8b8ff" i] {
+  fill: #aabbea;
+}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#dbe2ec" i] {
   fill: #e7ebee;
 }
@@ -9543,9 +8809,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#f8c54e" i] {
   fill: #f1c255;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#fbe6f0" i] {
-  fill: #ed939f;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#fdf3dc" i] {
   fill: #fcf3dd;
 }
@@ -9582,17 +8845,11 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#ffb07a" i] {
   fill: #f4af73;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#ffb3a1" i] {
-  fill: #e6676f;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#ffb547" i] {
   fill: #f09546;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#ffb59a" i] {
   fill: #e5626b;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#ffcf9e" i] {
-  fill: #f6c192;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#ffd0c0" i] {
   fill: #ea7c83;
@@ -9602,9 +8859,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#ffd25e" i] {
   fill: #f9cc64;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#ffd27a" i] {
-  fill: #fad57f;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#ffd970" i] {
   fill: #f9d276;
@@ -9632,9 +8886,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#fff0d9" i] {
   fill: #fdf3db;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#fff1dd" i] {
-  fill: #fbe0ca;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [fill="#fff3b0" i] {
   fill: #fce6b3;
@@ -9690,9 +8941,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#2a0f2e" i] {
   stroke: #2d0d11;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#2a1440" i] {
-  stroke: #1a2133;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#2a1a14" i] {
   stroke: #2e0d0f;
 }
@@ -9701,9 +8949,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#2a1a3a" i] {
   stroke: #1e232f;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#2b1b45" i] {
-  stroke: #212738;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#2b3342" i] {
   stroke: #2e343f;
@@ -9776,9 +9021,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#8a5d0a" i] {
   stroke: #85620f;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#8fe3ff" i] {
-  stroke: #b4d2e6;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stroke="#9be08a" i] {
   stroke: #72c59c;
@@ -9873,9 +9115,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#06304e" i] {
   stop-color: #0f2345;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#081a33" i] {
-  stop-color: #0d192e;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#0a4a64" i] {
   stop-color: #1b5342;
 }
@@ -9897,17 +9136,11 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#141652" i] {
   stop-color: #1c2d4a;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#16466e" i] {
-  stop-color: #213963;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#171c45" i] {
   stop-color: #1d293f;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#18b6b0" i] {
   stop-color: #288959;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#1b1150" i] {
-  stop-color: #192a48;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#1b2150" i] {
   stop-color: #223049;
@@ -9921,9 +9154,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#1fa2b4" i] {
   stop-color: #467493;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#2a1440" i] {
-  stop-color: #1a2133;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#2a1a5e" i] {
   stop-color: #233556;
 }
@@ -9932,9 +9162,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#2b3478" i] {
   stop-color: #354a6e;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#2b6f9a" i] {
-  stop-color: #408570;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#3a2a7a" i] {
   stop-color: #344a70;
@@ -9956,12 +9183,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#4a5362" i] {
   stop-color: #4d545f;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#5a1f7a" i] {
-  stop-color: #2d3b5f;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#5a2a6e" i] {
-  stop-color: #333d59;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#5aa6e8" i] {
   stop-color: #84adc8;
@@ -9993,6 +9214,9 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#aab4c2" i] {
   stop-color: #b6bdc1;
 }
+.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#b06cff" i] {
+  stop-color: #728edc;
+}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#b2527e" i] {
   stop-color: #a12f3e;
 }
@@ -10008,6 +9232,9 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#c3ccd8" i] {
   stop-color: #cfd5d8;
 }
+.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#c47d0e" i] {
+  stop-color: #bd8a15;
+}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#c8457c" i] {
   stop-color: #a73040;
 }
@@ -10022,9 +9249,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#d89a2e" i] {
   stop-color: #d1a235;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#d9467a" i] {
-  stop-color: #be2731;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#d9a860" i] {
   stop-color: #cc915d;
@@ -10053,9 +9277,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ff4f8b" i] {
   stop-color: #dd2e3a;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ff5f6d" i] {
-  stop-color: #df3944;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ff6a5a" i] {
   stop-color: #de3641;
 }
@@ -10067,9 +9288,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ff7a4a" i] {
   stop-color: #dc2b37;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ff7a59" i] {
-  stop-color: #de3540;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ff7a5a" i] {
   stop-color: #de3641;
@@ -10101,9 +9319,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ffbe6a" i] {
   stop-color: #f2a764;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ffc24a" i] {
-  stop-color: #f8c651;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ffc35a" i] {
   stop-color: #f8cb61;
 }
@@ -10113,17 +9328,11 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ffc872" i] {
   stop-color: #f9d278;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ffcf6b" i] {
-  stop-color: #f9d071;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ffd25e" i] {
   stop-color: #f9cc64;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ffd45e" i] {
   stop-color: #f9cc64;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ffd98a" i] {
-  stop-color: #fada8f;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#ffe27a" i] {
   stop-color: #fad57f;
@@ -10143,9 +9352,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#fff4d0" i] {
   stop-color: #fdf0d2;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#fff6b8" i] {
-  stop-color: #fce9bb;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) [stop-color="#fff6c0" i] {
   stop-color: #fcebc3;
 }
@@ -10159,9 +9365,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#141652" i] {
   stop-color: #162543;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#1b1150" i] {
-  stop-color: #162542;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#1c1650" i] {
   stop-color: #162543;
 }
@@ -10174,9 +9377,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#4a2a80" i] {
   stop-color: #1d3057;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#5a1f7a" i] {
-  stop-color: #1b2d52;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#7a3a8a" i] {
   stop-color: #1f345e;
 }
@@ -10186,9 +9386,6 @@
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#c8457c" i] {
   stop-color: #264073;
 }
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#d9467a" i] {
-  stop-color: #284378;
-}
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#ff6a5a" i] {
   stop-color: #2e4c89;
 }
@@ -10197,9 +9394,6 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#ff8654" i] {
   stop-color: #2d4b87;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#ff8a4c" i] {
-  stop-color: #2c4a85;
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#ffbe6a" i] {
   stop-color: #2f4e8d;
@@ -10212,7 +9406,4 @@
 }
 .juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#ffc872" i] {
   stop-color: #30508f;
-}
-.juegos-root.s5:where(:not(.halloween)) :is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach) :is(linearGradient, radialGradient)[id*="sky" i] > stop[stop-color="#ffcf6b" i] {
-  stop-color: #2f4f8d;
 }
