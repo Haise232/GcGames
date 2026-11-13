@@ -61,7 +61,7 @@
 }
 .juegos-root .fe-seats {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px 8px;
   margin: 0 0 20px;
   padding: 0;
@@ -93,6 +93,45 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+/* Las rondas de la partida: 8, 12 o 20. */
+.juegos-root .fe-modes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #9fb0c8;
+}
+.juegos-root .fe-modes > b {
+  font-size: 16px;
+  color: #fff;
+}
+.juegos-root .fe-modes small {
+  font-size: 12px;
+  color: #7f8fa8;
+}
+.juegos-root .fe-mode {
+  min-width: 44px;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #c3cede;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.juegos-root .fe-mode.is-on {
+  border-color: #46e0c8;
+  background: rgba(70, 224, 200, 0.16);
+  color: #fff;
+}
+.juegos-root .fe-mode:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 .juegos-root .fe-room__actions {
   display: flex;
@@ -295,6 +334,31 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: #ffd25e;
+}
+/* Lo que queda para decidir: se vacía de derecha a izquierda y se pone roja al final. */
+.juegos-root .fe-timebar {
+  flex-basis: 100%;
+  display: block;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.juegos-root .fe-timebar > i {
+  display: block;
+  height: 100%;
+  background: #46e0c8;
+  transform-origin: left center;
+  transition: transform 0.1s linear;
+}
+.juegos-root .fe-timebar > i.is-low {
+  background: #ff5a5f;
+}
+.juegos-root .fe-choice {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
 }
 .juegos-root .fe-round em {
   flex-basis: 100%;
@@ -500,6 +564,41 @@
   }
   .juegos-root .fe-token .avatar {
     --size: 22px !important;
+  }
+  /* Con 8 jugadores, la clasificación en dos columnas para que no ocupe media pantalla. */
+  .juegos-root .fe-rank {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px 4px;
+    padding: 6px;
+  }
+  .juegos-root .fe-rank li {
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 6px;
+    padding: 4px 6px;
+    font-size: 13px;
+  }
+  .juegos-root .fe-rank li > :first-child {
+    --size: 22px !important;
+    grid-row: span 2;
+  }
+  .juegos-root .fe-rank li > b {
+    grid-column: 2;
+    font-size: 12px;
+  }
+  .juegos-root .fe-podio li {
+    grid-template-columns: 26px 26px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 6px 8px;
+  }
+  .juegos-root .fe-podio em {
+    display: none;
+  }
+}
+@media (max-width: 380px) {
+  .juegos-root .fe-seats li > :first-child {
+    --size: 38px !important;
+    width: 38px;
+    height: 38px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -9,7 +9,7 @@ import { LoteriaScene, TallerScene, TrineoScene } from '../season5/NavidadArt.js
 import { FeriaScene, SogaScene } from '../feria/FeriaArt.jsx'
 
 const GAMES = [
-  { id: 'feria', name: 'Feria de las Islas', kind: 'Hasta 10 jugadores', blurb: 'Una partida de tablero para diez: todos tiráis los dados a la vez, compráis puestos por las siete islas y os los disputáis al Tira y Afloja. El bote, para los tres primeros.', live: true, isNew: true, tint: '70, 224, 200', art: <FeriaScene /> },
+  { id: 'feria', name: 'Feria de las Islas', kind: 'De 2 a 8 jugadores', blurb: 'Una partida de tablero de 2 a 8 personas: todos tiráis los dados a la vez, compráis puestos por las siete islas y os los disputáis al Tira y Afloja. Quien acabe con más perras se lleva el bote entero.', live: true, isNew: true, tint: '70, 224, 200', art: <FeriaScene /> },
   { id: 'soga', name: 'Tira y Afloja', kind: 'Cada 45 s', blurb: 'Rojo contra azul: elige equipo y pulsa sin parar. El equipo que más tira se reparte las entradas.', live: true, isNew: true, tint: '255, 122, 92', art: <SogaScene /> },
   { id: 'pesca', name: 'Campeonato de Pesca', kind: 'Cada 2 minutos', blurb: 'Todos pescáis en el mismo mar de La Restinga: lee las sombras, lanza por delante y aguanta la pelea. Los más pescadores se llevan el bote, y quien saque el marlín azul, el Bote del Marlín.', live: true, tint: '70, 224, 200', art: <PescaScene /> },
   { id: 'elevator', name: 'Ascensor', kind: 'Cada minuto', blurb: 'Todos suben a la vez y el premio crece en cada planta. Bájate antes de que se rompa el cable: el último en bajar se lleva el bonus.', live: true, tint: '255, 196, 80', art: <ElevatorScene /> },

@@ -1,24 +1,28 @@
 // Feria de las Islas: reglas y motor de la partida, compartidos por la pantalla y el servidor (api/_juegos/feria.mjs).
-// Una partida para hasta SEATS personas: ROUNDS rondas en las que todos tiran los dados a la vez y avanzan por el
-// paseo de la feria (BOARD: 7 islas con 3 puestos cada una y, entre isla e isla, una casilla especial).
-//   - Caes solo en un puesto libre: puedes comprarlo. Si es tuyo, puedes mejorarlo (más alquiler).
+// Una partida de MIN_PLAYERS a SEATS personas (solo personas: no hay bots), de 8, 12 o 20 rondas (ROUND_MODES), en las
+// que todos tiran los dados a la vez y avanzan por el paseo de la feria (BOARD: 7 islas con 3 puestos cada una y, entre
+// isla e isla, una casilla especial).
+//   - Caes solo en un puesto libre: puedes comprarlo (o dejarlo pasar). Si es tuyo, puedes mejorarlo (más alquiler); el
+//     último nivel (FULL_LEVEL) solo si tienes la isla entera.
 //   - Caéis varios en el mismo puesto libre: os lo jugáis al Tira y Afloja (quien más tire se lo queda gratis).
-//   - Caes en el puesto de otro: le pagas el alquiler (el doble si tiene los tres de la isla).
+//   - Caes en el puesto de otro: le pagas el alquiler (el doble si tiene los tres de la isla y aún no lo ha mejorado).
+// Al acabar gana quien tenga más perras en efectivo (desempate: patrimonio) y se lleva el bote entero de inscripciones.
 // Todo el motor es puro: el estado entra y sale como un objeto (se guarda en una fila de la base de datos) y el azar
 // llega de fuera (randOf(etiqueta) → rand(n)), así que el servidor puede ponerse al día de golpe aunque nadie pregunte.
 
-export const VERSION = 1
+export const VERSION = 2
 export const ENTRY = 500 // inscripción, en euros del casino
-export const SEATS = 10
-export const MIN_PLAYERS = 4 // si al acabar la cuenta atrás hay menos, la casa pone feriantes (bots) hasta llegar
-export const ROUNDS = 12
+export const SEATS = 8
+export const MIN_PLAYERS = 2 // la cuenta atrás no arranca hasta que hay al menos dos
+export const ROUND_MODES = [8, 12, 20]
+export const ROUNDS = 12 // las rondas si nadie elige otra cosa
 export const START_CASH = 1500 // perras de la partida (no son euros: solo cuentan para la clasificación final)
 export const GO_BONUS = 200
 export const BOTE_SEED = 300
 export const BOTE_RESEED = 100
 export const TAX = 100
-export const MAX_LEVEL = 2
-export const SHARES = [0.5, 0.3, 0.2] // reparto del bote entre los tres primeros
+export const MAX_LEVEL = 3
+export const FULL_LEVEL = 3 // para llegar a este nivel hay que tener los tres puestos de la isla
 
 // Tiempos (ms).
 export const LOBBY_MS = 40000 // cuenta atrás desde que entra el primero
@@ -26,6 +30,7 @@ export const FULL_MS = 4000 // con la sala llena, empieza enseguida
 export const INTRO_MS = 3500 // «¡Empieza la feria!» antes de la primera tirada
 export const MOVE_MS = 5200 // dados y fichas andando
 export const DECIDE_MS = 8000 // comprar o mejorar
+export const REVEAL_MS = 1400 // cuando todos han decidido, lo justo para ver qué ha hecho cada uno
 export const QUIET_MS = 3600 // ronda sin nada que decidir: lo justo para leer qué ha pasado
 export const ROUND_PAD_MS = 800
 export const DUEL_INTRO_MS = 2800
@@ -71,13 +76,19 @@ export const SIZE = BOARD.length
 export const isStall = (sq) => BOARD[sq]?.kind === 'puesto'
 export const stallsOf = (island) => BOARD.filter((s) => s.island === island).map((s) => s.i)
 
-const RENT_MULT = [1, 2, 3.5]
+export const RENT_MULT = [1, 2.5, 4, 6]
 export const upgradeCost = (sq) => Math.round(BOARD[sq].price / 2)
-// Alquiler de un puesto: según su nivel, y el doble si su dueño tiene los tres de la isla.
+// Alquiler de un puesto: según su nivel; sin mejorar, el doble si su dueño tiene los tres de la isla.
 export function rentOf(sq, level = 0, full = false) {
-  return Math.round(BOARD[sq].price * 0.3 * RENT_MULT[level] * (full ? 2 : 1))
+  return Math.round(BOARD[sq].price * 0.3 * RENT_MULT[level] * (full && level === 0 ? 2 : 1))
 }
 export const hasIsland = (owners, seat, island) => stallsOf(island).every((sq) => owners[sq] === seat)
+// ¿Puede el dueño subir este puesto un nivel? Hasta FULL_LEVEL - 1 siempre; el último, solo con la isla entera.
+export function canUpgrade(owners, levels, sq) {
+  const level = levels[sq] ?? 0
+  if (level >= MAX_LEVEL) return false
+  return level + 1 < FULL_LEVEL || hasIsland(owners, owners[sq], BOARD[sq].island)
+}
 // Lo que vale un puesto al final: lo que costó más lo invertido en mejoras.
 export const stallWorth = (sq, level = 0) => BOARD[sq].price + level * upgradeCost(sq)
 
@@ -95,13 +106,30 @@ export const CARDS = [
   { text: 'Invitas a una ronda: das 25 a cada uno', each: -25 },
 ]
 
-const BOT_NAMES = ['Chacho', 'Mencey', 'Guayota', 'Tara', 'Dácil', 'Bencomo', 'Gara', 'Jonay', 'Yaiza', 'Tenesor']
-
 // ---------- Estado ----------
-// { v, id, week, phase: 'lobby' | 'play' | 'done', openAt, startAt, players: [{ id, name, avatar, bot, cash, pos }],
-//   owners: { casilla: asiento }, levels: { casilla: nivel }, bote, round, cur, endAt, result, paid }
-export function newMatch(id, week) {
-  return { v: VERSION, id, week, phase: 'lobby', openAt: null, startAt: null, players: [], owners: {}, levels: {}, bote: BOTE_SEED, round: -1, cur: null, endAt: null, result: null, paid: false }
+// { v, id, week, rounds, phase: 'lobby' | 'play' | 'done', openAt, startAt, players: [{ id, name, avatar, bot, cash, pos }],
+//   owners: { casilla: asiento }, levels: { casilla: nivel }, bote, round, cur, endAt, pot, result, paid }
+// pot: los euros que se lleva el ganador (lo cobrado en inscripciones); se fija al empezar.
+// (bot solo puede ser true en partidas antiguas, de la versión 1: ya no entran feriantes de la casa.)
+export const validRounds = (n) => (ROUND_MODES.includes(Number(n)) ? Number(n) : ROUNDS)
+export function newMatch(id, week, rounds = ROUNDS) {
+  return { v: VERSION, id, week, rounds: validRounds(rounds), phase: 'lobby', openAt: null, startAt: null, players: [], owners: {}, levels: {}, bote: BOTE_SEED, round: -1, cur: null, endAt: null, pot: 0, result: null, paid: false }
+}
+
+// Pone al día un estado guardado por una versión anterior (para no romper la partida en curso al desplegar). Devuelve
+// el estado en la versión actual, o null si no se sabe leer.
+export function migrateState(raw) {
+  if (!raw || typeof raw !== 'object' || !Number.isInteger(raw.v)) return null
+  if (raw.v === VERSION) return raw
+  if (raw.v === 1) {
+    const s = { ...raw, v: VERSION, rounds: 12 }
+    const humans = s.players.filter((p) => !p.bot).length
+    s.pot = s.phase === 'lobby' ? 0 : humans * ENTRY
+    // Antes la cuenta atrás arrancaba con uno solo (y la casa rellenaba con bots): ahora espera a que haya dos.
+    if (s.phase === 'lobby' && s.players.length < MIN_PLAYERS) s.startAt = null
+    return s
+  }
+  return null
 }
 
 const seatOf = (state, userId) => state.players.findIndex((p) => p.id === userId)
@@ -112,11 +140,21 @@ export function addPlayer(state, user, t) {
   if (seatOf(state, user.id) >= 0) return 'FERIA_IN'
   if (state.players.length >= SEATS) return 'FERIA_FULL'
   state.players.push({ id: user.id, name: user.name, avatar: user.avatar ?? null, bot: false, cash: START_CASH, pos: 0 })
-  if (state.players.length === 1) {
-    state.openAt = t
-    state.startAt = t + LOBBY_MS
-  }
+  if (state.players.length === 1) state.openAt = t
+  // La cuenta atrás empieza cuando ya hay con quién jugar.
+  if (state.players.length >= MIN_PLAYERS && state.startAt === null) state.startAt = t + LOBBY_MS
   if (state.players.length === SEATS) state.startAt = Math.min(state.startAt, t + FULL_MS)
+  return null
+}
+
+// Cambiar el número de rondas: solo quien abrió la sala (el primer asiento) y antes de empezar.
+export function setRounds(state, userId, rounds) {
+  if (state.phase !== 'lobby') return 'FERIA_RUNNING'
+  const seat = seatOf(state, userId)
+  if (seat < 0) return 'FERIA_OUT'
+  if (seat !== 0) return 'FERIA_NOT_HOST'
+  if (!ROUND_MODES.includes(rounds)) return 'BAD_MESSAGE'
+  state.rounds = rounds
   return null
 }
 
@@ -126,17 +164,17 @@ export function removePlayer(state, userId) {
   const seat = seatOf(state, userId)
   if (seat < 0) return 'FERIA_OUT'
   state.players.splice(seat, 1)
-  if (!state.players.length) {
-    state.openAt = null
-    state.startAt = null
-  }
+  if (state.players.length < MIN_PLAYERS) state.startAt = null
+  if (!state.players.length) state.openAt = null
   return null
 }
+
+const ready = (state, t) => state.players.length >= MIN_PLAYERS && state.startAt !== null && t >= state.startAt
 
 // ¿Hay algo que hacer avanzar a la hora t?
 export function due(state, t) {
   if (!state) return false
-  if (state.phase === 'lobby') return state.players.length > 0 && t >= state.startAt
+  if (state.phase === 'lobby') return ready(state, t)
   if (state.phase !== 'play') return false
   const cur = state.cur
   return t >= cur.end || (cur.duels.length > 0 && !cur.resolved && t >= cur.resolveAt)
@@ -173,11 +211,10 @@ function beginRound(state, r, at, randOf) {
       const owner = before.owners[sq.i]
       if (owner === undefined) landers.set(sq.i, [...(landers.get(sq.i) ?? []), seat])
       else if (owner === seat) {
-        const level = state.levels[sq.i] ?? 0
-        if (level < MAX_LEVEL) {
+        if (canUpgrade(state.owners, state.levels, sq.i)) {
           offers[seat] = { sq: sq.i, kind: 'up', cost: upgradeCost(sq.i), done: false }
           step.ev = { k: 'up' }
-        } else step.ev = { k: 'home' }
+        } else step.ev = { k: 'home', lock: (state.levels[sq.i] ?? 0) < MAX_LEVEL }
       } else {
         const due = rentOf(sq.i, state.levels[sq.i] ?? 0, hasIsland(before.owners, owner, sq.island))
         step.ev = { k: 'rent', to: owner, due, amount: pay(state, seat, owner, due) }
@@ -230,7 +267,7 @@ function beginRound(state, r, at, randOf) {
     if (p.cash - offer.cost >= (offer.kind === 'buy' ? 0 : 150)) take(state, seat, offer)
   }
   for (const duel of duels) for (const seat of duel.seats) if (state.players[seat].bot) duel.taps[seat] = 50 + rand(36)
-  const waiting = Object.entries(offers).some(([seat, o]) => !o.done && !state.players[seat].bot)
+  const waiting = Object.entries(offers).some(([seat, o]) => !decided(state, Number(seat), o))
   const cur = { at, steps, offers, duels, before, resolved: duels.length === 0 }
   if (duels.length) {
     cur.duelAt = at + MOVE_MS + DUEL_INTRO_MS
@@ -240,6 +277,25 @@ function beginRound(state, r, at, randOf) {
   } else cur.end = at + MOVE_MS + (waiting ? DECIDE_MS : QUIET_MS) + ROUND_PAD_MS
   state.round = r
   state.cur = cur
+}
+
+// Ya no hay nada que esperar de este asiento: ha comprado, ha pasado, no le llega o es un feriante de la casa.
+function decided(state, seat, offer) {
+  const p = state.players[seat]
+  return offer.done || Boolean(offer.passed) || p.bot || p.cash < offer.cost
+}
+
+// Si en una ronda sin duelos ya ha decidido todo el mundo, la ventana se cierra antes (lo justo para ver el resultado).
+// Solo acorta: cur.end nunca se va más allá de lo que ya estaba.
+function closeIfDecided(state, t) {
+  const cur = state.cur
+  if (cur.duels.length) return
+  if (!Object.entries(cur.offers).every(([seat, o]) => decided(state, Number(seat), o))) return
+  const end = Math.max(t, cur.at + MOVE_MS) + REVEAL_MS
+  if (end < cur.end) {
+    cur.end = end
+    cur.early = true
+  }
 }
 
 function take(state, seat, offer) {
@@ -272,27 +328,45 @@ export function worthOf(state, seat) {
   return worth
 }
 
-// Clasificación: por patrimonio (perras + puestos); empatan por perras y luego por asiento.
+// a va por delante de b: más perras en efectivo; si empatan, más patrimonio (perras + puestos).
+const ahead = (a, b) => b.cash - a.cash || b.worth - a.worth
+
+// Clasificación: por perras en efectivo, luego patrimonio y luego asiento. Quien empata en perras y patrimonio comparte
+// puesto (place).
 export function standings(state) {
-  return state.players
+  const rows = state.players
     .map((p, seat) => ({ seat, worth: worthOf(state, seat), cash: p.cash, stalls: Object.values(state.owners).filter((o) => o === seat).length }))
-    .sort((a, b) => b.worth - a.worth || b.cash - a.cash || a.seat - b.seat)
+    .sort((a, b) => ahead(a, b) || a.seat - b.seat)
+  return rows.map((r) => ({ ...r, place: 1 + rows.filter((o) => ahead(o, r) < 0).length }))
 }
 
 export const potOf = (n) => n * ENTRY
-// Premio de cada puesto (en euros): los tres primeros se reparten el bote.
-export function prizesOf(n) {
-  const pot = potOf(n)
-  const prizes = SHARES.map((s) => Math.floor(pot * s))
-  prizes[0] += pot - prizes.reduce((a, b) => a + b, 0)
-  return prizes
+// Reparte pot en k partes enteras que suman exactamente pot; el resto (si no es exacto) a las primeras.
+export function splitPot(pot, k) {
+  if (k <= 0) return []
+  const share = Math.floor(pot / k)
+  const parts = Array.from({ length: k }, () => share)
+  for (let i = 0; i < pot - share * k; i++) parts[i]++
+  return parts
+}
+
+// El bote, para el ganador: quien acabe con más perras (desempate: patrimonio). Si siguen empatados, a partes iguales,
+// y lo que sobre del redondeo al primero por orden de asiento. Los feriantes de las partidas antiguas no cobran.
+export function prizesFor(rows, players, pot) {
+  const eligible = rows.filter((r) => !players[r.seat].bot)
+  const prize = new Map()
+  if (eligible.length && pot > 0) {
+    const best = eligible[0]
+    const winners = eligible.filter((r) => ahead(r, best) === 0).sort((a, b) => a.seat - b.seat)
+    splitPot(pot, winners.length).forEach((amount, i) => prize.set(winners[i].seat, amount))
+  }
+  return rows.map((r) => ({ ...r, prize: prize.get(r.seat) ?? 0 }))
 }
 
 function finish(state, at) {
-  const prizes = prizesOf(state.players.length)
   state.phase = 'done'
   state.endAt = at
-  state.result = standings(state).map((s, i) => ({ ...s, place: i + 1, prize: prizes[i] ?? 0 }))
+  state.result = prizesFor(standings(state), state.players, state.pot)
 }
 
 // Pone la partida al día a la hora t: empieza cuando acaba la cuenta atrás, resuelve los duelos y pasa de ronda. Aunque
@@ -300,13 +374,9 @@ function finish(state, at) {
 export function advance(state, t, randOf) {
   let changed = false
   let finished = false
-  if (state.phase === 'lobby' && state.players.length > 0 && t >= state.startAt) {
-    const rand = randOf('feriantes')
-    const names = BOT_NAMES.filter((name) => !state.players.some((p) => p.name === name))
-    while (state.players.length < MIN_PLAYERS) {
-      const name = names.splice(rand(names.length), 1)[0]
-      state.players.push({ id: null, name, avatar: null, bot: true, cash: START_CASH, pos: 0 })
-    }
+  if (state.phase === 'lobby' && ready(state, t)) {
+    // Solo personas: el bote es lo que han pagado entre todas.
+    state.pot = potOf(state.players.filter((p) => !p.bot).length)
     state.phase = 'play'
     beginRound(state, 0, state.startAt + INTRO_MS, randOf)
     changed = true
@@ -318,7 +388,7 @@ export function advance(state, t, randOf) {
       changed = true
     }
     if (t < cur.end) break
-    if (state.round + 1 < ROUNDS) beginRound(state, state.round + 1, cur.end, randOf)
+    if (state.round + 1 < state.rounds) beginRound(state, state.round + 1, cur.end, randOf)
     else {
       finish(state, cur.end)
       finished = true
@@ -337,7 +407,23 @@ export function accept(state, userId, t) {
   const offer = cur.offers[seat]
   if (!offer || offer.done) return 'FERIA_NO_OFFER'
   if (t < cur.at + MOVE_MS - GRACE_MS || t >= cur.end + GRACE_MS) return 'BAD_PHASE'
-  return take(state, seat, offer) ? null : 'FERIA_NO_CASH'
+  if (!take(state, seat, offer)) return 'FERIA_NO_CASH'
+  closeIfDecided(state, t)
+  return null
+}
+
+// Dejar pasar la oferta (no comprar o no mejorar): cuenta como decidido para cerrar antes la ronda.
+export function pass(state, userId, t) {
+  if (state.phase !== 'play') return 'BAD_PHASE'
+  const seat = seatOf(state, userId)
+  if (seat < 0) return 'FERIA_OUT'
+  const cur = state.cur
+  const offer = cur.offers[seat]
+  if (!offer || offer.done || offer.passed) return 'FERIA_NO_OFFER'
+  if (t < cur.at + MOVE_MS - GRACE_MS || t >= cur.end + GRACE_MS) return 'BAD_PHASE'
+  offer.passed = true
+  closeIfDecided(state, t)
+  return null
 }
 
 // Tirones de un duelo: se apunta el total (lo máximo que se ha podido tirar hasta ese momento).

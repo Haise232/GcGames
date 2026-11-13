@@ -5,13 +5,16 @@ import {
   DECIDE_MS,
   DUEL_MS,
   ENTRY,
+  FULL_LEVEL,
   GO_BONUS,
   ISLANDS,
   MAX_LEVEL,
   MAX_TAPS,
   MIN_PLAYERS,
   MOVE_MS,
+  RENT_MULT,
   ROUNDS,
+  ROUND_MODES,
   SEATS,
   SIZE,
   START_CASH,
@@ -19,7 +22,7 @@ import {
   TAX,
   hasIsland,
   layout,
-  prizesOf,
+  potOf,
   rentOf,
   upgradeCost,
 } from './feria.js'
@@ -34,7 +37,8 @@ import Avatar from '../comun/Avatar.jsx'
 import './Feria.css'
 
 const TOPIC = 'juegos-feria'
-const SEAT_COLORS = ['#ff5a5f', '#3d8cff', '#ffd25e', '#46e0c8', '#b184ff', '#ff8a3c', '#7ccf4a', '#ff7ad9', '#9fd0ff', '#e9e4d4']
+// Un color por asiento (SEATS = 8), bien distintos entre sí sobre el fondo oscuro.
+const SEAT_COLORS = ['#ff5a5f', '#3d8cff', '#ffd25e', '#46e0c8', '#b184ff', '#ff8a3c', '#7ccf4a', '#ff7ad9']
 const ICON = { salida: '⚓', suerte: '🎟️', tasa: '💸', verbena: '🎉' }
 const DICE_MS = 1500 // los dados ruedan
 const WALK_MS = MOVE_MS - DICE_MS - 500 // las fichas andan
@@ -48,6 +52,8 @@ const perras = (n) => `${Math.round(n).toLocaleString('es-ES', { useGrouping: 'a
 const signed = (n) => `${n >= 0 ? '+' : '−'}${perras(Math.abs(n))}`
 const secs = (ms) => Math.max(0, Math.ceil(ms / 1000))
 const ordinal = (n) => `${n}.º`
+// Duración aproximada de una partida según las rondas (unos 12 s por ronda, contando duelos).
+const minutesOf = (rounds) => Math.max(2, Math.round((rounds * 12) / 60))
 const tapCap = (ms) => Math.max(0, Math.min(MAX_TAPS, Math.ceil((ms / 1000) * TAP_RATE)))
 
 // Tablero apaisado en pantallas anchas y de pie en el móvil.
@@ -120,7 +126,7 @@ const Paseo = memo(function Paseo({ shape, owners, levels, sel, onSel }) {
                 ) : (
                   <g transform={`translate(0 ${r * 0.42})`}>
                     {Array.from({ length: level + 1 }, (_, j) => (
-                      <rect key={j} x={(j - level / 2) * 13 - 5} y={-5} width="10" height="10" rx="2.5" fill={SEAT_COLORS[owner]} />
+                      <rect key={j} x={(j - level / 2) * 11 - 4.5} y={-4.5} width="9" height="9" rx="2.2" fill={SEAT_COLORS[owner]} />
                     ))}
                   </g>
                 )}
@@ -172,11 +178,13 @@ function eventText(v, seat) {
     }
     case 'buy':
       if (offer?.done) return you ? `Has comprado ${sq.name}` : `${who} compra ${sq.name}`
+      if (offer?.passed) return you ? `Dejas pasar ${sq.name}` : `${who} deja pasar ${sq.name}`
       return you ? `${sq.name} está libre` : `${who} cae en ${sq.name}, libre`
     case 'up':
       if (offer?.done) return you ? `Has mejorado ${sq.name}` : `${who} mejora ${sq.name}`
       return you ? `Estás en tu puesto: ${sq.name}` : `${who} visita su puesto`
     case 'home':
+      if (you && ev.lock) return `${sq.name}: para el nivel ${FULL_LEVEL} te falta la isla entera`
       return you ? `Estás en tu puesto: ${sq.name}` : `${who} visita su puesto`
     case 'duel':
       return you ? `¡Duelo por ${sq.name}!` : `${who} se juega ${sq.name}`
@@ -231,22 +239,23 @@ function Duelo({ v, duel, scoreOf, live, more }) {
   )
 }
 
+// La clasificación final: puesto, perras en efectivo (lo que decide) y lo que se lleva cada uno.
 function Podio({ players, pot }) {
   return (
     <ol className="fe-podio">
-      {players.map((p) => (
-        <li key={p.place} className={`${p.me ? 'is-me' : ''} ${p.prize > 0 ? 'is-paid' : ''}`}>
+      {players.map((p, i) => (
+        <li key={i} className={`${p.me ? 'is-me' : ''} ${p.prize > 0 ? 'is-paid' : ''}`}>
           <b>{ordinal(p.place)}</b>
           <Avatar name={p.name} src={p.avatar} size={30} />
           <span>
             {p.me ? 'Tú' : p.name}
             {p.bot && <small>feriante</small>}
           </span>
-          <em>{perras(p.worth)}</em>
+          <em title={p.cash === undefined ? 'Patrimonio' : `Patrimonio: ${perras(p.worth)}`}>{perras(p.cash ?? p.worth)}</em>
           <strong>{p.prize > 0 ? `+${eur(p.prize)}` : '—'}</strong>
         </li>
       ))}
-      {pot > 0 && <li className="fe-podio__pot">Bote repartido: {eur(pot)}</li>}
+      {pot > 0 && <li className="fe-podio__pot">Bote para el ganador: {eur(pot)}</li>}
     </ol>
   )
 }
@@ -256,6 +265,7 @@ function Feria({ onExit, juegos }) {
   const [sound, setSound] = useState(() => !isMuted())
   const [sending, setSending] = useState(false)
   const [sel, setSel] = useState(null)
+  const [pick, setPick] = useState(ROUNDS) // las rondas que pides si eres quien abre la sala
   const peers = useRef(new Map()) // tirones que cuentan los demás navegadores: «partida:ronda:asiento» → n
   const onPeer = useCallback((p) => {
     if (p && Number.isFinite(p.n) && Number.isFinite(p.s)) peers.current.set(`${p.m}:${p.r}:${p.s}`, p.n)
@@ -393,25 +403,35 @@ function Feria({ onExit, juegos }) {
           </button>
           <Help className="tg tg--help" title="Cómo se juega a la Feria de las Islas" wide>
             <p>
-              Una partida de tablero para hasta <b>{SEATS} personas</b>. Entrar cuesta <b>{eur(ENTRY)}</b> y el bote se lo reparten los tres primeros (50 %, 30 % y
-              20 %). Si al acabar la cuenta atrás sois menos de {MIN_PLAYERS}, la casa pone feriantes hasta llegar.
+              Una partida de tablero de <b>
+                {MIN_PLAYERS} a {SEATS} personas
+              </b>
+              , sin bots: si sois dos, jugáis los dos solos. Entrar cuesta <b>{eur(ENTRY)}</b> y <b>el bote entero es para el ganador</b>: {eur(ENTRY)} por cada
+              jugador, que se ingresan en su saldo de la semana. La cuenta atrás empieza cuando hay al menos {MIN_PLAYERS}; si sales antes de que empiece, te devolvemos
+              la inscripción.
             </p>
             <p>
-              Todos empezáis con {perras(START_CASH)} (las perras solo valen dentro de la partida) y jugáis <b>{ROUNDS} rondas a la vez</b>: en cada una se tiran los
-              dados para todos y cada ficha avanza por el paseo, que recorre las siete islas. Cada vez que pasas por el Muelle cobras {perras(GO_BONUS)}.
+              Todos empezáis con {perras(START_CASH)} (las perras solo valen dentro de la partida) y jugáis <b>{ROUND_MODES.join(', ').replace(/, (\d+)$/, ' o $1')} rondas a la vez</b>{' '}
+              (lo elige quien abre la sala): en cada una se tiran los dados para todos y cada ficha avanza por el paseo, que recorre las siete islas. Cada vez que pasas
+              por el Muelle cobras {perras(GO_BONUS)}.
             </p>
             <p>
-              <b>Puesto libre.</b> Si caes solo, tienes {DECIDE_MS / 1000} s para comprarlo. Si caéis varios en el mismo, os lo jugáis al <b>Tira y Afloja</b>: {DUEL_MS / 1000}{' '}
-              s pulsando sin parar, y quien más tire se lo queda gratis.
+              <b>Puesto libre.</b> Si caes solo, tienes {DECIDE_MS / 1000} s para comprarlo o dejarlo pasar (la barra marca el tiempo; si todos habéis decidido, la ronda
+              sigue sin esperar). Si caéis varios en el mismo, os lo jugáis al <b>Tira y Afloja</b>: {DUEL_MS / 1000} s pulsando sin parar, y quien más tire se lo queda
+              gratis.
             </p>
             <p>
-              <b>Puesto de otro.</b> Le pagas el alquiler (el 30 % de lo que vale). Si tiene los tres puestos de la isla, el doble. <b>Tu puesto.</b> Puedes mejorarlo
-              hasta {MAX_LEVEL} veces por la mitad de su precio: el alquiler pasa a ×2 y a ×3,5.
+              <b>Puesto de otro.</b> Le pagas el alquiler (el 30 % de lo que vale; el doble si tiene los tres de la isla y aún no lo ha mejorado). <b>Tu puesto.</b>{' '}
+              Puedes mejorarlo hasta {MAX_LEVEL} veces, cada vez por la mitad de su precio: el alquiler pasa a ×{String(RENT_MULT[1]).replace('.', ',')}, ×
+              {String(RENT_MULT[2]).replace('.', ',')} y ×{String(RENT_MULT[3]).replace('.', ',')}. El nivel {FULL_LEVEL} solo se puede con los tres puestos de la isla.
             </p>
             <p>
               <b>Tómbola</b> 🎟️: una papeleta al azar, buena o mala. <b>Tasa</b> 💸: pagas {perras(TAX)} al bote de la feria. <b>Verbena</b> 🎉: te llevas ese bote.
             </p>
-            <p>Al acabar gana quien tenga más patrimonio: las perras más lo que valen sus puestos y sus mejoras.</p>
+            <p>
+              Al acabar <b>gana quien tenga más perras en efectivo</b>. Si empatan, el de más patrimonio (perras más lo que valen sus puestos y mejoras); si siguen
+              empatados, el bote se reparte a partes iguales.
+            </p>
           </Help>
         </div>
       </div>
@@ -432,10 +452,17 @@ function Feria({ onExit, juegos }) {
     const done = v.phase === 'done'
     const lastGame = v.history[0]
     const count = v.players.length
-    const prizes = prizesOf(Math.max(count, MIN_PLAYERS))
     const left = startAt ? secs(startAt - t) : null
     const final = done ? v.result.map((r) => ({ ...v.players[r.seat], ...r, me: r.seat === v.seat })) : null
     const mine = final?.find((p) => p.me)
+    const tied = final ? final.filter((p) => p.prize > 0).length > 1 : false
+    // Quien abre la sala (o la siguiente, tras una partida) elige las rondas; luego solo puede cambiarlas el primer asiento.
+    const opening = done || count === 0
+    const host = !done && v.seat === 0
+    const rounds = opening ? pick : (v.rounds ?? ROUNDS)
+    const choose = (n) => (opening ? setPick(n) : act({ a: 'rounds', n }))
+    // El bote que se enseña es el que se paga: 500 € por cada persona sentada.
+    const pot = done ? v.pot : potOf(count)
     return (
       <main className="app fe-app">
         {header}
@@ -443,18 +470,26 @@ function Feria({ onExit, juegos }) {
           <section className="fe-card fe-room">
             {done ? (
               <>
-                <h2>{mine ? (mine.prize > 0 ? `¡${ordinal(mine.place)} puesto! Te llevas ${eur(mine.prize)}` : `Acabas en el ${ordinal(mine.place)} puesto`) : 'Partida terminada'}</h2>
+                <h2>
+                  {mine
+                    ? mine.prize > 0
+                      ? tied
+                        ? `¡Empate en cabeza! Te llevas ${eur(mine.prize)}`
+                        : `¡Ganas la feria! Te llevas ${eur(mine.prize)}`
+                      : `Acabas en el ${ordinal(mine.place)} puesto`
+                    : 'Partida terminada'}
+                </h2>
                 <Podio players={final} pot={v.pot} />
               </>
             ) : (
               <>
-                <h2>{count ? (left > 0 ? `Empieza en ${left} s` : 'Empezando…') : 'La sala está vacía'}</h2>
+                <h2>{count ? (count < MIN_PLAYERS ? 'Esperando a otra persona' : left > 0 ? `Empieza en ${left} s` : 'Empezando…') : 'La sala está vacía'}</h2>
                 <p className="fe-room__sub">
                   {count
                     ? count < MIN_PLAYERS
-                      ? `${count} de ${SEATS} · si no llegáis a ${MIN_PLAYERS}, la casa pone feriantes`
+                      ? `${count} de ${SEATS} · la cuenta atrás empieza en cuanto entre alguien más`
                       : `${count} de ${SEATS} · con la sala llena empieza al momento`
-                    : 'El primero que entra pone en marcha la cuenta atrás.'}
+                    : `De ${MIN_PLAYERS} a ${SEATS} personas. Quien entra primero elige las rondas.`}
                 </p>
                 <ul className="fe-seats">
                   {Array.from({ length: SEATS }, (_, i) => {
@@ -469,19 +504,43 @@ function Feria({ onExit, juegos }) {
                 </ul>
               </>
             )}
+            <div className="fe-modes" role="group" aria-label="Rondas de la partida">
+              <span>Rondas</span>
+              {opening || host ? (
+                ROUND_MODES.map((n) => (
+                  <button key={n} type="button" className={`fe-mode ${rounds === n ? 'is-on' : ''}`} aria-pressed={rounds === n} disabled={sending} onClick={() => choose(n)}>
+                    {n}
+                  </button>
+                ))
+              ) : (
+                <b>{rounds}</b>
+              )}
+              <small>unos {minutesOf(rounds)} min</small>
+            </div>
             <div className="fe-room__actions">
               {seated && !done ? (
                 <button type="button" className="fe-btn" disabled={sending} onClick={() => act({ a: 'leave' })}>
                   Salir de la sala
                 </button>
               ) : (
-                <button type="button" className="fe-btn fe-btn--go" disabled={sending || !ready || (!done && count >= SEATS)} onClick={() => act({ a: 'join' }, playChip)}>
+                <button
+                  type="button"
+                  className="fe-btn fe-btn--go"
+                  disabled={sending || !ready || (!done && count >= SEATS)}
+                  onClick={() => act(opening ? { a: 'join', rounds: pick } : { a: 'join' }, playChip)}
+                >
                   {done ? 'Jugar otra' : 'Entrar'} · {eur(ENTRY)}
                 </button>
               )}
               <span>
-                Premios: {eur(prizes[0])} · {eur(prizes[1])} · {eur(prizes[2])}
-                {count > MIN_PLAYERS ? '' : ' (suben con cada jugador)'}
+                {done ? (
+                  <>Bote: {eur(ENTRY)} por jugador, todo para el ganador</>
+                ) : (
+                  <>
+                    Bote para el ganador: <b>{eur(pot)}</b>
+                    {count < SEATS ? ` (sube ${eur(ENTRY)} con cada jugador)` : ''}
+                  </>
+                )}
               </span>
             </div>
           </section>
@@ -489,15 +548,20 @@ function Feria({ onExit, juegos }) {
             <h2>La partida</h2>
             <ul>
               <li>
-                <b>{ROUNDS} rondas</b>, todos tiráis a la vez. Unos 4 minutos.
+                De <b>
+                  {MIN_PLAYERS} a {SEATS} personas
+                </b>
+                , sin bots. {ROUND_MODES.join(', ').replace(/, (\d+)$/, ' o $1')} rondas y todos tiráis a la vez.
               </li>
               <li>
-                Compra puestos, mejóralos y cobra <b>alquiler</b> a quien caiga.
+                Compra puestos, mejóralos y cobra <b>alquiler</b> a quien caiga. El nivel {FULL_LEVEL}, solo con la isla entera.
               </li>
               <li>
                 ¿Dos en el mismo puesto libre? <b>Tira y Afloja</b>: quien más pulse se lo lleva.
               </li>
-              <li>Gana quien acabe con más patrimonio.</li>
+              <li>
+                Gana quien acabe con <b>más perras en efectivo</b> y se lleva <b>el bote entero</b>.
+              </li>
             </ul>
             {!done && lastGame && (
               <>
@@ -514,12 +578,19 @@ function Feria({ onExit, juegos }) {
   // ---------- Partida ----------
   const step = seated ? cur.steps[v.seat] : null
   const offer = seated ? cur.offers[v.seat] : null
-  const canTake = Boolean(offer) && !offer.done && rel >= MOVE_MS && t < cur.end
+  const canTake = Boolean(offer) && !offer.done && !offer.passed && rel >= MOVE_MS && t < cur.end
   const shownDuel = cur.duels.length && rel >= MOVE_MS ? (myDuel ?? cur.duels[0]) : null
   const timeLeft = rel < 0 ? -rel : shownDuel && !cur.resolved ? (t < cur.duelAt ? cur.duelAt - t : Math.max(0, cur.duelEnd - t)) : Math.max(0, cur.end - t)
+  // La barra de tiempo: lo que queda de la ventana para decidir (o del duelo). Si todos deciden, la ronda se acorta y la
+  // barra salta al final.
+  const span =
+    rel < MOVE_MS ? 0 : shownDuel && !cur.resolved ? (t < cur.duelAt ? 0 : DUEL_MS) : Object.keys(cur.offers).length && !cur.duels.length ? cur.end - (cur.at + MOVE_MS) : 0
+  const bar = span > 0 ? Math.max(0, Math.min(1, timeLeft / span)) : null
+  const rounds = v.rounds ?? ROUNDS
+  // La clasificación va por perras en efectivo (lo que decide quién gana) y, si empatan, por patrimonio.
   const ranking = v.players
     .map((p, seat) => ({ ...p, seat, cash: cashOf(seat), stalls: Object.values(owners).filter((o) => o === seat).length }))
-    .sort((a, b) => (hidden ? 0 : b.worth - a.worth) || a.seat - b.seat)
+    .sort((a, b) => (hidden ? 0 : b.cash - a.cash || b.worth - a.worth) || a.seat - b.seat)
   // Fichas que comparten casilla: se abren en abanico para que se vean todas.
   const resting = rel >= DICE_MS + WALK_MS || rel < DICE_MS
   const groups = new Map()
@@ -571,9 +642,14 @@ function Feria({ onExit, juegos }) {
           <div className="fe-center">
             <p className="fe-round">
               <b>
-                Ronda {v.round + 1} de {ROUNDS}
+                Ronda {v.round + 1} de {rounds}
               </b>
               <span>{secs(timeLeft)} s</span>
+              {bar !== null && (
+                <i className="fe-timebar" role="progressbar" aria-label="Tiempo para decidir" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(bar * 100)}>
+                  <i style={{ transform: `scaleX(${bar})` }} className={bar < 0.3 ? 'is-low' : ''} />
+                </i>
+              )}
               <em>Bote de la feria: {perras(hidden ? cur.before.bote : v.bote)}</em>
             </p>
             {shownDuel && !shape.portrait ? (
@@ -596,9 +672,16 @@ function Feria({ onExit, juegos }) {
                   {step?.lap && rel >= MOVE_MS && <small>Pasas por el Muelle: {signed(GO_BONUS)}</small>}
                 </p>
                 {canTake && (
-                  <button type="button" className="fe-btn fe-btn--go" disabled={sending || cashOf(v.seat) < offer.cost} onClick={() => act({ a: 'take', r: v.round }, playCash)}>
-                    {offer.kind === 'buy' ? 'Comprar' : 'Mejorar'} · {perras(offer.cost)}
-                  </button>
+                  <div className="fe-choice">
+                    <button type="button" className="fe-btn fe-btn--go" disabled={sending || cashOf(v.seat) < offer.cost} onClick={() => act({ a: 'take', r: v.round }, playCash)}>
+                      {offer.kind === 'buy' ? 'Comprar' : 'Mejorar'} · {perras(offer.cost)}
+                    </button>
+                    {cashOf(v.seat) >= offer.cost && (
+                      <button type="button" className="fe-btn" disabled={sending} onClick={() => act({ a: 'pass', r: v.round })}>
+                        Pasar
+                      </button>
+                    )}
+                  </div>
                 )}
                 {canTake && cashOf(v.seat) < offer.cost && <small className="fe-note">No te llegan las perras</small>}
               </>

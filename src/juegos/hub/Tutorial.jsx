@@ -182,7 +182,7 @@ const STEPS = [
     target: 'round',
     art: 'live3',
     title: 'Todos a la vez',
-    text: 'Nuevos: la Feria de las Islas (una partida de tablero para hasta diez, con duelos de Tira y Afloja por los puestos) y el Tira y Afloja suelto, rojo contra azul. Y Pesca, Ascensor, Subasta, Ruleta, Cohete y Carrera: la misma ronda para todo el casino. Las tarjetas con la etiqueta «Misión» son las de tus misiones de hoy. Con los botones de arriba filtras qué juegos ver.',
+    text: 'Nuevos: la Feria de las Islas (una partida de tablero de 2 a 8 personas, con duelos de Tira y Afloja por los puestos; el bote entero para quien acabe con más perras) y el Tira y Afloja suelto, rojo contra azul. Y Pesca, Ascensor, Subasta, Ruleta, Cohete y Carrera: la misma ronda para todo el casino. Las tarjetas con la etiqueta «Misión» son las de tus misiones de hoy. Con los botones de arriba filtras qué juegos ver.',
   },
   {
     target: 'elevator',
