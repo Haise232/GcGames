@@ -28,7 +28,7 @@ import Avatar from '../comun/Avatar.jsx'
 import WinBurst from '../comun/WinBurst.jsx'
 import Help from '../comun/Help.jsx'
 import RaceDraw from './RaceDraw.jsx'
-import RaceScene from './RaceScene.jsx'
+import RaceStage from './RaceStage.jsx'
 import './Race.css'
 
 const SEND_MS = 250 // las apuestas se mandan al servidor un momento después de dejar de tocar
@@ -473,6 +473,27 @@ function Race({ onExit, juegos }) {
     fraction = 1 - (offset - BETS_MS) / GRID_MS
   } else if (phase === 'result') count = '✓'
 
+  // Cuánto se ha llenado el tramo de la fase actual en el carril de fases (0-1).
+  let railFill = 0
+  if (ready && phase === 'betting') railFill = offset / BETS_MS
+  else if (ready && phase === 'grid') railFill = (offset - BETS_MS) / GRID_MS
+  else if (ready && phase === 'race') railFill = race && endAt > race.start ? (now - race.start) / (endAt - race.start) : 0
+  else if (phase === 'result') railFill = 1
+  railFill = Math.min(1, Math.max(0, railFill))
+
+  // Rótulo del panel: si se puede apostar ahora o no.
+  const gate = !ready
+    ? 'Conectando…'
+    : betting
+      ? `Apuestas abiertas · ${count} s`
+      : phase === 'betting'
+        ? 'Apuestas abiertas en un momento…'
+        : phase === 'grid'
+          ? 'Apuestas cerradas · parrilla'
+          : phase === 'race'
+            ? 'Apuestas cerradas · en carrera'
+            : `Nuevas apuestas en ${nextIn} s`
+
   // Tu última carrera (la de esta ronda si ya se pagó).
   let lastText = 'Todavía no has apostado en ninguna carrera.'
   let lastTone = ''
@@ -559,24 +580,31 @@ function Race({ onExit, juegos }) {
         </div>
       </header>
 
-      <div className="race fill">
+      <div className={`race fill race--${ready ? phase : 'wait'}`}>
         <section className={`race__status ${hot ? 'is-hot' : ''}`} aria-label="Estado de la carrera">
           <Countdown phase={ready ? phase : 'race'} count={count} fraction={fraction} hot={hot} />
           <div className="race__call">
-            <ol className="race__phases" aria-hidden="true">
-              {PHASES.map(([id, label]) => (
-                <li key={id} className={id === phase && ready ? 'is-now' : ''}>
-                  {label}
-                </li>
-              ))}
-              <li className="race__circuit" style={{ '--c': CIRCUITS[circuit].color }}>
-                {CIRCUITS[circuit].name}
-              </li>
-            </ol>
             <strong key={call} className={won ? 'is-win' : ''}>
               {call}
             </strong>
             <span className={won ? 'is-win' : ''}>{detail}</span>
+          </div>
+          <div className="race__rail">
+            <ol className="race__phases" aria-hidden="true">
+              {PHASES.map(([id, label], i) => {
+                const at = ready ? PHASES.findIndex(([p]) => p === phase) : -1
+                const fill = i < at ? 1 : i === at ? railFill : 0
+                return (
+                  <li key={id} className={i === at ? 'is-now' : i < at ? 'is-done' : ''} style={{ '--fill': fill }}>
+                    {label}
+                  </li>
+                )
+              })}
+            </ol>
+            <p className="race__circuit" style={{ '--c': CIRCUITS[circuit].color }}>
+              <b>{CIRCUITS[circuit].name}</b>
+              <small>{CIRCUITS[circuit].drag ? CIRCUITS[circuit].tag : `${CIRCUITS[circuit].laps} vueltas`}</small>
+            </p>
           </div>
           <p className="race__sr" role="status" aria-live="polite">
             {announce}
@@ -584,7 +612,7 @@ function Race({ onExit, juegos }) {
         </section>
 
         <section className="race__scene" aria-label="Pista">
-          <RaceScene
+          <RaceStage
             getNow={clock}
             round={round}
             race={race}
@@ -602,7 +630,44 @@ function Race({ onExit, juegos }) {
           )}
         </section>
 
-        <aside className="race__panel" aria-label="Apuestas">
+        <section className="race__strip" aria-label="Resultados">
+          <div className="race__history">
+            <h2>Últimos ganadores</h2>
+            {history.length === 0 ? (
+              <span className="race__muted">Aún no hay carreras.</span>
+            ) : (
+              <ol aria-label={`Últimos ganadores: ${history.map((c) => CAR_INFO[c].name).join(', ')}`}>
+                {history.map((c, i) => (
+                  <li key={i}>
+                    <Dot car={c} />
+                  </li>
+                ))}
+              </ol>
+            )}
+            <span className="race__players">{players > 0 ? plural(players, 'jugador apuesta', 'jugadores apuestan') : 'Sin apuestas aún'}</span>
+          </div>
+          <div className={`race__last ${lastTone}`}>
+            {lastOrder && (
+              <div className="race__order" aria-label={`Llegada: ${lastOrder.map((c, i) => `${placeName(i)} ${CAR_INFO[c].name}`).join(', ')}`}>
+                <b>{fresh ? 'Llegada' : 'Anterior'}</b>
+                {lastOrder.map((c, i) => (
+                  <span key={c} className={i < 3 ? 'is-podium' : ''}>
+                    <small>{i + 1}</small>
+                    <Dot car={c} />
+                  </span>
+                ))}
+              </div>
+            )}
+            <p>{lastText}</p>
+          </div>
+        </section>
+
+        <aside className={`race__panel ${betting ? 'is-open' : 'is-closed'}`} aria-label="Apuestas">
+          <div className="race__gate" aria-hidden="true">
+            <i />
+            <span>{gate}</span>
+          </div>
+
           <div className="race__kinds" role="group" aria-label="Tipo de apuesta">
             {KIND_IDS.map((id) => (
               <button key={id} type="button" aria-pressed={kind === id} disabled={!betting} onClick={() => dispatch({ type: 'KIND', kind: id })}>
@@ -612,7 +677,7 @@ function Race({ onExit, juegos }) {
             ))}
           </div>
           <p className="race__kind-text">
-            {KINDS[kind].text}.{kind === 'podium' ? ` 1.º ${fmtOdds(PODIUM[0])} · 2.º ${fmtOdds(PODIUM[1])} · 3.º ${fmtOdds(PODIUM[2])}` : ''}
+            {KINDS[kind].text}.{kind === 'podium' ? ` 1.º ${fmtOdds(PODIUM[0])}, 2.º ${fmtOdds(PODIUM[1])}, 3.º ${fmtOdds(PODIUM[2])}.` : ''}
           </p>
 
           <ul className="race__cars">
@@ -642,28 +707,30 @@ function Race({ onExit, juegos }) {
                     aria-label={label}
                     onClick={() => tap(car)}
                   >
-                    <span className="race-car__top">
-                      <span className="race-car__num" aria-hidden="true">
-                        {car + 1}
-                      </span>
-                      <span className="race-car__name">{info.name}</span>
-                      {place >= 0 ? (
-                        <b className={`race-car__place ${place < 3 ? 'is-podium' : ''}`}>{placeName(place)}</b>
-                      ) : pickAt >= 0 ? (
-                        <b className="race-car__place is-pick">{placeName(pickAt)}</b>
-                      ) : null}
+                    <span className="race-car__num" aria-hidden="true">
+                      {car + 1}
                     </span>
+                    <span className="race-car__name">{info.name}</span>
                     <span className="race-car__pilot">
                       {pilot ? (
                         <>
-                          <Avatar name={pilot.name} src={pilot.avatar} size={18} />
+                          <Avatar name={pilot.name} src={pilot.avatar} size={16} />
                           <span>{pilot.me ? 'Tú pilotas' : pilot.name}</span>
                         </>
                       ) : (
                         <span className="race-car__ai">Piloto IA</span>
                       )}
-                      {phase === 'race' && winnerShown && race?.winner === car && <b className="race-car__tag">Ganó</b>}
-                      {mine > 0 && <small className="race-car__mine">{plural(mine, 'apuesta', 'apuestas')}</small>}
+                    </span>
+                    <span className="race-car__badge">
+                      {place >= 0 ? (
+                        <b className={`race-car__place ${place < 3 ? 'is-podium' : ''}`}>{placeName(place)}</b>
+                      ) : pickAt >= 0 ? (
+                        <b className="race-car__place is-pick">{placeName(pickAt)}</b>
+                      ) : phase === 'race' && winnerShown && race?.winner === car ? (
+                        <b className="race-car__place is-podium">Ganó</b>
+                      ) : mine > 0 ? (
+                        <small className="race-car__mine">★ {mine}</small>
+                      ) : null}
                     </span>
                   </button>
                 </li>
@@ -686,13 +753,11 @@ function Race({ onExit, juegos }) {
                   Atrás
                 </button>
                 <button type="button" className="race__go" disabled={!canCommit} onClick={commit} aria-label={`Apostar ${eur(chip)} a la ${KINDS[kind].name}`}>
-                  Apostar
+                  Apostar {eur(chip)}
                 </button>
               </>
             ) : (
-              <p className="race__tip">
-                {betting ? `Toca un coche: ${eur(chip)} a ${KINDS[kind].name}` : 'Apuestas cerradas'}
-              </p>
+              <p className="race__tip">{betting ? `Toca un coche para apostar ${eur(chip)} a ${KINDS[kind].name}` : 'Apuestas cerradas'}</p>
             )}
           </div>
 
@@ -712,47 +777,52 @@ function Race({ onExit, juegos }) {
             ))}
           </div>
 
-          <div className="race__head">
-            <h2>Tus apuestas</h2>
-            <span className="race__max">
-              {plural(placed.length, 'apuesta', 'apuestas')} · {eur(onTable)} de {eur(MAX_TOTAL)}
-            </span>
+          <div className="race__slip">
+            <div className="race__head">
+              <h2>Tus apuestas</h2>
+              <span className="race__max">
+                {plural(placed.length, 'apuesta', 'apuestas')} · {eur(onTable)} de {eur(MAX_TOTAL)}
+              </span>
+            </div>
+            <div className="race__meter" aria-hidden="true">
+              <i style={{ width: `${Math.min(100, (onTable / MAX_TOTAL) * 100)}%` }} />
+            </div>
+            <ul className="race__bets" aria-label="Tus apuestas de esta carrera">
+              {bets.length === 0 ? (
+                <li className="race__bets-empty">{betting ? 'Aún no has apostado: elige tipo, ficha y coche.' : 'Sin apuestas en esta carrera.'}</li>
+              ) : (
+                bets.map((b, i) => {
+                  const paid = paidOf(i)
+                  return (
+                    <li key={keyOf(b)} className={paid === null ? '' : paid > 0 ? 'is-hit' : 'is-miss'}>
+                      <span className="race__bet-kind">{KINDS[b.kind].name}</span>
+                      <span className="race__bet-cars" aria-label={listOf(b.cars.map((c, n) => `${placeName(n)} ${CAR_INFO[c].name}`))}>
+                        {b.cars.map((c, n) => (
+                          <span key={c}>
+                            {b.cars.length > 1 && <small>{n + 1}</small>}
+                            <Dot car={c} />
+                          </span>
+                        ))}
+                      </span>
+                      <span className="race__bet-amount">{eur(b.amount)}</span>
+                      <span className="race__bet-prize">
+                        {paid === null ? `${b.kind === 'podium' ? 'hasta ' : ''}${eur(bestOf(b))}` : paid > 0 ? `Cobró ${eur(paid)}` : 'Sin premio'}
+                      </span>
+                      <button
+                        type="button"
+                        className="race__bet-x"
+                        disabled={!betting || paid !== null}
+                        aria-label={`Quitar apuesta ${KINDS[b.kind].name} ${carNames(b.cars).join(', ')} de ${eur(b.amount)}`}
+                        onClick={() => dispatch({ type: 'REMOVE', index: i })}
+                      >
+                        ×
+                      </button>
+                    </li>
+                  )
+                })
+              )}
+            </ul>
           </div>
-          <ul className="race__bets" aria-label="Tus apuestas de esta carrera">
-            {bets.length === 0 ? (
-              <li className="race__bets-empty">Aún no has apostado.</li>
-            ) : (
-              bets.map((b, i) => {
-                const paid = paidOf(i)
-                return (
-                  <li key={keyOf(b)} className={paid === null ? '' : paid > 0 ? 'is-hit' : 'is-miss'}>
-                    <span className="race__bet-kind">{KINDS[b.kind].name}</span>
-                    <span className="race__bet-cars" aria-label={listOf(b.cars.map((c, n) => `${placeName(n)} ${CAR_INFO[c].name}`))}>
-                      {b.cars.map((c, n) => (
-                        <span key={c}>
-                          {b.cars.length > 1 && <small>{n + 1}</small>}
-                          <Dot car={c} />
-                        </span>
-                      ))}
-                    </span>
-                    <span className="race__bet-amount">{eur(b.amount)}</span>
-                    <span className="race__bet-prize">
-                      {paid === null ? `→ ${b.kind === 'podium' ? 'hasta ' : ''}${eur(bestOf(b))}` : paid > 0 ? `Cobró ${eur(paid)}` : 'Sin premio'}
-                    </span>
-                    <button
-                      type="button"
-                      className="race__bet-x"
-                      disabled={!betting || paid !== null}
-                      aria-label={`Quitar apuesta ${KINDS[b.kind].name} ${carNames(b.cars).join(', ')} de ${eur(b.amount)}`}
-                      onClick={() => dispatch({ type: 'REMOVE', index: i })}
-                    >
-                      ×
-                    </button>
-                  </li>
-                )
-              })
-            )}
-          </ul>
 
           <div className="race__actions">
             <button type="button" disabled={!canRepeat} onClick={() => dispatch({ type: 'REPEAT', bets: repeatBets, available })}>
@@ -772,48 +842,16 @@ function Race({ onExit, juegos }) {
               {mySeat === picked ? `Dejar el volante de ${CAR_INFO[picked].name}` : `Pilotar ${CAR_INFO[picked].name}`}
             </button>
             <p className={seatMsg ? 'is-warn' : ''}>
-              {seatMsg ||
-                (mySeat !== null ? `Pilotas el ${CAR_INFO[mySeat].name} (solo para presumir).` : 'Pilotar es opcional: no cambia el pago.')}
+              {seatMsg || (mySeat !== null ? `Pilotas el ${CAR_INFO[mySeat].name} (solo para presumir).` : 'Opcional: no cambia el pago.')}
             </p>
           </div>
           <p className="race__keys">
-            <kbd>1</kbd>–<kbd>6</kbd> coche · <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd><kbd>R</kbd> tipo · <kbd>+</kbd> <kbd>-</kbd> ficha · <kbd>Intro</kbd> apostar
+            <kbd>1</kbd>–<kbd>6</kbd> coche · <kbd>Q</kbd>
+            <kbd>W</kbd>
+            <kbd>E</kbd>
+            <kbd>R</kbd> tipo · <kbd>+</kbd> <kbd>-</kbd> ficha · <kbd>Intro</kbd> apostar
           </p>
         </aside>
-
-        <section className="race__strip" aria-label="Resultados">
-          <div className="race__history">
-            <h2>Últimos ganadores</h2>
-            {history.length === 0 ? (
-              <span className="race__muted">Aún no hay carreras.</span>
-            ) : (
-              <ol aria-label={`Últimos ganadores: ${history.map((c) => CAR_INFO[c].name).join(', ')}`}>
-                {history.map((c, i) => (
-                  <li key={i}>
-                    <Dot car={c} />
-                  </li>
-                ))}
-              </ol>
-            )}
-            <span className="race__players">{players > 0 ? plural(players, 'jugador apuesta', 'jugadores apuestan') : 'Sin apuestas aún'}</span>
-          </div>
-          <div className={`race__last ${lastTone}`}>
-            <div className="race__order" aria-label={lastOrder ? `Llegada: ${lastOrder.map((c, i) => `${placeName(i)} ${CAR_INFO[c].name}`).join(', ')}` : undefined}>
-              {lastOrder && (
-                <>
-                  <b>{fresh ? 'Llegada' : 'Anterior'}</b>
-                  {lastOrder.map((c, i) => (
-                    <span key={c} className={i < 3 ? 'is-podium' : ''}>
-                      <small>{i + 1}</small>
-                      <Dot car={c} />
-                    </span>
-                  ))}
-                </>
-              )}
-            </div>
-            <p>{lastText}</p>
-          </div>
-        </section>
       </div>
 
       {won && (
