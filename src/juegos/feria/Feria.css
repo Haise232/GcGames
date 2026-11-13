@@ -1,5 +1,6 @@
-/* Feria de las Islas (Feria.jsx): la sala, el paseo (un óvalo de casillas redondas) con el centro para los dados, los
-   avisos y los duelos, y la clasificación al lado. */
+/* Feria de las Islas (Feria.jsx, Tablero.jsx): la sala y, en la partida, un tablero de mesa de feria canaria (marco de
+   pino, casillas de cartón crema, mar en el centro con los dados, el bote y el registro) y al lado la cabecera, tus
+   perras y la clasificación. Efectos (feriaFx.js) en una capa fija por encima, sin recibir clics. */
 .juegos-root .app.fe-app {
   --accent: #46e0c8;
   --accent-rgb: 70, 224, 200;
@@ -213,217 +214,1473 @@
   color: #7f8fa8;
 }
 
-/* ---------- Partida ---------- */
+
+/* ---------- Partida: el tablero ---------- */
+.juegos-root .app.fe-app--play {
+  --fe-ink: #2a1d14;
+  --fe-paper: #f3e8cf;
+  --fe-paper-2: #e7d7b3;
+  --fe-wood: #6a4126;
+  --fe-wood-2: #4b2c18;
+  --fe-wood-3: #8a5a36;
+  --fe-sea: #0f6f86;
+  --fe-sea-2: #0a4a5e;
+  --fe-sea-3: #1b94a6;
+  --fe-sand: #ecd7a1;
+  --fe-gold: #e9b23c;
+  --fe-gold-2: #b97f10;
+  --fe-chili: #d6452f;
+  --fe-display: 'Fraunces', Georgia, serif;
+  --fe-text: 'Bricolage Grotesque', 'Instrument Sans Variable', system-ui, sans-serif;
+  --fe-padv: clamp(10px, 2.2vh, 28px);
+  --fe-padh: clamp(12px, 2vw, 32px);
+  --fe-side: 400px;
+  width: 100%;
+  max-width: none;
+  padding: var(--fe-padv) var(--fe-padh);
+}
+.juegos-root.s4 .app.fe-app--play::before,
+.juegos-root .app.fe-app--play::before {
+  background: radial-gradient(70% 60% at 35% 35%, #17283a, #101a24 70%), #101a24;
+}
 .juegos-root .fe-play {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 250px;
-  align-items: start;
-  gap: 16px;
-  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
 }
 .juegos-root .fe-board {
+  --B: clamp(640px, min(100dvh - 2 * var(--fe-padv), 100vw - 2 * var(--fe-padh) - 20px - var(--fe-side)), 984px);
+  --u: calc(var(--B) / 100);
+  --frame: calc(var(--u) * 1.4);
+  --I: calc(var(--B) - 2 * var(--frame));
+  --w: calc(var(--I) / 9);
+  --d: calc(var(--w) * 1.5);
+  position: relative;
+  flex: none;
+  width: var(--B);
+  height: var(--B);
+  padding: var(--frame);
+  border-radius: calc(var(--u) * 1.6);
+  background:
+    repeating-linear-gradient(96deg, rgba(0, 0, 0, 0.1) 0 2px, transparent 2px 9px, rgba(255, 255, 255, 0.05) 9px 10px, transparent 10px 23px),
+    linear-gradient(135deg, var(--fe-wood-3), var(--fe-wood) 40%, var(--fe-wood-2));
+  box-shadow:
+    0 calc(var(--u) * 1.6) calc(var(--u) * 4) rgba(0, 0, 0, 0.55),
+    0 0 0 calc(var(--u) * 0.25) #2a170a,
+    inset 0 0 0 calc(var(--u) * 0.2) rgba(255, 255, 255, 0.18),
+    inset 0 calc(var(--u) * 0.3) calc(var(--u) * 0.6) rgba(255, 255, 255, 0.2);
+  color: var(--fe-ink);
+  font-family: var(--fe-text);
+}
+.juegos-root .fe-track {
   position: relative;
   width: 100%;
-  max-height: calc(100dvh - 130px);
-  margin-inline: auto;
-}
-.juegos-root .fe-svg {
-  display: block;
-  width: 100%;
   height: 100%;
+  display: grid;
+  grid-template-columns: var(--d) repeat(6, minmax(0, 1fr)) var(--d);
+  grid-template-rows: var(--d) repeat(6, minmax(0, 1fr)) var(--d);
+  background: var(--fe-sea-2);
+  border: calc(var(--u) * 0.22) solid #24140a;
+  border-radius: calc(var(--u) * 0.5);
+  box-shadow: inset 0 0 calc(var(--u) * 1.2) rgba(0, 0, 0, 0.5);
+  overflow: hidden;
 }
-.juegos-root .fe-path {
-  fill: rgba(70, 224, 200, 0.03);
-  stroke: rgba(255, 255, 255, 0.1);
-  stroke-width: 26;
-  stroke-linejoin: round;
-}
-.juegos-root .fe-island {
-  font: 700 13px 'Instrument Sans Variable', system-ui, sans-serif;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  dominant-baseline: middle;
-  opacity: 0.9;
-}
+
+/* Casilla (celda de la rejilla, sin girar) */
 .juegos-root .fe-sq {
+  position: relative;
+  background: var(--fe-paper);
+  outline: 1px solid rgba(42, 29, 20, 0.55);
+  outline-offset: -0.5px;
   cursor: pointer;
+  transition: filter 0.3s;
 }
-.juegos-root .fe-sq text {
-  text-anchor: middle;
-  dominant-baseline: middle;
-  pointer-events: none;
+.juegos-root .fe-sq:focus-visible {
+  z-index: 16;
+  outline: 3px solid #fff;
+  outline-offset: -3px;
 }
-.juegos-root .fe-sq__base {
-  fill: #141d2c;
-}
-.juegos-root .fe-sq__ring {
-  fill: none;
-  stroke-width: 2.5;
-}
-.juegos-root .fe-sq__ring.is-owned {
-  stroke-width: 5;
-}
-.juegos-root .fe-sq.is-sel .fe-sq__ring {
-  stroke: #fff;
-  stroke-width: 3.5;
-}
-.juegos-root .fe-sq__name {
-  font: 700 10.5px 'Instrument Sans Variable', system-ui, sans-serif;
-  fill: #fff;
-}
-.juegos-root .fe-sq__price {
-  font: 400 16px 'Lilita One', system-ui, sans-serif;
-  fill: #dfe6f2;
-}
-.juegos-root .fe-sq__icon {
-  font-size: 22px;
-}
-.juegos-root .fe-sq__tag {
-  font: 700 8.4px 'Instrument Sans Variable', system-ui, sans-serif;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  fill: #9fb0c8;
-}
-.juegos-root .fe-tokens {
+.juegos-root .fe-sq::before,
+.juegos-root .fe-tile::before {
+  content: '';
   position: absolute;
   inset: 0;
+  z-index: 0;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
   pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .33 0 0 0 0 .2 0 0 0 .32 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-.juegos-root .fe-token {
+.juegos-root .fe-sq > * {
+  z-index: 1;
+}
+/* La tarjeta se dibuja siempre de pie (franja arriba) y se gira según el lado: la franja mira al centro. */
+.juegos-root .fe-tile {
   position: absolute;
-  display: block;
-  width: 26px;
-  height: 26px;
-  margin: -13px 0 0 -13px;
+  left: 50%;
+  top: 50%;
+  width: var(--w);
+  height: var(--d);
+  translate: -50% -50%;
+  rotate: var(--rot, 0deg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.juegos-root .fe-sq.is-l {
+  --rot: 90deg;
+}
+.juegos-root .fe-sq.is-t {
+  --rot: 180deg;
+}
+.juegos-root .fe-sq.is-r {
+  --rot: -90deg;
+}
+.juegos-root .fe-band {
+  position: relative;
+  flex: none;
+  height: 21%;
+  display: grid;
+  place-items: center;
+  border-bottom: calc(var(--u) * 0.16) solid var(--fe-ink);
+  background: var(--g);
+  color: var(--gi, #fff);
+  font: 700 max(7px, calc(var(--u) * 0.78)) / 1 var(--fe-text);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.juegos-root .fe-band::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  mix-blend-mode: soft-light;
+  background: conic-gradient(from 45deg at 50% 50%, #fff 0 25%, transparent 0 50%, #fff 0 75%, transparent 0) 0 0 / calc(var(--u) * 1.1) calc(var(--u) * 1.1);
+}
+.juegos-root .fe-band b {
+  position: relative;
+  z-index: 1;
+  font-weight: 700;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+}
+.juegos-root .fe-tile.is-full .fe-band b::before {
+  content: '\2605\00a0';
+  color: #ffe08a;
+  text-shadow: 0 0 6px rgba(255, 214, 90, 0.9);
+}
+.juegos-root .fe-tile.is-full .fe-band {
+  box-shadow: inset 0 0 0 calc(var(--u) * 0.2) rgba(255, 230, 140, 0.85);
+}
+.juegos-root .fe-nm {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-height: 23%;
+  padding: calc(var(--u) * 0.55) calc(var(--u) * 0.4) 0;
+  text-align: center;
+  text-wrap: balance;
+  font: 800 max(10px, calc(var(--u) * 1.38)) / 1.02 var(--fe-text);
+  letter-spacing: -0.01em;
+  color: var(--fe-ink);
+}
+.juegos-root .fe-stand {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 0 calc(var(--u) * 0.7);
+}
+.juegos-root .fe-stand svg {
+  width: 86%;
+  height: auto;
+  max-height: 100%;
+  filter: drop-shadow(0 calc(var(--u) * 0.25) 0 rgba(42, 29, 20, 0.18));
+}
+.juegos-root .fe-price {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.35);
+  margin: 0 auto calc(var(--u) * 0.7);
+  padding: calc(var(--u) * 0.15) calc(var(--u) * 0.7) calc(var(--u) * 0.15) calc(var(--u) * 0.3);
+  border-radius: 99px;
+  background: rgba(42, 29, 20, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(42, 29, 20, 0.25);
+  font: 800 max(10px, calc(var(--u) * 1.3)) / 1 var(--fe-text);
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .fe-perra {
+  position: relative;
+  flex: none;
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
   border-radius: 50%;
-  box-shadow: 0 0 0 3px var(--c), 0 4px 8px rgba(0, 0, 0, 0.55);
+  background: radial-gradient(circle at 35% 30%, #fff1b3, var(--fe-gold, #e9b23c) 45%, var(--fe-gold-2, #b97f10));
+  box-shadow:
+    inset 0 0 0 0.12em rgba(120, 70, 0, 0.55),
+    0 0.06em 0 rgba(0, 0, 0, 0.25);
 }
-.juegos-root .fe-token.is-me {
-  z-index: 2;
-  box-shadow: 0 0 0 3px var(--c), 0 0 0 5px #fff, 0 4px 10px rgba(0, 0, 0, 0.6);
-}
-.juegos-root .fe-center {
+.juegos-root .fe-perra::after {
+  content: '';
   position: absolute;
-  inset: 21% 14%;
+  inset: 27%;
+  border: 0.1em solid rgba(120, 70, 0, 0.5);
+  border-radius: 50%;
+}
+.juegos-root .fe-tile.has-own .fe-price {
+  margin-bottom: calc(var(--u) * 1.7);
+}
+.juegos-root .fe-own {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(var(--u) * 1.05);
+  border-top: calc(var(--u) * 0.16) solid var(--fe-ink);
+  background: var(--oc);
+}
+.juegos-root .fe-own::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background: repeating-linear-gradient(90deg, #fff 0 calc(var(--u) * 0.5), transparent calc(var(--u) * 0.5) calc(var(--u) * 1));
+}
+.juegos-root .fe-sq.is-mine .fe-own::after {
+  content: '';
+  position: absolute;
+  right: calc(var(--u) * 0.35);
+  width: calc(var(--u) * 0.6);
+  height: calc(var(--u) * 0.6);
+  transform: rotate(45deg);
+  border: 1px solid var(--fe-ink);
+  background: var(--fe-gold);
+}
+/* Niveles 1-3: farolillos que se encienden. */
+.juegos-root .fe-lamps {
+  z-index: 3;
+  flex: none;
+  display: flex;
+  justify-content: center;
+  gap: calc(var(--u) * 0.7);
+  margin: calc(var(--u) * 0.5) 0 calc(var(--u) * 0.45);
+}
+.juegos-root .fe-lamp {
+  position: relative;
+  width: calc(var(--u) * 1.25);
+  height: calc(var(--u) * 1.6);
+  border: calc(var(--u) * 0.14) solid var(--fe-ink);
+  border-radius: 45% 45% 40% 40% / 35% 35% 60% 60%;
+  background: #d8c9a0;
+}
+.juegos-root .fe-lamp::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(var(--u) * -0.55);
+  width: 1px;
+  height: calc(var(--u) * 0.5);
+  background: var(--fe-ink);
+}
+.juegos-root .fe-lamp.on {
+  background: radial-gradient(circle at 50% 55%, #fff8c8, #ffc83a 55%, #e7901a);
+  box-shadow: 0 0 calc(var(--u) * 1.1) calc(var(--u) * 0.25) rgba(255, 196, 60, 0.85);
+}
+.juegos-root .fe-tile.is-lv3 {
+  box-shadow: inset 0 0 0 calc(var(--u) * 0.3) var(--fe-gold);
+}
+.juegos-root .fe-tile.is-lv3 .fe-nm {
+  color: #5a3300;
+}
+/* Especiales de lado */
+.juegos-root .fe-tile--sp {
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--u) * 0.9) calc(var(--u) * 0.5);
+  background: var(--sp-bg, var(--fe-paper-2));
+}
+.juegos-root .fe-tile--sp.is-suerte {
+  --sp-bg: #f1dcc0;
+}
+.juegos-root .fe-tile--sp.is-tasa {
+  --sp-bg: #e9d9c4;
+}
+.juegos-root .fe-kicker {
+  font: 700 max(7px, calc(var(--u) * 0.78)) / 1 var(--fe-text);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.juegos-root .fe-tile--sp .fe-nm {
+  min-height: 0;
+  padding: 0;
+  font-size: max(11px, calc(var(--u) * 1.55));
+}
+.juegos-root .fe-sp__art {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  width: 74%;
+}
+.juegos-root .fe-sp__art svg {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+}
+.juegos-root .fe-tag {
+  font: 700 max(8px, calc(var(--u) * 0.95)) / 1.1 var(--fe-text);
+  text-align: center;
+  opacity: 0.85;
+}
+/* Esquinas */
+.juegos-root .fe-corner {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: calc(var(--u) * 0.3);
+  padding: calc(var(--u) * 0.8) calc(var(--u) * 0.8) calc(var(--u) * 1.4);
   text-align: center;
 }
-.juegos-root .fe-center > * {
-  max-width: 100%;
+.juegos-root .fe-corner__art {
+  display: block;
+  flex: none;
+  width: 62%;
 }
-.juegos-root .fe-round {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: center;
-  gap: 4px 12px;
+.juegos-root .fe-corner__art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.juegos-root .fe-corner h3 {
   margin: 0;
-  font-size: 13px;
-  color: #9fb0c8;
+  font: 800 calc(var(--u) * 2.1) / 1 var(--fe-display);
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  letter-spacing: -0.01em;
+  color: var(--fe-ink);
 }
-.juegos-root .fe-round b {
-  font: 400 20px/1 'Lilita One', system-ui, sans-serif;
-  color: #fff;
+.juegos-root .fe-corner small {
+  font: 700 calc(var(--u) * 0.95) / 1.15 var(--fe-text);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
 }
-.juegos-root .fe-round span {
-  min-width: 34px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: #ffd25e;
+/* Con fichas, la esquina sube su texto y deja la franja de abajo libre para ellas. */
+.juegos-root .fe-corner.has-toks {
+  justify-content: flex-start;
+  padding-bottom: calc(var(--w) * 0.66);
+  gap: calc(var(--u) * 0.15);
 }
-/* Lo que queda para decidir: se vacía de derecha a izquierda y se pone roja al final. */
-.juegos-root .fe-timebar {
-  flex-basis: 100%;
-  display: block;
-  height: 5px;
-  overflow: hidden;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.1);
+.juegos-root .fe-corner.has-toks .fe-corner__art {
+  width: 40%;
 }
-.juegos-root .fe-timebar > i {
-  display: block;
-  height: 100%;
-  background: #46e0c8;
-  transform-origin: left center;
-  transition: transform 0.1s linear;
+.juegos-root .fe-corner.is-salida {
+  background: linear-gradient(180deg, #cdeaee, #f3e8cf 58%);
 }
-.juegos-root .fe-timebar > i.is-low {
-  background: #ff5a5f;
+.juegos-root .fe-corner.is-tasa {
+  background: linear-gradient(180deg, #f3e8cf 40%, #e9c9a8);
 }
-.juegos-root .fe-choice {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
+.juegos-root .fe-corner.is-verbena {
+  background: linear-gradient(0deg, #f3e8cf 40%, #f4d1dc);
 }
-.juegos-root .fe-round em {
-  flex-basis: 100%;
-  font-style: normal;
-  font-size: 12px;
+.juegos-root .fe-corner.is-tombola {
+  background: radial-gradient(circle at 50% 40%, #f8e3a6, #f0d08a 70%);
 }
-.juegos-root .fe-dice {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+
+/* Estados: caída (is-hit), destino mientras llegas (is-dest), seleccionada (is-sel), tablero en penumbra (is-focus). */
+.juegos-root .fe-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
 }
-.juegos-root .fe-dice b {
-  margin-left: 4px;
-  font: 400 30px/1 'Lilita One', system-ui, sans-serif;
-  color: #ffd25e;
+.juegos-root .fe-sq.is-hit {
+  z-index: 20;
+  transform: scale(1.06);
+  box-shadow: 0 calc(var(--u) * 0.8) calc(var(--u) * 1.6) rgba(0, 0, 0, 0.5);
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
-.juegos-root .fe-die {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 3px;
-  width: 46px;
-  height: 46px;
-  padding: 8px;
-  border-radius: 11px;
-  background: #f4efe2;
-  box-shadow: 0 4px 0 #b9b19c;
+.juegos-root .fe-sq.is-hit .fe-fx {
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.55), transparent 65%);
+  box-shadow:
+    0 0 0 calc(var(--u) * 0.3) var(--hit),
+    0 0 calc(var(--u) * 2.4) calc(var(--u) * 0.5) var(--hit),
+    inset 0 0 calc(var(--u) * 2) var(--hit);
+  animation: fe-hit 1.1s ease-in-out infinite alternate;
 }
-.juegos-root .fe-die.is-rolling {
-  animation: fe-roll 0.3s linear infinite;
-}
-.juegos-root .fe-die i {
-  border-radius: 50%;
-}
-.juegos-root .fe-die i.on {
-  background: #1a2233;
-}
-@keyframes fe-roll {
-  50% {
-    rotate: 12deg;
-    translate: 0 -4px;
+@keyframes fe-hit {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
   }
 }
-.juegos-root .fe-msg {
-  display: grid;
-  gap: 4px;
-  min-height: 2.4em;
-  margin: 0;
-  font-size: clamp(14px, 1.6vw, 18px);
-  line-height: 1.25;
-  color: #c3cede;
+.juegos-root .fe-sq.is-sel {
+  z-index: 15;
 }
-.juegos-root .fe-msg b {
+.juegos-root .fe-sq.is-sel .fe-fx {
+  box-shadow:
+    inset 0 0 0 calc(var(--u) * 0.3) var(--fe-ink),
+    inset 0 0 0 calc(var(--u) * 0.5) #fff;
+}
+.juegos-root .fe-board.is-focus .fe-sq:not(.is-dest):not(.is-hit) {
+  filter: brightness(0.8) saturate(0.85);
+}
+.juegos-root .fe-board.is-focus .fe-sq.is-dest {
+  z-index: 18;
+}
+
+/* ---------- Fichas ---------- */
+.juegos-root .fe-walkers {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+.juegos-root .fe-tok {
+  --sz: calc(var(--w) * var(--s));
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: var(--sz);
+  height: var(--sz);
+  border: calc(var(--u) * 0.2) solid var(--fe-ink);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--c) 60%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 70%, #000));
+  box-shadow:
+    0 calc(var(--u) * 0.35) 0 rgba(42, 29, 20, 0.45),
+    inset 0 calc(var(--u) * -0.25) 0 rgba(0, 0, 0, 0.18);
+  color: var(--ci, #fff);
+  font: 800 calc(var(--sz) * 0.5) / 1 var(--fe-text);
+  transition:
+    left 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    top 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    width 0.22s,
+    height 0.22s;
+}
+.juegos-root .fe-tok.is-walking {
+  z-index: 3;
+  transition: width 0.22s, height 0.22s;
+  will-change: left, top, transform;
+}
+.juegos-root .fe-tok.is-me {
+  z-index: 4;
+  outline: calc(var(--u) * 0.28) solid #fff;
+  outline-offset: calc(var(--u) * 0.05);
+  box-shadow:
+    0 0 0 calc(var(--u) * 0.5) rgba(255, 255, 255, 0.35),
+    0 0 calc(var(--u) * 1.2) calc(var(--u) * 0.4) var(--c),
+    0 calc(var(--u) * 0.35) 0 rgba(42, 29, 20, 0.45);
+}
+.juegos-root .fe-tok.is-me:not(.is-walking) {
+  animation: fe-bob 1.3s ease-in-out infinite;
+}
+.juegos-root .fe-tok.is-me::after {
+  content: 'TÚ';
+  position: absolute;
+  top: calc(var(--u) * -1.55);
+  left: 50%;
+  translate: -50% 0;
+  padding: 0.15em 0.45em;
+  border: 1px solid var(--fe-ink);
+  border-radius: 99px;
+  background: #fff;
+  color: var(--fe-ink);
+  font: 800 max(8px, calc(var(--u) * 0.7)) / 1 var(--fe-text);
+  letter-spacing: 0.08em;
+}
+@keyframes fe-bob {
+  50% {
+    translate: 0 calc(var(--u) * -0.35);
+  }
+}
+.juegos-root .fe-tok__count,
+.juegos-root .fe-tok__dest {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  padding: 0.2em 0.5em;
+  border-radius: 99px;
+  white-space: nowrap;
+  pointer-events: none;
+  font: 800 max(10px, calc(var(--u) * 1.1)) / 1 var(--fe-text);
+}
+.juegos-root .fe-tok__count {
+  bottom: calc(100% + var(--u) * 1.6);
+  background: rgba(42, 29, 20, 0.85);
+  color: #ffe9b0;
+  opacity: 0.9;
+}
+.juegos-root .fe-tok__dest {
+  top: calc(100% + var(--u) * 0.6);
+  background: var(--fe-ink);
+  color: #fff3cf;
+  font: 800 max(12px, calc(var(--u) * 1.5)) / 1 var(--fe-display);
+  box-shadow: 0 calc(var(--u) * 0.3) calc(var(--u) * 0.8) rgba(0, 0, 0, 0.4);
+  animation: fe-pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes fe-pop-in {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+/* ---------- Centro: el mar ---------- */
+.juegos-root .fe-center {
+  position: relative;
+  grid-area: 2 / 2 / 8 / 8;
+  display: grid;
+  grid-template-rows: 30% minmax(0, 1fr) 21%;
+  gap: calc(var(--u) * 1.1);
+  padding: calc(var(--u) * 1.6);
+  overflow: hidden;
+  background:
+    radial-gradient(120% 70% at 50% 108%, rgba(236, 215, 161, 0.55), transparent 55%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Cpath d='M0 20 q15-14 30 0 t30 0 t30 0 t30 0' fill='none' stroke='%23ffffff' stroke-opacity='.09' stroke-width='2'/%3E%3C/svg%3E") 0 0 / calc(var(--u) * 5) calc(var(--u) * 1.7),
+    linear-gradient(180deg, var(--fe-sea-3), var(--fe-sea) 40%, var(--fe-sea-2));
   color: #fff;
 }
-.juegos-root .fe-msg small {
-  font-size: 12px;
-  color: #7dffb8;
+.juegos-root .fe-center::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 calc(var(--u) * 5) rgba(0, 0, 0, 0.45);
 }
-.juegos-root .fe-note,
-.juegos-root .fe-info {
+.juegos-root .fe-center > * {
+  position: relative;
+  z-index: 1;
+  min-height: 0;
+}
+.juegos-root .fe-logo {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+.juegos-root .fe-logo__bg,
+.juegos-root .fe-logo__bg svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .fe-logo__word {
+  position: relative;
+  transform: rotate(-3deg);
+}
+.juegos-root .fe-logo__word i {
+  display: block;
+  font: italic 900 calc(var(--u) * 2.7) / 1 var(--fe-display);
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  letter-spacing: 0.02em;
+  color: #fff3cf;
+  text-shadow: 0 calc(var(--u) * 0.2) 0 var(--fe-chili);
+}
+.juegos-root .fe-logo__word b {
+  display: block;
+  font: 900 calc(var(--u) * 6.6) / 0.82 var(--fe-display);
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  letter-spacing: -0.02em;
+  color: #fff8e4;
+  -webkit-text-stroke: calc(var(--u) * 0.16) var(--fe-ink);
+  paint-order: stroke fill;
+  text-shadow:
+    0 calc(var(--u) * 0.45) 0 var(--fe-ink),
+    0 calc(var(--u) * 0.45) calc(var(--u) * 1.2) rgba(0, 0, 0, 0.4);
+}
+.juegos-root .fe-logo__word em {
+  display: inline-block;
+  margin-top: calc(var(--u) * 0.55);
+  padding: calc(var(--u) * 0.3) calc(var(--u) * 1.4);
+  border: calc(var(--u) * 0.16) solid var(--fe-ink);
+  border-radius: 3px;
+  background: var(--fe-sand);
+  box-shadow: 0 calc(var(--u) * 0.25) 0 var(--fe-ink);
+  color: var(--fe-ink);
+  font: 700 calc(var(--u) * 1.05) / 1 var(--fe-text);
+  font-style: normal;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+.juegos-root .fe-azulejo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: calc(var(--u) * 1.1);
+  opacity: 0.9;
+  border-block: calc(var(--u) * 0.14) solid var(--fe-ink);
+  background: conic-gradient(from 45deg, #2d5aa6 0 25%, #f7f1df 0 50%, #2d5aa6 0 75%, #f7f1df 0) 0 0 / calc(var(--u) * 1.1) calc(var(--u) * 1.1);
+}
+.juegos-root .fe-azulejo--t {
+  top: 0;
+}
+.juegos-root .fe-azulejo--b {
+  bottom: 0;
+}
+.juegos-root .fe-mid {
+  display: grid;
+  grid-template-columns: 1fr 1.7fr 1fr;
+  gap: calc(var(--u) * 1.2);
+  align-items: stretch;
+}
+.juegos-root .fe-mid figure {
+  position: relative;
   margin: 0;
-  font-size: 12px;
-  line-height: 1.4;
-  color: #9fb0c8;
 }
+.juegos-root .fe-mid figcaption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 700 calc(var(--u) * 0.85) / 1 var(--fe-text);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+/* Mazo de papeletas: la de arriba se da la vuelta cuando te toca una. */
+.juegos-root .fe-deck {
+  display: grid;
+  place-items: center;
+  perspective: 700px;
+}
+.juegos-root .fe-deck__stack {
+  position: relative;
+  width: 74%;
+  aspect-ratio: 3 / 4;
+  rotate: -7deg;
+}
+.juegos-root .fe-deck__stack > i {
+  position: absolute;
+  inset: 0;
+  border: calc(var(--u) * 0.16) solid var(--fe-ink);
+  border-radius: calc(var(--u) * 0.6);
+  background: #f6e7c4;
+  box-shadow: 0 calc(var(--u) * 0.3) 0 rgba(0, 0, 0, 0.35);
+}
+.juegos-root .fe-deck__stack > i:nth-child(1) {
+  translate: calc(var(--u) * 0.5) calc(var(--u) * 0.6);
+  background: #d9c08a;
+}
+.juegos-root .fe-deck__stack > i:nth-child(2) {
+  translate: calc(var(--u) * 0.25) calc(var(--u) * 0.3);
+  background: #e8d3a0;
+}
+.juegos-root .fe-deck__top {
+  display: grid;
+  place-items: center;
+  background: repeating-linear-gradient(135deg, var(--fe-chili) 0 calc(var(--u) * 0.55), #f3e8cf calc(var(--u) * 0.55) calc(var(--u) * 1.1)) !important;
+  font-style: normal;
+}
+.juegos-root .fe-deck__top span {
+  padding: calc(var(--u) * 0.35) calc(var(--u) * 0.5);
+  border: calc(var(--u) * 0.14) solid var(--fe-ink);
+  background: #f6e7c4;
+  rotate: -90deg;
+  font: 800 calc(var(--u) * 0.95) / 1 var(--fe-text);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fe-ink);
+}
+.juegos-root .fe-deck__paper {
+  position: absolute;
+  inset: -12% -16%;
+  z-index: 3;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: calc(var(--u) * 0.6);
+  padding: calc(var(--u) * 1);
+  border: calc(var(--u) * 0.2) solid var(--fe-ink);
+  border-radius: calc(var(--u) * 0.6);
+  background: linear-gradient(180deg, #fffaf0, #f3e3bd);
+  box-shadow: 0 calc(var(--u) * 0.8) calc(var(--u) * 2) rgba(0, 0, 0, 0.5);
+  color: var(--fe-ink);
+  text-align: center;
+  rotate: 7deg;
+  animation: fe-paper 0.55s cubic-bezier(0.3, 0.9, 0.3, 1) both;
+  transform-origin: 50% 50%;
+}
+@keyframes fe-paper {
+  from {
+    transform: translateY(-20%) rotateY(180deg) scale(0.7);
+    opacity: 0;
+  }
+  70% {
+    transform: rotateY(-8deg) scale(1.04);
+    opacity: 1;
+  }
+  to {
+    transform: none;
+  }
+}
+.juegos-root .fe-deck__paper small {
+  font: 700 calc(var(--u) * 0.8) / 1 var(--fe-text);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fe-chili);
+}
+.juegos-root .fe-deck__paper p {
+  margin: 0;
+  font: 700 max(11px, calc(var(--u) * 1.25)) / 1.15 var(--fe-text);
+  text-wrap: balance;
+}
+.juegos-root .fe-deck__paper b {
+  font: 900 calc(var(--u) * 2.2) / 1 var(--fe-display);
+}
+.juegos-root .is-plus {
+  color: #1d7a3f;
+  font-weight: 800;
+}
+.juegos-root .is-minus {
+  color: #b32a1d;
+  font-weight: 800;
+}
+/* La bandeja de los dados: madera y fieltro verde. */
+.juegos-root .fe-tray {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: calc(var(--u) * 0.6);
+  padding: calc(var(--u) * 1.1);
+  border: calc(var(--u) * 0.2) solid var(--fe-wood-2);
+  border-radius: calc(var(--u) * 1.2);
+  background:
+    repeating-linear-gradient(96deg, rgba(0, 0, 0, 0.09) 0 2px, transparent 2px 9px),
+    linear-gradient(160deg, var(--fe-wood-3), var(--fe-wood));
+  box-shadow:
+    0 calc(var(--u) * 0.6) calc(var(--u) * 1.4) rgba(0, 0, 0, 0.5),
+    inset 0 0 0 calc(var(--u) * 0.2) rgba(255, 255, 255, 0.15);
+}
+.juegos-root .fe-tray__top {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  font: 700 calc(var(--u) * 0.95) / 1 var(--fe-text);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffe9b0;
+}
+.juegos-root .fe-tray__top b {
+  font-family: var(--fe-display);
+  font-size: calc(var(--u) * 1.5);
+  letter-spacing: 0;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .fe-felt {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: calc(var(--u) * 0.7);
+  background: radial-gradient(circle at 50% 40%, #2f9b82, #1c6f5c);
+  box-shadow: inset 0 calc(var(--u) * 0.4) calc(var(--u) * 1.2) rgba(0, 0, 0, 0.5);
+}
+.juegos-root .fe-felt__msg {
+  position: absolute;
+  bottom: calc(var(--u) * 0.6);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 900 calc(var(--u) * 1.6) / 1 var(--fe-display);
+  color: #fff3cf;
+  text-shadow: 0 calc(var(--u) * 0.2) 0 var(--fe-ink);
+}
+.juegos-root .fe-tray__foot {
+  display: grid;
+  gap: calc(var(--u) * 0.6);
+}
+.juegos-root .fe-tbar {
+  display: block;
+  height: calc(var(--u) * 0.8);
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+.juegos-root .fe-tbar > i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #ffdf7a, var(--fe-gold));
+  transform-origin: left center;
+  transition: transform 0.12s linear;
+}
+.juegos-root .fe-tbar > i.is-low {
+  background: linear-gradient(90deg, #ff8a6b, var(--fe-chili));
+  animation: fe-low 1s ease-in-out infinite;
+}
+@keyframes fe-low {
+  50% {
+    opacity: 0.6;
+  }
+}
+.juegos-root .fe-rolls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(var(--u) * 0.4);
+  min-height: calc(var(--u) * 1.5);
+  margin: 0;
+}
+.juegos-root .fe-rolls span {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.3);
+  padding: calc(var(--u) * 0.15) calc(var(--u) * 0.5) calc(var(--u) * 0.15) calc(var(--u) * 0.2);
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font: 700 max(10px, calc(var(--u) * 0.85)) / 1 var(--fe-text);
+}
+.juegos-root .fe-rolls span.is-me {
+  background: rgba(255, 233, 176, 0.25);
+  box-shadow: inset 0 0 0 1px #ffe9b0;
+}
+.juegos-root .fe-rolls i {
+  width: calc(var(--u) * 1.1);
+  height: calc(var(--u) * 1.1);
+  border: 1px solid var(--fe-ink);
+  border-radius: 50%;
+  background: var(--c);
+}
+/* Dados 3D: un cubo de seis caras (las opuestas suman 7). */
+.juegos-root .fe-dice3 {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  perspective: 700px;
+}
+.juegos-root .fe-die3 {
+  --ds: calc(var(--u) * 5.6);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--ds);
+  height: var(--ds);
+  margin: calc(var(--ds) / -2);
+  transform-style: preserve-3d;
+}
+.juegos-root .fe-die3:first-child {
+  translate: calc(var(--ds) * -0.72) 0;
+}
+.juegos-root .fe-die3:last-child {
+  translate: calc(var(--ds) * 0.72) 0;
+}
+.juegos-root .fe-die3__shadow {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: -14%;
+  height: 26%;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  filter: blur(4px);
+}
+.juegos-root .fe-cube {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.juegos-root .fe-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  padding: 14%;
+  border-radius: 20%;
+  background: linear-gradient(145deg, #fffdf5, #e6dcc2);
+  box-shadow:
+    inset 0 0 calc(var(--ds) * 0.12) rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(42, 29, 20, 0.35);
+  backface-visibility: hidden;
+}
+.juegos-root .fe-face i {
+  width: 72%;
+  height: 72%;
+  margin: auto;
+  border-radius: 50%;
+}
+.juegos-root .fe-face i.on {
+  background: radial-gradient(circle at 35% 30%, #5a3a28, var(--fe-ink));
+  box-shadow: inset 0 2px 2px rgba(0, 0, 0, 0.6);
+}
+.juegos-root .fe-face i.on.is-red {
+  background: radial-gradient(circle at 35% 30%, #ff7a6b, var(--fe-chili));
+}
+.juegos-root .fe-face--1 {
+  transform: translateZ(calc(var(--ds) / 2));
+}
+.juegos-root .fe-face--6 {
+  transform: rotateY(180deg) translateZ(calc(var(--ds) / 2));
+}
+.juegos-root .fe-face--2 {
+  transform: rotateY(90deg) translateZ(calc(var(--ds) / 2));
+}
+.juegos-root .fe-face--5 {
+  transform: rotateY(-90deg) translateZ(calc(var(--ds) / 2));
+}
+.juegos-root .fe-face--3 {
+  transform: rotateX(90deg) translateZ(calc(var(--ds) / 2));
+}
+.juegos-root .fe-face--4 {
+  transform: rotateX(-90deg) translateZ(calc(var(--ds) / 2));
+}
+.juegos-root .fe-die3.is-shaking {
+  animation: fe-shake 0.25s ease-in-out infinite;
+}
+@keyframes fe-shake {
+  25% {
+    rotate: -10deg;
+  }
+  50% {
+    rotate: 10deg;
+  }
+  75% {
+    rotate: -6deg;
+  }
+}
+.juegos-root .fe-sum {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  pointer-events: none;
+  font: 900 calc(var(--u) * 6.4) / 1 var(--fe-display);
+  color: #ffd25e;
+  -webkit-text-stroke: calc(var(--u) * 0.14) var(--fe-ink);
+  paint-order: stroke fill;
+  text-shadow: 0 calc(var(--u) * 0.4) 0 rgba(0, 0, 0, 0.45);
+  animation: fe-sum 0.45s ease-out forwards, fe-sum-out 0.35s ease-in 0.9s forwards;
+}
+.juegos-root .fe-sum.is-big {
+  animation: fe-sum-big 0.5s ease-out forwards, fe-sum-out 0.35s ease-in 1.6s forwards;
+}
+.juegos-root .fe-sum.is-snake {
+  color: #b7b0a2;
+  font-size: calc(var(--u) * 4);
+}
+@keyframes fe-sum {
+  from {
+    transform: translate(-50%, -20%) scale(0.3);
+    opacity: 0;
+  }
+  60% {
+    transform: translate(-50%, -95%) scale(1.4);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -100%) scale(1.1);
+    opacity: 1;
+  }
+}
+@keyframes fe-sum-big {
+  from {
+    transform: translate(-50%, -20%) scale(0.3);
+    opacity: 0;
+  }
+  55% {
+    transform: translate(-50%, -95%) scale(1.9);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -100%) scale(1.5);
+    opacity: 1;
+  }
+}
+@keyframes fe-sum-out {
+  to {
+    transform: translate(-50%, -150%) scale(0.9);
+    opacity: 0;
+  }
+}
+.juegos-root .fe-doubles {
+  position: absolute;
+  left: 50%;
+  top: 4%;
+  z-index: 3;
+  pointer-events: none;
+  translate: -50% 0;
+  font: 900 calc(var(--u) * 1.8) / 1 var(--fe-display);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 calc(var(--u) * 0.2) 0 var(--fe-chili);
+  animation: fe-doubles 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes fe-doubles {
+  from {
+    opacity: 0;
+    scale: 0.5;
+    letter-spacing: 0.6em;
+  }
+  30% {
+    opacity: 1;
+    scale: 1.2;
+    letter-spacing: 0.2em;
+  }
+  80% {
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+/* El bote: la tinaja. */
+.juegos-root .fe-pot {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  text-align: center;
+}
+.juegos-root .fe-jar {
+  display: block;
+  width: 62%;
+}
+.juegos-root .fe-jar svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 calc(var(--u) * 0.5) calc(var(--u) * 0.6) rgba(0, 0, 0, 0.5));
+}
+.juegos-root .fe-pot output {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.4);
+  margin-top: calc(var(--u) * 0.2);
+  font: 900 calc(var(--u) * 2.5) / 1 var(--fe-display);
+  font-variant-numeric: tabular-nums;
+  color: #fff3cf;
+  text-shadow: 0 calc(var(--u) * 0.2) 0 var(--fe-ink);
+}
+.juegos-root .fe-pot output .fe-perra {
+  font-size: calc(var(--u) * 2);
+}
+.juegos-root .fe-pot figcaption {
+  position: static;
+  margin-top: calc(var(--u) * 0.3);
+}
+/* El registro: un pergamino con lo último que ha pasado. */
+.juegos-root .fe-log {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: calc(var(--u) * 0.3);
+  overflow: hidden;
+  padding: calc(var(--u) * 0.7) calc(var(--u) * 1);
+  border: calc(var(--u) * 0.16) solid var(--fe-ink);
+  border-radius: calc(var(--u) * 0.5);
+  background: linear-gradient(180deg, #f6ebd0, #e7d4a8);
+  box-shadow:
+    0 calc(var(--u) * 0.4) 0 rgba(0, 0, 0, 0.35),
+    inset 0 0 calc(var(--u) * 1.4) rgba(140, 100, 40, 0.35);
+  color: var(--fe-ink);
+  font: 600 max(11px, calc(var(--u) * 1.2)) / 1.2 var(--fe-text);
+}
+.juegos-root .fe-log p {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--u) * 0.55);
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.juegos-root .fe-log p:nth-last-child(5) {
+  opacity: 0.45;
+}
+.juegos-root .fe-log p:nth-last-child(4) {
+  opacity: 0.7;
+}
+.juegos-root .fe-log p.is-me {
+  opacity: 1;
+  font-weight: 700;
+}
+.juegos-root .fe-log p.is-empty {
+  opacity: 0.6;
+}
+.juegos-root .fe-log p > i {
+  flex: none;
+  width: calc(var(--u) * 0.9);
+  height: calc(var(--u) * 0.9);
+  border: 1px solid var(--fe-ink);
+  border-radius: 50%;
+  background: var(--c);
+}
+.juegos-root .fe-log p > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.juegos-root .fe-log b {
+  font-weight: 800;
+}
+
+/* ---------- Encima del centro: el boleto y el duelo ---------- */
+.juegos-root .fe-over {
+  position: relative;
+  z-index: 40;
+  grid-area: 2 / 2 / 8 / 8;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.juegos-root .fe-over > * {
+  pointer-events: auto;
+}
+.juegos-root .fe-ticket {
+  --tw: calc(var(--u) * 31);
+  position: relative;
+  width: var(--tw);
+  perspective: 900px;
+  color: var(--fe-ink);
+  font-family: var(--fe-text);
+}
+.juegos-root .fe-ticket.is-offer {
+  animation: fe-ticket-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes fe-ticket-in {
+  from {
+    transform: translateY(40%) scale(0.6);
+    opacity: 0;
+  }
+}
+.juegos-root .fe-ticket__flip {
+  position: relative;
+  transform-style: preserve-3d;
+}
+.juegos-root .fe-ticket.is-offer .fe-ticket__flip {
+  animation: fe-ticket-flip 0.32s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+@keyframes fe-ticket-flip {
+  from {
+    transform: rotateY(180deg);
+  }
+  80% {
+    transform: rotateY(-12deg);
+  }
+  to {
+    transform: rotateY(0);
+  }
+}
+.juegos-root .fe-ticket__back,
+.juegos-root .fe-ticket__front {
+  border-radius: calc(var(--u) * 1.2);
+  backface-visibility: hidden;
+}
+.juegos-root .fe-ticket__back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  border: calc(var(--u) * 0.6) solid #ffd25e;
+  background: repeating-linear-gradient(45deg, #2a4a7a 0 8px, #34588c 8px 16px);
+}
+/* El boleto: muescas de tómbola a los lados y una línea de perforado sobre el pie. */
+.juegos-root .fe-ticket__front {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: calc(var(--u) * 0.2) solid var(--fe-ink);
+  background: linear-gradient(180deg, #fff8e8, #f6e8c8);
+  box-shadow: 0 calc(var(--u) * 2) calc(var(--u) * 4) rgba(0, 0, 0, 0.6);
+  -webkit-mask: radial-gradient(circle calc(var(--u) * 1.1) at 0 62%, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle calc(var(--u) * 1.1) at 100% 62%, transparent 98%, #000) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle calc(var(--u) * 1.1) at 0 62%, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle calc(var(--u) * 1.1) at 100% 62%, transparent 98%, #000) right / 51% 100% no-repeat;
+}
+.juegos-root .fe-ticket.is-info .fe-ticket__front {
+  box-shadow: 0 calc(var(--u) * 0.6) calc(var(--u) * 1.6) rgba(0, 0, 0, 0.4);
+}
+.juegos-root .fe-ticket__head {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: calc(var(--u) * 1.2) calc(var(--u) * 1.4) calc(var(--u) * 1);
+  border-bottom: calc(var(--u) * 0.2) solid var(--fe-ink);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--g) 80%, #fff), var(--g) 60%, color-mix(in srgb, var(--g) 75%, #000));
+  color: var(--gi);
+  text-align: center;
+}
+.juegos-root .fe-ticket__isl {
+  position: absolute;
+  inset: auto 0 0;
+  height: 70%;
+}
+.juegos-root .fe-ticket__isl svg {
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .fe-ticket__head small {
+  position: relative;
+  font: 700 max(10px, calc(var(--u) * 0.9)) / 1 var(--fe-text);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+.juegos-root .fe-ticket__head b {
+  position: relative;
+  font: 900 calc(var(--u) * 3) / 1 var(--fe-display);
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  text-shadow: 0 calc(var(--u) * 0.2) 0 rgba(0, 0, 0, 0.25);
+}
+.juegos-root .fe-ticket__body {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  padding: calc(var(--u) * 0.8) 0 calc(var(--u) * 0.2);
+}
+.juegos-root .fe-ticket__body::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--u) * 0.4);
+  left: 50%;
+  width: calc(var(--u) * 8.4);
+  aspect-ratio: 1;
+  translate: -50% 0;
+  border: calc(var(--u) * 0.2) dashed rgba(42, 29, 20, 0.18);
+  border-radius: 50%;
+  background: rgba(233, 178, 60, 0.12);
+}
+.juegos-root .fe-ticket__art {
+  position: relative;
+  width: calc(var(--u) * 11);
+}
+.juegos-root .fe-ticket__art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.juegos-root .fe-ticket__who {
+  position: relative;
+  margin: calc(var(--u) * 0.3) 0 0;
+  font: 700 max(11px, calc(var(--u) * 1.1)) / 1.2 var(--fe-text);
+}
+/* La escalera de alquileres: barras que crecen por nivel. */
+.juegos-root .fe-ladder {
+  display: grid;
+  gap: calc(var(--u) * 0.45);
+  margin: calc(var(--u) * 0.8) calc(var(--u) * 1.6) calc(var(--u) * 1);
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .fe-ladder li {
+  position: relative;
+  display: grid;
+  grid-template-columns: calc(var(--u) * 6.4) minmax(0, 1fr) calc(var(--u) * 3.4);
+  align-items: center;
+  gap: calc(var(--u) * 0.6);
+  font: 600 max(11px, calc(var(--u) * 1.1)) / 1 var(--fe-text);
+}
+.juegos-root .fe-ladder li > i {
+  height: calc(var(--u) * 1.3);
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--g), color-mix(in srgb, var(--g) 70%, #fff)) no-repeat left / calc(var(--f) * 100%) 100%, rgba(42, 29, 20, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(42, 29, 20, 0.2);
+}
+.juegos-root .fe-ticket.is-offer .fe-ladder li > i {
+  animation: fe-bar 0.5s cubic-bezier(0.16, 1, 0.3, 1) var(--d) both;
+}
+@keyframes fe-bar {
+  from {
+    background-size: 0% 100%, auto;
+  }
+}
+.juegos-root .fe-ladder li > b {
+  text-align: right;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .fe-ladder li > em {
+  position: absolute;
+  right: calc(var(--u) * 4.2);
+  font: 800 max(9px, calc(var(--u) * 0.8)) / 1 var(--fe-text);
+  font-style: normal;
+  color: #8a5a00;
+  text-shadow: 0 0 3px #fff8e8, 0 0 3px #fff8e8;
+}
+.juegos-root .fe-ladder li.is-next > i {
+  box-shadow:
+    inset 0 0 0 1px rgba(42, 29, 20, 0.3),
+    0 0 calc(var(--u) * 1) rgba(233, 178, 60, 0.9);
+  animation: fe-bar 0.5s cubic-bezier(0.16, 1, 0.3, 1) var(--d) both, fe-glow 1s ease-in-out infinite alternate;
+}
+@keyframes fe-glow {
+  to {
+    filter: brightness(1.25);
+  }
+}
+.juegos-root .fe-ladder li.is-next > span,
+.juegos-root .fe-ladder li.is-now > span {
+  font-weight: 800;
+}
+.juegos-root .fe-ladder li.is-now > span::before {
+  content: '▸ ';
+}
+.juegos-root .fe-ticket__foot {
+  display: grid;
+  gap: calc(var(--u) * 0.7);
+  padding: calc(var(--u) * 1) calc(var(--u) * 1.6) calc(var(--u) * 1.2);
+  border-top: 2px dotted rgba(42, 29, 20, 0.5);
+}
+.juegos-root .fe-ticket__price {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--u) * 0.6);
+  margin: 0;
+  font: 900 calc(var(--u) * 3) / 1 var(--fe-display);
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .fe-ticket__price small {
+  margin-left: calc(var(--u) * 0.4);
+  font: 600 max(11px, calc(var(--u) * 1)) / 1 var(--fe-text);
+  opacity: 0.75;
+}
+.juegos-root .fe-take {
+  padding: calc(var(--u) * 1.1);
+  border: 0;
+  border-radius: calc(var(--u) * 1);
+  background: #ffd25e;
+  box-shadow: 0 calc(var(--u) * 0.4) 0 #b88a1c;
+  color: var(--fe-ink);
+  font: 800 max(15px, calc(var(--u) * 1.7)) / 1 var(--fe-text);
+  cursor: pointer;
+  transition: transform 80ms, box-shadow 80ms;
+}
+.juegos-root .fe-take:hover {
+  filter: brightness(1.05);
+}
+.juegos-root .fe-take:active,
+.juegos-root .fe-ticket.is-closing-buy .fe-take {
+  transform: translateY(3px) scale(0.97);
+  box-shadow: 0 1px 0 #b88a1c;
+}
+.juegos-root .fe-take[aria-disabled='true'] {
+  filter: saturate(0.4);
+  cursor: not-allowed;
+}
+.juegos-root .fe-take:focus-visible,
+.juegos-root .fe-pass:focus-visible {
+  outline: 3px solid var(--fe-ink);
+  outline-offset: 2px;
+}
+.juegos-root .fe-pass {
+  justify-self: center;
+  padding: 2px 8px;
+  border: 0;
+  background: none;
+  color: var(--fe-ink);
+  font: 600 13px / 1 var(--fe-text);
+  text-decoration: underline;
+  opacity: 0.65;
+  cursor: pointer;
+}
+.juegos-root .fe-ticket__short {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b32a1d;
+}
+.juegos-root .fe-ticket__shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.55) 50%, transparent 60%);
+  translate: -120% 0;
+}
+.juegos-root .fe-ticket.is-offer .fe-ticket__shine {
+  animation: fe-shine 0.6s ease-in-out 0.3s both;
+}
+@keyframes fe-shine {
+  to {
+    translate: 120% 0;
+  }
+}
+.juegos-root .fe-ticket.is-closing-pass {
+  animation: fe-ticket-pass 0.22s ease-in forwards;
+}
+@keyframes fe-ticket-pass {
+  to {
+    transform: translateY(20px) scale(0.9);
+    opacity: 0;
+  }
+}
+.juegos-root .fe-stamp {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  z-index: 5;
+  padding: calc(var(--u) * 0.4) calc(var(--u) * 1.6);
+  border: calc(var(--u) * 0.6) solid var(--o);
+  border-radius: calc(var(--u) * 1);
+  background: rgba(255, 246, 226, 0.8);
+  color: var(--o);
+  font: 900 calc(var(--u) * 3.8) / 1 var(--fe-display);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(-14deg);
+  animation: fe-stamp 0.42s cubic-bezier(0.5, 0, 0.9, 0.6) both;
+}
+@keyframes fe-stamp {
+  from {
+    transform: translate(-50%, -50%) rotate(-30deg) scale(3);
+    opacity: 0;
+  }
+  40% {
+    transform: translate(-50%, -50%) rotate(-14deg) scale(0.92);
+    opacity: 1;
+  }
+  55% {
+    transform: translate(-50%, -50%) rotate(-14deg) scale(1);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(-14deg) scale(1);
+    opacity: 1;
+  }
+}
+/* El duelo, sobre el centro. */
+.juegos-root .fe-duelbox {
+  display: grid;
+  gap: 12px;
+  width: 86%;
+  padding: calc(var(--u) * 2);
+  border: calc(var(--u) * 0.3) solid var(--fe-wood-2);
+  border-radius: calc(var(--u) * 1.4);
+  background:
+    radial-gradient(circle at 50% 30%, rgba(47, 155, 130, 0.95), rgba(20, 70, 58, 0.97)),
+    #1c6f5c;
+  box-shadow: 0 calc(var(--u) * 1.2) calc(var(--u) * 3) rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-family: 'Instrument Sans Variable', system-ui, sans-serif;
+  text-align: center;
+}
+.juegos-root .fe-duelbox .cu-pad {
+  max-width: 440px;
+  min-height: 84px;
+  margin: 0 auto;
+  padding: 8px;
+}
+.juegos-root .fe-duelbox__time {
+  margin: 0;
+  font: 800 14px / 1 var(--fe-text);
+  color: #ffe9b0;
+}
+
 .juegos-root .fe-duel {
   display: grid;
   gap: 10px;
@@ -435,7 +1692,7 @@
   margin: 0;
 }
 .juegos-root .fe-duel__title b {
-  font: 400 clamp(17px, 2.2vw, 24px) / 1.1 'Lilita One', system-ui, sans-serif;
+  font: 900 clamp(17px, 2.2vw, 26px) / 1.1 var(--fe-display);
   color: #fff;
 }
 .juegos-root .fe-duel__title span {
@@ -478,113 +1735,314 @@
   color: #7dffb8;
 }
 
+
+/* ---------- Al lado: cabecera, tus perras, mensaje y clasificación ---------- */
 .juegos-root .fe-side {
+  flex: 0 1 var(--fe-side);
+  min-width: 300px;
+  max-width: 440px;
   display: grid;
   gap: 12px;
+  align-content: start;
 }
-.juegos-root .fe-rank,
-.juegos-root .fe-feed {
-  display: grid;
-  gap: 4px;
+.juegos-root .fe-side > .top {
+  align-items: center;
   margin: 0;
-  padding: 10px;
+  padding: 10px 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
-  background: rgba(12, 19, 31, 0.72);
+  background: linear-gradient(90deg, rgba(233, 178, 60, 0.14), transparent 55%), rgba(6, 12, 20, 0.45);
+}
+.juegos-root .fe-side > .top h1 {
+  font: 900 28px / 1 var(--fe-display);
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  color: #fff3cf;
+}
+.juegos-root .fe-side > .top .hud {
+  width: 100%;
+}
+@media (min-width: 641px) {
+  .juegos-root .fe-side > .top .toggles .tg {
+    padding: 7px 12px 7px 10px;
+    font-size: 13px;
+  }
+}
+.juegos-root .fe-me {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border: 1px solid rgba(233, 178, 60, 0.5);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(233, 178, 60, 0.16), rgba(12, 19, 31, 0.7));
+  font-family: var(--fe-text);
+}
+.juegos-root .fe-me__tok {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 3px solid #2a1d14;
+  border-radius: 50%;
+  outline: 3px solid #fff;
+  background: radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--c) 60%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 70%, #000));
+  color: var(--ci);
+  font: 800 22px / 1 var(--fe-text);
+}
+.juegos-root .fe-me small {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #c9b98f;
+}
+.juegos-root .fe-cash {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 900 34px / 1 var(--fe-display);
+  font-variant-numeric: tabular-nums;
+  color: #fff3cf;
+  transition: color 0.3s;
+}
+.juegos-root .fe-cash.is-hurt {
+  color: #ff8a8a;
+}
+.juegos-root .fe-msg {
+  display: grid;
+  gap: 4px;
+  min-height: 2.6em;
+  margin: 0;
+  padding: 0 4px;
+  font: 500 16px / 1.3 var(--fe-text);
+  color: #c3cede;
+}
+.juegos-root .fe-msg b {
+  color: #fff;
+}
+.juegos-root .fe-msg b b {
+  color: inherit;
+}
+.juegos-root .fe-msg .is-plus {
+  color: #7dffb8;
+}
+.juegos-root .fe-msg .is-minus {
+  color: #ff9a8a;
+}
+.juegos-root .fe-msg small {
+  font-size: 13px;
+  color: #7dffb8;
+}
+.juegos-root .fe-rank {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
   list-style: none;
+  font-family: var(--fe-text);
 }
 .juegos-root .fe-rank li {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  padding: 5px 8px;
-  border-radius: 10px;
-  font-size: 13px;
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 14px;
   color: #dfe6f2;
 }
-.juegos-root .fe-rank li > :first-child {
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--c);
-}
 .juegos-root .fe-rank li.is-me {
-  background: rgba(255, 255, 255, 0.07);
+  border-color: #e9b23c;
+  background: rgba(233, 178, 60, 0.12);
+}
+.juegos-root .fe-rank li > i {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid #1a110a;
+  border-radius: 50%;
+  background: var(--c);
+  color: var(--ci);
+  font: 800 12px / 1 var(--fe-text);
+  font-style: normal;
 }
 .juegos-root .fe-rank span {
-  display: grid;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 700;
 }
 .juegos-root .fe-rank small {
-  font-size: 11px;
-  color: #7f8fa8;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8a9ab3;
 }
 .juegos-root .fe-rank b {
   font-variant-numeric: tabular-nums;
+  opacity: 0.85;
 }
-.juegos-root .fe-feed li {
-  padding: 3px 8px;
-  font-size: 12px;
-  line-height: 1.35;
+.juegos-root .fe-info {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  --u: 9px;
+}
+.juegos-root .fe-info .fe-ticket {
+  --tw: 100%;
+  max-width: 300px;
+}
+.juegos-root .fe-info__close {
+  border: 0;
+  background: none;
   color: #9fb0c8;
+  font: 600 13px / 1 var(--fe-text);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.juegos-root .fe-hint {
+  margin: 0;
+  padding: 0 4px;
+  font: 500 13px / 1.4 var(--fe-text);
+  color: #8a9ab3;
+}
+.juegos-root .fe-hint b {
+  color: #dfe6f2;
 }
 
+/* ---------- Capa de efectos (feriaFx.js) ---------- */
+.juegos-root .fe-fxl {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  pointer-events: none;
+}
+.juegos-root .fe-fxl > * {
+  position: absolute;
+  pointer-events: none;
+}
+.juegos-root .fe-coin {
+  left: 0 !important;
+  top: 0 !important;
+  width: 16px;
+  height: 16px;
+  margin: -8px;
+  border: 2px solid #a87810;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff1b3, #e9b23c 50%, #b97f10);
+}
+.juegos-root .fe-coin.is-out {
+  border-color: #8a3b10;
+  background: radial-gradient(circle at 35% 30%, #ffd8a8, #e98a3c 50%, #b9501a);
+}
+.juegos-root .fe-coin.is-small {
+  width: 10px;
+  height: 10px;
+  margin: -5px;
+}
+.juegos-root .fe-float {
+  font: 900 22px / 1 'Fraunces', Georgia, serif;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.7), 0 0 6px rgba(0, 0, 0, 0.5);
+}
+.juegos-root .fe-paper {
+  width: 8px;
+  height: 12px;
+  margin: -6px -4px;
+  border-radius: 2px;
+}
+.juegos-root .fe-wave {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+.juegos-root .fe-ring {
+  border: 4px solid #ffd25e;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.juegos-root .fe-spark {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px 2px rgba(255, 220, 120, 0.9);
+}
+.juegos-root .fe-badge {
+  padding: 0.2em 0.6em;
+  border: 3px solid var(--c);
+  border-radius: 8px;
+  background: rgba(255, 246, 226, 0.92);
+  color: var(--c);
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 900;
+  white-space: nowrap;
+  transform: translate(-50%, -50%) rotate(-10deg);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+.juegos-root .fe-banner {
+  display: grid;
+  justify-items: center;
+  padding: 10px 26px 12px;
+  border: 3px solid #2a1d14;
+  border-radius: 6px;
+  background: var(--c);
+  box-shadow:
+    0 5px 0 #2a1d14,
+    0 12px 30px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font: 900 26px / 1.05 'Fraunces', Georgia, serif;
+  white-space: nowrap;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  transform: translate(-50%, -50%);
+}
+.juegos-root .fe-banner small {
+  font: 800 13px / 1.3 'Bricolage Grotesque', system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffe08a;
+}
+.juegos-root .fe-banner.is-small {
+  padding: 6px 14px;
+  font: 700 15px / 1.1 'Bricolage Grotesque', system-ui, sans-serif;
+}
+.juegos-root .fe-cord {
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+.juegos-root .fe-cord polyline {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(255, 230, 140, 0.9));
+}
+
+/* ---------- Pantallas estrechas: no se optimiza, pero que no se rompa ---------- */
 @media (max-width: 1000px) {
   .juegos-root .fe-play,
   .juegos-root .fe-lobby {
+    flex-direction: column;
+    align-items: center;
     grid-template-columns: minmax(0, 1fr);
   }
   .juegos-root .fe-board {
-    max-height: none;
+    --B: max(320px, min(100vw - 2 * var(--fe-padh), 984px));
+  }
+  .juegos-root .fe-side {
+    width: 100%;
+    max-width: 640px;
   }
 }
 @media (max-width: 760px) {
-  .juegos-root .fe-center {
-    inset: 17% 21%;
-    gap: 8px;
-  }
-  .juegos-root .fe-island {
-    font-size: 11px;
-  }
-  .juegos-root .fe-duelbox {
-    order: -1;
-    display: grid;
-    gap: 12px;
-    padding: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 18px;
-    background: rgba(12, 19, 31, 0.85);
-    text-align: center;
-  }
-  .juegos-root .fe-token {
-    width: 22px;
-    height: 22px;
-    margin: -11px 0 0 -11px;
-  }
-  .juegos-root .fe-token .avatar {
-    --size: 22px !important;
-  }
-  /* Con 8 jugadores, la clasificación en dos columnas para que no ocupe media pantalla. */
-  .juegos-root .fe-rank {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 2px 4px;
-    padding: 6px;
-  }
-  .juegos-root .fe-rank li {
-    grid-template-columns: 22px minmax(0, 1fr);
-    gap: 6px;
-    padding: 4px 6px;
-    font-size: 13px;
-  }
-  .juegos-root .fe-rank li > :first-child {
-    --size: 22px !important;
-    grid-row: span 2;
-  }
-  .juegos-root .fe-rank li > b {
-    grid-column: 2;
-    font-size: 12px;
-  }
   .juegos-root .fe-podio li {
     grid-template-columns: 26px 26px minmax(0, 1fr) auto;
     gap: 8px;
@@ -602,8 +2060,38 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .juegos-root .fe-die.is-rolling {
+  .juegos-root .fe-tok,
+  .juegos-root .fe-tok.is-me,
+  .juegos-root .fe-sq.is-hit .fe-fx,
+  .juegos-root .fe-die3.is-shaking,
+  .juegos-root .fe-ticket,
+  .juegos-root .fe-ticket__flip,
+  .juegos-root .fe-ticket__shine,
+  .juegos-root .fe-ladder li > i,
+  .juegos-root .fe-sum,
+  .juegos-root .fe-doubles,
+  .juegos-root .fe-deck__paper,
+  .juegos-root .fe-tok__dest,
+  .juegos-root .fe-tbar > i.is-low {
+    animation: none !important;
+  }
+  .juegos-root .fe-stamp {
     animation: none;
+  }
+  .juegos-root .fe-ticket.is-offer {
+    animation: fe-fade 0.12s ease-out both !important;
+  }
+  .juegos-root .fe-sq,
+  .juegos-root .fe-tok {
+    transition-duration: 0.01ms !important;
+  }
+  .juegos-root .fe-sq.is-hit {
+    transform: none;
+  }
+}
+@keyframes fe-fade {
+  from {
+    opacity: 0;
   }
 }
 
@@ -618,4 +2106,57 @@
 .juegos-root .app.fe-app > .top h1,
 .juegos-root .app.sg-app > .top h1 {
   font-size: clamp(22px, 3.2vw, 36px);
+}
+
+
+/* La cabecera en la columna de al lado: compacta. */
+.juegos-root .fe-side > .top .hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+.juegos-root .fe-side > .top .money {
+  margin: 0;
+}
+.juegos-root .fe-side > .top .money dt {
+  font-size: 11px;
+}
+.juegos-root .fe-side > .top .money dd {
+  font-size: 18px;
+}
+/* La ficha de una casilla (al tocarla), más compacta que el boleto de compra. */
+.juegos-root .fe-info .fe-ticket__art,
+.juegos-root .fe-info .fe-ticket__body::before {
+  display: none;
+}
+.juegos-root .fe-info .fe-ticket__body {
+  padding-top: 6px;
+}
+.juegos-root .fe-info .fe-ticket__head b {
+  font-size: 24px;
+}
+
+/* Pantallas bajas: la columna de al lado más apretada para que quepa la ficha de la casilla. */
+@media (max-height: 960px) {
+  .juegos-root .fe-side {
+    gap: 8px;
+  }
+  .juegos-root .fe-rank {
+    gap: 4px;
+  }
+  .juegos-root .fe-rank li {
+    padding: 4px 10px;
+    font-size: 13px;
+  }
+  .juegos-root .fe-me {
+    padding: 8px 14px;
+  }
+  .juegos-root .fe-cash {
+    font-size: 28px;
+  }
+  .juegos-root .fe-info .fe-ladder {
+    margin-block: 6px;
+  }
 }

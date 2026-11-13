@@ -693,3 +693,50 @@ export function playBall() {
   tone(ac, { freq: 520, to: 300, dur: 0.09, type: 'square', peak: 0.05 })
   tone(ac, { freq: 1240, dur: 0.18, type: 'triangle', at: 0.05, peak: 0.04 })
 }
+
+// ---- Feria de las Islas ----
+// Los dados en el cubilete: cuatro clics secos que bajan, como un cascabel.
+export function playRattle() {
+  const ac = audio()
+  if (!ac) return
+  for (let i = 0; i < 4; i++) tone(ac, { freq: 900 - i * 80, to: 600, at: i * 0.07 + (i % 2) * 0.02, dur: 0.05, type: 'square', peak: 0.03 })
+}
+
+// Un dado contra el tapete: cada rebote (p de 1 a 0,5) suena más flojo.
+export function playDiceHit(p = 1) {
+  const ac = audio()
+  if (ac) tone(ac, { freq: 180 * p, to: 60, dur: 0.08, type: 'triangle', peak: 0.14 * p })
+}
+
+// ¡Dobles!: arpegio do-mi-sol-do.
+export function playDoubles() {
+  const ac = audio()
+  if (!ac) return
+  ;[0, 4, 7, 12].forEach((n, i) => tone(ac, { freq: 523 * 2 ** (n / 12), at: i * 0.07, dur: 0.22, type: 'square', peak: 0.05 }))
+}
+
+// Un paso de la ficha: escala que sube semitono a semitono hasta llegar.
+export function playStep(k = 0) {
+  const ac = audio()
+  if (ac) tone(ac, { freq: 330 * 2 ** (Math.min(k, 12) / 12), dur: 0.07, type: 'triangle', peak: 0.08 })
+}
+
+// Un paso casi mudo (las fichas de los demás).
+export function playTick() {
+  const ac = audio()
+  if (ac) tone(ac, { freq: 250, dur: 0.04, type: 'triangle', peak: 0.02 })
+}
+
+// Una moneda que llega a su sitio (k: la que hace, cada una un poco más aguda).
+export function playCoin(k = 0) {
+  const ac = audio()
+  if (ac) tone(ac, { freq: 1200 + Math.min(k, 12) * 60, to: 1800, dur: 0.1, type: 'square', peak: 0.03 })
+}
+
+// «Ooh»: un tono que se cae (ojos de serpiente, papeleta mala).
+export function playAww() {
+  const ac = audio()
+  if (!ac) return
+  tone(ac, { freq: 392, to: 300, dur: 0.22, type: 'sine', peak: 0.08 })
+  tone(ac, { freq: 300, to: 196, at: 0.2, dur: 0.35, type: 'sine', peak: 0.08 })
+}

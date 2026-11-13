@@ -124,7 +124,7 @@ export function createFeria({ db, now, secret, move, feed }) {
 
   async function history() {
     const { rows } = await db.query(`select ronda, datos from public.juegos_rondas where juego = 'feria' and ronda > 0 order by ronda desc limit ${HISTORY}`)
-    return rows.filter((r) => r.datos.v === 1 || r.datos.v === feria.VERSION).map((r) => r.datos)
+    return rows.filter((r) => Number.isInteger(r.datos?.v) && r.datos.v >= 1 && r.datos.v <= feria.VERSION).map((r) => r.datos)
   }
 
   // Lo que ve la pantalla: la partida entera sin los ids de nadie (tu asiento va en «seat»).

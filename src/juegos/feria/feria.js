@@ -1,7 +1,7 @@
 // Feria de las Islas: reglas y motor de la partida, compartidos por la pantalla y el servidor (api/_juegos/feria.mjs).
 // Una partida de MIN_PLAYERS a SEATS personas (solo personas: no hay bots), de 8, 12 o 20 rondas (ROUND_MODES), en las
-// que todos tiran los dados a la vez y avanzan por el paseo de la feria (BOARD: 7 islas con 3 puestos cada una y, entre
-// isla e isla, una casilla especial).
+// que todos tiran los dados a la vez y avanzan por el tablero de la feria (BOARD: un cuadrado de 28 casillas con las
+// cuatro esquinas especiales, 7 islas de 3 puestos y otras 3 casillas especiales en el último lado).
 //   - Caes solo en un puesto libre: puedes comprarlo (o dejarlo pasar). Si es tuyo, puedes mejorarlo (más alquiler); el
 //     último nivel (FULL_LEVEL) solo si tienes la isla entera.
 //   - Caéis varios en el mismo puesto libre: os lo jugáis al Tira y Afloja (quien más tire se lo queda gratis).
@@ -10,7 +10,7 @@
 // Todo el motor es puro: el estado entra y sale como un objeto (se guarda en una fila de la base de datos) y el azar
 // llega de fuera (randOf(etiqueta) → rand(n)), así que el servidor puede ponerse al día de golpe aunque nadie pregunte.
 
-export const VERSION = 2
+export const VERSION = 3
 export const ENTRY = 500 // inscripción, en euros del casino
 export const SEATS = 8
 export const MIN_PLAYERS = 2 // la cuenta atrás no arranca hasta que hay al menos dos
@@ -41,14 +41,15 @@ export const TAP_RATE = 12 // tirones por segundo que se cuentan como mucho
 export const MAX_TAPS = (DUEL_MS / 1000) * TAP_RATE
 export const GRACE_MS = 500
 
+// color: la franja de la isla en el tablero (sobre cartón crema); ink: el texto que va encima.
 export const ISLANDS = [
-  { id: 'hierro', name: 'El Hierro', color: '#4fc38a' },
-  { id: 'gomera', name: 'La Gomera', color: '#35b6c9' },
-  { id: 'palma', name: 'La Palma', color: '#5b8def' },
-  { id: 'lanzarote', name: 'Lanzarote', color: '#e2674a' },
-  { id: 'fuerteventura', name: 'Fuerteventura', color: '#e8b04a' },
-  { id: 'canaria', name: 'Gran Canaria', color: '#d65aa0' },
-  { id: 'tenerife', name: 'Tenerife', color: '#9b6cf0' },
+  { id: 'hierro', name: 'El Hierro', color: '#2f7a55', ink: '#ffffff' },
+  { id: 'gomera', name: 'La Gomera', color: '#1f9d9a', ink: '#ffffff' },
+  { id: 'palma', name: 'La Palma', color: '#3c58b0', ink: '#ffffff' },
+  { id: 'lanzarote', name: 'Lanzarote', color: '#c4432b', ink: '#ffffff' },
+  { id: 'fuerteventura', name: 'Fuerteventura', color: '#e0a02c', ink: '#2a1d14' },
+  { id: 'canaria', name: 'Gran Canaria', color: '#c23b82', ink: '#ffffff' },
+  { id: 'tenerife', name: 'Tenerife', color: '#7248bd', ink: '#ffffff' },
 ]
 // Nombres cortos: tienen que caber dentro de la casilla.
 const STALLS = [
@@ -60,18 +61,32 @@ const STALLS = [
   ['Ron miel', 'Queso flor', 'Carnaval'],
   ['Mojo', 'Guachinche', 'Teleférico'],
 ]
-// La casilla que va delante de cada isla.
-const SPECIALS = ['salida', 'suerte', 'tasa', 'suerte', 'verbena', 'suerte', 'tasa']
 export const SPECIAL_NAME = { salida: 'Muelle', suerte: 'Tómbola', tasa: 'Tasa', verbena: 'Verbena' }
 
-// Las 28 casillas, en el orden del paseo.
-export const BOARD = ISLANDS.flatMap((island, k) => {
-  const base = 120 + 50 * k
-  return [
-    { kind: SPECIALS[k], name: SPECIAL_NAME[SPECIALS[k]] },
-    ...STALLS[k].map((name, j) => ({ kind: 'puesto', name, island: k, price: base + (j === 2 ? 20 : 0) })),
-  ]
-}).map((sq, i) => ({ ...sq, i }))
+// Las 28 casillas, en el orden del paseo (en el sentido de las agujas del reloj): un cuadrado con las cuatro esquinas
+// especiales (Muelle 0, Tasa 7, Verbena 14, Tómbola 21), dos islas enteras en cada uno de los tres primeros lados y, en
+// el cuarto, Tenerife y otras tres especiales. Los precios suben a lo largo de la vuelta (120 + 50 por isla; el tercer
+// puesto, 20 más).
+const stall = (k) => STALLS[k].map((name, j) => ({ kind: 'puesto', name, island: k, price: 120 + 50 * k + (j === 2 ? 20 : 0) }))
+const special = (kind) => ({ kind, name: SPECIAL_NAME[kind] })
+export const BOARD = [
+  special('salida'),
+  ...stall(0),
+  ...stall(1),
+  special('tasa'),
+  ...stall(2),
+  ...stall(3),
+  special('verbena'),
+  ...stall(4),
+  ...stall(5),
+  special('suerte'),
+  ...stall(6),
+  special('suerte'),
+  special('tasa'),
+  special('suerte'),
+].map((sq, i) => ({ ...sq, i }))
+// Del orden de la versión 2 (cada isla precedida de su especial: 4 casillas por isla) al de ahora.
+export const OLD2NEW = [0, 1, 2, 3, 21, 4, 5, 6, 7, 8, 9, 10, 25, 11, 12, 13, 14, 15, 16, 17, 27, 18, 19, 20, 26, 22, 23, 24]
 export const SIZE = BOARD.length
 export const isStall = (sq) => BOARD[sq]?.kind === 'puesto'
 export const stallsOf = (island) => BOARD.filter((s) => s.island === island).map((s) => s.i)
@@ -121,15 +136,36 @@ export function newMatch(id, week, rounds = ROUNDS) {
 export function migrateState(raw) {
   if (!raw || typeof raw !== 'object' || !Number.isInteger(raw.v)) return null
   if (raw.v === VERSION) return raw
-  if (raw.v === 1) {
-    const s = { ...raw, v: VERSION, rounds: 12 }
+  let s = raw
+  if (s.v === 1) {
+    s = { ...s, v: 2, rounds: 12 }
     const humans = s.players.filter((p) => !p.bot).length
     s.pot = s.phase === 'lobby' ? 0 : humans * ENTRY
     // Antes la cuenta atrás arrancaba con uno solo (y la casa rellenaba con bots): ahora espera a que haya dos.
     if (s.phase === 'lobby' && s.players.length < MIN_PLAYERS) s.startAt = null
-    return s
   }
-  return null
+  if (s.v === 2) s = { ...remapBoard(s), v: 3 }
+  return s.v === VERSION ? s : null
+}
+
+// Versión 2 → 3: el tablero cambió de orden (mismas casillas, ahora en cuadrado). Se pasa a la casilla nueva todo lo que
+// guarda un número de casilla: dónde está cada uno, los dueños y niveles (también los del principio de la ronda), lo
+// que ha tirado cada uno en esta ronda, las ofertas y los duelos.
+function remapBoard(s) {
+  const at = (i) => (Number.isInteger(Number(i)) && OLD2NEW[Number(i)] !== undefined ? OLD2NEW[Number(i)] : i)
+  const keys = (map) => (map ? Object.fromEntries(Object.entries(map).map(([k, val]) => [at(k), val])) : map)
+  const out = { ...s, players: s.players.map((p) => ({ ...p, pos: at(p.pos) })), owners: keys(s.owners), levels: keys(s.levels) }
+  const cur = s.cur
+  if (cur) {
+    out.cur = {
+      ...cur,
+      steps: cur.steps.map((st) => ({ ...st, from: at(st.from), to: at(st.to) })),
+      offers: Object.fromEntries(Object.entries(cur.offers ?? {}).map(([seat, o]) => [seat, { ...o, sq: at(o.sq) }])),
+      duels: (cur.duels ?? []).map((d) => ({ ...d, sq: at(d.sq) })),
+      before: cur.before && { ...cur.before, pos: cur.before.pos?.map(at), owners: keys(cur.before.owners), levels: keys(cur.before.levels) },
+    }
+  }
+  return out
 }
 
 const seatOf = (state, userId) => state.players.findIndex((p) => p.id === userId)
@@ -442,28 +478,15 @@ export function tug(state, userId, n, t) {
 }
 
 // ---------- Tablero (pantalla) ----------
-// Centro de cada casilla sobre un óvalo, repartidas a la misma distancia unas de otras. La Salida, abajo en el centro,
-// y se avanza en el sentido de las agujas del reloj.
-export function layout(w, h, pad) {
-  const rx = w / 2 - pad
-  const ry = h / 2 - pad
-  const N = 720
-  const pts = []
-  let total = 0
-  for (let k = 0; k <= N; k++) {
-    const a = Math.PI / 2 + (k / N) * Math.PI * 2
-    const x = w / 2 + rx * Math.sign(Math.cos(a)) * Math.abs(Math.cos(a)) ** 0.62
-    const y = h / 2 + ry * Math.sign(Math.sin(a)) * Math.abs(Math.sin(a)) ** 0.62
-    if (k > 0) total += Math.hypot(x - pts[k - 1].x, y - pts[k - 1].y)
-    pts.push({ x, y, d: total })
-  }
-  let k = 0
-  return BOARD.map((_, i) => {
-    const target = (i / SIZE) * total
-    while (k < N && pts[k + 1].d < target) k++
-    const a = pts[k]
-    const b = pts[Math.min(N, k + 1)]
-    const f = b.d > a.d ? (target - a.d) / (b.d - a.d) : 0
-    return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f }
-  })
+// Dónde va cada casilla en la rejilla de 8×8 del tablero (fila y columna de 1 a 8) y en qué lado está: 'c' esquina,
+// 'b' abajo, 'l' izquierda, 't' arriba, 'r' derecha. El Muelle abajo a la derecha y se avanza como las agujas del reloj.
+export function cellOf(i) {
+  if (i === 0) return { r: 8, c: 8, side: 'c' }
+  if (i < 7) return { r: 8, c: 8 - i, side: 'b' }
+  if (i === 7) return { r: 8, c: 1, side: 'c' }
+  if (i < 14) return { r: 8 - (i - 7), c: 1, side: 'l' }
+  if (i === 14) return { r: 1, c: 1, side: 'c' }
+  if (i < 21) return { r: 1, c: 1 + (i - 14), side: 't' }
+  if (i === 21) return { r: 1, c: 8, side: 'c' }
+  return { r: 1 + (i - 21), c: 8, side: 'r' }
 }

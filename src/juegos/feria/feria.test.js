@@ -363,3 +363,130 @@ test('migración: una sala v1 con uno solo espera a otra persona; lo desconocido
   const cur = lobby(2)
   assert.equal(F.migrateState(cur), cur)
 })
+
+test('tablero: 28 casillas en cuadrado, esquinas especiales y las islas en grupos seguidos', () => {
+  assert.equal(F.SIZE, 28)
+  assert.deepEqual(
+    [0, 7, 14, 21].map((i) => F.BOARD[i].kind),
+    ['salida', 'tasa', 'verbena', 'suerte'],
+  )
+  for (const i of [0, 7, 14, 21]) assert.equal(F.cellOf(i).side, 'c')
+  // Las mismas casillas especiales que antes: 1 Muelle, 3 Tómbolas, 2 Tasas y 1 Verbena.
+  const count = (k) => F.BOARD.filter((b) => b.kind === k).length
+  assert.deepEqual([count('salida'), count('suerte'), count('tasa'), count('verbena'), count('puesto')], [1, 3, 2, 1, 21])
+  for (let k = 0; k < F.ISLANDS.length; k++) {
+    const sq = F.stallsOf(k)
+    assert.equal(sq.length, 3)
+    assert.deepEqual(sq, [sq[0], sq[0] + 1, sq[0] + 2], `la isla ${k} va seguida`)
+    // Precios intactos: 120 + 50 por isla, y el tercero 20 más.
+    assert.deepEqual(
+      sq.map((i) => F.BOARD[i].price),
+      [120 + 50 * k, 120 + 50 * k, 140 + 50 * k],
+    )
+    // Una isla nunca queda partida entre dos lados del tablero.
+    assert.equal(new Set(sq.map((i) => F.cellOf(i).side)).size, 1)
+  }
+  // Cada casilla en su sitio de la rejilla, sin repetir, todas en el borde.
+  const spots = new Set(F.BOARD.map((b) => `${F.cellOf(b.i).r},${F.cellOf(b.i).c}`))
+  assert.equal(spots.size, 28)
+  for (const b of F.BOARD) {
+    const { r, c } = F.cellOf(b.i)
+    assert.ok(r === 1 || r === 8 || c === 1 || c === 8)
+  }
+  // Casillas seguidas del paseo son vecinas en la rejilla.
+  for (let i = 0; i < F.SIZE; i++) {
+    const a = F.cellOf(i)
+    const b = F.cellOf((i + 1) % F.SIZE)
+    assert.equal(Math.abs(a.r - b.r) + Math.abs(a.c - b.c), 1)
+  }
+})
+
+// El tablero de la versión 2: cada isla precedida de su casilla especial.
+const OLD_SPECIALS = ['salida', 'suerte', 'tasa', 'suerte', 'verbena', 'suerte', 'tasa']
+const OLD_BOARD = F.ISLANDS.flatMap((_, k) => [{ kind: OLD_SPECIALS[k] }, ...F.stallsOf(k).map((i) => F.BOARD[i])])
+
+test('migración 2→3: la tabla manda cada casilla vieja a la misma casilla en el tablero nuevo', () => {
+  assert.equal(new Set(F.OLD2NEW).size, 28)
+  OLD_BOARD.forEach((old, i) => {
+    const now = F.BOARD[F.OLD2NEW[i]]
+    assert.equal(now.kind, old.kind, `casilla vieja ${i}`)
+    if (old.kind === 'puesto') {
+      assert.equal(now.name, old.name)
+      assert.equal(now.price, old.price)
+    }
+  })
+})
+
+// Pasa un estado de la versión actual a como lo habría guardado la versión 2 (con el orden viejo de casillas).
+function toV2(s) {
+  const NEW2OLD = []
+  F.OLD2NEW.forEach((n, o) => (NEW2OLD[n] = o))
+  const at = (i) => NEW2OLD[Number(i)]
+  const keys = (m) => Object.fromEntries(Object.entries(m).map(([k, v]) => [at(k), v]))
+  const v2 = JSON.parse(JSON.stringify(s))
+  v2.v = 2
+  v2.players.forEach((p) => (p.pos = at(p.pos)))
+  v2.owners = keys(v2.owners)
+  v2.levels = keys(v2.levels)
+  const cur = v2.cur
+  cur.steps.forEach((st) => {
+    st.from = at(st.from)
+    st.to = at(st.to)
+  })
+  for (const o of Object.values(cur.offers)) o.sq = at(o.sq)
+  for (const d of cur.duels) d.sq = at(d.sq)
+  cur.before.pos = cur.before.pos.map(at)
+  cur.before.owners = keys(cur.before.owners)
+  cur.before.levels = keys(cur.before.levels)
+  return v2
+}
+
+test('migración 2→3: una partida en curso conserva posiciones, dueños, niveles, ofertas y duelos', () => {
+  let found = false
+  for (let seed = 0; seed < 300 && !found; seed++) {
+    const s = lobby(8)
+    const rnd = randOf(`mig${seed}`)
+    F.advance(s, s.startAt, rnd)
+    // Unos cuantos puestos con dueño y nivel, para que haya de todo.
+    for (const [i, k] of [
+      [1, 0],
+      [2, 0],
+      [3, 0],
+      [9, 3],
+      [24, 5],
+    ]) {
+      s.owners[i] = k
+      s.levels[i] = i % 3
+    }
+    s.cur.before.owners = { ...s.owners }
+    s.cur.before.levels = { ...s.levels }
+    if (!s.cur.duels.length || !Object.keys(s.cur.offers).length) continue
+    found = true
+    const v2 = toV2(s)
+    assert.notDeepEqual(v2.owners, s.owners)
+    const m = F.migrateState(JSON.parse(JSON.stringify(v2)))
+    assert.equal(m.v, 3)
+    const norm = (x) => JSON.parse(JSON.stringify(x))
+    assert.deepEqual(norm(m.players), norm(s.players))
+    assert.deepEqual(norm(m.owners), norm(s.owners))
+    assert.deepEqual(norm(m.levels), norm(s.levels))
+    assert.deepEqual(norm(m.cur), norm(s.cur))
+    // La isla entera del asiento 0 sigue siéndolo (El Hierro: 1, 2 y 3).
+    assert.ok(F.hasIsland(m.owners, 0, 0))
+    // Y la partida sigue hasta el final con el dinero cuadrado.
+    F.advance(m, 1e13, rnd)
+    assert.equal(m.phase, 'done')
+    assert.equal(totalPrize(m), m.pot)
+  }
+  assert.ok(found, 'no se encontró una ronda con duelo y oferta')
+})
+
+test('migración 2→3: una sala sin empezar solo cambia de versión', () => {
+  const s = lobby(3)
+  const v2 = { ...JSON.parse(JSON.stringify(s)), v: 2 }
+  const m = F.migrateState(v2)
+  assert.equal(m.v, 3)
+  assert.equal(m.phase, 'lobby')
+  assert.deepEqual(m.players, s.players)
+  assert.equal(m.startAt, s.startAt)
+})
