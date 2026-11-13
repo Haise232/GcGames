@@ -9,7 +9,7 @@ import { useCountUp } from '../comun/useCountUp.js'
 import { useAuth } from '../../hooks/useAuth'
 import Logo from '../../Logo.jsx'
 import { unclaimed } from '../season4/PaseParts.jsx'
-import NavidadFx from '../season5/NavidadFx.jsx'
+import NavidadFx, { Guirnalda } from '../season5/NavidadFx.jsx'
 import { navidadRgb } from '../season5/tinte.js'
 import HalloweenFx from '../temas/halloween/HalloweenFx.jsx'
 import { useHalloween } from '../temas/halloween/halloween.js'
@@ -360,6 +360,7 @@ export default function GameSelector({ juegos, onPick, onJoin, onScore, onGacha,
       {tour && <Tutorial onClose={() => setTour(false)} />}
 
       <header className="hb-bar">
+        {!halloween && <Guirnalda />}
         <div className="hb-brand">
           <Logo className="hb-brand__logo" />
           <span>

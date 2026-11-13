@@ -1,4 +1,4 @@
-/* El selector de juegos (Selector.jsx). Diseño sobrio: un fondo liso, una barra, tres tarjetas con lo de hoy y una
+/* El selector de juegos (Selector.jsx). Diseño sobrio: un fondo de Navidad (o liso en Halloween), una barra, tres tarjetas con lo de hoy y una
    rejilla de tarjetas iguales. Un solo color de acento (--hb-accent) que cambia con el tema; el color de cada juego
    (--tint) solo asoma al pasar por encima de su tarjeta. Las escenas son las de siempre (hub-scene, scenes.css). */
 
@@ -47,6 +47,90 @@
   z-index: -1;
   opacity: 0.35;
 }
+
+/* ---------- Fondo de Navidad ----------
+   Noche azul que baja a verde abeto, con resplandores rojo, verde y dorado, un cielo de estrellas quietas, luces
+   desenfocadas que laten (NavidadFx: .ns5-bokeh) y la nieve por encima. Las tarjetas siguen igual de sobrias: el
+   color se queda en el fondo. Todo fijo (no se repinta al hacer scroll) y animado solo con transform/opacity. */
+.juegos-root:not(.halloween) .app.hb {
+  --hb-bg: #0a1430;
+}
+.juegos-root:not(.halloween):has(> .app.hb) {
+  background: #0a1430;
+}
+.juegos-root:not(.halloween) .app.hb::before {
+  background:
+    radial-gradient(1.2px 1.2px at 23px 41px, rgba(255, 255, 255, 0.7), transparent 2px) 0 0 / 173px 151px,
+    radial-gradient(1px 1px at 131px 87px, rgba(255, 246, 207, 0.6), transparent 2px) 0 0 / 229px 197px,
+    radial-gradient(1.4px 1.4px at 67px 209px, rgba(200, 230, 255, 0.55), transparent 2px) 0 0 / 311px 263px,
+    radial-gradient(60% 45% at 88% 4%, rgba(226, 38, 56, 0.55), transparent 70%),
+    radial-gradient(55% 50% at 6% 38%, rgba(26, 150, 88, 0.48), transparent 70%),
+    radial-gradient(50% 40% at 50% 108%, rgba(248, 197, 78, 0.32), transparent 70%),
+    radial-gradient(40% 35% at 96% 72%, rgba(180, 30, 90, 0.35), transparent 70%),
+    radial-gradient(45% 35% at 28% -6%, rgba(70, 120, 255, 0.35), transparent 70%),
+    linear-gradient(170deg, #0c1a46 0%, #11204f 30%, #0d2a3e 62%, #0b2a22 100%);
+}
+.juegos-root:not(.halloween) .app.hb > .ns5-fx {
+  opacity: 0.85;
+}
+.juegos-root .ns5-bokeh {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+.juegos-root .ns5-bokeh b {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--c) 70%, transparent) 0, color-mix(in srgb, var(--c) 22%, transparent) 45%, transparent 70%);
+  opacity: 0.28;
+  animation: hb-bokeh var(--d) ease-in-out var(--delay) infinite alternate;
+  will-change: transform, opacity;
+}
+@keyframes hb-bokeh {
+  to {
+    opacity: 0.6;
+    transform: translate3d(0, -18px, 0) scale(1.12);
+  }
+}
+@media (max-width: 640px) {
+  .juegos-root .ns5-bokeh b:nth-child(n + 11) {
+    display: none;
+  }
+}
+/* Guirnalda de bombillas colgando del borde de abajo de la barra (va con ella al hacer scroll). */
+.juegos-root .hb-bar > .ns5-garland {
+  inset: 100% 0 auto;
+  height: 30px;
+  z-index: -1;
+}
+/* Legibilidad sobre el fondo de color: la barra un poco más opaca, sombra suave en los títulos de sección y las
+   pestañas del filtro con un fondo translúcido. */
+.juegos-root:not(.halloween) .hb-bar {
+  background: color-mix(in srgb, var(--hb-bg) 90%, transparent);
+}
+.juegos-root:not(.halloween) .hb-sec h2 {
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+}
+.juegos-root:not(.halloween) .hb-sec h2 small {
+  color: #b4c0d2;
+}
+.juegos-root:not(.halloween) .hb-tabs button:not([aria-pressed='true']) {
+  background: rgba(10, 16, 32, 0.55);
+  color: #c3cddb;
+}
+.juegos-root:not(.halloween) .hb-tile,
+.juegos-root:not(.halloween) .hb-stat {
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+}
+
 .juegos-root .hb button,
 .juegos-root .hb a {
   font: inherit;
@@ -722,5 +806,9 @@
   .juegos-root .hb-tile,
   .juegos-root .hb-tile__art .hub-scene {
     transition: none;
+  }
+  .juegos-root .ns5-bokeh b {
+    animation: none;
+    opacity: 0.4;
   }
 }
