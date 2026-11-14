@@ -25,6 +25,7 @@ import WinBurst from '../comun/WinBurst.jsx'
 import WinToast from '../comun/WinToast.jsx'
 import Help from '../comun/Help.jsx'
 import './Roulette.css'
+import './roulette3d.css'
 
 const COLOR_NAMES = { red: 'Rojo', black: 'Negro', green: 'Verde' }
 const REVEAL_WAIT_MS = 700 // tras el «no va más», lo que se espera para pedir el número (el servidor lo suelta a los 600 ms)
@@ -93,9 +94,74 @@ function ballTop(p) {
   return mix(21.5, 23, (p - 0.9) / 0.1)
 }
 
-// Rueda en directo: gira siempre con el reloj del servidor (todos la ven igual) y la bola sale tras el «no va más».
-// spin: { number, launch, land } (instantes del reloj del servidor) · rest: número donde descansa la bola.
-function Wheel({ clock, spin, rest, reduced }) {
+function hasWebGL() {
+  try {
+    const c = document.createElement('canvas')
+    const gl = c.getContext('webgl2') || c.getContext('webgl')
+    if (!gl) return false
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
+    return true
+  } catch {
+    return false
+  }
+}
+
+// Rueda en directo: en 3D (roulette3d.js, con three.js cargado aparte) y, si no hay WebGL o falla, la rueda SVG.
+// spin: { number, launch, land } (instantes del reloj del servidor) · rest: número donde descansa la bola
+// lucky: números relámpago de esta tirada ({ n: ×N }).
+function Wheel(props) {
+  const [mode, setMode] = useState(() => (hasWebGL() ? '3d' : '2d'))
+  if (mode === '2d') return <FlatWheel {...props} />
+  return <Wheel3D {...props} onFail={() => setMode('2d')} />
+}
+
+function Wheel3D({ clock, spin, rest, lucky, reduced, onFail }) {
+  const host = useRef(null)
+  const props = useRef(null)
+  const fail = useRef(onFail)
+  const [loading, setLoading] = useState(true)
+  props.current = { spin, rest, lucky }
+  fail.current = onFail
+
+  useEffect(() => {
+    let dead = false
+    let scene = null
+    let frame = 0
+    let observer = null
+    const draw = () => {
+      scene.draw({ t: clock(), ...props.current })
+      frame = requestAnimationFrame(draw)
+    }
+    import('./roulette3d.js')
+      .then(({ createWheel3D }) => {
+        if (dead) return
+        scene = createWheel3D(host.current, { reduced, onFail: () => fail.current() })
+        observer = new ResizeObserver(() => scene.resize())
+        observer.observe(host.current)
+        setLoading(false)
+        draw()
+      })
+      .catch((error) => {
+        console.warn('Ruleta 3D no disponible, se usa la SVG', error)
+        if (!dead) fail.current()
+      })
+    return () => {
+      dead = true
+      cancelAnimationFrame(frame)
+      observer?.disconnect()
+      scene?.destroy()
+    }
+  }, [clock, reduced])
+
+  return (
+    <div className="wheel wheel--live wheel--3d" ref={host} role="img" aria-label="Rueda de la ruleta">
+      {loading && <p className="wheel__wait">Preparando la mesa…</p>}
+    </div>
+  )
+}
+
+// La rueda SVG de siempre (reserva sin WebGL).
+function FlatWheel({ clock, spin, rest, reduced }) {
   const disc = useRef(null)
   const orbit = useRef(null)
   const ball = useRef(null)
@@ -667,7 +733,7 @@ function Roulette({ onExit, juegos }) {
 
       <div className="floor fill">
         <section className={`side ${ready && phase !== 'betting' ? 'side--up' : ''}`}>
-          <Wheel clock={clock} spin={spin} rest={rest} reduced={reduced} />
+          <Wheel clock={clock} spin={spin} rest={rest} lucky={lucky} reduced={reduced} />
           <div className="recent">
             <h2>Últimos números</h2>
             {numbers.length === 0 ? (

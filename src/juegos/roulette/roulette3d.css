@@ -1,0 +1,217 @@
+/* Escrito a mano: la rueda de la Ruleta en 3D (roulette3d.js) y el repaso de diseño de la mesa. El lienzo WebGL llena la
+   ventana de la rueda; encima, los números relámpago de la tirada y el número ganador. */
+
+.juegos-root .wheel--3d {
+  aspect-ratio: 1;
+  border-radius: 24px;
+  overflow: hidden;
+  isolation: isolate;
+  container-type: size;
+  background: radial-gradient(circle at 50% 45%, #0f5a40, #062419 75%);
+  box-shadow:
+    0 0 0 2px rgba(200, 162, 75, 0.55),
+    0 0 0 6px rgba(6, 12, 10, 0.6),
+    0 22px 50px rgba(4, 10, 16, 0.65);
+}
+.juegos-root .wheel__wait {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.juegos-root .r3w {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--sans);
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .r3w__gl {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .r3w__vig {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.45));
+}
+.juegos-root .r3w__flash {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(255, 246, 200, 0.7), rgba(255, 211, 74, 0.2) 45%, transparent 70%);
+  mix-blend-mode: screen;
+}
+.juegos-root .r3w__flash--on {
+  animation: r3w-flash 0.9s ease-out;
+}
+@keyframes r3w-flash {
+  0%,
+  30% {
+    opacity: 1;
+  }
+  15% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Números relámpago de la tirada (arriba). */
+.juegos-root .r3w__lucky {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.juegos-root .r3w__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: rgba(20, 14, 2, 0.8);
+  box-shadow:
+    inset 0 0 0 2px #ffd34a,
+    0 0 16px rgba(255, 211, 74, 0.45);
+  color: #ffd34a;
+  font-size: 14px;
+  font-weight: 800;
+  animation: r3w-pop 0.4s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+.juegos-root .r3w__chip b {
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #fff;
+  background: #16171c;
+}
+.juegos-root .r3w__chip--red b {
+  background: #c0262d;
+}
+.juegos-root .r3w__chip--green b {
+  background: #13804a;
+}
+@keyframes r3w-pop {
+  from {
+    scale: 0.5;
+    opacity: 0;
+  }
+}
+
+/* Número ganador (abajo). */
+.juegos-root .r3w__result {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 18px 6px 6px;
+  border-radius: 999px;
+  background: rgba(8, 10, 14, 0.78);
+  box-shadow: inset 0 0 0 2px rgba(200, 162, 75, 0.8);
+  color: #f6efdf;
+  font-size: clamp(15px, 4cqw, 20px);
+  font-weight: 700;
+  translate: -50% 20px;
+  opacity: 0;
+  transition:
+    opacity 0.35s,
+    translate 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.juegos-root .r3w__result--on {
+  opacity: 1;
+  translate: -50% 0;
+}
+.juegos-root .r3w__result b {
+  display: grid;
+  place-items: center;
+  min-width: clamp(40px, 11cqw, 54px);
+  height: clamp(40px, 11cqw, 54px);
+  border-radius: 50%;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(22px, 6.5cqw, 32px);
+  background: #16171c;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+.juegos-root .r3w__result[data-tone='red'] b {
+  background: #c0262d;
+}
+.juegos-root .r3w__result[data-tone='green'] b {
+  background: #13804a;
+}
+
+/* --- Repaso de la mesa: fichas como fichas de casino, casilla ganadora que brilla. --- */
+.juegos-root .roulette-live .stack {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 4px;
+  border-radius: 16px;
+  border: 0;
+  background:
+    radial-gradient(circle at 50% 50%, var(--brass) 0 48%, transparent 50%),
+    repeating-conic-gradient(#f6efdf 0 12deg, #8a6b25 12deg 45deg);
+  color: #1b1405;
+  font-size: 12px;
+  box-shadow:
+    0 0 0 2px rgba(27, 20, 5, 0.65),
+    0 3px 0 #5a4512,
+    0 5px 8px rgba(0, 0, 0, 0.5);
+  animation: r3w-chip 0.25s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+@keyframes r3w-chip {
+  from {
+    translate: 0 -10px;
+    scale: 1.3;
+  }
+}
+.juegos-root .roulette-live .cell--hit {
+  z-index: 1;
+  box-shadow:
+    0 0 0 1px var(--line),
+    inset 0 0 0 4px #ffd34a,
+    0 0 26px rgba(255, 211, 74, 0.75);
+  animation: r3w-hit 0.9s ease-in-out infinite alternate;
+}
+@keyframes r3w-hit {
+  to {
+    filter: brightness(1.35);
+  }
+}
+.juegos-root .roulette-live .felt {
+  border-radius: 14px;
+  padding: 6px;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, 0.06), transparent 70%),
+    linear-gradient(180deg, #0f5a40, #0a3d2c);
+  box-shadow:
+    inset 0 0 0 2px rgba(200, 162, 75, 0.5),
+    inset 0 0 40px rgba(0, 0, 0, 0.45),
+    0 14px 30px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .r3w__flash--on,
+  .juegos-root .r3w__chip,
+  .juegos-root .roulette-live .stack,
+  .juegos-root .roulette-live .cell--hit {
+    animation: none;
+  }
+}
