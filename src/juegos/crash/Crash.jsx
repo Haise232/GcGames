@@ -26,6 +26,7 @@ import Help from '../comun/Help.jsx'
 import { createScene } from './crashScene.js'
 import '../roulette/Roulette.css'
 import './Crash.css'
+import './crash3d.css'
 
 const SEND_MS = 300 // la apuesta se manda al servidor un momento después de dejar de tocar las fichas
 const LAST_CALL_MS = 3000
@@ -34,24 +35,41 @@ const WINNERS_WAIT_MS = 1500 // tras la explosión, para preguntar quién retir�
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`
 // Color de cada explosión en el historial: el color nunca va solo, también va el número.
 const toneOf = (mult) => (mult < 200 ? 'low' : mult < 1000 ? 'mid' : 'high')
+// Altura de cada explosión en el historial (0–1, en escala logarítmica hasta 25×).
+const heightOf = (mult) => Math.min(1, Math.log(mult / 100) / Math.log(MAX_MULT / 100))
 
-// El vuelo dibujado con el reloj del servidor (crashScene.js): todos ven el mismo cohete a la vez.
+function hasWebGL() {
+  try {
+    const c = document.createElement('canvas')
+    const gl = c.getContext('webgl2') || c.getContext('webgl')
+    if (!gl) return false
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
+    return true
+  } catch {
+    return false
+  }
+}
+
+// El vuelo dibujado con el reloj del servidor: todos ven el mismo cohete a la vez. En 3D (crash3d.js, con three.js cargado
+// aparte) y, si no hay WebGL o falla, la escena 2D de siempre (crashScene.js). Las dos tienen draw(frame), resize() y destroy().
 // boom: dónde explotó esta ronda (null si sigue volando) · auto: tu retiro automático · cashed: donde retiraste
 // flags: quién más retiró (tras la explosión) · sub: línea bajo el multiplicador (lo que cobrarías, por ejemplo).
 function Sky({ clock, round, boom, auto, cashed, flags, sub, won }) {
-  const canvas = useRef(null)
+  const host = useRef(null)
   const box = useRef(null)
   const label = useRef(null)
   const bar = useRef(null)
   const props = useRef(null)
+  const [mode, setMode] = useState(() => (hasWebGL() ? '3d' : '2d'))
+  const [loading, setLoading] = useState(mode === '3d')
   props.current = { round, boom, auto, cashed, flags }
 
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const scene = createScene(canvas.current, { reduced })
-    const observer = new ResizeObserver(() => scene.resize())
-    observer.observe(canvas.current)
-    let frame
+    let dead = false
+    let scene = null
+    let frame = 0
+    let observer = null
     let text = ''
     const draw = () => {
       const t = clock()
@@ -65,19 +83,48 @@ function Sky({ clock, round, boom, auto, cashed, flags, sub, won }) {
       // Tramo del multiplicador (color del número): oro, naranja, rosa y violeta.
       const tier = state === 'waiting' ? 'none' : mult < 200 ? 'low' : mult < 500 ? 'mid' : mult < 1000 ? 'high' : 'epic'
       if (box.current.dataset.tier !== tier) box.current.dataset.tier = tier
+      const last = state === 'waiting' && -flown <= 3000 ? 'yes' : 'no'
+      if (box.current.dataset.last !== last) box.current.dataset.last = last
       bar.current.style.setProperty('--left', state === 'waiting' ? Math.max(0, -flown / BETS_MS) : 0)
       frame = requestAnimationFrame(draw)
     }
-    draw()
-    return () => {
-      cancelAnimationFrame(frame)
-      observer.disconnect()
+    const start = (made) => {
+      scene = made
+      observer = new ResizeObserver(() => scene.resize())
+      observer.observe(host.current)
+      draw()
     }
-  }, [clock])
+    if (mode === '3d') {
+      import('./crash3d.js')
+        .then(({ createScene3D }) => {
+          if (dead) return
+          start(createScene3D(host.current, { reduced, onFail: () => setMode('2d') }))
+          setLoading(false)
+        })
+        .catch((error) => {
+          console.warn('Cohete 3D no disponible, se usa el 2D', error)
+          if (!dead) setMode('2d')
+        })
+    } else {
+      setLoading(false)
+      const canvas = document.createElement('canvas')
+      canvas.setAttribute('aria-hidden', 'true')
+      host.current.appendChild(canvas)
+      const flat = createScene(canvas, { reduced })
+      start({ ...flat, destroy: () => canvas.remove() })
+    }
+    return () => {
+      dead = true
+      cancelAnimationFrame(frame)
+      observer?.disconnect()
+      scene?.destroy()
+    }
+  }, [clock, mode])
 
   return (
-    <div className="sky" ref={box} data-state="waiting">
-      <canvas ref={canvas} aria-hidden="true" />
+    <div className={`sky sky--${mode}`} ref={box} data-state="waiting">
+      <div className="sky__stage" ref={host} aria-hidden="true" />
+      {loading && <p className="sky__wait">Preparando la plataforma…</p>}
       <div className="sky__readout">
         <span className="sky__kicker" aria-hidden="true">
           <span className="sky__when-waiting">Despega en</span>
@@ -387,7 +434,7 @@ function Crash({ onExit, juegos }) {
             ) : (
               <ol>
                 {shownCrashes.slice(0, 14).map((mult, i) => (
-                  <li key={`${round}-${i}`} className={`burst burst--${toneOf(mult)}`}>
+                  <li key={`${round}-${i}`} className={`burst burst--${toneOf(mult)}`} style={{ '--h': heightOf(mult) }}>
                     {fmtMult(mult)}
                   </li>
                 ))}

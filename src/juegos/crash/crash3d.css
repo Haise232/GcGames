@@ -1,0 +1,377 @@
+/* Escrito a mano: el Cohete en 3D (crash3d.js). El lienzo WebGL llena la ventanilla y encima va la rotulación de
+   control de misión (HTML): telemetría, altímetro con tus marcas, la curva en pequeño, rótulos y la etiqueta de tu
+   cápsula. El multiplicador grande sigue siendo el de Crash.jsx (.sky__readout), que en 3D sube arriba. */
+
+.juegos-root .sky__stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.juegos-root .sky__wait {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font-weight: 650;
+  color: var(--muted);
+  background: radial-gradient(ellipse at 50% 70%, rgba(255, 140, 90, 0.18), transparent 60%), #0b0a24;
+}
+.juegos-root .sky--3d .sky__readout {
+  inset: clamp(10px, 3cqh, 22px) clamp(70px, 14cqw, 120px) auto;
+  justify-content: flex-start;
+  z-index: 2;
+}
+.juegos-root .sky--3d .sky__mult {
+  font-size: clamp(40px, 10cqw, 100px);
+  text-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.45),
+    0 0 26px rgba(0, 0, 0, 0.55);
+}
+.juegos-root .sky--3d[data-tier='mid'] .sky__mult {
+  text-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.45),
+    0 0 34px rgba(255, 160, 70, 0.6);
+}
+.juegos-root .sky--3d[data-tier='high'] .sky__mult {
+  text-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.45),
+    0 0 40px rgba(255, 92, 150, 0.7);
+}
+.juegos-root .sky--3d .sky__kicker {
+  color: #d9d2c2;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+/* Últimos tres segundos: la cuenta atrás late. */
+.juegos-root .sky[data-state='waiting'][data-last='yes'] .sky__mult {
+  color: #ffd34a;
+  animation: c3d-beat 1s ease-out infinite;
+}
+@keyframes c3d-beat {
+  from {
+    scale: 1.25;
+  }
+  to {
+    scale: 1;
+  }
+}
+.juegos-root .sky--3d .sky__fuse {
+  z-index: 3;
+}
+
+.juegos-root .c3d {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--sans);
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  pointer-events: none;
+  user-select: none;
+}
+.juegos-root .c3d__gl {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .c3d__vig {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.5));
+}
+.juegos-root .c3d__fade {
+  position: absolute;
+  inset: 0;
+  background: #05060f;
+}
+.juegos-root .c3d__flash {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 45%, rgba(255, 246, 220, 0.75), rgba(255, 160, 80, 0.35) 40%, rgba(255, 80, 40, 0) 75%);
+  mix-blend-mode: screen;
+}
+.juegos-root .c3d__flash--on {
+  animation: c3d-flash 0.7s ease-out;
+}
+@keyframes c3d-flash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Telemetría (arriba a la izquierda). */
+.juegos-root .c3d__tele {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 11px 8px;
+  border-radius: 10px;
+  background: rgba(6, 8, 22, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(241, 233, 214, 0.14);
+  backdrop-filter: blur(6px);
+  font-size: 13px;
+  line-height: 1.3;
+}
+.juegos-root .c3d__tele b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d9d2c2;
+}
+.juegos-root .c3d__tele b i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff3b4a;
+  box-shadow: 0 0 8px #ff3b4a;
+  animation: c3d-rec 1.2s steps(2) infinite;
+}
+@keyframes c3d-rec {
+  50% {
+    opacity: 0.25;
+  }
+}
+.juegos-root .c3d__tl1 {
+  font-weight: 700;
+  font-size: 15px;
+}
+.juegos-root .c3d__tl2 {
+  color: #b9c4dd;
+}
+
+/* Altímetro (a la derecha): escala del multiplicador en logarítmica, el cohete sube por ella. */
+.juegos-root .c3d__alt {
+  --rail-top: 16%;
+  --rail-bottom: 16%;
+  position: absolute;
+  top: var(--rail-top);
+  bottom: var(--rail-bottom);
+  right: 16px;
+  width: 64px;
+}
+.juegos-root .c3d__rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 8px;
+  width: 6px;
+  border-radius: 3px;
+  background: rgba(241, 233, 214, 0.14);
+  overflow: hidden;
+}
+.juegos-root .c3d__fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--a, 0) * 100%);
+  background: linear-gradient(0deg, #ffe27a, var(--tone, #ffe27a));
+  box-shadow: 0 0 12px var(--tone, #ffe27a);
+}
+.juegos-root .c3d__ticks span,
+.juegos-root .c3d__ticks em {
+  position: absolute;
+  right: 20px;
+  bottom: calc(var(--y) * 100%);
+  translate: 0 50%;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(217, 210, 194, 0.7);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+}
+.juegos-root .c3d__ticks em {
+  right: auto;
+  left: calc(100% + 0px);
+  font-style: normal;
+  font-size: 10px;
+  color: rgba(159, 180, 255, 0.75);
+  display: none;
+}
+.juegos-root .c3d__ship {
+  position: absolute;
+  right: 3px;
+  bottom: calc(var(--a, 0) * 100%);
+  width: 16px;
+  height: 16px;
+  translate: 0 50%;
+  border-radius: 50%;
+  background: var(--tone, #ffe27a);
+  box-shadow:
+    0 0 0 3px rgba(6, 8, 22, 0.7),
+    0 0 14px var(--tone, #ffe27a);
+}
+.juegos-root .c3d__alt[data-state='boom'] .c3d__ship {
+  background: #ff6b5e;
+  box-shadow:
+    0 0 0 3px rgba(6, 8, 22, 0.7),
+    0 0 18px #ff6b5e;
+}
+.juegos-root .c3d__mark {
+  position: absolute;
+  right: 22px;
+  bottom: calc(var(--y) * 100%);
+  translate: 0 50%;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #1b1405;
+  background: rgba(200, 162, 75, 0.92);
+  animation: c3d-mark 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.juegos-root .c3d__mark::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -14px;
+  width: 14px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+.juegos-root .c3d__mark--auto {
+  color: #e9cf86;
+  background: rgba(6, 8, 22, 0.75);
+  box-shadow: inset 0 0 0 1px rgba(233, 207, 134, 0.8);
+  border-style: dashed;
+}
+.juegos-root .c3d__mark--me {
+  z-index: 1;
+  color: #04200f;
+  background: #7fe0b0;
+  box-shadow: 0 0 12px rgba(127, 224, 176, 0.7);
+}
+.juegos-root .c3d__mark--other {
+  font-weight: 600;
+  opacity: 0.92;
+}
+@keyframes c3d-mark {
+  from {
+    scale: 0.6;
+    opacity: 0;
+  }
+}
+
+/* La curva en pequeño (abajo a la izquierda). */
+.juegos-root .c3d__graph {
+  position: absolute;
+  left: 12px;
+  bottom: 16px;
+  width: clamp(130px, 24cqw, 210px);
+  height: clamp(70px, 14cqw, 110px);
+  border-radius: 10px;
+  background: rgba(6, 8, 22, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(241, 233, 214, 0.12);
+}
+
+/* Rótulos de hitos (abajo, al centro). */
+.juegos-root .c3d__cap {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  translate: -50% 12px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: rgba(6, 8, 22, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(159, 180, 255, 0.35);
+  font-size: clamp(13px, 2.2cqw, 16px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  opacity: 0;
+  transition:
+    opacity 0.3s,
+    translate 0.3s;
+}
+.juegos-root .c3d__cap--on {
+  opacity: 1;
+  translate: -50% 0;
+}
+.juegos-root .c3d__cap--go {
+  color: #1b1405;
+  background: #ffd34a;
+  box-shadow: 0 0 22px rgba(255, 211, 74, 0.6);
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(16px, 3cqw, 22px);
+  letter-spacing: 0.04em;
+}
+
+/* Tu cápsula: la etiqueta la sigue por la pantalla. */
+.juegos-root .c3d__tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -44px 0 0 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #7fe0b0;
+  color: #04200f;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 0 18px rgba(127, 224, 176, 0.6);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.juegos-root .c3d__tag--on {
+  opacity: 1;
+}
+
+@container (max-width: 520px) {
+  .juegos-root .c3d__graph,
+  .juegos-root .c3d__tele {
+    display: none;
+  }
+  .juegos-root .c3d__tele {
+    top: 8px;
+    left: 8px;
+    padding: 5px 8px;
+  }
+  .juegos-root .c3d__alt {
+    right: 6px;
+    width: 46px;
+  }
+  .juegos-root .c3d__ticks span:nth-child(even) {
+    display: none;
+  }
+  .juegos-root .c3d__mark--other {
+    display: none;
+  }
+  .juegos-root .c3d__cap {
+    bottom: 14px;
+  }
+}
+@container (min-width: 760px) {
+  .juegos-root .c3d__ticks em {
+    display: block;
+    left: auto;
+    right: 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .c3d__flash--on,
+  .juegos-root .c3d__tele b i,
+  .juegos-root .sky[data-state='waiting'][data-last='yes'] .sky__mult {
+    animation: none;
+  }
+}
