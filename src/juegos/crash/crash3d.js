@@ -65,12 +65,13 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
-import { BETS_MS, FLIGHT_MS, MAX_MULT, ROUND_MS, fmtMult, msFor, multiplierAt } from './crash.js'
+import { FLIGHT_MS, MAX_MULT, fmtMult, msFor, multiplierAt } from './crash.js'
 
 const TAU = Math.PI * 2
 const ALT_H = 5200 // altura del mundo a 25×
 const PAD_TOP = 4 // la losa de la plataforma
 const ROCKET_BASE = 7 // el cohete sobre su soporte
+const CAM_CLEARANCE = 4 // altura mínima de la cámara sobre el suelo
 const LOG_MAX = Math.log(MAX_MULT / 100)
 const TICKS = [100, 150, 200, 300, 500, 1000, 1500, 2000, 2500]
 // Hitos del vuelo (altitud 0–1, escala logarítmica del multiplicador) y su rótulo.
@@ -1136,6 +1137,12 @@ export function createScene3D(host, { reduced = false, onFail } = {}) {
   const buf = new Vector2()
   let ignitionShown = false
 
+  // La cámara nunca baja del suelo de la isla ni del mar (ni con el temblor ni al alejarse de una explosión baja).
+  function keepAbove(p) {
+    const ground = Math.hypot(p.x, p.z) < 130 ? Math.max(0, islandHeight(p.x, p.z)) : 0
+    if (p.y < ground + CAM_CLEARANCE) p.y = ground + CAM_CLEARANCE
+  }
+
   function caption(text, cls = '') {
     el.cap.textContent = text
     el.cap.className = `c3d__cap c3d__cap--on ${cls}`
@@ -1311,7 +1318,7 @@ export function createScene3D(host, { reduced = false, onFail } = {}) {
       el.id.textContent = String(round % 10000).padStart(4, '0')
     }
 
-    const flown = t - (round * ROUND_MS + BETS_MS)
+    const flown = t - frame.launch
     const boomMs = boom !== null && boom !== undefined ? msFor(boom) : null
     const state = flown < 0 ? 'waiting' : boomMs !== null && flown >= boomMs ? 'boom' : flown >= FLIGHT_MS ? 'landing' : 'flying'
     const end = Math.max(0, boomMs !== null ? Math.min(flown, boomMs) : Math.min(flown, FLIGHT_MS))
@@ -1499,7 +1506,7 @@ export function createScene3D(host, { reduced = false, onFail } = {}) {
       const th = reduced ? 0.15 : Math.sin(elapsed * 0.11) * 0.55
       const push = smooth(3500, 600, tminus)
       const rad = 50 - push * 16
-      camPos.set(Math.sin(th) * rad, 9 + 5 * Math.cos(elapsed * 0.07) - push * 3, Math.cos(th) * rad)
+      camPos.set(Math.sin(th) * rad, 12 + 4 * Math.cos(elapsed * 0.07) - push * 2, Math.cos(th) * rad)
       camLook.set(-1.5, 12 + push * 0, 0)
       groundCam.copy(camPos)
       groundSet = true
@@ -1524,10 +1531,13 @@ export function createScene3D(host, { reduced = false, onFail } = {}) {
       }
       tmp2.copy(camBoom).sub(boomPos).normalize()
       camPos.copy(camBoom).addScaledVector(tmp2, 12 * (1 - Math.exp(-since * 0.8)) + Math.min(since, 12) * 2)
+      camPos.y = Math.max(camPos.y, boomPos.y + 10) // una explosión en la plataforma se mira un poco desde arriba
       camLook.copy(boomPos)
     }
+    keepAbove(camPos)
     camera.position.copy(camPos)
     if (shakeAmp > 0) camera.position.add(tmp2.set((R() - 0.5) * shakeAmp, (R() - 0.5) * shakeAmp, (R() - 0.5) * shakeAmp))
+    keepAbove(camera.position)
     camera.lookAt(camLook)
     tmp2.copy(camPos).sub(rocket.position).setY(0).normalize()
     sunLight.position.copy(rocket.position).addScaledVector(tmp2, 100).add(_v.set(tmp2.z * 60, 70, -tmp2.x * 60))

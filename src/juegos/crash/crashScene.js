@@ -3,7 +3,7 @@
 // se oscurece hacia el espacio según sube el multiplicador, las estrellas pasan
 // más rápido, la luna (10×) y un planeta (20×) marcan la altitud, y la explosión es el único gran momento animado.
 // No usa React: la pantalla llama a draw() en cada frame con el reloj del servidor.
-import { BETS_MS, FLIGHT_MS, MAX_MULT, ROUND_MS, fmtMult, msFor, multiplierAt } from './crash.js'
+import { FLIGHT_MS, MAX_MULT, fmtMult, msFor, multiplierAt } from './crash.js'
 
 const C = {
   // Noche de Navidad en la plataforma (azul noche arriba, el brillo cálido del pueblo en el horizonte); espacio casi
@@ -265,7 +265,7 @@ export function createScene(canvas, { reduced = false } = {}) {
       boomStart = null
     }
 
-    const flown = t - (round * ROUND_MS + BETS_MS)
+    const flown = t - frame.launch
     const boomMs = boom !== null ? msFor(boom) : null
     const state = flown < 0 ? 'waiting' : boomMs !== null && flown >= boomMs ? 'boom' : flown >= FLIGHT_MS ? 'landing' : 'flying'
     const end = Math.max(0, boomMs !== null ? Math.min(flown, boomMs) : Math.min(flown, FLIGHT_MS))

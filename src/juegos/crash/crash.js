@@ -1,10 +1,16 @@
 // Reglas del Cohete (crash en vivo): las comparten el servidor (api/_juegos/solo.mjs) y la pantalla.
 // Los multiplicadores van en centésimas enteras (231 = 2,31×) para no arrastrar decimales al dinero.
 
-// --- Ronda en vivo: una cada ROUND_MS para todos, como la ruleta. ---
-export const ROUND_MS = 30000
+// --- Ronda en vivo: la misma para todos. Apuestas (BETS_MS), vuelo hasta que explota y una pausa corta (PAUSE_MS) para
+// ver la explosión; justo después se abren las apuestas de la siguiente. Como cada ronda dura según dónde explote, el
+// calendario se encadena: en cada hora (EPOCH_MS) la ronda n despega cuando acaba la anterior más las apuestas. La última
+// ronda de la hora es la que aún cabe entera aunque llegara al tope; hasta la hora en punto se apuesta la primera de la
+// siguiente (un rato más largo, una vez por hora). Así el servidor no guarda estado: le basta su secreto y el reloj.
 export const BETS_MS = 10000 // apuestas abiertas
-export const FLIGHT_MS = 18000 // vuelo más largo posible (llega a MAX_MULT); después, pausa hasta la siguiente ronda
+export const FLIGHT_MS = 18000 // vuelo más largo posible (llega a MAX_MULT)
+export const PAUSE_MS = 4000 // tras explotar, antes de abrir las apuestas de la siguiente
+export const EPOCH_MS = 3600000
+export const ROUNDS_PER_EPOCH = 1000 // el número de ronda es hora × 1000 + n
 export const MAX_MULT = 2500 // 25×: el cohete nunca pasa de aquí
 export const HOUSE = 0.96 // retorno esperado de cualquier forma de jugar
 const K = Math.log(MAX_MULT / 100) / FLIGHT_MS
@@ -38,12 +44,57 @@ export const validAuto = (auto) => auto === null || (Number.isInteger(auto) && a
 // «2,31×»
 export const fmtMult = (mult) => `${(mult / 100).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}×`
 
-// Fase de la ronda según el reloj del servidor. El vuelo puede acabar antes (si explota): eso lo dice el servidor.
-export function phaseAt(t) {
-  const round = Math.floor(t / ROUND_MS)
-  const offset = t - round * ROUND_MS
-  const phase = offset < BETS_MS ? 'betting' : offset < BETS_MS + FLIGHT_MS ? 'flight' : 'pause'
-  return { round, offset, phase, flown: offset - BETS_MS }
+// Calendario de la hora `epoch`: [{ round, launch, end }] (ms del reloj del servidor). crashOf(round) dice dónde explota
+// cada ronda (en el servidor, el HMAC); end es la explosión más la pausa, y ahí se abren las apuestas de la siguiente.
+export function schedule(epoch, crashOf) {
+  const rounds = []
+  const limit = (epoch + 1) * EPOCH_MS
+  let launch = epoch * EPOCH_MS + BETS_MS
+  for (let n = 0; n < ROUNDS_PER_EPOCH; n++) {
+    const round = epoch * ROUNDS_PER_EPOCH + n
+    const end = launch + msFor(crashOf(round)) + PAUSE_MS
+    rounds.push({ round, launch, end })
+    launch = end + BETS_MS
+    if (launch + FLIGHT_MS + PAUSE_MS > limit) break
+  }
+  return rounds
+}
+
+export const epochOf = (round) => Math.floor(round / ROUNDS_PER_EPOCH)
+
+// La ronda en curso a la hora `t`: { round, launch, end } de su calendario. Tras la última de la hora, la primera de la
+// siguiente (en apuestas hasta la hora en punto). sched(epoch) devuelve el calendario de esa hora (normalmente en caché).
+export function roundAt(t, sched) {
+  const epoch = Math.floor(t / EPOCH_MS)
+  const rounds = sched(epoch)
+  const last = rounds[rounds.length - 1]
+  if (t >= last.end) return sched(epoch + 1)[0]
+  let lo = 0
+  let hi = rounds.length - 1
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1
+    if (rounds[mid - 1].end <= t) lo = mid
+    else hi = mid - 1
+  }
+  return rounds[lo]
+}
+
+// La ronda anterior a `round` (para el historial).
+export function prevRound(round, sched) {
+  const epoch = epochOf(round)
+  const n = round - epoch * ROUNDS_PER_EPOCH
+  if (n > 0) return round - 1
+  const rounds = sched(epoch - 1)
+  return rounds[rounds.length - 1].round
+}
+
+// Fase vista desde la pantalla, con el despegue de la ronda y su explosión si ya se sabe (null mientras vuela).
+// left: lo que falta para despegar · flown: ms desde el despegue.
+export function phaseOf(t, launch, crash) {
+  const flown = t - launch
+  if (flown < 0) return { phase: 'betting', left: -flown, flown }
+  if (crash === null || flown < msFor(crash)) return { phase: 'flight', left: 0, flown }
+  return { phase: 'pause', left: 0, flown }
 }
 
 export const initialState = {

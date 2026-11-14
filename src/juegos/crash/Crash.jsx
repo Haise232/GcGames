@@ -6,14 +6,14 @@ import {
   FLIGHT_MS,
   HOUSE,
   MAX_MULT,
-  ROUND_MS,
+  PAUSE_MS,
   fmtMult,
   initialState,
   isDirty,
   msFor,
   multiplierAt,
   payout,
-  phaseAt,
+  phaseOf,
   reducer,
   unconfirmed,
 } from './crash.js'
@@ -54,7 +54,7 @@ function hasWebGL() {
 // aparte) y, si no hay WebGL o falla, la escena 2D de siempre (crashScene.js). Las dos tienen draw(frame), resize() y destroy().
 // boom: dónde explotó esta ronda (null si sigue volando) · auto: tu retiro automático · cashed: donde retiraste
 // flags: quién más retiró (tras la explosión) · sub: línea bajo el multiplicador (lo que cobrarías, por ejemplo).
-function Sky({ clock, round, boom, auto, cashed, flags, sub, won }) {
+function Sky({ clock, round, launch, boom, auto, cashed, flags, sub, won }) {
   const host = useRef(null)
   const box = useRef(null)
   const label = useRef(null)
@@ -62,7 +62,7 @@ function Sky({ clock, round, boom, auto, cashed, flags, sub, won }) {
   const props = useRef(null)
   const [mode, setMode] = useState(() => (hasWebGL() ? '3d' : '2d'))
   const [loading, setLoading] = useState(mode === '3d')
-  props.current = { round, boom, auto, cashed, flags }
+  props.current = { round, launch, boom, auto, cashed, flags }
 
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -73,7 +73,7 @@ function Sky({ clock, round, boom, auto, cashed, flags, sub, won }) {
     let text = ''
     const draw = () => {
       const t = clock()
-      const { state, mult, flown } = scene.draw({ t, ...props.current })
+      const { state, mult, flown } = scene.draw({ t, ...props.current, launch: props.current.launch ?? t + BETS_MS })
       const next = state === 'waiting' ? `${Math.ceil(-flown / 1000)}` : fmtMult(mult)
       if (next !== text) {
         text = next
@@ -85,7 +85,7 @@ function Sky({ clock, round, boom, auto, cashed, flags, sub, won }) {
       if (box.current.dataset.tier !== tier) box.current.dataset.tier = tier
       const last = state === 'waiting' && -flown <= 3000 ? 'yes' : 'no'
       if (box.current.dataset.last !== last) box.current.dataset.last = last
-      bar.current.style.setProperty('--left', state === 'waiting' ? Math.max(0, -flown / BETS_MS) : 0)
+      bar.current.style.setProperty('--left', state === 'waiting' ? Math.min(1, Math.max(0, -flown / BETS_MS)) : 0)
       frame = requestAnimationFrame(draw)
     }
     const start = (made) => {
@@ -138,10 +138,20 @@ function Sky({ clock, round, boom, auto, cashed, flags, sub, won }) {
   )
 }
 
+// La ronda en curso según lo último que dijo el servidor; tras la explosión y la pausa, la siguiente (el servidor la
+// manda en `next` en cuanto explota).
+function currentRound(live, t) {
+  if (!live?.launch) return null
+  if (live.crash !== null && live.next && t >= live.launch + msFor(live.crash) + PAUSE_MS) {
+    return { round: live.next.round, launch: live.next.launch, crash: null }
+  }
+  return { round: live.round, launch: live.launch, crash: live.crash }
+}
+
 // Cuenta atrás de las apuestas: el aro de la ruleta en vivo.
-function Countdown({ phase, offset }) {
-  const left = phase === 'betting' ? Math.ceil((BETS_MS - offset) / 1000) : 0
-  const fraction = phase === 'betting' ? 1 - offset / BETS_MS : 0
+function Countdown({ phase, ms }) {
+  const left = phase === 'betting' ? Math.ceil(ms / 1000) : 0
+  const fraction = phase === 'betting' ? Math.min(1, ms / BETS_MS) : 0
   return (
     <div
       className={`countdown countdown--${phase === 'betting' ? 'betting' : 'spinning'} ${phase === 'betting' && left <= LAST_CALL_MS / 1000 ? 'countdown--last' : ''}`}
@@ -170,8 +180,12 @@ function Crash({ onExit, juegos }) {
   const { chip, stake, auto } = state
 
   const clock = useCallback(() => Date.now() + (skew.current ?? 0), [])
-  const { round, offset, phase, flown } = phaseAt(clock())
-  const ready = skew.current !== null
+  const t = clock()
+  const cur = currentRound(live, t)
+  const ready = skew.current !== null && cur !== null
+  const round = cur?.round ?? null
+  const launch = cur?.launch ?? null
+  const { phase, left, flown } = cur ? phaseOf(t, cur.launch, cur.crash) : { phase: 'betting', left: BETS_MS, flown: -BETS_MS }
 
   const ask = useCallback(
     async (message) => {
@@ -211,7 +225,7 @@ function Crash({ onExit, juegos }) {
   }, [ask])
 
   // Explosión de esta ronda, si ya se sabe.
-  const boom = live?.round === round && live.crash !== null ? live.crash : null
+  const boom = cur && cur.crash !== null ? cur.crash : null
   const exploded = boom !== null && flown >= msFor(boom)
 
   // Durante el vuelo, una espera larga: el servidor contesta justo cuando explota. Si falla, se pregunta cada segundo.
@@ -233,13 +247,13 @@ function Crash({ onExit, juegos }) {
   // Poco después de explotar se pregunta quién retiró, para anunciarlo a todos.
   useEffect(() => {
     if (boom === null) return
-    const wait = round * ROUND_MS + BETS_MS + msFor(boom) + WINNERS_WAIT_MS - clock()
+    const wait = launch + msFor(boom) + WINNERS_WAIT_MS - clock()
     if (wait < 0) return
     const timer = setTimeout(() => {
       if (document.visibilityState === 'visible') ask({ a: 'sync', winners: round })
     }, wait)
     return () => clearTimeout(timer)
-  }, [boom, round, ask, clock])
+  }, [boom, round, launch, ask, clock])
 
   // Apuesta que el servidor ya tenía para esta ronda (por ejemplo, tras recargar).
   useEffect(() => {
@@ -252,7 +266,7 @@ function Crash({ onExit, juegos }) {
     if (!dirty || phase !== 'betting' || state.round !== round) return
     const bet = stake
     const chosen = stake > 0 ? auto : null
-    const wait = Math.max(0, Math.min(SEND_MS, BETS_MS - offset - 150))
+    const wait = Math.max(0, Math.min(SEND_MS, left - 150))
     const timer = setTimeout(async () => {
       setSending(true)
       const body = await ask({ a: 'bet', round, bet, auto: chosen })
@@ -261,7 +275,7 @@ function Crash({ onExit, juegos }) {
       else dispatch({ type: 'REJECTED', round })
     }, wait)
     return () => clearTimeout(timer)
-    // offset cambia cuatro veces por segundo: solo se vuelve a programar si cambia la apuesta o la ronda.
+    // left cambia cuatro veces por segundo: solo se vuelve a programar si cambia la apuesta o la ronda.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dirty, stake, auto, phase, round, state.round, ask])
 
@@ -341,7 +355,7 @@ function Crash({ onExit, juegos }) {
   let detail = ''
   if (ready) {
     if (phase === 'betting') {
-      call = BETS_MS - offset <= LAST_CALL_MS ? 'Últimas apuestas' : 'Apuesta antes del despegue'
+      call = left <= LAST_CALL_MS ? 'Últimas apuestas' : 'Apuesta antes del despegue'
       if (broke) detail = 'Te quedaste sin saldo esta semana. El domingo a las 23:59 vuelves a tener 15.000 €.'
       else if (stake > 0) {
         const target = auto ? ` · retiro automático a ${fmtMult(auto)}` : ''
@@ -394,8 +408,9 @@ function Crash({ onExit, juegos }) {
             </button>
             <Help className="tg tg--help" title="Cómo se juega">
               <p>
-                Es en vivo: el cohete es el mismo para todos y despega cada 30 segundos. Tienes 10 segundos para apostar; al
-                despegar, el multiplicador sube desde 1,00× hasta un máximo de 25×.
+                Es en vivo: el cohete es el mismo para todos. Tienes 10 segundos para apostar; al despegar, el multiplicador
+                sube desde 1,00× hasta un máximo de 25×. Unos segundos después de cada explosión se abren las apuestas del
+                siguiente.
               </p>
               <p>
                 Pulsa <strong>Retirar</strong> (o la barra espaciadora) antes de que explote y cobras tu apuesta por el
@@ -420,6 +435,7 @@ function Crash({ onExit, juegos }) {
           <Sky
             clock={clock}
             round={round}
+            launch={launch}
             boom={boom}
             auto={inPlay > 0 ? live.auto : mine?.auto ? mine.mult : null}
             cashed={mine && mine.net > 0 ? mine.mult : null}
@@ -445,7 +461,7 @@ function Crash({ onExit, juegos }) {
 
         <section className="play">
           <div className="dealer">
-            <Countdown phase={ready ? phase : 'flight'} offset={offset} />
+            <Countdown phase={ready ? phase : 'flight'} ms={left} />
             <p className={`status ${won ? 'status--win' : ''}`} aria-live="polite">
               <strong>{call}</strong>
               {detail && <span>{detail}</span>}

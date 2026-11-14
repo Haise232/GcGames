@@ -166,47 +166,78 @@ export function plinkoDrop(msg, balance, _saved, rand, ctx) {
 }
 
 // --- Cohete en vivo: un multiplicador que sube para todos a la vez; quien retira antes de que explote, cobra. ---
-// Como la ruleta: rondas fijas de crash.ROUND_MS y el punto de explosión sale de HMAC(secreto, ronda). El servidor no lo
-// revela hasta que el cohete ha explotado, y para retirar usa su propio reloj.
+// El punto de explosión sale de HMAC(secreto, ronda) y el calendario (crash.schedule) se encadena con esas explosiones:
+// tras explotar hay una pausa corta y se abren las apuestas de la siguiente. El servidor no revela la explosión (ni, por
+// tanto, cuándo empieza la ronda siguiente) hasta que el cohete ha explotado, y para retirar usa su propio reloj.
 const CRASH_HISTORY = 30
 const crashDraws = new Map()
+const crashSchedules = new Map()
 
-// Dónde explota la ronda y a qué hora (ms del reloj del servidor).
+// Dónde explota la ronda.
 export function crashDraw(secret, round) {
   const hit = crashDraws.get(round)
   if (hit) return hit
-  const mult = crash.crashFromUniform(hmacStream(secret, `cohete:${round}`)() / 2 ** 32)
-  const draw = { crash: mult, at: round * crash.ROUND_MS + crash.BETS_MS + crash.msFor(mult) }
+  const draw = { crash: crash.crashFromUniform(hmacStream(secret, `cohete:${round}`)() / 2 ** 32) }
   if (crashDraws.size > 5000) crashDraws.clear()
   crashDraws.set(round, draw)
   return draw
 }
 
+// Calendario de una hora (en caché: ~250 rondas como mucho).
+export function crashSchedule(secret, epoch) {
+  const hit = crashSchedules.get(epoch)
+  if (hit) return hit
+  const rounds = crash.schedule(epoch, (round) => crashDraw(secret, round).crash)
+  if (crashSchedules.size > 48) crashSchedules.clear()
+  crashSchedules.set(epoch, rounds)
+  return rounds
+}
+
+// Despegue y explosión (ms del reloj del servidor) de una ronda.
+export function crashTimes(secret, round) {
+  const epoch = crash.epochOf(round)
+  const rounds = crashSchedule(secret, epoch)
+  const slot = rounds[round - epoch * crash.ROUNDS_PER_EPOCH] ?? rounds[rounds.length - 1]
+  const { crash: mult } = crashDraw(secret, round)
+  return { round, launch: slot.launch, at: slot.launch + crash.msFor(mult), end: slot.end, crash: mult }
+}
+
+const crashNow = (secret, t) => crashTimes(secret, crash.roundAt(t, (epoch) => crashSchedule(secret, epoch)).round)
+
 // ¿Hay una apuesta guardada de una ronda que ya explotó? Entonces se liquida antes de nada (retiro automático o perdida).
-export const crashDue = (saved, t, secret) => saved?.bet > 0 && t >= crashDraw(secret, saved.round).at
+export const crashDue = (saved, t, secret) => saved?.bet > 0 && t >= crashTimes(secret, saved.round).at
 
 // Cuánto esperar desde `t` hasta la explosión de la ronda en curso (0 si ya explotó o aún no ha despegado).
 export function crashWaitMs(secret, t) {
-  const round = crash.phaseAt(t).round
-  const flightStart = round * crash.ROUND_MS + crash.BETS_MS
-  if (t < flightStart) return 0
-  return Math.max(0, crashDraw(secret, round).at - t)
+  const now = crashNow(secret, t)
+  if (t < now.launch) return 0
+  return Math.max(0, now.at - t)
 }
 
 export function crashView(saved, balance, { now: t, secret }) {
-  const round = crash.phaseAt(t).round
-  const draw = crashDraw(secret, round)
-  const exploded = t >= draw.at
-  const mine = saved?.round === round
-  const newest = exploded ? round : round - 1
+  const sched = (epoch) => crashSchedule(secret, epoch)
+  const now = crashNow(secret, t)
+  const exploded = t >= now.at
+  const mine = saved?.round === now.round
+  // La siguiente ronda solo se cuenta tras la explosión (antes delataría dónde explota esta).
+  const next = exploded ? crash.roundAt(now.end, sched) : null
+  const crashes = []
+  let r = exploded ? now.round : crash.prevRound(now.round, sched)
+  const newest = r
+  for (let i = 0; i < CRASH_HISTORY; i++) {
+    crashes.push(crashDraw(secret, r).crash)
+    r = crash.prevRound(r, sched)
+  }
   return {
     now: t,
-    round,
-    crash: exploded ? draw.crash : null,
+    round: now.round,
+    launch: now.launch,
+    crash: exploded ? now.crash : null,
+    next: next ? { round: next.round, launch: next.launch } : null,
     bet: mine ? (saved.bet ?? 0) : 0,
     auto: mine ? (saved.auto ?? null) : null,
     last: saved?.last ?? null,
-    history: { last: newest, crashes: Array.from({ length: CRASH_HISTORY }, (_, i) => crashDraw(secret, newest - i).crash) },
+    history: { last: newest, crashes },
     balance,
   }
 }
@@ -229,9 +260,10 @@ export function crashLive(msg, balance, saved, _rand, ctx) {
     state = { ...state, bet: 0, auto: null }
     changed = true
   }
-  const { round, offset } = crash.phaseAt(t)
+  const now = crashNow(ctx.secret, t)
+  const { round } = now
   if (msg.a === 'bet') {
-    if (msg.round !== round || offset >= crash.BETS_MS + GRACE_MS) return { error: 'LAUNCHED' }
+    if (msg.round !== round || t >= now.launch + GRACE_MS) return { error: 'LAUNCHED' }
     const auto = msg.auto ?? null
     if (!crash.validBet(msg.bet) || !crash.validAuto(auto)) return { error: 'BAD_MESSAGE' }
     // Lo que ya tenías en esta ronda vuelve al saldo y se cobra la apuesta nueva entera.
@@ -245,12 +277,11 @@ export function crashLive(msg, balance, saved, _rand, ctx) {
     // Llegó tarde: la apuesta de esta ronda ya se liquidó arriba porque el cohete explotó.
     if (changed && state.last?.round === round && msg.round === round) return { error: 'CRASHED' }
     if (msg.round !== round || state.round !== round || !(state.bet > 0) || state.week !== ctx.week) return { error: 'BAD_PHASE' }
-    const flown = offset - crash.BETS_MS
+    const flown = t - now.launch
     if (flown < 0) return { error: 'BAD_PHASE' }
-    const draw = crashDraw(ctx.secret, round)
-    if (t >= draw.at) return { error: 'CRASHED' }
+    if (t >= now.at) return { error: 'CRASHED' }
     // Si el retiro automático ya se había alcanzado, manda él (se habría retirado antes).
-    let mult = Math.min(crash.multiplierAt(flown), draw.crash - 1)
+    let mult = Math.min(crash.multiplierAt(flown), now.crash - 1)
     if (state.auto !== null && state.auto <= mult) mult = state.auto
     const paid = crash.payout(state.bet, mult)
     delta += paid
