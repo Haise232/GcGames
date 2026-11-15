@@ -11,7 +11,10 @@ export default function Elevator3D({ clock, scene: sceneProps, view, onFail }) {
   const props = useRef(sceneProps)
   const fail = useRef(onFail)
   const [loading, setLoading] = useState(true)
-  props.current = sceneProps
+  props.current = {
+    ...sceneProps,
+    disp: { floor: view.roof ? FLOORS : view.floor, moving: view.moving, alarm: view.fallen, roof: view.roof, chance: view.chance },
+  }
   fail.current = onFail
 
   useEffect(() => {
@@ -61,7 +64,8 @@ export default function Elevator3D({ clock, scene: sceneProps, view, onFail }) {
       <div className="el3__scene" ref={host} role="img" aria-label={status}>
         {loading && <p className="el3__wait">Encendiendo el edificio…</p>}
       </div>
-      <Display floor={roof ? FLOORS : floor} moving={moving} alarm={fallen} roof={roof} next={next} chance={chance} />
+      {/* Dentro, el display es el de la cabina (en 3D, encima de las puertas). */}
+      {pov !== 'inside' && <Display floor={roof ? FLOORS : floor} moving={moving} alarm={fallen} roof={roof} next={next} chance={chance} />}
       {pov === 'inside' && !fallen && !roof && <Cop where="float" {...cop} />}
       {fallen && (
         <div className="el3__fall" aria-hidden="true">

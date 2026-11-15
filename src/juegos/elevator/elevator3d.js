@@ -65,8 +65,11 @@ const CAB_W = 3.6
 const CAB_H = 3.5
 const CAB_D = 3.0
 const CAB_Z = FACE_Z + CAB_D / 2 + 0.5
-const BALCONY_W = 7
-const BALCONY_X = SHAFT_X - CAB_W / 2 - 0.9 - BALCONY_W // los balcones, a la izquierda del hueco (la botonera va a la derecha)
+// Rellanos: delante de las puertas de la cabina en cada planta (al abrir, se sale a ellos).
+const PLAT_W = 6.4
+const PLAT_D = 3.6
+const PLAT_Z = CAB_Z + CAB_D / 2 + 0.12 + PLAT_D / 2
+const EYE = 1.65 // altura de los ojos dentro de la cabina
 const GRAVITY = 46
 const BULBS = ['#ff3b4a', '#ffd34a', '#3ddc84', '#4aa8ff', '#ffffff', '#ff7ad1']
 
@@ -447,31 +450,41 @@ export function createElevator3D(host, { reduced = false, onFail } = {}) {
   const cable = new Mesh(keep(new CylinderGeometry(0.06, 0.06, 1, 6)), cableMat)
   scene.add(cable)
 
-  // Balcones: losa, barandilla, farol y el cartel de la planta.
-  const balcony = keep(new BoxGeometry(BALCONY_W, 0.3, 3.4))
-  const glassRail = keep(new MeshPhysicalMaterial({ color: '#a8d4ff', transparent: true, opacity: 0.25, roughness: 0.05 }))
-  const railGeo = keep(new BoxGeometry(BALCONY_W, 1.0, 0.06))
-  const signs = []
-  const lampGeo = keep(new SphereGeometry(0.2, 10, 8))
+  // Rellanos delante de las puertas: losa, barandilla de cristal con pasamanos dorado, dos faroles y el cartel de la planta.
+  const landingGeo = keep(new BoxGeometry(PLAT_W, 0.3, PLAT_D))
+  const glassRail = keep(new MeshPhysicalMaterial({ color: '#a8d4ff', transparent: true, opacity: 0.22, roughness: 0.05, depthWrite: false }))
+  const railFront = keep(new BoxGeometry(PLAT_W, 1.05, 0.05))
+  const railSide = keep(new BoxGeometry(0.05, 1.05, PLAT_D))
+  const barFront = keep(new BoxGeometry(PLAT_W + 0.1, 0.07, 0.09))
+  const barSide = keep(new BoxGeometry(0.09, 0.07, PLAT_D))
+  const handGold = keep(new MeshStandardMaterial({ color: '#d4ab52', metalness: 0.9, roughness: 0.3 }))
+  const lampGeo = keep(new SphereGeometry(0.13, 10, 8))
   const lampMat = keep(new MeshBasicMaterial({ color: new Color('#ffe2a8').multiplyScalar(3) }))
   for (let f = 0; f <= FLOORS; f++) {
     const y = floorY(f)
     if (f > 0) {
-      const b = new Mesh(balcony, slabMat)
-      b.position.set(BALCONY_X + BALCONY_W / 2, y - 0.15, FACE_Z + 1.7)
-      scene.add(b)
-      const r = new Mesh(railGeo, glassRail)
-      r.position.set(BALCONY_X + BALCONY_W / 2, y + 0.5, FACE_Z + 3.35)
-      scene.add(r)
+      const slab = new Mesh(landingGeo, slabMat)
+      slab.position.set(SHAFT_X, y - 0.15, PLAT_Z)
+      scene.add(slab)
+      const front = new Mesh(railFront, glassRail)
+      front.position.set(SHAFT_X, y + 0.52, PLAT_Z + PLAT_D / 2)
+      const bar = new Mesh(barFront, handGold)
+      bar.position.set(SHAFT_X, y + 1.06, PLAT_Z + PLAT_D / 2)
+      scene.add(front, bar)
+      for (const side of [-1, 1]) {
+        const r = new Mesh(railSide, glassRail)
+        r.position.set(SHAFT_X + (side * PLAT_W) / 2, y + 0.52, PLAT_Z)
+        const b = new Mesh(barSide, handGold)
+        b.position.set(SHAFT_X + (side * PLAT_W) / 2, y + 1.06, PLAT_Z)
+        const lamp = new Mesh(lampGeo, lampMat)
+        lamp.position.set(SHAFT_X + (side * PLAT_W) / 2, y + 1.2, PLAT_Z + PLAT_D / 2)
+        scene.add(r, b, lamp)
+      }
     }
     const sign = new Sprite(new SpriteMaterial({ map: floorSign(f), depthWrite: false }))
-    sign.position.set(BALCONY_X + 1.6, y + 2.6, FACE_Z + 0.3)
-    sign.scale.set(1.9, 1.2, 1)
+    sign.position.set(SHAFT_X - PLAT_W / 2 + 1.05, y + 1.75, PLAT_Z + PLAT_D / 2 - 0.15)
+    sign.scale.set(1.6, 1.0, 1)
     scene.add(sign)
-    signs.push(sign)
-    const lamp = new Mesh(lampGeo, lampMat)
-    lamp.position.set(BALCONY_X + BALCONY_W - 0.6, y + 3.2, FACE_Z + 0.4)
-    scene.add(lamp)
   }
 
   // La cabina: suelo, techo con luz, marco de acero, paredes de cristal y dos puertas que se abren.
@@ -534,8 +547,59 @@ export function createElevator3D(host, { reduced = false, onFail } = {}) {
   })
   const people = new Group()
   cab.add(people)
+  // El display de dentro, encima de las puertas (lo que se ve en primera persona).
+  const dispCanvas = document.createElement('canvas')
+  dispCanvas.width = 512
+  dispCanvas.height = 192
+  const dispTex = keep(new CanvasTexture(dispCanvas))
+  dispTex.colorSpace = SRGBColorSpace
+  const dispMat = keep(new MeshBasicMaterial({ map: dispTex, color: new Color(1.5, 1.5, 1.5) }))
+  const disp = new Mesh(keep(new PlaneGeometry(1.7, 0.64)), dispMat)
+  disp.rotation.y = Math.PI
+  disp.position.set(0, CAB_H - 0.5, CAB_D / 2 - 0.09)
+  cab.add(disp)
+  const dispFrame = new Mesh(keep(new BoxGeometry(1.86, 0.8, 0.05)), steel)
+  dispFrame.position.set(0, CAB_H - 0.5, CAB_D / 2 - 0.05)
+  cab.add(dispFrame)
+  let dispKey = ''
+  function paintDisplay(d) {
+    const blink = Math.floor(elapsed * 2) % 2
+    const key = d ? `${d.floor}|${d.moving}|${d.alarm}|${d.roof}|${Math.round((d.chance ?? 1) * 20)}|${blink}` : ''
+    if (key === dispKey) return
+    dispKey = key
+    const g = dispCanvas.getContext('2d')
+    g.fillStyle = '#0b0c0f'
+    g.fillRect(0, 0, 512, 192)
+    if (d) {
+      const color = d.alarm ? '#ff4040' : d.roof ? '#7dffb2' : '#ffc24a'
+      g.shadowColor = color
+      g.shadowBlur = 18
+      g.fillStyle = color
+      g.textBaseline = 'middle'
+      g.font = '700 46px ui-monospace, Menlo, Consolas, monospace'
+      g.globalAlpha = d.moving ? (blink ? 1 : 0.45) : 0.15
+      g.textAlign = 'left'
+      g.fillText('▲', 30, 70)
+      g.globalAlpha = d.alarm && blink ? 0.35 : 1
+      g.textAlign = 'center'
+      g.font = '800 104px ui-monospace, Menlo, Consolas, monospace'
+      g.fillText(d.alarm ? '!!' : d.floor === 0 ? 'PB' : d.floor >= FLOORS ? 'AZ' : String(d.floor), 230, 72)
+      g.font = '700 34px ui-monospace, Menlo, Consolas, monospace'
+      g.textAlign = 'right'
+      g.fillText(d.alarm ? 'FUERA DE SERVICIO' : d.roof ? '¡AZOTEA!' : fmtMult(MULTS[Math.min(d.floor, FLOORS)]), 490, 72)
+      g.globalAlpha = 1
+      g.shadowBlur = 0
+      if (d.chance != null && !d.alarm && !d.roof) {
+        g.fillStyle = '#222'
+        g.fillRect(30, 150, 452, 14)
+        g.fillStyle = `hsl(${Math.round(d.chance * 120)} 80% 50%)`
+        g.fillRect(30, 150, 452 * d.chance, 14)
+      }
+    }
+    dispTex.needsUpdate = true
+  }
 
-  // Quien se bajó, en el balcón de su planta.
+  // Quien se bajó, en el rellano de su planta.
   const ledge = new Group()
   scene.add(ledge)
 
@@ -558,6 +622,15 @@ export function createElevator3D(host, { reduced = false, onFail } = {}) {
       group.add(s)
     })
   }
+  // En primera persona, los demás van a tus lados (los de detrás no se ven).
+  const FP_SLOTS = [
+    [-1.45, 1.0],
+    [1.45, 1.05],
+    [-1.4, 0.2],
+    [1.4, 0.15],
+    [-0.6, -1.2],
+    [0.6, -1.2],
+  ]
   const SLOTS = [
     [-0.9, -0.6],
     [0.9, -0.6],
@@ -610,7 +683,6 @@ export function createElevator3D(host, { reduced = false, onFail } = {}) {
     renderer.setSize(w, h, false)
     composer.setSize(w, h)
     camera.aspect = w / h
-    camera.fov = w / h < 0.9 ? 58 : 46
     camera.updateProjectionMatrix()
   }
   resize()
@@ -627,6 +699,23 @@ export function createElevator3D(host, { reduced = false, onFail } = {}) {
   let fireworksAt = 0
   let shownRoof = false
   let first = true
+  let aimYaw = 0
+  let aimPitch = 0
+  let lookYaw = 0
+  let lookPitch = 0
+  // Con el ratón se mira un poco alrededor.
+  const onLook = (event) => {
+    if (event.pointerType !== 'mouse') return
+    const r = host.getBoundingClientRect()
+    aimYaw = -((event.clientX - r.left) / r.width - 0.5) * 0.9
+    aimPitch = -((event.clientY - r.top) / r.height - 0.5) * 0.45
+  }
+  const onLookOut = () => {
+    aimYaw = 0
+    aimPitch = 0
+  }
+  host.addEventListener('pointermove', onLook)
+  host.addEventListener('pointerleave', onLookOut)
   const camPos = new Vector3()
   const camLook = new Vector3()
   const wantPos = new Vector3()
@@ -736,11 +825,18 @@ export function createElevator3D(host, { reduced = false, onFail } = {}) {
     }
 
     // Pasajeros en la cabina y en los balcones.
-    const inKey = inside.map((p) => `${p.name}${p.me ? '*' : ''}`).join(',')
+    const fp = pov === 'inside'
+    const shown = fp ? inside.filter((p) => !p.me) : inside
+    const inKey = `${fp}|${shown.map((p) => `${p.name}${p.me ? '*' : ''}`).join(',')}`
     if (inKey !== insideKey) {
       insideKey = inKey
-      setPeople(people, inside.slice(0, SLOTS.length), (s, i) => s.position.set(SLOTS[i][0], 1.15, SLOTS[i][1]))
+      const slots = fp ? FP_SLOTS : SLOTS
+      setPeople(people, shown.slice(0, slots.length), (s, i) => {
+        s.position.set(slots[i][0], fp ? 0.86 : 1.15, slots[i][1])
+        if (fp) s.scale.set(0.95, 1.45, 1)
+      })
     }
+    paintDisplay(fr.disp)
     const out = []
     for (const [f, list] of outAt) list.forEach((p, i) => out.push({ p, f, i }))
     const outKey = out.map(({ p, f }) => `${p.name}@${f}`).join(',')
@@ -751,7 +847,7 @@ export function createElevator3D(host, { reduced = false, onFail } = {}) {
         out.map((o) => o.p),
         (s, k) => {
           const { f, i } = out[k]
-          s.position.set(BALCONY_X + BALCONY_W - 1.2 - (i % 5) * 1.05, floorY(Math.min(f, FLOORS)) + 0.9, FACE_Z + 1.2 + Math.floor(i / 5) * 0.8)
+          s.position.set(SHAFT_X + 2.2 - (i % 5) * 1.1, floorY(Math.min(f, FLOORS)) + 0.9, PLAT_Z + 0.5 + Math.floor(i / 5) * 0.8)
         },
       )
     }
@@ -785,25 +881,40 @@ export function createElevator3D(host, { reduced = false, onFail } = {}) {
     sparks.update(dt)
     dust.update(dt)
 
-    // Cámara: dentro del viaje, de frente a la cabina y un poco de lado (se ve la cabina, su balcón y la ciudad debajo);
-    // si te bajaste, desde tu balcón mirando cómo sigue; si no vas, desde la calle.
+    // Cámara. Dentro: en primera persona, a la altura de los ojos y pegada a la cabina, mirando por las puertas de cristal
+    // a la ciudad (cuanto más alto, más hacia abajo); con el ratón se mira alrededor. Si te bajaste: desde tu rellano,
+    // mirando cómo sigue. Si no vas en el viaje: desde la calle.
     const portrait = camera.aspect < 0.9
+    lookYaw += (aimYaw - lookYaw) * (1 - Math.exp(-dt * 5))
+    lookPitch += (aimPitch - lookPitch) * (1 - Math.exp(-dt * 5))
+    let fov = portrait ? 58 : 46
+    let snap = false
     if (pov === 'inside') {
-      // De lado, más allá de la esquina de la torre: la cabina, los balcones y, a la derecha, la ciudad.
-      wantPos.set(SHAFT_X + (portrait ? 9 : 15), y + 3.2, CAB_Z + (portrait ? 15 : 11))
-      wantLook.set(SHAFT_X + (portrait ? 0.5 : 1.5), y + 1.3, CAB_Z - 1)
+      const bob = fr.disp?.moving && !reduced ? Math.sin(elapsed * 8) * 0.012 : 0
+      wantPos.set(cab.position.x, y + EYE + bob, CAB_Z - 0.8)
+      const pitch = -0.08 - smooth(4, 50, y) * 0.22 + lookPitch
+      wantLook.set(wantPos.x + Math.sin(lookYaw) * 10, wantPos.y + Math.tan(pitch) * 10, wantPos.z + Math.cos(lookYaw) * 10)
+      fov = portrait ? 84 : 70
+      snap = true
     } else if (pov === 'landing') {
       const hy = floorY(here)
-      wantPos.set(BALCONY_X + BALCONY_W / 2 + 2, hy + 2.3, FACE_Z + (portrait ? 15 : 12))
-      wantLook.set(SHAFT_X - 1, mix(hy + 1.6, y + 1.6, 0.8), CAB_Z)
+      // A tu altura, a un lado del hueco (los rellanos de encima no tapan), mirando cómo sube la cabina.
+      wantPos.set(SHAFT_X + 5.8, hy + EYE, CAB_Z + 0.9)
+      wantLook.set(SHAFT_X - 0.4 + Math.sin(lookYaw) * 4, Math.max(hy + 1.4, mix(hy + 1.6, y + 1.8, 0.75)) + lookPitch * 6, CAB_Z - 0.5)
+      fov = portrait ? 80 : 66
     } else {
-      wantPos.set(SHAFT_X + (portrait ? 8 : 16), 2.8, CAB_Z + (portrait ? 20 : 16))
+      wantPos.set(SHAFT_X + (portrait ? 8 : 16), 2.8, CAB_Z + (portrait ? 24 : 20))
       wantLook.set(SHAFT_X + (portrait ? 0.5 : 2.5), Math.max(2.2, y * 0.85 + 1.8), CAB_Z)
+      if (!reduced) {
+        wantPos.x += Math.sin(elapsed * 0.25) * 0.6
+        wantPos.y += Math.sin(elapsed * 0.31) * 0.25
+      }
     }
-    if (!reduced) {
-      wantPos.x += Math.sin(elapsed * 0.25) * 0.6
-      wantPos.y += Math.sin(elapsed * 0.31) * 0.25
+    if (Math.abs(camera.fov - fov) > 0.05) {
+      camera.fov += (fov - camera.fov) * (1 - Math.exp(-dt * 6))
+      camera.updateProjectionMatrix()
     }
+    if (snap && !first) camPos.copy(wantPos)
     if (first) {
       camPos.copy(wantPos)
       camLook.copy(wantLook)
@@ -811,8 +922,10 @@ export function createElevator3D(host, { reduced = false, onFail } = {}) {
     }
     const k = 1 - Math.exp(-dt * (fallen ? 6 : 3.5))
     camPos.lerp(wantPos, k)
-    camLook.lerp(wantLook, k)
+    camLook.lerp(wantLook, snap ? 1 - Math.exp(-dt * 10) : k)
     camera.position.copy(camPos)
+    // Cayendo dentro de la cabina, todo tiembla.
+    if (fallen && pov === 'inside' && !landed && fallStart !== null && fallStart !== -Infinity && !reduced) shake = Math.max(shake, 0.12)
     if (shake > 0 && !reduced) {
       camera.position.add(tmp.set((R() - 0.5) * shake, (R() - 0.5) * shake, (R() - 0.5) * shake))
       shake = Math.max(0, shake - dt * 1.5)
@@ -829,6 +942,8 @@ export function createElevator3D(host, { reduced = false, onFail } = {}) {
 
   function destroy() {
     canvas.removeEventListener('webglcontextlost', onLost)
+    host.removeEventListener('pointermove', onLook)
+    host.removeEventListener('pointerleave', onLookOut)
     for (const tex of texCache.values()) tex.dispose()
     scene.traverse((obj) => {
       obj.geometry?.dispose?.()
