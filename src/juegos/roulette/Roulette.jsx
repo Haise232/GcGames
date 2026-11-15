@@ -24,8 +24,9 @@ import { useCountUp } from '../comun/useCountUp.js'
 import WinBurst from '../comun/WinBurst.jsx'
 import WinToast from '../comun/WinToast.jsx'
 import Help from '../comun/Help.jsx'
+import { CELLS, TRACK_ORDER } from './layout.js'
 import './Roulette.css'
-import './roulette3d.css'
+import './mesa3d.css'
 
 const COLOR_NAMES = { red: 'Rojo', black: 'Negro', green: 'Verde' }
 const REVEAL_WAIT_MS = 700 // tras el «no va más», lo que se espera para pedir el número (el servidor lo suelta a los 600 ms)
@@ -38,41 +39,6 @@ const MIN_BALL_MS = 2500
 const listOf = (items) =>
   items.length > 1 ? `${items.slice(0, -1).join(', ')} y ${items[items.length - 1]}` : `${items[0]}`
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`
-
-// Cada casilla lleva su posición en la mesa horizontal (c, r) y la columna
-// que ocupa cuando la mesa se gira a vertical en pantallas estrechas (mc).
-const CELLS = [
-  { id: 'n:0', n: 0, label: '0', tone: 'green', c: 1, r: 1, cs: 1, rs: 3, mc: 1 },
-  ...Array.from({ length: 36 }, (_, i) => {
-    const n = i + 1
-    const r = 3 - ((n - 1) % 3)
-    return { id: `n:${n}`, n, label: `${n}`, tone: colorOf(n), c: Math.ceil(n / 3) + 1, r, mc: 4 - r }
-  }),
-  ...[1, 2, 3].map((k) => ({
-    id: `col:${k}`,
-    label: '2 a 1',
-    name: `Columna ${k}`,
-    c: 14,
-    r: 4 - k,
-    mc: k,
-  })),
-  ...[1, 2, 3].map((k) => ({
-    id: `dozen:${k}`,
-    label: `${k}ª docena`,
-    c: 2 + (k - 1) * 4,
-    r: 4,
-    cs: 4,
-    mc: 4,
-  })),
-  ...[
-    { id: 'low', label: '1 a 18' },
-    { id: 'even', label: 'Par' },
-    { id: 'red', label: 'Rojo', diamond: 'red' },
-    { id: 'black', label: 'Negro', diamond: 'black' },
-    { id: 'odd', label: 'Impar' },
-    { id: 'high', label: '19 a 36' },
-  ].map((cell, i) => ({ ...cell, c: 2 + i * 2, r: 5, cs: 2, mc: 5 })),
-]
 
 const polar = (deg, radius) => {
   const rad = (deg * Math.PI) / 180
@@ -106,22 +72,15 @@ function hasWebGL() {
   }
 }
 
-// Rueda en directo: en 3D (roulette3d.js, con three.js cargado aparte) y, si no hay WebGL o falla, la rueda SVG.
-// spin: { number, launch, land } (instantes del reloj del servidor) · rest: número donde descansa la bola
-// lucky: números relámpago de esta tirada ({ n: ×N }).
-function Wheel(props) {
-  const [mode, setMode] = useState(() => (hasWebGL() ? '3d' : '2d'))
-  if (mode === '2d') return <FlatWheel {...props} />
-  return <Wheel3D {...props} onFail={() => setMode('2d')} />
-}
-
-function Wheel3D({ clock, spin, rest, lucky, reduced, onFail }) {
+// La mesa en 3D (mesa3d.js, con three.js cargado aparte): la rueda y el paño en una escena; se apuesta tocando el paño.
+// Recibe lo mismo que pinta la mesa HTML y avisa con onFail si WebGL falla (la pantalla vuelve a la mesa HTML).
+function Mesa3D({ clock, onPick, onRemove, onFail, reduced, ...view }) {
   const host = useRef(null)
   const props = useRef(null)
-  const fail = useRef(onFail)
+  const calls = useRef(null)
   const [loading, setLoading] = useState(true)
-  props.current = { spin, rest, lucky }
-  fail.current = onFail
+  props.current = view
+  calls.current = { onPick, onRemove, onFail }
 
   useEffect(() => {
     let dead = false
@@ -132,18 +91,23 @@ function Wheel3D({ clock, spin, rest, lucky, reduced, onFail }) {
       scene.draw({ t: clock(), ...props.current })
       frame = requestAnimationFrame(draw)
     }
-    import('./roulette3d.js')
-      .then(({ createWheel3D }) => {
+    import('./mesa3d.js')
+      .then(({ createTable3D }) => {
         if (dead) return
-        scene = createWheel3D(host.current, { reduced, onFail: () => fail.current() })
+        scene = createTable3D(host.current, {
+          reduced,
+          onFail: () => calls.current.onFail(),
+          onPick: (ids) => calls.current.onPick(ids),
+          onRemove: (id) => calls.current.onRemove(id),
+        })
         observer = new ResizeObserver(() => scene.resize())
         observer.observe(host.current)
         setLoading(false)
         draw()
       })
       .catch((error) => {
-        console.warn('Ruleta 3D no disponible, se usa la SVG', error)
-        if (!dead) fail.current()
+        console.warn('Mesa 3D no disponible, se usa la HTML', error)
+        if (!dead) calls.current.onFail()
       })
     return () => {
       dead = true
@@ -154,14 +118,14 @@ function Wheel3D({ clock, spin, rest, lucky, reduced, onFail }) {
   }, [clock, reduced])
 
   return (
-    <div className="wheel wheel--live wheel--3d" ref={host} role="img" aria-label="Rueda de la ruleta">
-      {loading && <p className="wheel__wait">Preparando la mesa…</p>}
+    <div className="rt3__table" ref={host} aria-hidden="true">
+      {loading && <p className="rt3__wait">Preparando la mesa…</p>}
     </div>
   )
 }
 
-// La rueda SVG de siempre (reserva sin WebGL).
-function FlatWheel({ clock, spin, rest, reduced }) {
+// La rueda SVG (con la mesa HTML, cuando no hay WebGL).
+function Wheel({ clock, spin, rest, reduced }) {
   const disc = useRef(null)
   const orbit = useRef(null)
   const ball = useRef(null)
@@ -226,7 +190,7 @@ function FlatWheel({ clock, spin, rest, reduced }) {
   )
 }
 
-function Table({ totals, hit, lucky, disabled, erasing, onPlace, onRemove }) {
+function Table({ totals, hit, lucky, disabled, erasing, onPlace, onRemove, onFocusCell }) {
   const luckyOrder = Object.keys(lucky)
   return (
     <div className="felt">
@@ -253,6 +217,8 @@ function Table({ totals, hit, lucky, disabled, erasing, onPlace, onRemove }) {
             disabled={disabled}
             aria-label={amount ? `${name}, apostado ${eur(amount)}` : name}
             onClick={() => (erasing ? onRemove(cell.id) : onPlace([cell.id]))}
+            onFocus={() => onFocusCell?.(cell.id)}
+            onBlur={() => onFocusCell?.(null)}
             onContextMenu={(event) => {
               event.preventDefault()
               onRemove(cell.id)
@@ -294,8 +260,6 @@ function trackPoint(k) {
   return [left - r * Math.sin(a), h / 2 + r * Math.cos(a)]
 }
 
-// Se empieza por el 19 para que el cero quede en el centro de la curva de la izquierda, como en las mesas reales.
-const TRACK_ORDER = WHEEL.map((_, k) => WHEEL[(k + 3) % WHEEL.length])
 
 function Racetrack({ totals, hit, disabled, chip, onPlace }) {
   return (
@@ -454,6 +418,9 @@ function Roulette({ onExit, juegos }) {
   const [winners, setWinners] = useState({ round: null, list: [] })
   const [notice, setNotice] = useState(null) // { round, text }: fichas que no llegaron a jugar
   const [erasing, setErasing] = useState(false)
+  const [mesa3d, setMesa3d] = useState(() => hasWebGL())
+  const [focusCell, setFocusCell] = useState(null)
+  const [statsOpen, setStatsOpen] = useState(false)
   const [, setTick] = useState(0)
   const skew = useRef(null)
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
@@ -663,77 +630,232 @@ function Roulette({ onExit, juegos }) {
     if (juegos.error) detail = juegos.error
   }
 
-  return (
-    <main className="app roulette-live">
-      <header className="top">
-        <h1>Ruleta</h1>
-        <div className="hud">
-          <dl className="money">
-            <div>
-              <dt>Saldo de la semana</dt>
-              <dd className={won ? 'money__up' : ''}>{eur(shownBank)}</dd>
+  const headerEl = (
+    <header className="top">
+      <h1>Ruleta</h1>
+      <div className="hud">
+        <dl className="money">
+          <div>
+            <dt>Saldo de la semana</dt>
+            <dd className={won ? 'money__up' : ''}>{eur(shownBank)}</dd>
+          </div>
+          <div>
+            <dt>En la mesa</dt>
+            <dd>{eur(onTable)}</dd>
+          </div>
+          <div>
+            <dt title="Victorias seguidas en las que ganas al menos el doble de lo apostado">Racha</dt>
+            <dd className={streak >= 2 ? 'money__hot' : ''}>
+              {streak}
+              {nextBonus > 0 && <small>+{nextBonus}% si ganas el doble</small>}
+            </dd>
+          </div>
+        </dl>
+        <div className="toggles">
+          <button type="button" className="tg tg--back" onClick={onExit}>
+            Juegos
+          </button>
+          <button
+            type="button"
+            className="tg tg--sound"
+            aria-pressed={sound}
+            onClick={() => {
+              setMuted(sound)
+              setSound(!sound)
+            }}
+          >
+            Sonido
+          </button>
+          <Help className="tg tg--help" title="Cómo se juega">
+            <p>
+              Es una mesa en vivo: la rueda es la misma para todos y lanza la bola cada 25 segundos. Tienes 15 segundos para
+              apostar; con el «no va más» la mesa se cierra y la bola gira.
+            </p>
+            <p>
+              Elige el valor de la ficha y toca una casilla: la apuesta se guarda sola, no hay que confirmar. Mientras la
+              mesa esté abierta puedes cambiarla: «Deshacer» quita la última ficha, «Quitar fichas» (o el clic derecho)
+              quita las de la casilla que toques y «Quitar todo» lo retira todo.
+            </p>
+            <p>
+              En la pista, tocar un número apuesta a él y a sus dos vecinos de la rueda (5 fichas). Los sectores ponen una
+              ficha a pleno en cada número: Vecinos del cero (17), Tercio (12), Huérfanos (8) y Juego cero (7).
+            </p>
+            <p>
+              Relámpago ⚡: con el «no va más» se marcan de 1 a 3 números al azar. Si la bola cae en uno y tenías ficha a
+              pleno en él, ese pleno paga entre 50 y 150 a 1 en vez de {STRAIGHT_PAYS} a 1.
+            </p>
+            <p>Cada victoria seguida en la que al menos duplicas lo apostado suma un 5% extra a la siguiente, hasta un 15%. El
+              extra se calcula sobre la ganancia más pequeña de la racha.
+            </p>
+            <p>Juegas con tu saldo de la semana: lo que ganes o pierdas cuenta en el Score.</p>
+            <h3>Pagos</h3>
+            <p>
+              Pleno {STRAIGHT_PAYS} a 1 · Docena y columna 2 a 1 · Rojo, negro, par, impar, 1-18 y 19-36: 1 a 1.
+            </p>
+          </Help>
+        </div>
+      </div>
+    </header>
+  )
+  const celebrate = (
+    <>
+    {won && (
+      <WinBurst
+        key={round}
+        amount={mine.net}
+        caption={`Ganaste con el ${spin.number}`}
+        coins={Math.min(70, Math.round(24 + (mine.net / Math.max(mine.stake, 1)) * 6))}
+        big={mine.net >= mine.stake * 10}
+        who={juegos.me?.name}
+        tags={[
+          mine.boosted && `Relámpago ×${mine.boosted}`,
+          mine.bonus > 0 && `Racha de ${mine.streak}: +${eur(mine.bonus)} extra`,
+        ].filter(Boolean)}
+      />
+    )}
+    <WinToast wins={othersWon} />
+    </>
+  )
+  const lastPlayEl = lastPlay && (
+      <p className={`last-play ${lastPlay.net > 0 ? 'last-play--win' : lastPlay.net < 0 ? 'last-play--lose' : ''}`}>
+        <span className={`tile tile--${colorOf(lastPlay.number)}`}>{lastPlay.number}</span>
+        Tu última jugada: apostaste {eur(lastPlay.stake)} y{' '}
+        {lastPlay.net > 0 ? `ganaste ${eur(lastPlay.net)}` : lastPlay.net < 0 ? `perdiste ${eur(-lastPlay.net)}` : 'quedaste igual'}
+        {lastPlay.boosted ? ` · ⚡ relámpago ×${lastPlay.boosted}` : ''}
+        {lastPlay.bonus > 0 ? ` · racha +${eur(lastPlay.bonus)}` : ''}
+      </p>
+  )
+
+  if (mesa3d) {
+    return (
+      <main className="app roulette-live rt3-app">
+          {headerEl}
+
+        <div className="rt3 fill">
+          <div className="rt3__stage">
+            <Mesa3D
+              clock={clock}
+              reduced={reduced}
+              spin={spin}
+              rest={rest}
+              lucky={lucky}
+              totals={totalsById(placed)}
+              chip={chip}
+              disabled={!betting || broke}
+              erasing={erasingOn}
+              focus={focusCell}
+              mode={ready && phase === 'betting' ? 'betting' : 'spinning'}
+              onPick={place}
+              onRemove={remove}
+              onFail={() => setMesa3d(false)}
+            />
+            <div className="rt3__hud">
+              <div className="dealer rt3__dealer">
+                <Countdown phase={ready ? phase : 'spinning'} offset={offset} />
+                <p className={`status ${won ? 'status--win' : ''}`} aria-live="polite">
+                  <strong>{call}</strong>
+                  {detail && <span>{detail}</span>}
+                </p>
+              </div>
+              <div className="rt3__side">
+                <p className="rt3__players">{players > 0 ? `${plural(players, 'jugador', 'jugadores')} en esta tirada` : 'Mesa en vivo'}</p>
+                {numbers.length > 0 && (
+                  <ol className="rt3__recent" aria-label="Últimos números">
+                    {numbers.slice(0, 10).map((n, i) => (
+                      <li key={`${round}-${i}`} className={`tile tile--${colorOf(n)}`}>
+                        {n}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
             </div>
-            <div>
-              <dt>En la mesa</dt>
-              <dd>{eur(onTable)}</dd>
+            {statsOpen && (
+              <div className="rt3__stats">
+                <Stats numbers={numbers} />
+              </div>
+            )}
+          </div>
+          <div className="rt3__dock">
+            <div className="chips" role="group" aria-label="Valor de la ficha">
+              {CHIPS.map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`chip chip--${value}`}
+                  aria-pressed={chip === value}
+                  disabled={available < value}
+                  title={available < value ? 'No te llega el saldo para esta ficha' : `Fichas de ${eur(value)}`}
+                  onClick={() => dispatch({ type: 'SELECT_CHIP', chip: value })}
+                >
+                  {value}
+                </button>
+              ))}
             </div>
-            <div>
-              <dt title="Victorias seguidas en las que ganas al menos el doble de lo apostado">Racha</dt>
-              <dd className={streak >= 2 ? 'money__hot' : ''}>
-                {streak}
-                {nextBonus > 0 && <small>+{nextBonus}% si ganas el doble</small>}
-              </dd>
+            <div className="rt3__info">
+              <span className="rt3__bet">
+                En la mesa <b>{eur(onTable)}</b>
+              </span>
+              {lastPlayEl}
             </div>
-          </dl>
-          <div className="toggles">
-            <button type="button" className="tg tg--back" onClick={onExit}>
-              Juegos
-            </button>
-            <button
-              type="button"
-              className="tg tg--sound"
-              aria-pressed={sound}
-              onClick={() => {
-                setMuted(sound)
-                setSound(!sound)
-              }}
-            >
-              Sonido
-            </button>
-            <Help className="tg tg--help" title="Cómo se juega">
-              <p>
-                Es una mesa en vivo: la rueda es la misma para todos y lanza la bola cada 25 segundos. Tienes 15 segundos para
-                apostar; con el «no va más» la mesa se cierra y la bola gira.
-              </p>
-              <p>
-                Elige el valor de la ficha y toca una casilla: la apuesta se guarda sola, no hay que confirmar. Mientras la
-                mesa esté abierta puedes cambiarla: «Deshacer» quita la última ficha, «Quitar fichas» (o el clic derecho)
-                quita las de la casilla que toques y «Quitar todo» lo retira todo.
-              </p>
-              <p>
-                En la pista, tocar un número apuesta a él y a sus dos vecinos de la rueda (5 fichas). Los sectores ponen una
-                ficha a pleno en cada número: Vecinos del cero (17), Tercio (12), Huérfanos (8) y Juego cero (7).
-              </p>
-              <p>
-                Relámpago ⚡: con el «no va más» se marcan de 1 a 3 números al azar. Si la bola cae en uno y tenías ficha a
-                pleno en él, ese pleno paga entre 50 y 150 a 1 en vez de {STRAIGHT_PAYS} a 1.
-              </p>
-              <p>Cada victoria seguida en la que al menos duplicas lo apostado suma un 5% extra a la siguiente, hasta un 15%. El
-                extra se calcula sobre la ganancia más pequeña de la racha.
-              </p>
-              <p>Juegas con tu saldo de la semana: lo que ganes o pierdas cuenta en el Score.</p>
-              <h3>Pagos</h3>
-              <p>
-                Pleno {STRAIGHT_PAYS} a 1 · Docena y columna 2 a 1 · Rojo, negro, par, impar, 1-18 y 19-36: 1 a 1.
-              </p>
-            </Help>
+            <div className="actions">
+              {canRepeat ? (
+                <button type="button" className="primary" onClick={() => dispatch({ type: 'REPEAT', available })}>
+                  Repetir apuesta
+                </button>
+              ) : (
+                <>
+                  <button type="button" disabled={!betting || placed.length === 0} onClick={() => dispatch({ type: 'UNDO' })}>
+                    Deshacer
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={erasingOn}
+                    disabled={!betting || placed.length === 0}
+                    title="Toca una casilla para quitar sus fichas de una en una (o clic derecho)"
+                    onClick={() => setErasing(!erasingOn)}
+                  >
+                    Quitar fichas
+                  </button>
+                  <button type="button" disabled={!betting || placed.length === 0} onClick={() => dispatch({ type: 'CLEAR' })}>
+                    Quitar todo
+                  </button>
+                  <button type="button" disabled={!betting || onTable === 0 || onTable > available} onClick={() => dispatch({ type: 'DOUBLE', available })}>
+                    Doblar
+                  </button>
+                </>
+              )}
+              <button type="button" className="rt3__statsbtn" aria-pressed={statsOpen} disabled={numbers.length === 0} onClick={() => setStatsOpen(!statsOpen)}>
+                Estadísticas
+              </button>
+            </div>
+          </div>
+          {/* La mesa para el teclado y los lectores de pantalla: las mismas casillas, fuera de la vista. */}
+          <div className="rt3__sr">
+            <Table
+              totals={totalsById(placed)}
+              hit={landed ? spin.number : null}
+              lucky={lucky}
+              disabled={!betting || broke}
+              erasing={erasingOn}
+              onPlace={place}
+              onRemove={remove}
+              onFocusCell={setFocusCell}
+            />
+            <Racetrack totals={totalsById(placed)} hit={landed ? spin.number : null} disabled={!betting || broke} chip={chip} onPlace={place} />
           </div>
         </div>
-      </header>
+        {celebrate}
+      </main>
+    )
+  }
 
+  return (
+    <main className="app roulette-live">
+      {headerEl}
       <div className="floor fill">
         <section className={`side ${ready && phase !== 'betting' ? 'side--up' : ''}`}>
-          <Wheel clock={clock} spin={spin} rest={rest} lucky={lucky} reduced={reduced} />
+          <Wheel clock={clock} spin={spin} rest={rest} reduced={reduced} />
           <div className="recent">
             <h2>Últimos números</h2>
             {numbers.length === 0 ? (
@@ -786,16 +908,7 @@ function Roulette({ onExit, juegos }) {
           <p className="pays">
             Pleno {STRAIGHT_PAYS} a 1 · Docena y columna 2 a 1 · Rojo, negro, par, impar, 1-18 y 19-36: 1 a 1
           </p>
-          {lastPlay && (
-            <p className={`last-play ${lastPlay.net > 0 ? 'last-play--win' : lastPlay.net < 0 ? 'last-play--lose' : ''}`}>
-              <span className={`tile tile--${colorOf(lastPlay.number)}`}>{lastPlay.number}</span>
-              Tu última jugada: apostaste {eur(lastPlay.stake)} y{' '}
-              {lastPlay.net > 0 ? `ganaste ${eur(lastPlay.net)}` : lastPlay.net < 0 ? `perdiste ${eur(-lastPlay.net)}` : 'quedaste igual'}
-              {lastPlay.boosted ? ` · ⚡ relámpago ×${lastPlay.boosted}` : ''}
-              {lastPlay.bonus > 0 ? ` · racha +${eur(lastPlay.bonus)}` : ''}
-            </p>
-          )}
-
+          {lastPlayEl}
           <div className="controls">
             <div className="chips" role="group" aria-label="Valor de la ficha">
               {CHIPS.map((value) => (
@@ -851,21 +964,7 @@ function Roulette({ onExit, juegos }) {
         </section>
       </div>
 
-      {won && (
-        <WinBurst
-          key={round}
-          amount={mine.net}
-          caption={`Ganaste con el ${spin.number}`}
-          coins={Math.min(70, Math.round(24 + (mine.net / Math.max(mine.stake, 1)) * 6))}
-          big={mine.net >= mine.stake * 10}
-          who={juegos.me?.name}
-          tags={[
-            mine.boosted && `Relámpago ×${mine.boosted}`,
-            mine.bonus > 0 && `Racha de ${mine.streak}: +${eur(mine.bonus)} extra`,
-          ].filter(Boolean)}
-        />
-      )}
-      <WinToast wins={othersWon} />
+      {celebrate}
     </main>
   )
 }

@@ -1,0 +1,410 @@
+/* Escrito a mano: la Ruleta con la mesa en 3D (mesa3d.js). La mesa ocupa casi toda la pantalla; encima, el crupier
+   (cuenta atrás y lo que anuncia), los últimos números y lo que pinta la escena (relámpagos, número ganador, ayuda del
+   puntero); debajo, el dock con las fichas y las acciones. Sin WebGL se usa la mesa HTML de Roulette.css. */
+
+.juegos-root .rt3-app {
+  gap: clamp(8px, 1.4vh, 14px);
+}
+.juegos-root .rt3 {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1.4vh, 14px);
+  min-height: 0;
+}
+.juegos-root .rt3__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 240px;
+  border-radius: 24px;
+  overflow: hidden;
+  isolation: isolate;
+  container-type: size;
+  background: radial-gradient(ellipse at 50% 40%, #0f5a40, #04140e 80%);
+  box-shadow:
+    0 0 0 2px rgba(200, 162, 75, 0.6),
+    0 0 0 7px rgba(6, 10, 8, 0.65),
+    0 24px 60px rgba(2, 6, 10, 0.7);
+}
+.juegos-root .rt3__table {
+  position: absolute;
+  inset: 0;
+}
+.juegos-root .rt3__wait {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+/* Crupier y últimos números, encima de la mesa. */
+.juegos-root .rt3__hud {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  pointer-events: none;
+}
+.juegos-root .rt3__dealer {
+  max-width: min(560px, 62cqw);
+  margin: 0;
+  padding: 10px 16px 10px 10px;
+  border-radius: 18px;
+  background: rgba(5, 10, 8, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(200, 162, 75, 0.4);
+  backdrop-filter: blur(8px);
+}
+.juegos-root .rt3__dealer .status strong {
+  font-size: clamp(18px, 3.4cqw, 30px);
+}
+.juegos-root .rt3__dealer .status span {
+  font-size: clamp(13px, 1.9cqw, 16px);
+}
+.juegos-root .rt3__side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.juegos-root .rt3__players {
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(5, 10, 8, 0.72);
+  font-size: 13px;
+  color: #d9d2c2;
+}
+.juegos-root .rt3__recent {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border-radius: 14px;
+  background: rgba(5, 10, 8, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(200, 162, 75, 0.3);
+}
+.juegos-root .rt3__recent .tile {
+  width: 30px;
+  height: 30px;
+  font-size: 14px;
+}
+.juegos-root .rt3__recent .tile:first-child {
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+}
+
+/* Estadísticas en un panel que se abre desde el dock. */
+.juegos-root .rt3__stats {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: min(340px, calc(100% - 24px));
+  max-height: calc(100% - 120px);
+  overflow: auto;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(5, 10, 8, 0.9);
+  box-shadow:
+    inset 0 0 0 1px rgba(200, 162, 75, 0.45),
+    0 16px 40px rgba(0, 0, 0, 0.5);
+  animation: rt3-pop 0.25s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.juegos-root .rt3__stats .stats {
+  margin: 0;
+}
+
+/* Dock: fichas, lo apostado y acciones. */
+.juegos-root .rt3__dock {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 18px;
+  padding: 10px 14px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(20, 30, 26, 0.85), rgba(8, 14, 12, 0.85));
+  box-shadow: inset 0 0 0 1px rgba(200, 162, 75, 0.35);
+}
+.juegos-root .rt3__dock .chips {
+  gap: 8px;
+}
+.juegos-root .rt3__dock .chip {
+  width: clamp(46px, 6.4vh, 60px);
+  height: clamp(46px, 6.4vh, 60px);
+}
+.juegos-root .rt3__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.juegos-root .rt3__bet {
+  color: var(--muted);
+  font-size: 14px;
+}
+.juegos-root .rt3__bet b {
+  margin-left: 6px;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(20px, 3vh, 28px);
+  color: var(--brass);
+}
+.juegos-root .rt3__info .last-play {
+  margin: 0;
+  font-size: 13px;
+}
+.juegos-root .rt3__dock .actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.juegos-root .rt3__dock .actions button {
+  min-height: 44px;
+  padding: 8px 14px;
+  font-size: 15px;
+}
+
+/* La mesa HTML sigue ahí para el teclado y los lectores de pantalla, fuera de la vista. */
+.juegos-root .rt3__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- Lo que pinta la escena encima del lienzo (mesa3d.js). --- */
+.juegos-root .rt3d {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--sans);
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .rt3d__gl {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+.juegos-root .rt3d__vig {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.45));
+}
+.juegos-root .rt3d__flash {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(circle at 30% 45%, rgba(255, 246, 200, 0.7), rgba(255, 211, 74, 0.2) 45%, transparent 70%);
+  mix-blend-mode: screen;
+}
+.juegos-root .rt3d__flash--on {
+  animation: rt3-flash 0.9s ease-out;
+}
+@keyframes rt3-flash {
+  0%,
+  30% {
+    opacity: 1;
+  }
+  15% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.juegos-root .rt3d__lucky {
+  position: absolute;
+  left: 12px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.juegos-root .rt3d__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: rgba(20, 14, 2, 0.82);
+  box-shadow:
+    inset 0 0 0 2px #ffd34a,
+    0 0 16px rgba(255, 211, 74, 0.45);
+  color: #ffd34a;
+  font-size: 14px;
+  font-weight: 800;
+  animation: rt3-pop 0.4s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+.juegos-root .rt3d__chip b {
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #fff;
+  background: #16171c;
+}
+.juegos-root .rt3d__chip--red b {
+  background: #c0262d;
+}
+.juegos-root .rt3d__chip--green b {
+  background: #13804a;
+}
+.juegos-root .rt3d__result {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 20px 6px 6px;
+  border-radius: 999px;
+  background: rgba(8, 10, 14, 0.8);
+  box-shadow: inset 0 0 0 2px rgba(200, 162, 75, 0.85);
+  color: #f6efdf;
+  font-size: clamp(16px, 2.6cqw, 22px);
+  font-weight: 700;
+  translate: -50% 20px;
+  opacity: 0;
+  transition:
+    opacity 0.35s,
+    translate 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.juegos-root .rt3d__result--on {
+  opacity: 1;
+  translate: -50% 0;
+}
+.juegos-root .rt3d__result b {
+  display: grid;
+  place-items: center;
+  width: clamp(42px, 7cqw, 58px);
+  height: clamp(42px, 7cqw, 58px);
+  border-radius: 50%;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(22px, 4cqw, 34px);
+  background: #16171c;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+.juegos-root .rt3d__result[data-tone='red'] b {
+  background: #c0262d;
+}
+.juegos-root .rt3d__result[data-tone='green'] b {
+  background: #13804a;
+}
+.juegos-root .rt3d__tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 18px 0 0 14px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: rgba(5, 8, 6, 0.88);
+  box-shadow: inset 0 0 0 1px rgba(200, 162, 75, 0.5);
+  color: #f6efdf;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.juegos-root .rt3d__tip--on {
+  opacity: 1;
+}
+@keyframes rt3-pop {
+  from {
+    scale: 0.6;
+    opacity: 0;
+  }
+}
+
+/* Móvil: la mesa (en vertical) se lleva casi todo el alto; el dock en dos filas. */
+@media (max-width: 760px) {
+  .juegos-root .rt3-app {
+    height: 100svh;
+  }
+  .juegos-root .rt3__stage {
+    border-radius: 16px;
+  }
+  .juegos-root .rt3__hud {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .juegos-root .rt3__dealer {
+    max-width: none;
+    padding: 6px 10px 6px 6px;
+  }
+  .juegos-root .rt3__dealer .countdown {
+    --size: 40px;
+  }
+  .juegos-root .rt3__dealer .status span {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .juegos-root .rt3__side {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .juegos-root .rt3__recent .tile:nth-child(n + 7) {
+    display: none;
+  }
+  .juegos-root .rt3__dock {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  .juegos-root .rt3__dock .actions {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+    flex-wrap: nowrap;
+  }
+  .juegos-root .rt3__dock .actions button {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 4px;
+    font-size: 13px;
+  }
+  .juegos-root .rt3__dock .chips {
+    grid-column: 1 / -1;
+    justify-content: center;
+    flex-wrap: nowrap;
+  }
+  .juegos-root .rt3__dock .chip {
+    width: 46px;
+    height: 46px;
+  }
+  .juegos-root .rt3__info {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .rt3d__flash--on,
+  .juegos-root .rt3d__chip,
+  .juegos-root .rt3__stats {
+    animation: none;
+  }
+}
