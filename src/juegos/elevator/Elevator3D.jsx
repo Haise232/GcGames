@@ -3,10 +3,11 @@
 // pantalla vuelve a la escena CSS (ElevatorView.jsx).
 import { useEffect, useRef, useState } from 'react'
 import { FLOORS } from './elevator.js'
+import { eur } from '../comun/money.js'
 import { Cop, Display } from './ElevatorView.jsx'
 import './elevator3d.css'
 
-export default function Elevator3D({ clock, scene: sceneProps, view, onFail }) {
+export default function Elevator3D({ clock, scene: sceneProps, view, onFail, children }) {
   const host = useRef(null)
   const props = useRef(sceneProps)
   const fail = useRef(onFail)
@@ -48,7 +49,7 @@ export default function Elevator3D({ clock, scene: sceneProps, view, onFail }) {
     }
   }, [clock])
 
-  const { floor, moving, fallen, roof, next, chance, crash, status, pov } = view
+  const { floor, moving, fallen, roof, next, chance, crash, status, pov, stake, cash, nextCash, won } = view
   const cop = {
     floor: view.floor,
     phase: view.phase,
@@ -59,6 +60,7 @@ export default function Elevator3D({ clock, scene: sceneProps, view, onFail }) {
     onExit: view.onExit,
     exitLabel: view.exitLabel,
   }
+  const inside = pov === 'inside' && !fallen && !roof
   return (
     <div className={`el3 el3--${pov} ${fallen ? 'is-fallen' : ''} ${roof ? 'is-roof' : ''}`}>
       <div className="el3__scene" ref={host} role="img" aria-label={status}>
@@ -66,7 +68,8 @@ export default function Elevator3D({ clock, scene: sceneProps, view, onFail }) {
       </div>
       {/* Dentro, el display es el de la cabina (en 3D, encima de las puertas). */}
       {pov !== 'inside' && <Display floor={roof ? FLOORS : floor} moving={moving} alarm={fallen} roof={roof} next={next} chance={chance} />}
-      {pov === 'inside' && !fallen && !roof && <Cop where="float" {...cop} />}
+      {/* Datos del viaje (dentro, bote, últimas caídas) como rótulos arriba a la izquierda. */}
+      <div className="el3__top">{children}</div>
       {fallen && (
         <div className="el3__fall" aria-hidden="true">
           <b>¡Se ha roto el cable!</b>
@@ -78,6 +81,37 @@ export default function Elevator3D({ clock, scene: sceneProps, view, onFail }) {
           <b>¡Azotea!</b>
         </div>
       )}
+      {/* Abajo: el estado (región viva), el HUD con lo importante y, dentro, la botonera de la pared de la cabina. */}
+      <div className="el3__dock">
+        <p className={`el3__status ${won ? 'is-win' : ''}`} aria-live="polite">
+          {status}
+        </p>
+        {inside && stake > 0 && (
+          <div className="el3__hud">
+            <span className="el3__hud-cell">
+              <small>Entrada</small>
+              <b>{eur(stake)}</b>
+            </span>
+            <span className="el3__hud-cell el3__hud-cell--cash">
+              <small>Si te bajas</small>
+              <b>{cash != null ? eur(cash) : '—'}</b>
+            </span>
+            {chance != null && (
+              <span className="el3__hud-odds" style={{ '--c': chance }}>
+                <small>
+                  Llegar a la {next}
+                  {nextCash != null && <em> · {eur(nextCash)}</em>}
+                </small>
+                <b>{Math.round(chance * 100)} %</b>
+                <i aria-hidden="true">
+                  <u />
+                </i>
+              </span>
+            )}
+          </div>
+        )}
+        {inside && <Cop where="float" {...cop} />}
+      </div>
     </div>
   )
 }

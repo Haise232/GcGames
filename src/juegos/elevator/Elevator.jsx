@@ -351,7 +351,37 @@ function Elevator({ onExit, juegos }) {
     exitLabel: exitLabel,
     joinedCount: players.length,
     status: status,
+    // Solo presentación (HUD de la escena): entrada, lo que cobras si te bajas ahora y lo de la siguiente planta.
+    stake: iAmInside ? myStake : 0,
+    cash: iAmInside && floor >= 1 ? payout(myStake, floor) : null,
+    nextCash: iAmInside && next <= FLOORS ? payout(myStake, next) : null,
+    won: won,
   }
+
+  // Rótulos de datos del viaje: en 3D van encima de la escena; con la escena CSS de reserva, debajo.
+  const strip = (
+    <div className="el-strip">
+      <span>
+        <small>Dentro</small>
+        <b>{inside.length}</b>
+      </span>
+      <span>
+        <small>Se bajaron</small>
+        <b>{players.filter((p) => p.out != null).length}</b>
+      </span>
+      <span>
+        <small>Bote</small>
+        <b>{eur(pot)}</b>
+      </span>
+      <span className="el-strip__hist" aria-label="Últimas caídas">
+        {history.slice(0, 8).map((h) => (
+          <i key={h.round} className={h.crash > FLOORS ? 'is-roof' : h.crash >= 8 ? 'is-high' : ''}>
+            {h.crash > FLOORS ? 'AZ' : h.crash}
+          </i>
+        ))}
+      </span>
+    </div>
+  )
 
   return (
     <main className="app s3-app elevator-app">
@@ -412,9 +442,11 @@ function Elevator({ onExit, juegos }) {
 
       <div className="s3 fill">
         <section className="s3__stage el" aria-label="El ascensor">
-          <p className={`status ${won ? 'status--win' : ''}`} aria-live="polite">
-            {status}
-          </p>
+          {!mode3d && (
+            <p className={`status ${won ? 'status--win' : ''}`} aria-live="polite">
+              {status}
+            </p>
+          )}
           {mode3d ? (
             <Elevator3D
               clock={clock}
@@ -434,35 +466,19 @@ function Elevator({ onExit, juegos }) {
                 outAt,
               }}
               onFail={() => setMode3d(false)}
-            />
+            >
+              {strip}
+            </Elevator3D>
           ) : (
-            <ElevatorView {...stageView} />
+            <>
+              <ElevatorView {...stageView} />
+              {strip}
+            </>
           )}
-          <div className="el-strip">
-            <span>
-              <small>Dentro</small>
-              <b>{inside.length}</b>
-            </span>
-            <span>
-              <small>Se bajaron</small>
-              <b>{players.filter((p) => p.out != null).length}</b>
-            </span>
-            <span>
-              <small>Bote del viaje</small>
-              <b>{eur(pot)}</b>
-            </span>
-            <span className="el-strip__hist" aria-label="Últimas caídas">
-              {history.slice(0, 8).map((h) => (
-                <i key={h.round} className={h.crash > FLOORS ? 'is-roof' : h.crash >= 8 ? 'is-high' : ''}>
-                  {h.crash > FLOORS ? 'AZ' : h.crash}
-                </i>
-              ))}
-            </span>
-          </div>
         </section>
 
         <aside className="s3__panel el-panel">
-          <div className="s3__group">
+          <div className="s3__group el-trip">
             <h2>{clockAt.phase === 'join' && !joined ? 'Entrada' : 'Tu viaje'}</h2>
             {clockAt.phase === 'join' && !joined ? (
               <>
@@ -489,38 +505,34 @@ function Elevator({ onExit, juegos }) {
                 </div>
               </>
             ) : (
-              <p className="el-amount">
-                {joined ? eur(myStake) : 'Mirando'}
-                <small>
-                  {!joined
-                    ? `${plural(players.length, 'jugador', 'jugadores')} en este viaje`
-                    : myOut != null
-                      ? `Bajaste en la ${myOut}: ${eur(payout(myStake, myOut))}`
-                      : me?.fell
-                        ? 'Caíste con el ascensor'
-                        : doorsOpenRide
-                          ? `Si te bajas ahora: ${eur(payout(myStake, floor))}`
-                          : `En la planta ${next}: ${eur(payout(myStake, next))}`}
-                </small>
-              </p>
+              <>
+                <p className="el-amount">
+                  {joined ? eur(myStake) : 'Mirando'}
+                  <small>
+                    {!joined
+                      ? `${plural(players.length, 'jugador', 'jugadores')} en este viaje`
+                      : myOut != null
+                        ? `Bajaste en la ${myOut}: ${eur(payout(myStake, myOut))}`
+                        : me?.fell
+                          ? 'Caíste con el ascensor'
+                          : doorsOpenRide
+                            ? `Si te bajas ahora: ${eur(payout(myStake, floor))}`
+                            : `En la planta ${next}: ${eur(payout(myStake, next))}`}
+                  </small>
+                </p>
+                {iAmInside && chance != null && !done && (
+                  <div className="el-odds" style={{ '--c': chance }}>
+                    <span>
+                      Llegar a la planta {next}
+                      <b>{pct(chance)}</b>
+                    </span>
+                    <i aria-hidden="true">
+                      <u />
+                    </i>
+                  </div>
+                )}
+              </>
             )}
-            <label className="el-auto">
-              Bajarme solo en
-              <select
-                value={(joined ? myAuto : auto) ?? ''}
-                disabled={sending || (joined && (!iAmInside || done))}
-                onChange={(e) => changeAuto(e.target.value === '' ? null : Number(e.target.value))}
-              >
-                <option value="">A mano</option>
-                {Array.from({ length: FLOORS - 1 }, (_, i) => i + 1)
-                  .filter((f) => !riding || f > floor)
-                  .map((f) => (
-                    <option key={f} value={f}>
-                      Planta {f} · {fmtMult(MULTS[f])} ({pct(survival(f))} de llegar)
-                    </option>
-                  ))}
-              </select>
-            </label>
           </div>
           <div className="actions s3__actions el-actions">
             {iAmInside && riding && !done ? (
@@ -540,6 +552,25 @@ function Elevator({ onExit, juegos }) {
                         : `Subir por ${eur(stake)}`}
               </button>
             )}
+          </div>
+          <div className="s3__group">
+            <label className="el-auto">
+              <span>Bajarme solo en</span>
+              <select
+                value={(joined ? myAuto : auto) ?? ''}
+                disabled={sending || (joined && (!iAmInside || done))}
+                onChange={(e) => changeAuto(e.target.value === '' ? null : Number(e.target.value))}
+              >
+                <option value="">A mano</option>
+                {Array.from({ length: FLOORS - 1 }, (_, i) => i + 1)
+                  .filter((f) => !riding || f > floor)
+                  .map((f) => (
+                    <option key={f} value={f}>
+                      Planta {f} · {fmtMult(MULTS[f])} ({pct(survival(f))} de llegar)
+                    </option>
+                  ))}
+              </select>
+            </label>
           </div>
           {myLast && result && (
             <div className={`el-last ${myLast.net > 0 ? 'is-win' : 'is-lose'}`}>
