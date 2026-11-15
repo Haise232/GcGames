@@ -1,18 +1,64 @@
-/* Escrito a mano: el Taller de Papá Noel (Taller.jsx), un idle tycoon. Arriba, las galletas y lo que produce la
-   cadena; en medio, el corte del taller: el tejado nevado con el trineo y el almacén, las plantas una bajo otra con
-   sus elfos (y el hueco del montacargas al lado) y el montacargas abajo. Cada parte: tocar para trabajar, nivel,
-   mejora y encargado. A la derecha, el canje de galletas por € (sobre el panel común, fiestas.css). */
+/* Escrito a mano: el Taller de Papá Noel (Taller.jsx), un idle tycoon. Arriba, el marcador (galletas, cadena y cuántos
+   niveles comprar); en medio, el taller (en 3D con las fichas a la altura de cada planta, o el corte HTML si no hay
+   WebGL); a la derecha, la casa de cambio de galletas por € y las estadísticas (sobre el panel común, fiestas.css).
+   Paleta: madera oscura, dorado y nieve. Todo cabe en la ventana sin scroll en escritorio. */
 .juegos-root .ta-app {
   --accent: #f8c54e;
+  --accent-rgb: 248, 197, 78;
   --gold: #f8c54e;
   --wood: #5a3420;
+  --ta-ok: #3cc47e;
+  --ta-bad: #ff5a5a;
+}
+.juegos-root .ta-app .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* Cabecera compacta: el alto es para el taller. */
+.juegos-root .app.ta-app > .top {
+  gap: 4px 24px;
+  margin-bottom: clamp(6px, 1.2vh, 12px);
+  padding: 6px clamp(12px, 1.6vw, 20px);
+  flex-wrap: nowrap;
+}
+.juegos-root .app.ta-app > .top h1 {
+  font-size: clamp(22px, 4.4vh, 38px);
+  line-height: 1;
+  white-space: nowrap;
+}
+.juegos-root .app.ta-app > .top h1::after {
+  height: 3px;
+}
+.juegos-root .ta-app .hud {
+  gap: 8px 24px;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+.juegos-root .ta-app .money {
+  gap: 4px 22px;
+  flex-wrap: nowrap;
+}
+.juegos-root .ta-app .money dt {
+  font-size: 12px;
+}
+.juegos-root .ta-app .money dd {
+  font-size: clamp(18px, 3.4vh, 26px);
+}
+.juegos-root .ta-app .toggles .tg {
+  padding-block: 6px;
 }
 .juegos-root .ta-stage {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 10px;
+  gap: 8px;
+  padding: 10px;
   overflow-y: auto;
+  border-radius: 22px;
   background:
     radial-gradient(70% 40% at 50% 0%, rgba(108, 195, 255, 0.18), transparent 70%),
     linear-gradient(180deg, #0f1d44 0%, #1b3566 30%, #2a160c 30.1%, #1e0f08 100%);
@@ -21,55 +67,167 @@
     0 20px 50px rgba(0, 0, 0, 0.45);
 }
 
-/* --- Las galletas --- */
+/* --- El marcador --- */
 .juegos-root .ta-bank {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
+  gap: 8px 18px;
   padding: 8px 14px;
   border-radius: 18px;
-  background: rgba(10, 16, 36, 0.75);
-  box-shadow: inset 0 0 0 1px rgba(248, 197, 78, 0.35);
+  background:
+    radial-gradient(60% 140% at 0% 50%, rgba(248, 197, 78, 0.2), transparent 70%),
+    linear-gradient(180deg, rgba(34, 18, 10, 0.92), rgba(16, 9, 8, 0.92));
+  box-shadow:
+    inset 0 0 0 1px rgba(248, 197, 78, 0.5),
+    inset 0 1px 0 rgba(255, 236, 190, 0.18),
+    0 8px 22px rgba(0, 0, 0, 0.4);
 }
 .juegos-root .ta-bank__cookies {
-  font-size: 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   white-space: nowrap;
 }
-.juegos-root .ta-bank__cookies b {
+.juegos-root .ta-bank__ico {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffe9b0, #c98a12 75%);
+  box-shadow:
+    0 0 0 2px #7a4a08,
+    0 0 18px rgba(248, 197, 78, 0.55);
+  font-size: 26px;
+}
+.juegos-root .ta-bank__num {
+  display: grid;
+  line-height: 1;
+}
+.juegos-root .ta-bank__num small {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #d9c39a;
+}
+.juegos-root .ta-bank__num b {
   font-family: var(--display);
   font-weight: 400;
-  font-size: clamp(26px, 3vw, 36px);
+  font-size: clamp(30px, 5.4vh, 46px);
   color: var(--gold);
   font-variant-numeric: tabular-nums;
+  text-shadow:
+    0 2px 0 #7a4a08,
+    0 0 22px rgba(248, 197, 78, 0.45);
 }
 .juegos-root .ta-bank__rate {
-  display: grid;
-  font-weight: 700;
-  color: #ffe2b0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(60, 196, 126, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(60, 196, 126, 0.6);
+  color: #8ff0bb;
+  font-size: 14px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
-.juegos-root .ta-bank__rate small {
-  color: var(--muted);
-  font-size: 11.5px;
-  font-weight: 600;
+/* La cadena: plantas, montacargas, trineo; la parte que frena, en rojo. */
+.juegos-root .ta-chain {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.juegos-root .ta-chain li {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  padding: 3px 6px 4px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  line-height: 1.15;
+}
+.juegos-root .ta-chain li + li::before {
+  content: '›';
+  position: absolute;
+  left: -11px;
+  top: 50%;
+  translate: 0 -55%;
+  color: #d9c39a;
+  font-size: 18px;
+  font-weight: 800;
+}
+.juegos-root .ta-chain small {
+  font-size: 11px;
+  font-weight: 700;
+  color: #d9c39a;
+}
+.juegos-root .ta-chain b {
+  font-size: 14px;
+  color: #fff3d6;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .ta-chain li.is-neck {
+  background: rgba(224, 48, 60, 0.28);
+  box-shadow: inset 0 0 0 2px var(--ta-bad);
+}
+.juegos-root .ta-chain li.is-neck b {
+  color: #ffd0cc;
+}
+.juegos-root .ta-chain em {
+  position: absolute;
+  top: -9px;
+  right: 6px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: #e0303c;
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.03em;
 }
 .juegos-root .ta-buy {
   display: flex;
+  align-items: center;
   gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(248, 197, 78, 0.3);
+}
+.juegos-root .ta-buy__label {
+  padding: 0 6px 0 8px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #d9c39a;
 }
 .juegos-root .ta-buy button {
-  padding: 5px 9px;
-  border: 1px solid rgba(248, 197, 78, 0.4);
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--ivory);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   cursor: pointer;
+  touch-action: manipulation;
+}
+.juegos-root .ta-buy button:hover {
+  background: rgba(255, 255, 255, 0.16);
 }
 .juegos-root .ta-buy button[aria-checked='true'] {
-  background: var(--gold);
+  background: linear-gradient(180deg, #ffd66e, #d89a1a);
+  box-shadow: 0 2px 0 #7a4a08;
   color: #2a1408;
 }
 
@@ -127,30 +285,49 @@
   gap: 6px;
 }
 
-/* Una planta, el montacargas o el trineo: [tocar] [nombre y producción] [mejorar] [encargado]. */
+/* Una planta, el montacargas o el trineo: [tocar] [nombre, nivel y producción] [mejorar] [encargado]. Una tabla de
+   madera con filo dorado y clavos en las esquinas. */
 .juegos-root .ta-floor,
 .juegos-root .ta-carrier {
+  position: relative;
   display: grid;
-  grid-template-columns: 116px minmax(0, 1fr) auto auto;
-  align-items: center;
+  grid-template-columns: 64px minmax(0, 1fr) auto auto;
+  align-items: stretch;
   gap: 8px;
   padding: 6px 8px;
   border-radius: 14px;
   background:
+    radial-gradient(circle at 7px 7px, #d9a85c 0 1.6px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 7px) 7px, #d9a85c 0 1.6px, transparent 2.2px),
     repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 40px),
-    linear-gradient(180deg, #6a3a22, #4a2614);
+    linear-gradient(180deg, #6a3a22, #432213);
   box-shadow:
+    inset 0 0 0 1px rgba(248, 197, 78, 0.4),
+    inset 0 1px 0 rgba(255, 220, 160, 0.22),
     inset 0 -4px 0 rgba(0, 0, 0, 0.3),
-    0 4px 10px rgba(0, 0, 0, 0.3);
+    0 4px 10px rgba(0, 0, 0, 0.35);
   transition: box-shadow 0.2s;
 }
 .juegos-root .ta-carrier {
-  background: rgba(10, 16, 36, 0.55);
+  background:
+    radial-gradient(circle at 7px 7px, #cfe3ff 0 1.6px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 7px) 7px, #cfe3ff 0 1.6px, transparent 2.2px),
+    linear-gradient(180deg, #3a2a40, #241528);
+}
+.juegos-root .ta-floor.is-working,
+.juegos-root .ta-carrier.is-working {
+  box-shadow:
+    inset 0 0 0 1px rgba(248, 197, 78, 0.7),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.3),
+    0 0 16px rgba(248, 197, 78, 0.25),
+    0 4px 10px rgba(0, 0, 0, 0.35);
 }
 .juegos-root :is(.ta-floor, .ta-carrier).is-neck {
   box-shadow:
-    inset 0 0 0 2px #e0303c,
-    0 4px 10px rgba(0, 0, 0, 0.3);
+    inset 0 0 0 2px var(--ta-bad),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.3),
+    0 0 14px rgba(255, 70, 70, 0.35),
+    0 4px 10px rgba(0, 0, 0, 0.35);
 }
 .juegos-root :is(.ta-floor, .ta-carrier).is-flash {
   animation: ta-flash 0.7s ease-out;
@@ -158,30 +335,38 @@
 @keyframes ta-flash {
   from {
     box-shadow:
-      inset 0 0 0 3px var(--gold),
-      0 0 24px rgba(248, 197, 78, 0.6);
+      inset 0 0 0 3px #fff4c8,
+      0 0 28px rgba(248, 197, 78, 0.8);
   }
 }
 .juegos-root .ta-floor.is-locked {
-  grid-template-columns: 116px minmax(0, 1fr) auto;
-  background: repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.35) 0 10px, rgba(0, 0, 0, 0.2) 10px 20px);
-  opacity: 0.85;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  background:
+    repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.35) 0 10px, rgba(0, 0, 0, 0.2) 10px 20px),
+    #2a1a12;
+  box-shadow:
+    inset 0 0 0 1px rgba(248, 197, 78, 0.25),
+    0 4px 10px rgba(0, 0, 0, 0.35);
 }
 .juegos-root .ta-floor__lock {
-  font-size: 26px;
+  font-size: 24px;
   text-align: center;
+  line-height: 1.1;
 }
 
-/* Lo que se toca: los elfos de la planta (o el icono del trineo / montacargas) y el aviso o el anillo del turno. */
+/* Lo que se toca: los elfos (o el icono) y, debajo, el «¡Toca!» o el anillo con los segundos que quedan. */
 .juegos-root :is(.ta-floor__main, .ta-carrier__main) {
   position: relative;
   display: grid;
   place-items: center;
-  min-height: 56px;
-  padding: 4px;
+  min-height: 52px;
+  padding: 2px 2px 14px;
+  overflow: hidden;
   border: 0;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.25);
+  border-radius: 11px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.4));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   color: inherit;
   font: inherit;
   cursor: pointer;
@@ -191,8 +376,25 @@
 .juegos-root :is(.ta-floor__main, .ta-carrier__main):disabled {
   cursor: default;
 }
+.juegos-root :is(.ta-floor__main, .ta-carrier__main):not(:disabled) {
+  background: linear-gradient(180deg, #7a5214, #3a2408);
+  box-shadow:
+    inset 0 0 0 2px var(--gold),
+    0 0 14px rgba(248, 197, 78, 0.6);
+  animation: ta-glow 1.1s ease-in-out infinite;
+}
+.juegos-root :is(.ta-floor__main, .ta-carrier__main):not(:disabled):hover {
+  filter: brightness(1.15);
+}
 .juegos-root :is(.ta-floor__main, .ta-carrier__main):not(:disabled):active {
-  transform: scale(0.96);
+  transform: scale(0.95);
+}
+@keyframes ta-glow {
+  50% {
+    box-shadow:
+      inset 0 0 0 2px #fff0b8,
+      0 0 22px rgba(248, 197, 78, 0.95);
+  }
 }
 .juegos-root .ta-floor__crew {
   display: flex;
@@ -200,14 +402,17 @@
   gap: 1px;
   max-width: 100%;
   overflow: hidden;
-  font-size: 17px;
+  font-size: 16px;
+  line-height: 1.1;
 }
 .juegos-root .ta-floor__crew b {
-  margin-left: 4px;
+  margin-left: 3px;
   font-size: 24px;
+  line-height: 1;
 }
 .juegos-root .ta-carrier__ico {
-  font-size: 32px;
+  font-size: 30px;
+  line-height: 1;
 }
 .juegos-root .is-working .ta-floor__crew i {
   animation: ta-work 0.6s ease-in-out infinite;
@@ -222,82 +427,133 @@
 }
 .juegos-root .ta-tapme {
   position: absolute;
-  right: 4px;
-  bottom: 2px;
-  padding: 1px 6px;
-  border-radius: 8px;
-  background: var(--gold);
+  inset: auto 0 0;
+  padding: 1px 0 2px;
+  background: linear-gradient(180deg, #ffe08a, #f0a81e);
   color: #2a1408;
-  font-size: 10.5px;
+  font-size: 12px;
   font-style: normal;
   font-weight: 900;
-  animation: ta-blink 1s ease-in-out infinite;
-}
-@keyframes ta-blink {
-  50% {
-    opacity: 0.55;
-  }
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  text-align: center;
+  text-transform: uppercase;
 }
 .juegos-root .ta-ring {
   position: absolute;
-  right: 3px;
-  bottom: 3px;
-  width: 24px;
-  height: 24px;
+  right: 2px;
+  bottom: 1px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+}
+.juegos-root .ta-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .ta-ring b {
+  position: relative;
+  font-size: 11px;
+  font-weight: 900;
+  color: #ffe9b0;
+  font-variant-numeric: tabular-nums;
 }
 .juegos-root :is(.ta-floor__info, .ta-carrier__info) {
   display: grid;
-  gap: 1px;
+  align-content: center;
+  gap: 2px;
   min-width: 0;
 }
 .juegos-root :is(.ta-floor__info, .ta-carrier__info) b {
-  font-size: 14.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.15;
+  color: #fff3d6;
   white-space: nowrap;
+}
+.juegos-root .ta-name {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.juegos-root :is(.ta-floor__info, .ta-carrier__info) b small {
-  color: var(--gold);
-  font-size: 12px;
-}
-.juegos-root :is(.ta-floor__info, .ta-carrier__info) > small {
-  color: rgba(255, 226, 176, 0.75);
-  font-size: 11.5px;
-}
-.juegos-root .ta-neck {
-  justify-self: start;
+.juegos-root :is(.ta-floor__info, .ta-carrier__info) b > small {
+  flex: none;
   padding: 0 6px;
   border-radius: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--gold);
+  font-size: 11.5px;
+  font-weight: 800;
+}
+.juegos-root :is(.ta-floor__info, .ta-carrier__info) > small {
+  color: #e4cfa6;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.juegos-root :is(.ta-floor__info, .ta-carrier__info) > small strong {
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+/* Cuello de botella: una cinta roja en el borde superior de la ficha. */
+.juegos-root .ta-neck {
+  position: absolute;
+  top: -8px;
+  right: 12px;
+  padding: 0 7px;
+  border-radius: 6px;
   background: #e0303c;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
   color: #fff;
   font-size: 10.5px;
   font-style: normal;
-  font-weight: 800;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 .juegos-root .ta-up {
   display: grid;
+  align-content: center;
   justify-items: center;
-  min-width: 82px;
-  padding: 5px 8px;
+  min-width: 72px;
+  padding: 4px 6px;
   border: 0;
   border-radius: 12px;
-  background: linear-gradient(180deg, #3cc47e, #1f7a4d);
-  box-shadow: 0 3px 0 #0f4a2d;
-  color: #fff;
+  background: #2f2620;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 3px 0 #17110d;
+  color: #b9a78e;
   font: inherit;
   cursor: pointer;
+  touch-action: manipulation;
+}
+.juegos-root .ta-up.is-ok {
+  background: linear-gradient(180deg, #46d88c, #1f8a55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 3px 0 #0f4a2d,
+    0 0 14px rgba(60, 196, 126, 0.4);
+  color: #fff;
 }
 .juegos-root .ta-up b {
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.2;
 }
 .juegos-root .ta-up small {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
 }
 .juegos-root .ta-up:disabled {
-  background: #3a3a42;
-  box-shadow: 0 3px 0 #22222a;
-  opacity: 0.7;
   cursor: default;
 }
 .juegos-root .ta-up:not(:disabled):active {
@@ -305,41 +561,76 @@
   box-shadow: 0 1px 0 #0f4a2d;
 }
 .juegos-root .ta-up--unlock:not(:disabled) {
-  background: linear-gradient(180deg, #f8c54e, #c98a12);
-  box-shadow: 0 3px 0 #7a4a08;
+  background: linear-gradient(180deg, #ffd66e, #d89a1a);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 #7a4a08;
   color: #2a1408;
 }
 .juegos-root .ta-boss {
   display: grid;
+  align-content: center;
   justify-items: center;
-  width: 62px;
-  padding: 3px;
-  border: 1px dashed rgba(248, 197, 78, 0.5);
+  position: relative;
+  width: 56px;
+  padding: 2px;
+  border: 1px dashed rgba(248, 197, 78, 0.6);
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.25);
-  color: var(--ivory);
+  background: rgba(0, 0, 0, 0.3);
+  color: #d9c9ae;
   font: inherit;
   cursor: pointer;
+  touch-action: manipulation;
 }
 .juegos-root .ta-boss i {
-  font-size: 22px;
+  font-size: 20px;
   font-style: normal;
-  filter: grayscale(1) opacity(0.6);
+  line-height: 1.1;
+  filter: grayscale(1) opacity(0.65);
 }
 .juegos-root .ta-boss small {
-  font-size: 10.5px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.juegos-root .ta-boss.is-ok {
+  border-style: solid;
+  border-color: var(--gold);
+  background: rgba(248, 197, 78, 0.16);
+  color: #fff3d6;
+}
+.juegos-root .ta-boss.is-ok i {
+  filter: none;
 }
 .juegos-root .ta-boss:disabled {
-  opacity: 0.55;
   cursor: default;
 }
 .juegos-root .ta-boss.is-hired {
-  border: 1px solid #3cc47e;
-  background: rgba(31, 122, 77, 0.35);
+  border: 1px solid var(--ta-ok);
+  background: rgba(31, 122, 77, 0.4);
+  color: #c4f5da;
 }
 .juegos-root .ta-boss.is-hired i {
   filter: none;
+}
+.juegos-root .ta-boss.is-hired small {
+  font-size: 9.5px;
+}
+.juegos-root .ta-boss em {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ta-ok);
+  color: #062a17;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
 }
 .juegos-root .ta-pile {
   padding: 4px 10px;
@@ -347,6 +638,10 @@
   background: rgba(0, 0, 0, 0.3);
   color: #ffe2b0;
   font-size: 13px;
+}
+:is(.ta-up, .ta-boss, .ta-buy button, .ta-floor__main, .ta-carrier__main, .ta-swapall):focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
 }
 
 /* El hueco del montacargas: una guía con la cabina que sube y baja cuando trabaja. */
@@ -374,13 +669,139 @@
   }
 }
 
-/* --- Panel: el canje --- */
+/* --- Panel: la casa de cambio --- */
+.juegos-root .ta-panel {
+  gap: 12px;
+  padding: 14px;
+  background:
+    radial-gradient(120% 40% at 50% 0%, rgba(248, 197, 78, 0.14), transparent 70%),
+    linear-gradient(170deg, rgba(34, 24, 18, 0.96), rgba(14, 12, 20, 0.98));
+  box-shadow:
+    inset 0 0 0 1px rgba(248, 197, 78, 0.4),
+    0 20px 60px rgba(0, 0, 0, 0.4);
+}
+.juegos-root .ta-prize {
+  gap: 6px;
+  padding: 12px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(248, 197, 78, 0.3), transparent 70%),
+    linear-gradient(180deg, rgba(90, 52, 32, 0.6), rgba(30, 16, 8, 0.7));
+  box-shadow:
+    inset 0 0 0 1px rgba(248, 197, 78, 0.45),
+    inset 0 1px 0 rgba(255, 236, 190, 0.2);
+}
+.juegos-root .ta-prize > small {
+  color: #e4cfa6;
+}
+.juegos-root .ta-prize__swap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
+.juegos-root .ta-prize__swap span {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.4);
+  color: #ffe2b0;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .ta-prize__swap i {
+  color: var(--gold);
+  font-style: normal;
+  font-size: 20px;
+}
+.juegos-root .ta-prize__swap b {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(30px, 4.6vh, 42px);
+  color: var(--gold);
+  text-shadow:
+    0 2px 0 #7a4a08,
+    0 0 20px rgba(248, 197, 78, 0.5);
+}
+.juegos-root .ta-prize__meter {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+}
+.juegos-root .ta-prize__meter i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d89a1a, #ffe08a);
+  transition: width 0.3s;
+}
+.juegos-root .ta-panel .fi-prize__tag {
+  color: #fff3d6;
+}
+.juegos-root .ta-swap {
+  position: relative;
+  flex-direction: column;
+  gap: 0;
+  min-height: 58px;
+  background: linear-gradient(180deg, #46d88c, #1f8a55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 5px 0 #0f4a2d,
+    0 10px 26px rgba(60, 196, 126, 0.35);
+  color: #04200f;
+}
+.juegos-root .ta-swap span {
+  font-size: 20px;
+  line-height: 1.15;
+}
+.juegos-root .ta-go-sub {
+  font-size: 13px;
+  font-weight: 800;
+}
+.juegos-root .ta-swap:disabled {
+  background: linear-gradient(180deg, #4a4038, #332b25);
+  box-shadow: 0 5px 0 #1c1612;
+  color: #d0c0a6;
+  opacity: 1;
+}
+.juegos-root .ta-swapall {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 46px;
+  padding: 6px 14px;
+  border: 1px solid rgba(248, 197, 78, 0.6);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(248, 197, 78, 0.2), rgba(248, 197, 78, 0.08));
+  color: #fff3d6;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.juegos-root .ta-swapall small {
+  color: #ffe2b0;
+  font-size: 13px;
+  font-weight: 800;
+}
+.juegos-root .ta-panel .fi-group h2 {
+  color: #d9c39a;
+}
+.juegos-root .ta-panel .fi-hint {
+  color: #cbb994;
+  font-size: 12.5px;
+  line-height: 1.35;
+}
 .juegos-root .ta-cap {
   position: relative;
   height: 26px;
+  margin-bottom: 6px;
   overflow: hidden;
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(248, 197, 78, 0.25);
 }
 .juegos-root .ta-cap i {
   position: absolute;
@@ -394,21 +815,60 @@
   font-weight: 800;
   line-height: 26px;
   text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
-.juegos-root .ta-go-sub {
-  font-size: 12px;
-  font-weight: 700;
-  opacity: 0.85;
+.juegos-root .ta-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
 }
-.juegos-root .ta-swapall {
-  padding: 10px;
-  border: 1px solid rgba(248, 197, 78, 0.45);
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.25);
-  color: var(--ivory);
+.juegos-root .ta-tiles li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: 'ico num' 'ico lab';
+  column-gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.juegos-root .ta-tiles span {
+  grid-area: ico;
+  font-size: 20px;
+}
+.juegos-root .ta-tiles b {
+  grid-area: num;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  line-height: 1.15;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.juegos-root .ta-tiles small {
+  grid-area: lab;
+  color: #cbb994;
+  font-size: 11.5px;
+  line-height: 1.15;
+}
+.juegos-root .ta-keys kbd {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
   font: inherit;
   font-weight: 800;
-  cursor: pointer;
+  color: #fff3d6;
+}
+.juegos-root .ta-status {
+  margin-inline: auto;
+  padding: 6px 14px;
+  font-size: 13.5px;
+  color: #fff3d6;
 }
 
 /* --- Al volver --- */
@@ -446,18 +906,10 @@
 }
 
 @media (max-width: 860px) {
-  /* Galletas arriba a todo el ancho; debajo, lo que produce y los botones de cuántos comprar. */
+  /* Fuera del 3D (corte HTML): galletas arriba a todo el ancho. */
   .juegos-root .ta-bank {
     grid-template-columns: minmax(0, 1fr);
-    gap: 6px;
   }
-  .juegos-root .ta-buy {
-    justify-content: stretch;
-  }
-  .juegos-root .ta-buy button {
-    flex: 1;
-  }
-  /* El almacén va debajo del trineo. */
   .juegos-root .ta-roof {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -467,38 +919,105 @@
     justify-content: center;
     align-items: baseline;
   }
-  .juegos-root .ta-floor__crew {
-    font-size: 14px;
-  }
-  .juegos-root .ta-floor__crew b {
-    font-size: 20px;
-  }
-  .juegos-root .ta-floor,
-  .juegos-root .ta-carrier {
-    grid-template-columns: 74px minmax(0, 1fr) auto;
-  }
-  .juegos-root :is(.ta-floor, .ta-carrier) .ta-boss {
-    grid-column: 2 / -1;
-    justify-self: end;
-    grid-template-columns: auto auto;
-    gap: 6px;
-    width: auto;
-    padding: 2px 8px;
-  }
-  .juegos-root .ta-floor.is-locked {
-    grid-template-columns: 74px minmax(0, 1fr) auto;
-  }
   .juegos-root .ta-body {
     grid-template-columns: minmax(0, 1fr) 30px;
   }
+  .juegos-root .app.ta-app > .top {
+    flex-wrap: wrap;
+  }
+  .juegos-root .ta-stage {
+    overflow: visible;
+  }
 }
-@media (max-width: 560px) {
-  .juegos-root .ta-app .top h1 {
-    font-size: clamp(22px, 6.4vw, 30px);
+/* Móvil: botones de al menos 44 px y fichas en dos filas (info y mejora arriba, encargado debajo). */
+@media (max-width: 760px) {
+  .juegos-root .ta-bank {
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .juegos-root .ta-bank__ico {
+    width: 38px;
+    height: 38px;
+    font-size: 21px;
+  }
+  .juegos-root .ta-bank__num b {
+    font-size: 30px;
+  }
+  .juegos-root .ta-chain {
+    display: none;
+  }
+  .juegos-root .ta-buy {
+    width: 100%;
+  }
+  .juegos-root .ta-buy__label {
+    display: none;
+  }
+  .juegos-root .ta-buy button {
+    flex: 1;
+    min-height: 44px;
+    font-size: 15px;
+  }
+  .juegos-root .ta-floor,
+  .juegos-root .ta-carrier,
+  .juegos-root .ta-floor.is-locked {
+    grid-template-columns: 70px minmax(0, 1fr) auto;
+    gap: 6px 8px;
+  }
+  .juegos-root .ta-floor__main,
+  .juegos-root .ta-carrier__main {
+    grid-row: 1 / span 2;
+    min-height: 64px;
+  }
+  .juegos-root .ta-floor.is-locked .ta-floor__lock {
+    grid-row: auto;
+  }
+  .juegos-root .ta-up {
+    min-width: 84px;
+    min-height: 44px;
+  }
+  .juegos-root :is(.ta-floor, .ta-carrier) .ta-boss {
+    grid-column: 2 / -1;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+    min-height: 44px;
+    padding: 2px 10px;
+  }
+  .juegos-root :is(.ta-floor, .ta-carrier) .ta-boss.is-hired {
+    min-height: 30px;
+  }
+  .juegos-root .ta-boss small {
+    font-size: 12.5px;
+  }
+  .juegos-root .ta-boss.is-hired small {
+    font-size: 12px;
+  }
+  .juegos-root .ta-tiles li {
+    padding: 8px;
+  }
+}
+@media (max-width: 760px) {
+  .juegos-root .app.ta-app > .top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 8px 12px;
+  }
+  .juegos-root .app.ta-app > .top h1 {
+    font-size: clamp(22px, 6.6vw, 30px);
+    white-space: normal;
+    line-height: 1.05;
+  }
+  .juegos-root .ta-app .money {
+    flex-wrap: wrap;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .juegos-root .ta-app * {
+  .juegos-root .ta-app *,
+  .juegos-root .ta-app *::before,
+  .juegos-root .ta-app *::after {
     animation: none !important;
+    transition: none !important;
   }
 }

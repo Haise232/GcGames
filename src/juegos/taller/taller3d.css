@@ -1,0 +1,241 @@
+/* Escrito a mano: el Taller de Papá Noel en 3D (taller3d.js). La escena llena el escenario; a la izquierda, una ficha
+   por parte (trineo, almacén, plantas y montacargas) a la altura de su planta en la escena (la coloca Taller.jsx en cada
+   fotograma). Con muchas fichas y poco alto, data-dense="1" las compacta. En móvil, la escena arriba y las fichas
+   debajo, en lista, con el marcador pegado arriba. */
+
+.juegos-root .ta-stage--3d {
+  position: relative;
+  overflow: hidden;
+  background: #060a1a;
+}
+.juegos-root .ta-3d {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 400px;
+  border-radius: 16px;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: inset 0 0 0 1px rgba(248, 197, 78, 0.25);
+}
+.juegos-root .ta-3d__scene {
+  position: absolute;
+  inset: 0;
+}
+.juegos-root .ta3d__gl {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: manipulation;
+}
+.juegos-root .ta-3d__cards {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 8px;
+  width: clamp(360px, 41%, 470px);
+  pointer-events: none;
+}
+.juegos-root .ta-3d__cards .ta-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: auto;
+  will-change: transform;
+}
+/* Las fichas sobre la escena: algo más opacas para que se lean sobre el cielo y la nieve. */
+.juegos-root .ta-stage--3d .ta-floor {
+  background:
+    radial-gradient(circle at 7px 7px, #d9a85c 0 1.6px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 7px) 7px, #d9a85c 0 1.6px, transparent 2.2px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 40px),
+    linear-gradient(180deg, rgba(106, 58, 34, 0.96), rgba(56, 28, 15, 0.96));
+}
+.juegos-root .ta-stage--3d .ta-floor.is-locked {
+  background:
+    repeating-linear-gradient(135deg, rgba(20, 14, 10, 0.94) 0 10px, rgba(36, 24, 16, 0.94) 10px 20px);
+}
+.juegos-root .ta-stage--3d .ta-carrier {
+  background:
+    radial-gradient(circle at 7px 7px, #cfe3ff 0 1.6px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 7px) 7px, #cfe3ff 0 1.6px, transparent 2.2px),
+    linear-gradient(180deg, rgba(58, 42, 64, 0.96), rgba(32, 18, 38, 0.96));
+}
+.juegos-root .ta-card--store {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 4px 14px 4px 10px;
+  border-radius: 999px;
+  background: rgba(10, 16, 36, 0.88);
+  box-shadow: inset 0 0 0 1px rgba(248, 197, 78, 0.5);
+}
+.juegos-root .ta-card--store b {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 18px;
+  color: var(--gold);
+}
+.juegos-root .ta-card--store small {
+  color: #d9c9ae;
+  font-size: 12px;
+}
+.juegos-root .ta-card__pile {
+  display: block;
+  width: fit-content;
+  margin: 4px 0 0 8px;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: rgba(10, 16, 36, 0.85);
+  font-size: 12px;
+  color: #e9dcc4;
+}
+.juegos-root .ta-card__pile b {
+  color: var(--gold);
+}
+/* El aviso de abajo a la derecha, sobre la nieve. */
+.juegos-root .ta-stage--3d .ta-status {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  z-index: 2;
+  max-width: min(46%, 460px);
+  margin: 0;
+  background: rgba(20, 10, 6, 0.88);
+  box-shadow: inset 0 0 0 1px rgba(248, 197, 78, 0.45);
+  pointer-events: none;
+}
+.juegos-root .ta-stage--3d .ta-status.is-bad {
+  box-shadow: inset 0 0 0 2px #ff5a5a;
+}
+
+/* Fichas compactas: muchas plantas en poca altura. */
+.juegos-root .ta-3d__cards[data-dense='1'] :is(.ta-floor, .ta-carrier) {
+  grid-template-columns: 54px minmax(0, 1fr) auto auto;
+  gap: 6px;
+  padding: 3px 5px;
+  border-radius: 11px;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-floor.is-locked {
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] :is(.ta-floor__main, .ta-carrier__main) {
+  min-height: 36px;
+  padding-bottom: 11px;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-floor__crew {
+  font-size: 12px;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-floor__crew b {
+  font-size: 18px;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-carrier__ico {
+  font-size: 22px;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-tapme {
+  font-size: 10px;
+  line-height: 1.15;
+  letter-spacing: 0.03em;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-ring {
+  width: 22px;
+  height: 22px;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-ring b {
+  font-size: 10px;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-neck {
+  top: -7px;
+  line-height: 1.35;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] :is(.ta-floor__info, .ta-carrier__info) b {
+  font-size: 14px;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] :is(.ta-floor__info, .ta-carrier__info) > small {
+  font-size: 11.5px;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-up {
+  padding-block: 2px;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-boss {
+  width: 60px;
+  padding: 0;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-boss i {
+  font-size: 16px;
+  line-height: 1;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-boss small {
+  font-size: 10px;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-card--store {
+  padding-block: 2px;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-card--store b {
+  font-size: 16px;
+}
+.juegos-root .ta-3d__cards[data-dense='1'] .ta-card__pile {
+  margin-top: 2px;
+  font-size: 11px;
+}
+
+@media (max-width: 760px) {
+  .juegos-root .ta-stage--3d {
+    overflow: visible;
+    padding: 8px;
+  }
+  /* El marcador se queda pegado arriba mientras se baja por las fichas. */
+  .juegos-root .ta-stage--3d .ta-bank {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .juegos-root .ta-3d {
+    display: grid;
+    gap: 8px;
+    min-height: 0;
+    overflow: visible;
+    box-shadow: none;
+  }
+  .juegos-root .ta-3d__scene {
+    position: relative;
+    height: clamp(300px, 48svh, 460px);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(248, 197, 78, 0.25);
+  }
+  .juegos-root .ta-3d__cards {
+    position: static;
+    width: auto;
+    display: grid;
+    gap: 8px;
+  }
+  .juegos-root .ta-3d__cards .ta-card {
+    position: static;
+    transform: none !important;
+  }
+  .juegos-root .ta-3d__cards[data-dense='1'] .ta-floor,
+  .juegos-root .ta-3d__cards[data-dense='1'] .ta-carrier {
+    grid-template-columns: 70px minmax(0, 1fr) auto;
+  }
+  .juegos-root .ta-3d__cards[data-dense='1'] :is(.ta-floor__main, .ta-carrier__main) {
+    min-height: 64px;
+  }
+  .juegos-root .ta-3d__cards[data-dense='1'] .ta-boss {
+    width: auto;
+  }
+  .juegos-root .ta-stage--3d .ta-status {
+    position: static;
+    max-width: none;
+    pointer-events: auto;
+  }
+  .juegos-root .ta-card--store {
+    margin-inline: auto;
+  }
+}
