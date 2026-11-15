@@ -42,6 +42,7 @@ import WinBurst from '../comun/WinBurst.jsx'
 import WinToast from '../comun/WinToast.jsx'
 import Help from '../comun/Help.jsx'
 import ElevatorView from './ElevatorView.jsx'
+import Elevator3D from './Elevator3D.jsx'
 import '../estilos/season3.css'
 import './Elevator.css'
 import './ElevatorView.css'
@@ -57,6 +58,17 @@ const CHIPS = [100, 250, 500, 1000, 2000]
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`
 const fmtSec = (ms) => (ms / 1000).toLocaleString('es-ES')
 const pct = (p) => `${Math.round(p * 100)} %`
+function hasWebGL() {
+  try {
+    const c = document.createElement('canvas')
+    const gl = c.getContext('webgl2') || c.getContext('webgl')
+    if (!gl) return false
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
+    return true
+  } catch {
+    return false
+  }
+}
 
 // El Ascensor en vivo, en primera persona: el servidor guarda quién entra y dónde se baja, rompe el cable y paga.
 function Elevator({ onExit, juegos }) {
@@ -68,6 +80,7 @@ function Elevator({ onExit, juegos }) {
   const [burst, setBurst] = useState(null)
   const [mine, setMine] = useState([]) // avisos propios (el bonus), con el mismo aspecto que los de los demás
   const [, setTick] = useState(0)
+  const [mode3d, setMode3d] = useState(hasWebGL)
   const skew = useRef(null)
   const heard = useRef({ round: null, floor: 0, open: false, done: false, out: false, bonus: false })
   const { request } = juegos
@@ -316,6 +329,30 @@ function Elevator({ onExit, juegos }) {
   const exitLabel = canExit ? `Bajarme ${eur(payout(myStake, floor))}` : floor < 1 && riding ? 'Subiendo' : riding ? 'Cerrado' : 'Bajarme'
   const won = Boolean(myOut != null && payout(myStake, myOut) > myStake)
 
+  const stageView = {
+    pov: pov,
+    floor: waiting ? 0 : floor,
+    here: waiting ? 0 : (myOut ?? 0),
+    phase: clockAt.phase,
+    doorsOpen: (clockAt.phase === 'join' && joined) || doorsOpenRide || roof,
+    moving: moving,
+    fallen: fallen && !waiting,
+    roof: roof,
+    crash: crash,
+    inside: waiting ? [] : done ? players.filter((p) => (roof ? p.out >= FLOORS : p.fell)) : inside,
+    outAt: outAt,
+    next: next,
+    chance: chance,
+    autoFloor: joined ? myAuto : auto,
+    pickable: pickable,
+    onPick: changeAuto,
+    canExit: canExit && !sending,
+    onExit: getOff,
+    exitLabel: exitLabel,
+    joinedCount: players.length,
+    status: status,
+  }
+
   return (
     <main className="app s3-app elevator-app">
       <header className="top">
@@ -378,29 +415,29 @@ function Elevator({ onExit, juegos }) {
           <p className={`status ${won ? 'status--win' : ''}`} aria-live="polite">
             {status}
           </p>
-          <ElevatorView
-            pov={pov}
-            floor={waiting ? 0 : floor}
-            here={waiting ? 0 : (myOut ?? 0)}
-            phase={clockAt.phase}
-            doorsOpen={(clockAt.phase === 'join' && joined) || doorsOpenRide || roof}
-            moving={moving}
-            fallen={fallen && !waiting}
-            roof={roof}
-            crash={crash}
-            inside={waiting ? [] : done ? players.filter((p) => (roof ? p.out >= FLOORS : p.fell)) : inside}
-            outAt={outAt}
-            next={next}
-            chance={chance}
-            autoFloor={joined ? myAuto : auto}
-            pickable={pickable}
-            onPick={changeAuto}
-            canExit={canExit && !sending}
-            onExit={getOff}
-            exitLabel={exitLabel}
-            joinedCount={players.length}
-            status={status}
-          />
+          {mode3d ? (
+            <Elevator3D
+              clock={clock}
+              view={stageView}
+              scene={{
+                round,
+                pov,
+                here: waiting ? 0 : (myOut ?? 0),
+                confirmed,
+                done,
+                crash,
+                roof,
+                waiting,
+                doorsOpen: stageView.doorsOpen,
+                tense: moving && chance != null && chance < 0.72,
+                inside: stageView.inside,
+                outAt,
+              }}
+              onFail={() => setMode3d(false)}
+            />
+          ) : (
+            <ElevatorView {...stageView} />
+          )}
           <div className="el-strip">
             <span>
               <small>Dentro</small>

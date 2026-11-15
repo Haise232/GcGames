@@ -12,6 +12,7 @@ import WinBurst from '../comun/WinBurst.jsx'
 import { BetBox, FiestaHeader, History } from '../season4/FiestaParts.jsx'
 import { Bombos, Decimo, Ninos, enLetras } from './LoteriaArt.jsx'
 import './Loteria.css'
+import './loteria3d.css'
 
 const HISTORY = 14
 const NUMBER_KEY = 'juegos-loteria-numero' // tu número de siempre
@@ -43,6 +44,58 @@ function savedNumber() {
 
 const shortName = { gordo: 'Gordo', segundo: '2.º', tercero: '3.º', cuarto: '4.º', quinto: '5.º' }
 
+function hasWebGL() {
+  try {
+    const c = document.createElement('canvas')
+    const gl = c.getContext('webgl2') || c.getContext('webgl')
+    if (!gl) return false
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
+    return true
+  } catch {
+    return false
+  }
+}
+
+// El teatro en 3D (loteria3d.js, con three.js cargado aparte), detrás de todo lo del escenario. Si WebGL falla, onFail
+// y se vuelven a ver los dibujos SVG.
+function Teatro3D({ onFail, ...view }) {
+  const host = useRef(null)
+  const props = useRef(view)
+  const fail = useRef(onFail)
+  props.current = view
+  fail.current = onFail
+  useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    let dead = false
+    let scene = null
+    let frame = 0
+    let observer = null
+    const draw = () => {
+      scene.draw(props.current)
+      frame = requestAnimationFrame(draw)
+    }
+    import('./loteria3d.js')
+      .then(({ createLoteria3D }) => {
+        if (dead) return
+        scene = createLoteria3D(host.current, { reduced, onFail: () => fail.current() })
+        observer = new ResizeObserver(() => scene.resize())
+        observer.observe(host.current)
+        draw()
+      })
+      .catch((error) => {
+        console.warn('Teatro 3D no disponible, se usan los dibujos', error)
+        if (!dead) fail.current()
+      })
+    return () => {
+      dead = true
+      cancelAnimationFrame(frame)
+      observer?.disconnect()
+      scene?.destroy()
+    }
+  }, [])
+  return <div className="lt-3d" ref={host} aria-hidden="true" />
+}
+
 function Loteria({ onExit, juegos }) {
   const [bet, setBet] = useState(20)
   const [number, setNumber] = useState(savedNumber)
@@ -53,6 +106,7 @@ function Loteria({ onExit, juegos }) {
   const [finished, setFinished] = useState(true) // el canto (con la cifra a cifra del Gordo) ya acabó y se enseña el resultado
   const [history, setHistory] = useState([])
   const [burst, setBurst] = useState(null)
+  const [teatro3d, setTeatro3d] = useState(hasWebGL)
   const timers = useRef([])
   const { request } = juegos
   const serverBalance = juegos.me?.balance ?? 0
@@ -222,12 +276,30 @@ function Loteria({ onExit, juegos }) {
       <FiestaHeader title="Lotería de Navidad" balance={shownBank} betLabel="Décimo" bet={shownBet} onExit={onExit} help={help} helpTitle="Cómo se juega a la Lotería de Navidad" />
 
       <div className="fi fill">
-        <section className={`fi-stage lt-stage ${tone === 'good' ? 'is-win' : ''} ${suspense ? 'is-suspense' : ''} ${lost ? 'is-lost' : ''}`} aria-label="El sorteo">
-          <span className="lt-curtain lt-curtain--l" aria-hidden="true" />
-          <span className="lt-curtain lt-curtain--r" aria-hidden="true" />
-          <span className="lt-valance" aria-hidden="true" />
-          <span className="lt-beams" aria-hidden="true" />
-          <span className="lt-floor" aria-hidden="true" />
+        <section
+          className={`fi-stage lt-stage ${teatro3d ? 'lt-stage--3d' : ''} ${tone === 'good' ? 'is-win' : ''} ${suspense ? 'is-suspense' : ''} ${lost ? 'is-lost' : ''}`}
+          aria-label="El sorteo"
+        >
+          {teatro3d ? (
+            <Teatro3D
+              spinning={busy}
+              fast={suspense}
+              sung={sung}
+              current={current}
+              hit={Boolean(hit)}
+              done={done}
+              win={Boolean(done && draw.prize && draw.net > 0)}
+              onFail={() => setTeatro3d(false)}
+            />
+          ) : (
+            <>
+              <span className="lt-curtain lt-curtain--l" aria-hidden="true" />
+              <span className="lt-curtain lt-curtain--r" aria-hidden="true" />
+              <span className="lt-valance" aria-hidden="true" />
+              <span className="lt-beams" aria-hidden="true" />
+              <span className="lt-floor" aria-hidden="true" />
+            </>
+          )}
           {hit && <span className="lt-flash" key={`f${sung}`} aria-hidden="true" />}
           <div className="fi-top">
             <span className="fi-chip">
@@ -241,7 +313,7 @@ function Loteria({ onExit, juegos }) {
           </div>
 
           <div className={`lt-show ${suspense ? 'is-suspense' : ''}`}>
-            <Bombos spinning={busy} fast={suspense} />
+            {!teatro3d && <Bombos spinning={busy} fast={suspense} />}
             <div className="lt-canto" aria-live="polite">
               {suspense && (
                 <div className="lt-suspense" key="suspense">
@@ -292,7 +364,7 @@ function Loteria({ onExit, juegos }) {
                 <span className="lt-canto__wait">{busy ? '♪ ♪ ♪' : 'Los bombos esperan'}</span>
               )}
             </div>
-            <Ninos singing={singing} />
+            {!teatro3d && <Ninos singing={singing} />}
           </div>
 
           <div className="lt-mid">

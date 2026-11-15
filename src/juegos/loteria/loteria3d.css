@@ -1,0 +1,61 @@
+/* Escrito a mano: la Lotería con el teatro en 3D (loteria3d.js). El lienzo va detrás de todo el escenario; encima quedan
+   el número cantado (con su nombre en letras), el décimo y la lista de premios, en paneles que dejan ver el teatro. */
+
+.juegos-root .lt-stage--3d {
+  background: #12040a;
+}
+.juegos-root .lt-3d {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.juegos-root .lt3d__gl {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* Sin los dibujos: el canto va solo, centrado, y deja sitio a los bombos 3D a los lados. */
+.juegos-root .lt-stage--3d .lt-show {
+  grid-template-columns: minmax(0, 340px);
+  min-height: clamp(220px, 36vh, 380px);
+  align-items: start;
+}
+.juegos-root .lt-stage--3d .lt-canto {
+  min-height: 0;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: rgba(18, 4, 10, 0.55);
+  backdrop-filter: blur(4px);
+}
+.juegos-root .lt-stage--3d .lt-canto:has(.lt-canto__wait) {
+  background: none;
+  backdrop-filter: none;
+}
+.juegos-root .lt-stage--3d .lt-mid {
+  padding: 12px;
+  border-radius: 18px;
+  background: rgba(18, 4, 10, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(248, 197, 78, 0.35);
+  backdrop-filter: blur(6px);
+}
+.juegos-root .lt-stage--3d .fi-status {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(18, 4, 10, 0.6);
+}
+.juegos-root .lt-stage--3d::after {
+  opacity: 0;
+}
+@media (max-width: 860px) {
+  .juegos-root .lt-stage--3d .lt-show {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: none;
+    min-height: clamp(200px, 34vh, 300px);
+  }
+  .juegos-root .lt-stage--3d .lt-canto {
+    grid-area: auto;
+    min-height: 0;
+  }
+}

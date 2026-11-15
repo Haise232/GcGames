@@ -121,7 +121,7 @@ function Landing3D({ floor, people = [] }) {
 
 // La botonera: elegir planta deja puesta la bajada automática; el botón grande te baja ya. Se pinta dos veces: en la
 // pared junto a la puerta (escritorio) y en primer plano a la derecha (móvil, para poder pulsarla con el dedo).
-function Cop({ where, floor, phase, autoFloor, pickable, onPick, canExit, onExit, exitLabel }) {
+export function Cop({ where, floor, phase, autoFloor, pickable, onPick, canExit, onExit, exitLabel }) {
   return (
     <div className={`pv-cop pv-cop--${where}`} role="group" aria-label="Botonera">
       <span className="pv-cop__brand" aria-hidden="true">
@@ -152,7 +152,7 @@ function Cop({ where, floor, phase, autoFloor, pickable, onPick, canExit, onExit
 }
 
 // El display de encima de las puertas: planta, flecha si sube y lo que vale cada planta.
-function Display({ floor, moving, alarm, roof, next, chance }) {
+export function Display({ floor, moving, alarm, roof, next, chance }) {
   return (
     <div className={`pv-display ${alarm ? 'is-alarm' : ''} ${roof ? 'is-roof' : ''}`} aria-hidden="true">
       <span className={`pv-display__arrow ${moving ? 'is-on' : ''}`}>▲</span>

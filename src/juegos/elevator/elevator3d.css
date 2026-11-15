@@ -1,0 +1,186 @@
+/* Escrito a mano: el Ascensor en 3D (elevator3d.js + Elevator3D.jsx). La escena WebGL llena el cuadro; encima van el
+   display de planta (arriba), la botonera flotante a la derecha cuando vas dentro y los avisos de caída y azotea. */
+
+.juegos-root .el3 {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  min-height: 320px;
+  max-height: min(64vh, 620px);
+  overflow: hidden;
+  border-radius: 22px;
+  background: #05070f;
+  box-shadow:
+    0 0 0 1px rgba(255, 214, 120, 0.3),
+    0 24px 60px rgba(0, 0, 0, 0.55);
+  isolation: isolate;
+  container-type: size;
+}
+.juegos-root .el3__scene {
+  position: absolute;
+  inset: 0;
+}
+.juegos-root .el3__wait {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: var(--muted);
+  font-weight: 650;
+}
+.juegos-root .el3d {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.juegos-root .el3d__gl {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.juegos-root .el3d__vig {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 95% at 50% 45%, transparent 60%, rgba(0, 0, 0, 0.5));
+}
+.juegos-root .el3d__alarm {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  box-shadow: inset 0 0 0 6px rgba(255, 40, 40, 0.8), inset 0 0 90px rgba(255, 30, 30, 0.6);
+}
+.juegos-root .el3d__alarm--on {
+  animation: el3-alarm 0.45s steps(2) 7;
+}
+@keyframes el3-alarm {
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Display: arriba al centro, de led ámbar. */
+.juegos-root .el3 .pv-display {
+  top: 12px;
+  min-width: min(260px, 46%);
+  z-index: 4;
+}
+
+/* La botonera flotante (cuando vas dentro), a la derecha. */
+.juegos-root .el3 .pv-cop--float {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 5;
+  width: clamp(120px, 17cqw, 190px);
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  border-width: 2px;
+}
+.juegos-root .el3 .pv-cop--float .pv-cop__grid {
+  gap: 6px;
+}
+.juegos-root .el3 .pv-cop--float .pv-btn {
+  font-size: 13px;
+}
+.juegos-root .el3 .pv-cop--float .pv-btn.is-lit {
+  box-shadow: 0 0 12px rgba(255, 180, 60, 0.9);
+}
+.juegos-root .el3 .pv-cop--float .pv-exit {
+  padding: 8px 4px;
+  border-width: 2px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+.juegos-root .el3 .pv-cop--float .pv-exit b {
+  font-size: 14px;
+}
+.juegos-root .el3 .pv-cop--float .pv-exit.is-ready {
+  animation: el3-ready 0.9s ease-in-out infinite;
+}
+@keyframes el3-ready {
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(255, 90, 70, 0.4),
+      0 0 22px rgba(255, 90, 70, 0.85);
+  }
+}
+.juegos-root .el3 .pv-cop--float .pv-cop__brand {
+  font-size: 9px;
+}
+
+/* Avisos (abajo, sin tapar la escena). */
+.juegos-root .el3__fall,
+.juegos-root .el3__roof {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  translate: -50% 0;
+  z-index: 6;
+  display: grid;
+  justify-items: center;
+  padding: 10px 22px;
+  border-radius: 16px;
+  background: rgba(20, 4, 4, 0.82);
+  box-shadow: inset 0 0 0 2px rgba(255, 90, 70, 0.7), 0 0 30px rgba(255, 40, 30, 0.4);
+  text-align: center;
+  animation: el3-pop 0.5s 0.8s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+.juegos-root .el3__fall b,
+.juegos-root .el3__roof b {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(22px, 4.6cqw, 40px);
+  color: #ff5a4a;
+  text-shadow: 0 0 18px rgba(255, 60, 40, 0.7);
+}
+.juegos-root .el3__fall small {
+  color: #f1d9d4;
+}
+.juegos-root .el3__roof {
+  background: rgba(4, 20, 10, 0.8);
+  box-shadow: inset 0 0 0 2px rgba(95, 211, 141, 0.8), 0 0 30px rgba(95, 211, 141, 0.4);
+  animation-delay: 0.2s;
+}
+.juegos-root .el3__roof b {
+  color: #7dffb2;
+  text-shadow: 0 0 18px rgba(80, 255, 160, 0.7);
+}
+@keyframes el3-pop {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+@media (max-width: 760px) {
+  .juegos-root .el3 {
+    aspect-ratio: 4 / 5;
+    max-height: 66svh;
+    border-radius: 16px;
+  }
+  .juegos-root .el3 .pv-cop--float {
+    right: 8px;
+    width: 112px;
+    padding: 6px;
+    gap: 5px;
+  }
+  .juegos-root .el3 .pv-cop--float .pv-cop__grid {
+    gap: 4px;
+  }
+  .juegos-root .el3 .pv-cop--float .pv-btn {
+    font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root .el3d__alarm--on,
+  .juegos-root .el3 .pv-cop--float .pv-exit.is-ready,
+  .juegos-root .el3__fall,
+  .juegos-root .el3__roof {
+    animation: none;
+  }
+}
