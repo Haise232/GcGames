@@ -499,3 +499,96 @@
     transition: none;
   }
 }
+
+/* ---------- Vista en primera persona (botón, cambio de coche y mirar arrastrando) ---------- */
+.juegos-root .r3d__view {
+  position: absolute;
+  top: 46px;
+  right: 12px;
+  display: flex;
+  gap: 4px;
+  pointer-events: auto;
+}
+.juegos-root .r3d__view button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  font: 700 12px var(--sans);
+  color: #fff;
+  background: var(--slab);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+.juegos-root .r3d__view button:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.juegos-root .r3d__view button:focus-visible {
+  outline: 2px solid #ffd75a;
+  outline-offset: 2px;
+}
+.juegos-root .r3d__fp svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.juegos-root .r3d__fp[aria-pressed='true'] {
+  border-color: #ffd75a;
+  color: #1a1405;
+  background: #ffd75a;
+}
+.juegos-root .r3d__ride {
+  display: none !important;
+  width: 32px;
+  padding: 0 !important;
+  font-size: 18px !important;
+  line-height: 1;
+}
+.juegos-root .r3d.is-fp .r3d__ride {
+  display: inline-flex !important;
+}
+.juegos-root .r3d.is-fp .r3d__gl {
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+}
+.juegos-root .r3d.is-fp.is-drag .r3d__gl {
+  cursor: grabbing;
+}
+.juegos-root .r3d.is-fp .r3d__tower {
+  pointer-events: auto;
+}
+.juegos-root .r3d.is-fp .r3d__row {
+  cursor: pointer;
+}
+.juegos-root .r3d__row.is-ride {
+  background: rgba(255, 215, 90, 0.16);
+  box-shadow: inset 2px 0 0 #ffd75a;
+}
+.juegos-root .r3d.is-fp .r3d__vig {
+  background: radial-gradient(ellipse at 50% 50%, transparent 66%, rgba(0, 0, 0, 0.35));
+}
+.juegos-root .r3d.is-compact .r3d__view {
+  top: 34px;
+  right: 8px;
+}
+.juegos-root .r3d.is-compact .r3d__view button {
+  min-height: 28px;
+  padding: 0 9px;
+  font-size: 11px;
+}
+.juegos-root .r3d.is-compact .r3d__ride {
+  width: 28px;
+}

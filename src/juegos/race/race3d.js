@@ -42,6 +42,7 @@ import {
   SphereGeometry,
   Sprite,
   SpriteMaterial,
+  TorusGeometry,
   Vector3,
   WebGLRenderer,
 } from 'three'
@@ -98,6 +99,7 @@ const CAM_NAME = {
   finish: 'Línea de meta',
   photo: 'Foto-finish',
   podium: 'Ganador',
+  cockpit: 'Cabina',
 }
 const SEQ = ['chase', 'side', 'heli', 'onboard', 'trackside', 'chase', 'heli', 'side']
 
@@ -465,6 +467,14 @@ export function mountRace3D(host, P) {
     <div class="r3d__vig"></div>
     <div class="r3d__tower"><div class="r3d__lap"></div><div class="r3d__rows"></div></div>
     <div class="r3d__cam"><i></i><span>En directo</span><b></b></div>
+    <div class="r3d__view">
+      <button type="button" class="r3d__ride" data-d="-1" aria-label="Coche anterior">‹</button>
+      <button type="button" class="r3d__fp" aria-pressed="false" title="Ver la carrera sentado dentro del coche (tecla V)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.2"/><path d="M3.4 10.5 9.8 12M14.2 12l6.4-1.5M12 14.2V21"/></svg>
+        <span>1.ª persona</span>
+      </button>
+      <button type="button" class="r3d__ride" data-d="1" aria-label="Coche siguiente">›</button>
+    </div>
     <div class="r3d__lights">${'<i></i>'.repeat(5)}</div>
     <div class="r3d__pop"><b></b><small></small></div>
     <div class="r3d__photo"><b>Foto-finish</b><i></i></div>
@@ -607,6 +617,121 @@ export function mountRace3D(host, P) {
     scene.add(g)
     return { g, body, wheels, tailMat, beam, glow, tag, tagCanvas, tagTex, tagKey: '', spin: 0 }
   })
+
+  // ----- la cabina (vista en primera persona): se cuelga de la carrocería del coche en el que vas -----
+  // Ejes del coche: +x hacia delante, +y arriba, +z a la derecha. El conductor va a la izquierda (z < 0).
+  const EYE = new Vector3(-8, 20.2, -5)
+  const cockpit = new Group()
+  cockpit.visible = false
+  const cabinMat = keep(new MeshLambertMaterial({ vertexColors: true }))
+  {
+    const ink = '#17191e'
+    const trim = '#24272d'
+    const soft = '#2e3138'
+    const pillar = (s) => part(new BoxGeometry(1.3, 9, 1.2), ink, mat(7.6, 18.5, s * 10.2, 0, 1, 1, 1, 0, 0.43))
+    cockpit.add(
+      new Mesh(
+        keep(
+          merge([
+            // Salpicadero, la visera del cuadro y la consola.
+            part(new BoxGeometry(8.5, 3.6, 20.4), ink, mat(3.4, 15.2, 0)),
+            part(new BoxGeometry(26, 0.3, 21), ink, mat(-5, 14.15, 0)),
+            part(new BoxGeometry(1.2, 3.2, 6.6), trim, mat(-0.5, 16.3, 1.6, -0.3)),
+            part(new BoxGeometry(14, 2.2, 3.4), trim, mat(-5, 14.4, 0)),
+            part(new BoxGeometry(1.2, 2.6, 1.2), '#3a3e46', mat(-6, 16.4, 0)),
+            part(new SphereGeometry(0.8, 8, 6), '#c9ced6', mat(-6, 17.9, 0)),
+            // Montantes, techo y retrovisor.
+            pillar(-1),
+            pillar(1),
+            part(new BoxGeometry(2, 1.2, 21.4), ink, mat(5.5, 22.6, 0)),
+            part(new BoxGeometry(23, 0.4, 21), ink, mat(-6, 22.6, 0)),
+            part(new BoxGeometry(1.4, 8, 1.2), ink, mat(-16.8, 20.6, -10)),
+            part(new BoxGeometry(1.4, 8, 1.2), ink, mat(-16.8, 20.6, 10)),
+            part(new BoxGeometry(0.6, 1, 3.2), ink, mat(4.6, 21.7, 0)),
+            part(new BoxGeometry(0.15, 0.75, 2.9), '#8f9cad', mat(4.25, 21.7, 0)),
+            // Puertas con su reposabrazos y el asiento del copiloto.
+            part(new BoxGeometry(24, 3.6, 0.9), trim, mat(-6, 15.4, -10.7)),
+            part(new BoxGeometry(24, 3.6, 0.9), trim, mat(-6, 15.4, 10.7)),
+            part(new BoxGeometry(10, 1, 1.6), soft, mat(-8, 16.6, -10)),
+            part(new BoxGeometry(10, 1, 1.6), soft, mat(-8, 16.6, 10)),
+            part(new BoxGeometry(2, 8, 7), soft, mat(-13.5, 18, 5, 0, 1, 1, 1, 0, 0.18)),
+            part(new BoxGeometry(2, 2.6, 4.4), soft, mat(-14.6, 23, 5)),
+            part(new BoxGeometry(8, 2, 7), soft, mat(-9, 14.6, 5)),
+            // Columna de la dirección.
+            part(new CylinderGeometry(0.55, 0.75, 3.2, 8), ink, mat(-2.2, 15, -5, 0, 1, 1, 1, 0, 1.29)),
+          ]),
+        ),
+        cabinMat,
+      ),
+    )
+  }
+  // Franja del color del coche en el salpicadero.
+  const stripeMat = keep(new MeshLambertMaterial({ color: '#ffffff' }))
+  {
+    const st = new Mesh(keep(new BoxGeometry(0.3, 0.35, 20)), stripeMat)
+    st.position.set(-0.95, 16.9, 0)
+    cockpit.add(st)
+  }
+  // Volante: inclinado hacia el conductor; gira con la dirección.
+  const steerTilt = new Group()
+  steerTilt.position.set(-3.6, 15.9, -5)
+  steerTilt.rotation.z = 0.32
+  const steerYaw = new Group()
+  steerYaw.rotation.y = Math.PI / 2
+  steerTilt.add(steerYaw)
+  const steering = new Mesh(
+    keep(
+      merge([
+        part(new TorusGeometry(2.8, 0.42, 8, 28), '#121317'),
+        part(new CylinderGeometry(0.9, 0.9, 0.7, 12), '#22252b', mat(0, 0, 0, 0, 1, 1, 1, Math.PI / 2)),
+        part(new BoxGeometry(4.8, 0.5, 0.4), '#22252b'),
+        part(new BoxGeometry(0.5, 2.6, 0.4), '#22252b', mat(0, -1.4, 0)),
+        part(new BoxGeometry(0.6, 0.45, 0.5), '#ffd75a', mat(0, 2.8, 0)),
+      ]),
+    ),
+    cabinMat,
+  )
+  steerYaw.add(steering)
+  cockpit.add(steerTilt)
+  // Pantalla del cuadro: velocidad, posición, vuelta y luces de cambio.
+  const dashCanvas = document.createElement('canvas')
+  dashCanvas.width = 256
+  dashCanvas.height = 112
+  const dashTex = keep(new CanvasTexture(dashCanvas))
+  dashTex.colorSpace = SRGBColorSpace
+  const dash = new Mesh(keep(new PlaneGeometry(5.6, 2.45).rotateY(-Math.PI / 2 - 0.3)), keep(new MeshBasicMaterial({ map: dashTex, toneMapped: false })))
+  dash.position.set(-1.16, 16.3, 1.4)
+  cockpit.add(dash)
+  let dashKey = ''
+  let dashAt = 0
+  function drawDash(kmh, pos, sub, revs, color) {
+    const g = dashCanvas.getContext('2d')
+    g.fillStyle = '#05070b'
+    g.fillRect(0, 0, 256, 112)
+    for (let k = 0; k < 10; k++) {
+      const on = k < Math.round(revs * 10)
+      g.fillStyle = on ? (k < 5 ? '#3cff7a' : k < 8 ? '#ffd23c' : '#ff3b3b') : '#1b2029'
+      g.fillRect(14 + k * 23.4, 8, 18, 9)
+    }
+    g.textBaseline = 'alphabetic'
+    g.textAlign = 'right'
+    g.fillStyle = '#ffffff'
+    g.font = '800 54px system-ui, sans-serif'
+    g.fillText(String(kmh), 128, 82)
+    g.font = '700 15px system-ui, sans-serif'
+    g.fillStyle = '#8b96a8'
+    g.fillText('km/h', 128, 101)
+    g.fillStyle = color
+    g.fillRect(140, 30, 3, 70)
+    g.textAlign = 'left'
+    g.fillStyle = '#ffffff'
+    g.font = '800 34px system-ui, sans-serif'
+    g.fillText(pos, 152, 64)
+    g.font = '700 15px system-ui, sans-serif'
+    g.fillStyle = '#8b96a8'
+    g.fillText(sub, 152, 92)
+    dashTex.needsUpdate = true
+  }
 
   // Semáforo de la salida (pórtico con cinco luces) y bandera de meta: se colocan al construir el circuito.
   const gantry = new Group()
@@ -1177,6 +1302,22 @@ export function mountRace3D(host, P) {
   let snap = true
   let shake = 0
   let raf = 0
+  // Vista en primera persona: en qué coche vas (-1: el tuyo, al que apuestas o el que iba primero) y hacia dónde miras.
+  let fp = false
+  try {
+    fp = localStorage.getItem('race3d.view') === 'fp'
+  } catch {}
+  let ride = -1
+  let rideLock = -1
+  let rideNow = 0
+  let lookYaw = 0
+  let lookPitch = 0
+  let lookTurn = 0
+  let dragAt = 0
+  let drag = null
+  const _q2 = new Quaternion()
+  const _q3 = new Quaternion()
+  const _e2 = new Euler(0, 0, 0, 'YXZ')
   let last = 0
   let dead = false
   let emaDt = 0.016
@@ -1215,7 +1356,7 @@ export function mountRace3D(host, P) {
       return { type: idx % 2 ? 'drone' : 'orbit', focus: order[0], key: `b${idx}` }
     }
     if (ms < 0 || !race) return { type: 'grid', focus: order[0], key: 'grid' }
-    if (info.photo && ms >= info.t0 && ms < info.t0 + REPLAY_MS && !p.reduced) return { type: 'photo', focus: info.order[0], key: 'photo' }
+    if (info.photo && ms >= info.t0 && ms < info.t0 + REPLAY_MS && !p.reduced && !fp) return { type: 'photo', focus: info.order[0], key: 'photo' }
     if (ms >= info.t0) {
       if (ms < info.t0 + (info.photo ? REPLAY_MS : PODIUM_AFTER)) return { type: 'finish', focus: info.order[0], key: 'fin' }
       return { type: 'podium', focus: info.order[0], key: 'podium' }
@@ -1519,7 +1660,7 @@ export function mountRace3D(host, P) {
       engine = startEngine2()
     }
     if (!engine) return
-    const car = p.mySeat != null && p.mySeat >= 0 ? p.mySeat : order[0]
+    const car = fp ? rideNow : p.mySeat != null && p.mySeat >= 0 ? p.mySeat : order[0]
     const spd = S.spd[car]
     const GEAR = 300
     const g0 = clamp(Math.floor(spd / GEAR), 0, 5)
@@ -1549,7 +1690,7 @@ export function mountRace3D(host, P) {
           row.el.style.transform = `translateY(${r * 100}%)`
           row.pos.textContent = String(r + 1)
         }
-        const cls = `${ms >= race.finish[c] ? 'is-in ' : ''}${p.mySeat === c ? 'is-me ' : ''}${betOn[c] > 0 ? 'is-bet ' : ''}${r === 0 ? 'is-lead' : ''}`
+        const cls = `${ms >= race.finish[c] ? 'is-in ' : ''}${p.mySeat === c ? 'is-me ' : ''}${betOn[c] > 0 ? 'is-bet ' : ''}${r === 0 ? 'is-lead ' : ''}${fp && rideNow === c ? 'is-ride' : ''}`
         if (cls !== row.cls) {
           row.cls = cls
           row.el.className = `r3d__row ${cls}`
@@ -1572,7 +1713,7 @@ export function mountRace3D(host, P) {
       if (elLap.textContent !== lap) elLap.textContent = lap
     }
     // Cámara.
-    const camText = CAM_NAME[sh.type] + (['chase', 'onboard', 'side', 'trackside', 'podium'].includes(sh.type) ? ` · ${CAR_INFO[sh.focus].name}` : '')
+    const camText = fp ? `${CAM_NAME.cockpit} · ${CAR_INFO[rideNow].name}` : CAM_NAME[sh.type] + (['chase', 'onboard', 'side', 'trackside', 'podium'].includes(sh.type) ? ` · ${CAR_INFO[sh.focus].name}` : '')
     if (elCam.textContent !== camText) elCam.textContent = camText
     // Semáforo.
     const n = lightsAt(ms)
@@ -1679,6 +1820,7 @@ export function mountRace3D(host, P) {
       ev = null
       prevRank.fill(-1)
       winKey = 'x'
+      rideLock = -1
     }
 
     betOn.fill(0)
@@ -1720,6 +1862,24 @@ export function mountRace3D(host, P) {
     }
     const SS = shot.type === 'photo' ? S2 : S
 
+    // En qué coche vas en la vista en primera persona.
+    if (fp) {
+      let r = ride
+      if (r < 0 && p.mySeat != null && p.mySeat >= 0) r = p.mySeat
+      if (r < 0 && Math.max(...betOn) > 0) r = betOn.indexOf(Math.max(...betOn))
+      if (r < 0) {
+        if (rideLock < 0) rideLock = order[0]
+        r = rideLock
+      }
+      if (r !== rideNow || cockpit.parent !== cars[r].body) {
+        rideNow = r
+        cars[r].body.add(cockpit)
+        stripeMat.color.set(CAR_INFO[r].color)
+        dashKey = ''
+      }
+    }
+    cockpit.visible = fp
+
     // Coches.
     for (let i = 0; i < CARS; i++) {
       const c = cars[i]
@@ -1732,10 +1892,11 @@ export function mountRace3D(host, P) {
       c.spin -= (SS.spd[i] * dt * (shot.type === 'photo' ? 0.2 : 1)) / 7
       for (const w of c.wheels) w.rotation.z = c.spin
       const steer = clamp(SS.k[i] * 30, -0.35, 0.35)
+      if (fp && i === rideNow) steering.rotation.z += (-steer * 2.6 - steering.rotation.z) * (1 - Math.exp(-dt * 10))
       c.wheels[0].rotation.y = steer
       c.wheels[1].rotation.y = steer
       c.tailMat.color.set(SS.brake[i] > 0.2 || (ms < 0 && ms > -GRID_MS) ? '#ff2a1a' : '#6a0c0c')
-      c.tag.visible = !(shot.type === 'onboard' && shot.focus === i) && shot.type !== 'photo'
+      c.tag.visible = fp ? rideNow !== i : !(shot.type === 'onboard' && shot.focus === i) && shot.type !== 'photo'
     }
     tags(p)
 
@@ -1797,18 +1958,67 @@ export function mountRace3D(host, P) {
       camLook.lerp(camLookT, 1 - Math.exp(-dt * (smoothK + 2)))
       fov += (fovT - fov) * (1 - Math.exp(-dt * 3))
     }
-    camera.position.copy(camPos)
+    if (fp) {
+      // Sentado en el coche: la cabeza va con la carrocería (cabeceo y balanceo), mira un poco hacia la curva y se puede
+      // girar arrastrando; al soltar, vuelve sola al frente.
+      const r = rideNow
+      cars[r].g.updateMatrixWorld(true)
+      camPos.copy(EYE).applyMatrix4(cockpit.matrixWorld)
+      cockpit.getWorldQuaternion(_q2)
+      if (!drag && nowReal - dragAt > 900) {
+        const back = 1 - Math.exp(-dt * 2.5)
+        lookYaw -= lookYaw * back
+        lookPitch -= lookPitch * back
+      }
+      lookTurn += (clamp(SS.k[r] * SS.spd[r] * 0.012, -0.2, 0.2) - lookTurn) * (1 - Math.exp(-dt * 3))
+      _q3.setFromEuler(_e2.set(-0.07 + lookPitch, -Math.PI / 2 + lookYaw + lookTurn, 0))
+      camera.quaternion.copy(_q2).multiply(_q3)
+      camLook.set(1, 0, 0).applyQuaternion(_q2).multiplyScalar(200).add(camPos)
+      let f = 70 + Math.min(10, SS.spd[r] / 160)
+      if (camera.aspect < 1.2) f = Math.min(100, f * (1 + (1.2 - camera.aspect) * 0.55))
+      fov = f
+      // Cuadro de mandos (unas diez veces por segundo).
+      if (nowReal - dashAt > 90) {
+        dashAt = nowReal
+        const spd = SS.spd[r]
+        const g0 = clamp(Math.floor(spd / 300), 0, 5)
+        const revs = ms > 0 || ms < -GRID_MS ? clamp((spd - g0 * 300) / 300, 0, 1) : 0.15 + 0.6 * Math.abs(Math.sin(nowReal / 90))
+        const kmh = Math.round(spd * 0.16)
+        let sub
+        if (!race || ms < 0) sub = track.open ? `${DRAG_M} m` : 'Parrilla'
+        else if (ms >= race.finish[r]) sub = 'Meta'
+        else if (track.open) sub = `${Math.round(clamp(shownProgress(race, r, ms), 0, 1) * DRAG_M)} m`
+        else sub = `V ${clamp(Math.floor(shownProgress(race, r, ms) * laps) + 1, 1, laps)}/${laps}`
+        const key = `${kmh}|${rank[r]}|${sub}|${Math.round(revs * 10)}`
+        if (key !== dashKey) {
+          dashKey = key
+          drawDash(kmh, `P${rank[r] + 1}`, sub, revs, CAR_INFO[r].color)
+        }
+      }
+      camera.position.copy(camPos)
+      const amp = p.reduced ? 0 : shake * 1.2 + clamp((SS.spd[r] - 700) / 1200, 0, 1) * 0.12
+      if (amp > 0.01) camera.position.add(_v.set((Math.random() - 0.5) * amp, (Math.random() - 0.5) * amp, (Math.random() - 0.5) * amp * 0.5))
+      shake *= Math.exp(-dt * 3)
+      if (Math.abs(camera.fov - fov) > 0.01) {
+        camera.fov = fov
+        camera.updateProjectionMatrix()
+      }
+      snap = true
+    }
+    if (!fp) camera.position.copy(camPos)
     // Temblor: en la salida, al llegar y a mucha velocidad en los planos cercanos.
-    const fast = shot.type === 'chase' || shot.type === 'onboard' ? clamp((S.spd[shot.focus] - 900) / 900, 0, 1) : 0
-    if (!p.reduced) {
+    const fast = fp ? clamp((S.spd[rideNow] - 1000) / 900, 0, 1) * 0.5 : shot.type === 'chase' || shot.type === 'onboard' ? clamp((S.spd[shot.focus] - 900) / 900, 0, 1) : 0
+    if (!p.reduced && !fp) {
       const amp = shake * 4 + fast * 0.8
       if (amp > 0.01) camera.position.add(_v.set((Math.random() - 0.5) * amp, (Math.random() - 0.5) * amp, (Math.random() - 0.5) * amp))
     }
-    shake *= Math.exp(-dt * 3)
-    camera.lookAt(camLook)
-    if (Math.abs(camera.fov - fov) > 0.01) {
-      camera.fov = fov
-      camera.updateProjectionMatrix()
+    if (!fp) {
+      shake *= Math.exp(-dt * 3)
+      camera.lookAt(camLook)
+      if (Math.abs(camera.fov - fov) > 0.01) {
+        camera.fov = fov
+        camera.updateProjectionMatrix()
+      }
     }
     sky.position.copy(camera.position)
     stars.position.copy(camera.position)
@@ -1846,6 +2056,68 @@ export function mountRace3D(host, P) {
   }
   canvas.addEventListener('webglcontextlost', onLost)
 
+  // ----- botón de la vista, cambio de coche y mirar alrededor -----
+  const elFp = $('.r3d__fp')
+  const setFp = (on) => {
+    fp = on
+    root.classList.toggle('is-fp', fp)
+    elFp.setAttribute('aria-pressed', String(fp))
+    lookYaw = lookPitch = lookTurn = 0
+    if (!fp) {
+      cockpit.removeFromParent()
+      ride = -1
+    }
+    snap = true
+    try {
+      localStorage.setItem('race3d.view', fp ? 'fp' : 'tv')
+    } catch {}
+  }
+  const rideBy = (d) => {
+    ride = (rideNow + d + CARS) % CARS
+  }
+  elFp.addEventListener('click', () => setFp(!fp))
+  root.querySelectorAll('.r3d__ride').forEach((b) => b.addEventListener('click', () => rideBy(Number(b.dataset.d))))
+  rows.forEach((r, c) =>
+    r.el.addEventListener('click', () => {
+      if (!fp) setFp(true)
+      ride = c
+    }),
+  )
+  const onKey = (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.target?.closest?.('input, textarea, select, [contenteditable="true"]')) return
+    const k = e.key.toLowerCase()
+    if (k === 'v') setFp(!fp)
+    else if (fp && (k === '[' || k === ']')) rideBy(k === '[' ? -1 : 1)
+    else return
+    e.preventDefault()
+  }
+  window.addEventListener('keydown', onKey)
+  const onDown = (e) => {
+    if (!fp || e.button > 0) return
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY }
+    canvas.setPointerCapture?.(e.pointerId)
+    root.classList.add('is-drag')
+  }
+  const onMove = (e) => {
+    if (!drag || e.pointerId !== drag.id) return
+    lookYaw = clamp(lookYaw - (e.clientX - drag.x) * 0.006, -2, 2)
+    lookPitch = clamp(lookPitch - (e.clientY - drag.y) * 0.005, -0.55, 0.45)
+    drag.x = e.clientX
+    drag.y = e.clientY
+    dragAt = performance.now()
+  }
+  const onUp = (e) => {
+    if (!drag || e.pointerId !== drag.id) return
+    drag = null
+    dragAt = performance.now()
+    root.classList.remove('is-drag')
+  }
+  canvas.addEventListener('pointerdown', onDown)
+  canvas.addEventListener('pointermove', onMove)
+  canvas.addEventListener('pointerup', onUp)
+  canvas.addEventListener('pointercancel', onUp)
+  setFp(fp)
+
   buildWorld(P.current.circuit ?? 0)
   if (!document.hidden) raf = requestAnimationFrame(frame)
 
@@ -1855,6 +2127,7 @@ export function mountRace3D(host, P) {
       cancelAnimationFrame(raf)
       observer.disconnect()
       document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('keydown', onKey)
       canvas.removeEventListener('webglcontextlost', onLost)
       if (engine) engine.stop()
       engine = null

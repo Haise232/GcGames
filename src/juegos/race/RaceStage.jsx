@@ -47,7 +47,7 @@ export default function RaceStage(props) {
   if (fallback) return <RaceScene {...props} />
   const circuit = CIRCUITS[props.circuit ?? 0]
   return (
-    <div className="race-stage" ref={host} role="img" aria-label={`Circuito ${circuit.name}: la carrera en 3D`}>
+    <div className="race-stage" ref={host} role="region" aria-label={`Circuito ${circuit.name}: la carrera en 3D`}>
       {mode === 'loading' && (
         <p className="race-stage__wait" style={{ '--c': circuit.color }}>
           Preparando la pista…
