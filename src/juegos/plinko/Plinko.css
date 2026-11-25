@@ -1,11 +1,15 @@
-/* Escrito a mano (no generado): Plinko. El tablero se mide con el alto libre y el panel va al lado (debajo en el móvil). */
+/* Escrito a mano (no generado): Plinko. El tablero se queda con todo el alto y el ancho libres (en pantallas grandes la
+   pantalla llega a 1920 px) y el panel va al lado (debajo en el móvil). El tema de Navidad, en plinko-navidad.css. */
 
+.juegos-root .app.plinko-app {
+  width: min(100%, 1920px);
+}
 .juegos-root .plinko {
   display: grid;
-  grid-template-columns: minmax(0, auto) minmax(240px, 320px);
-  justify-content: center;
-  align-items: center;
-  gap: clamp(20px, 3.4vw, 56px);
+  grid-template-columns: minmax(0, 1fr) clamp(270px, 22vw, 380px);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: stretch;
+  gap: clamp(14px, 1.8vw, 32px);
   min-height: 0;
 }
 
@@ -15,8 +19,7 @@
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   min-height: 0;
-  max-height: 100%;
-  padding: clamp(12px, 1.8vw, 22px);
+  padding: clamp(10px, 1.4vw, 20px);
   border: 2px solid transparent;
   border-radius: 24px;
   background:
@@ -39,7 +42,9 @@
 
 /* Tablero: noche violeta con una rejilla de puntos y un foco arriba. */
 .juegos-root .plinko__board {
+  position: relative;
   min-height: 0;
+  overflow: hidden;
   padding: clamp(6px, 1vw, 12px);
   border-radius: 16px;
   background:
@@ -51,12 +56,11 @@
     inset 0 14px 40px rgba(0, 0, 0, 0.5);
 }
 .juegos-root .plinko__board svg {
+  position: absolute;
+  inset: 0;
   display: block;
-  width: auto;
-  max-width: 100%;
-  height: min(calc(100svh - 300px), 680px);
-  min-height: 260px;
-  margin-inline: auto;
+  width: 100%;
+  height: 100%;
   overflow: visible;
 }
 
@@ -132,9 +136,12 @@
 /* Panel: riesgo, apuesta, botón e historial. */
 .juegos-root .plinko__panel {
   display: grid;
-  align-content: center;
-  gap: clamp(14px, 2.4vh, 22px);
+  align-content: start;
+  gap: clamp(12px, 2vh, 20px);
   min-width: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: clamp(16px, 2vw, 22px);
   border: 1px solid rgba(164, 107, 255, 0.28);
   border-radius: 22px;
@@ -376,15 +383,62 @@
   }
 }
 
-/* Pantallas bajas (escritorio pequeño, tableta o móvil en horizontal): el tablero se mide con el alto libre y el
-   panel se desplaza por dentro cuando no cabe. */
-@media (max-height: 760px) {
-  .juegos-root .plinko__panel {
-    align-self: stretch;
-    align-content: start;
-    max-height: 100%;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+/* Marcador de la visita: bolas, lo ganado o perdido y el mejor multiplicador. */
+.juegos-root .plinko__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+.juegos-root .plinko__stats div {
+  display: grid;
+  gap: 2px;
+  padding: 8px 6px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.28);
+  text-align: center;
+}
+.juegos-root .plinko__stats dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.juegos-root .plinko__stats dd {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--ivory);
+}
+.juegos-root .plinko__stats dd.is-up {
+  color: #5ff0a0;
+}
+.juegos-root .plinko__stats dd.is-down {
+  color: #ff7a86;
+}
+
+/* En pantallas grandes, todo el panel algo más grande. */
+@media (min-width: 1600px) and (min-height: 860px) {
+  .juegos-root .plinko__machine .status {
+    font-size: 22px;
+  }
+  .juegos-root .plinko__seg button,
+  .juegos-root .plinko__bets button {
+    min-height: 52px;
+    font-size: 18px;
+  }
+  .juegos-root .plinko-app .plinko__drop button.primary {
+    min-height: 70px;
+    font-size: 24px;
+  }
+  .juegos-root .plinko__stats dd {
+    font-size: 18px;
+  }
+  .juegos-root .plinko__chip {
+    font-size: 15px;
   }
 }
 @media (max-height: 560px) and (orientation: landscape) {
@@ -403,15 +457,12 @@
   .juegos-root .plinko__board {
     padding: 4px;
   }
-  .juegos-root .plinko__board svg {
-    height: calc(100svh - 150px);
-    min-height: 160px;
-  }
   .juegos-root .plinko__panel {
     gap: 10px;
     padding: 12px;
   }
   .juegos-root .plinko__last,
+  .juegos-root .plinko__stats,
   .juegos-root .plinko__group h2,
   .juegos-root .plinko__drop kbd {
     display: none;
@@ -427,6 +478,7 @@
 @media (max-width: 900px) and (orientation: portrait) {
   .juegos-root .plinko {
     grid-template-columns: minmax(0, 1fr);
+    align-items: start;
     /* max-content: con min-height: 0 en el mueble, una fila auto se encogía y los clavos se salían del marco. */
     grid-template-rows: max-content max-content;
     align-content: start;
@@ -439,15 +491,21 @@
     max-height: none;
   }
   .juegos-root .plinko__board svg {
+    position: static;
     width: 100%;
     height: auto;
     max-height: 62svh;
     min-height: 0;
   }
   .juegos-root .plinko__panel {
+    max-height: none;
+    overflow: visible;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: end;
     gap: 10px 16px;
+  }
+  .juegos-root .plinko__stats {
+    grid-column: 1 / -1;
   }
   /* Lo primero bajo el tablero es el botón de soltar. */
   .juegos-root .plinko__drop {
@@ -459,7 +517,8 @@
   }
 }
 @media (max-width: 640px) {
-  .juegos-root .plinko__last {
+  .juegos-root .plinko__last,
+  .juegos-root .plinko__stats {
     display: none;
   }
   .juegos-root .plinko__panel {

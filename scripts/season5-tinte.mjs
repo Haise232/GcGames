@@ -56,7 +56,6 @@ const SHEETS = [
   'season4/fiestas.css',
   'season4/blackjack-beach.css',
   'season4/poker-beach.css',
-  'season4/plinko-beach.css',
   'season4/score-beach.css',
   'season4/tower-beach.css',
 ]
@@ -65,7 +64,6 @@ const SHEETS = [
 const ART_FILES = [
   'src/juegos/season4/BlackjackBeach.jsx',
   'src/juegos/season4/PokerBeach.jsx',
-  'src/juegos/season4/PlinkoBeach.jsx',
   'src/juegos/season4/ScoreBeach.jsx',
   'src/juegos/season4/TowerBeach.jsx',
   'src/juegos/season4/PescaArt.jsx',
@@ -74,7 +72,7 @@ const ART_FILES = [
   'src/juegos/season4/PaseParts.jsx',
   'src/juegos/hub/HubArt.jsx',
 ]
-const ART_SCOPE = ':is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring, .plinko__beach)'
+const ART_SCOPE = ':is(.hub-scene, .is4-scene, .bjb-layer, [class*="pkb__"], .sb-beach__svg, .tw-shore, .tw-city, .tw-bunting, .tw-lantern, .s4-ring)'
 
 const PREFIX = '.juegos-root.s5:where(:not(.halloween))'
 // Propiedades que pueden llevar color. Se copian de TODAS las reglas, también sin color (como «.x.is-off { background:

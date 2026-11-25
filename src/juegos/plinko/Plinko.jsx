@@ -7,7 +7,7 @@ import { useCountUp } from '../comun/useCountUp.js'
 import WinBurst from '../comun/WinBurst.jsx'
 import Help from '../comun/Help.jsx'
 import './Plinko.css'
-import { BeachBall, PlinkoBeach } from '../season4/PlinkoBeach.jsx'
+import { GiftWrap, NavidadFondo, Ornament, ornamentOf } from './PlinkoNavidad.jsx'
 
 // Medidas del tablero (unidades del viewBox): S es la distancia entre clavos.
 const S = 40
@@ -19,6 +19,8 @@ const BALL_R = 8.5
 const SLOT_Y = TOP + (ROWS - 1) * ROW_GAP + S * 0.95
 const SLOT_H = S * 1.15
 const H = SLOT_Y + SLOT_H + 6
+const PAD_TOP = S * 0.75 // sitio encima de la fila 0 para la estrella de la punta del árbol
+const LIGHTS = 5 // colores de las luces del árbol (los clavos), de plinko-navidad.css
 const ROW_MS = 165
 const TURBO_ROW_MS = 60 // modo turbo: la bola tarda menos de la mitad en caer
 const MAX_BALLS = 12
@@ -64,7 +66,7 @@ function framesOf(path) {
 }
 
 const TRAIL = [55, 110] // retraso (ms) de las dos sombras que dejan estela tras la bola
-const TONES = { hot: ['#ff7a6e', '#c4231b'], warm: ['#ffb45c', '#d9670f'], gold: ['#ffe48a', '#c99a1e'], even: ['#a6f0c6', '#3aa772'], cold: ['#8fb6cf', '#3d6580'] }
+const TONES = { hot: ['#ff5a6a', '#b00f26'], warm: ['#ffaa4a', '#d4530c'], gold: ['#ffe36a', '#d39a0e'], even: ['#5ff0a0', '#13894c'], cold: ['#6cd0ff', '#1f63c0'] }
 
 // Una bola en vuelo. El recorrido ya lo decidió el servidor: aquí solo se anima.
 function Ball({ ball, reduced, onPeg, onLand }) {
@@ -94,7 +96,8 @@ function Ball({ ball, reduced, onPeg, onLand }) {
       timers.forEach(clearTimeout)
     }
   }, [ball, reduced])
-  const start = { transform: `translate(${W / 2}px, ${TOP - S}px)` }
+  const color = ornamentOf(ball.id)
+  const start = { transform: `translate(${W / 2}px, ${TOP - S}px)`, '--orn': color.mid }
   return (
     <>
       {!reduced &&
@@ -103,7 +106,7 @@ function Ball({ ball, reduced, onPeg, onLand }) {
         ))}
       <g ref={ref} className="plinko__ball" style={start}>
         <circle r={BALL_R} />
-        <BeachBall r={BALL_R} />
+        <Ornament r={BALL_R} color={color} />
         <circle r={BALL_R * 0.35} cx={-BALL_R * 0.3} cy={-BALL_R * 0.3} className="plinko__shine" />
       </g>
     </>
@@ -121,6 +124,7 @@ function Plinko({ onExit, juegos }) {
   const [hits, setHits] = useState({}) // casilla → id de la última bola que cayó en ella (para el rebote)
   const [last, setLast] = useState(null) // última bola caída
   const [burst, setBurst] = useState(null)
+  const [session, setSession] = useState({ balls: 0, net: 0, best: 0 }) // lo de esta visita
   const [autoCount, setAutoCount] = useState(25) // cuántas bolas tirará el automático
   const [autoLeft, setAutoLeft] = useState(0) // bolas que le quedan al automático en marcha (0 = parado)
   const [stopOnBig, setStopOnBig] = useState(false) // por defecto el automático sigue aunque caiga un premio gordo
@@ -193,6 +197,7 @@ function Plinko({ onExit, juegos }) {
     setHits((h) => ({ ...h, [ball.slot]: ball.id }))
     setHistory((list) => [{ id: ball.id, mult: ball.mult }, ...list].slice(0, HISTORY))
     setLast(ball)
+    setSession((s) => ({ balls: s.balls + 1, net: s.net + ball.payout - ball.bet, best: Math.max(s.best, ball.mult) }))
     if (ball.payout > ball.bet) playWin(ball.mult >= 10)
     else if (ball.payout < ball.bet) playLose()
     if (ball.mult >= 10) setBurst(ball)
@@ -303,7 +308,7 @@ function Plinko({ onExit, juegos }) {
             {status}
           </p>
           <div className="plinko__board">
-            <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Tablero de ${ROWS} filas con riesgo ${RISKS.find((r) => r.id === risk).name.toLowerCase()}`}>
+            <svg viewBox={`0 ${-PAD_TOP} ${W} ${H + PAD_TOP}`} role="img" aria-label={`Tablero de ${ROWS} filas con riesgo ${RISKS.find((r) => r.id === risk).name.toLowerCase()}`}>
               <defs>
                 <radialGradient id="plinko-ball" cx="35%" cy="30%" r="70%">
                   <stop offset="0%" stopColor="#fff6cf" />
@@ -328,7 +333,7 @@ function Plinko({ onExit, juegos }) {
                   </feMerge>
                 </filter>
               </defs>
-              <PlinkoBeach w={W} h={H} slotY={SLOT_Y} />
+              <NavidadFondo w={W} h={H} top={TOP} rowGap={ROW_GAP} s={S} rows={ROWS} slotY={SLOT_Y} />
               <g className="plinko__pegs" filter="url(#plinko-glow)">
               {Array.from({ length: ROWS }, (_, row) =>
                 Array.from({ length: row + 3 }, (_, j) => (
@@ -338,7 +343,7 @@ function Plinko({ onExit, juegos }) {
                       if (el) pegs.current.set(`${row}-${j}`, el)
                       else pegs.current.delete(`${row}-${j}`)
                     }}
-                    className="plinko__peg"
+                    className={`plinko__peg plinko__peg--c${(row * 2 + j) % LIGHTS}`}
                     cx={pegX(row, j)}
                     cy={pegY(row)}
                     r={PEG_R}
@@ -353,7 +358,7 @@ function Plinko({ onExit, juegos }) {
                 >
                   <rect x={slotX(k) - S / 2 + 2} y={SLOT_Y} width={S - 4} height={SLOT_H} rx={8} fill={`url(#plinko-tone-${toneOf(mult)})`} />
                   <rect className="plinko__slot-shine" x={slotX(k) - S / 2 + 5} y={SLOT_Y + 3} width={S - 10} height={SLOT_H * 0.32} rx={5} />
-                  <path className="plinko__roof" d={`M${slotX(k) - S / 2} ${SLOT_Y + 2} L${slotX(k)} ${SLOT_Y - 11} L${slotX(k) + S / 2} ${SLOT_Y + 2} Z`} fill={`url(#plinko-tone-${toneOf(mult)})`} />
+                  <GiftWrap cx={slotX(k)} y={SLOT_Y} s={S - 4} h={SLOT_H} tone={toneOf(mult)} />
                   <text x={slotX(k)} y={SLOT_Y + SLOT_H / 2 + 1}>
                     {mult.toLocaleString('es-ES')}
                   </text>
@@ -378,6 +383,23 @@ function Plinko({ onExit, juegos }) {
               <b>—</b>
             )}
           </div>
+          <dl className="plinko__stats">
+            <div>
+              <dt>Bolas</dt>
+              <dd>{session.balls}</dd>
+            </div>
+            <div>
+              <dt>Sesión</dt>
+              <dd className={session.net > 0 ? 'is-up' : session.net < 0 ? 'is-down' : ''}>
+                {session.net > 0 ? '+' : session.net < 0 ? '−' : ''}
+                {eur(Math.abs(session.net))}
+              </dd>
+            </div>
+            <div>
+              <dt>Mejor</dt>
+              <dd>{session.best ? fmt(session.best) : '—'}</dd>
+            </div>
+          </dl>
 
           <div className="plinko__group">
             <h2>Riesgo</h2>

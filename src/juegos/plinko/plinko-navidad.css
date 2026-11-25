@@ -1,0 +1,582 @@
+/* Escrito a mano (no generado): Plinko en Navidad (Season 5). El dibujo está en PlinkoNavidad.jsx; aquí los colores,
+   el mueble (marco de bastón de caramelo con guirnalda de luces), el panel festivo y las animaciones. Todo cuelga de
+   .juegos-root.s5:not(.halloween) y gana a s5-tinte.css (que va con :where); fuera de la temporada o con Halloween se
+   esconde y Plinko sigue como era. */
+
+.juegos-root .pn {
+  display: none;
+}
+
+.juegos-root.s5:not(.halloween) .pn {
+  display: inline;
+}
+
+/* ============================== Pantalla ============================== */
+.juegos-root.s5:not(.halloween) .app.plinko-app {
+  --accent: #ff4b5c;
+  --accent-rgb: 255, 75, 92;
+  --pn-red: #e8243a;
+  --pn-red-hi: #ff5a6a;
+  --pn-green: #18a35c;
+  --pn-green-hi: #3fe08a;
+  --pn-gold: #ffcf4a;
+  --pn-gold-lo: #c98a12;
+  --pn-snow: #f4f9ff;
+  --pn-ink: #0b1430;
+}
+.juegos-root.s5:not(.halloween) .app.plinko-app::before {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.5) 1px, transparent 1.6px) 0 0 / 90px 90px,
+    radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1.6px) 45px 30px / 70px 70px,
+    radial-gradient(45% 55% at 0% 30%, rgba(232, 36, 58, 0.28), transparent 70%),
+    radial-gradient(45% 55% at 100% 70%, rgba(24, 163, 92, 0.26), transparent 70%),
+    radial-gradient(60% 40% at 50% 0%, rgba(255, 207, 74, 0.14), transparent 70%),
+    linear-gradient(180deg, #08112e, #0b1a3c 55%, #081226);
+}
+.juegos-root.s5:not(.halloween) .app.plinko-app > .top h1 {
+  background: linear-gradient(180deg, #fff 0%, #ffe9a8 45%, #ff5a6a 120%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.juegos-root.s5:not(.halloween) .app.plinko-app > .top h1::after {
+  width: 2.4em;
+  height: 5px;
+  background: repeating-linear-gradient(-45deg, #ff4b5c 0 6px, #fff 6px 12px);
+  box-shadow: 0 0 12px rgba(255, 75, 92, 0.7);
+}
+
+/* ============================== Mueble ============================== */
+/* Marco de bastón de caramelo y una guirnalda de luces de colores colgando arriba. */
+.juegos-root.s5:not(.halloween) .plinko__machine {
+  border: 6px solid transparent;
+  border-radius: 26px;
+  padding-top: clamp(22px, 2.4vw, 30px);
+  background:
+    linear-gradient(180deg, #102048, #0a1430) padding-box,
+    repeating-linear-gradient(-45deg, #e8243a 0 14px, #fff6f0 14px 26px) border-box;
+  box-shadow:
+    0 0 0 2px rgba(255, 207, 74, 0.7),
+    0 0 50px rgba(255, 75, 92, 0.28),
+    0 0 90px rgba(24, 163, 92, 0.18),
+    0 24px 60px rgba(0, 0, 0, 0.55);
+}
+.juegos-root.s5:not(.halloween) .plinko__machine::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 18px;
+  right: 18px;
+  z-index: 2;
+  height: 26px;
+  pointer-events: none;
+  background:
+    radial-gradient(5px 7px at 10px 17px, #ff4b5c 90%, transparent) 0 0 / 100px 26px,
+    radial-gradient(5px 7px at 35px 20px, #ffcf4a 90%, transparent) 0 0 / 100px 26px,
+    radial-gradient(5px 7px at 60px 17px, #3fe08a 90%, transparent) 0 0 / 100px 26px,
+    radial-gradient(5px 7px at 85px 20px, #4fb8ff 90%, transparent) 0 0 / 100px 26px,
+    radial-gradient(60px 10px at 50px 4px, transparent 85%, #1c6b3e 88% 100%) 0 0 / 50px 18px repeat-x;
+  filter: drop-shadow(0 0 4px rgba(255, 230, 150, 0.9));
+  animation: pn-garland 1.6s steps(2, jump-none) infinite;
+}
+.juegos-root.s5:not(.halloween) .plinko__machine .status {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  min-height: 0;
+  margin: 0 0 10px;
+  padding: 8px 22px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #d81f35, #9e0f22);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 207, 74, 0.75),
+    0 6px 16px rgba(0, 0, 0, 0.35);
+  font-weight: 700;
+  text-align: center;
+  color: #fff6e6;
+}
+.juegos-root.s5:not(.halloween) .plinko__machine .status--win {
+  background: linear-gradient(180deg, #ffe07a, #e8a514);
+  color: #3a1a02;
+  text-shadow: none;
+  box-shadow:
+    inset 0 0 0 2px #fff6cc,
+    0 0 26px rgba(255, 207, 74, 0.7);
+}
+.juegos-root.s5:not(.halloween) .plinko__machine .plinko__board {
+  padding: 0;
+  border-radius: 18px;
+  background: #0d1d4a;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 246, 220, 0.35),
+    0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* ============================== Tablero ============================== */
+/* Luces del árbol: cinco colores; al tocarlas, un fogonazo blanco. */
+.juegos-root.s5:not(.halloween) .plinko__peg {
+  fill: #ffd54a;
+}
+.juegos-root.s5:not(.halloween) .plinko__peg--c0 {
+  fill: #ff4d5e;
+}
+.juegos-root.s5:not(.halloween) .plinko__peg--c1 {
+  fill: #ffd54a;
+}
+.juegos-root.s5:not(.halloween) .plinko__peg--c2 {
+  fill: #5dff9e;
+}
+.juegos-root.s5:not(.halloween) .plinko__peg--c3 {
+  fill: #5ac2ff;
+}
+.juegos-root.s5:not(.halloween) .plinko__peg--c4 {
+  fill: #ff74da;
+}
+.juegos-root.s5:not(.halloween) .plinko__peg.is-hit {
+  animation: pn-peg 0.45s ease-out;
+}
+
+/* La bola: una bola de Navidad con su brillo del color que le tocó. */
+.juegos-root.s5:not(.halloween) .plinko__ball circle:first-child {
+  fill: var(--orn, #ff2e45);
+  filter: drop-shadow(0 0 7px var(--orn, #ff2e45)) drop-shadow(0 3px 3px rgba(0, 0, 0, 0.5));
+}
+.juegos-root.s5:not(.halloween) .plinko__shine {
+  fill: rgba(255, 255, 255, 0.85);
+}
+.juegos-root.s5:not(.halloween) .plinko__ghost {
+  fill: var(--orn, #ffd25a);
+  opacity: 0.4;
+}
+.juegos-root.s5:not(.halloween) .plinko__ghost--1 {
+  opacity: 0.2;
+}
+.juegos-root.s5:not(.halloween) .pn-orn__band {
+  stroke: rgba(255, 240, 200, 0.75);
+  stroke-width: 1.1;
+  stroke-dasharray: 1.2 2.2;
+  stroke-linecap: round;
+}
+
+/* Regalos: la caja del color de lo que paga, con tapa, cinta y lazo. */
+.juegos-root.s5:not(.halloween) .plinko__slot rect:first-child {
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1.2;
+}
+.juegos-root.s5:not(.halloween) .plinko__slot-shine {
+  fill: rgba(255, 255, 255, 0.22);
+}
+.juegos-root.s5:not(.halloween) .plinko__slot text {
+  font-size: 13.5px;
+  fill: #fff;
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 3px;
+}
+.juegos-root.s5:not(.halloween) :is(.plinko__slot--gold, .plinko__slot--even) text {
+  fill: #fff;
+  stroke: rgba(0, 0, 0, 0.55);
+}
+.juegos-root.s5:not(.halloween) .pn-gift__lid {
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 1;
+  filter: brightness(1.12);
+}
+.juegos-root.s5:not(.halloween) .pn-gift__ribbon,
+.juegos-root.s5:not(.halloween) .pn-gift__bow {
+  fill: #ffe27a;
+}
+.juegos-root.s5:not(.halloween) :is(.plinko__slot--gold, .plinko__slot--warm) :is(.pn-gift__ribbon, .pn-gift__bow) {
+  fill: #e8243a;
+}
+.juegos-root.s5:not(.halloween) .plinko__slot--even :is(.pn-gift__ribbon, .pn-gift__bow) {
+  fill: #fff6f0;
+}
+.juegos-root.s5:not(.halloween) .pn-gift__bow {
+  stroke: rgba(0, 0, 0, 0.25);
+  stroke-width: 0.6;
+}
+.juegos-root.s5:not(.halloween) .plinko__slot.is-hit {
+  animation: pn-gift 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+
+/* Paisaje. */
+.juegos-root.s5:not(.halloween) .pn-star {
+  fill: #fff;
+}
+.juegos-root.s5:not(.halloween) .pn-star--tw {
+  animation: pn-twinkle 1.8s ease-in-out infinite alternate;
+}
+.juegos-root.s5:not(.halloween) .pn-aurora {
+  opacity: 0.5;
+  animation: pn-aurora 9s ease-in-out infinite alternate;
+}
+.juegos-root.s5:not(.halloween) .pn-aurora__b {
+  opacity: 0.6;
+}
+.juegos-root.s5:not(.halloween) .pn-moon {
+  fill: #fbf6dc;
+}
+.juegos-root.s5:not(.halloween) .pn-snowcap {
+  fill: #f4f9ff;
+}
+.juegos-root.s5:not(.halloween) .pn-village rect {
+  fill: #ffd879;
+  animation: pn-twinkle 2.6s ease-in-out infinite alternate;
+}
+.juegos-root.s5:not(.halloween) .pn-house__chimney {
+  fill: #6a3a2a;
+}
+.juegos-root.s5:not(.halloween) .pn-window {
+  fill: #ffd25e;
+  filter: drop-shadow(0 0 4px rgba(255, 210, 94, 0.9));
+}
+.juegos-root.s5:not(.halloween) .pn-window--b {
+  animation: pn-window 5s ease-in-out infinite;
+}
+.juegos-root.s5:not(.halloween) .pn-door {
+  fill: #3a1f12;
+}
+.juegos-root.s5:not(.halloween) .pn-wreath {
+  fill: none;
+  stroke: #2fbf6a;
+  stroke-width: 2;
+}
+.juegos-root.s5:not(.halloween) .pn-fir > path:first-of-type {
+  fill: #146b3f;
+}
+.juegos-root.s5:not(.halloween) .pn-snowman > circle:nth-child(-n + 3) {
+  fill: #f6fbff;
+}
+.juegos-root.s5:not(.halloween) .pn-snowman__hat {
+  fill: #1a1a24;
+}
+.juegos-root.s5:not(.halloween) .pn-snowman__scarf {
+  fill: #e8243a;
+}
+.juegos-root.s5:not(.halloween) .pn-tree {
+  filter: drop-shadow(0 0 10px rgba(63, 224, 138, 0.25));
+}
+.juegos-root.s5:not(.halloween) .pn-tinsel path {
+  fill: none;
+  stroke: #ffd96a;
+  stroke-width: 2;
+  stroke-dasharray: 0.1 5;
+  stroke-linecap: round;
+  opacity: 0.6;
+}
+.juegos-root.s5:not(.halloween) .pn-topstar {
+  fill: #ffd54a;
+  stroke: #fff4bf;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 8px rgba(255, 213, 74, 0.95));
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pn-star 2.4s ease-in-out infinite alternate;
+}
+.juegos-root.s5:not(.halloween) .pn-star-glow {
+  animation: pn-twinkle 2.4s ease-in-out infinite alternate;
+}
+.juegos-root.s5:not(.halloween) .pn-snowfall circle {
+  fill: #fff;
+  opacity: 0.8;
+  animation-name: pn-snow;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* ============================== Panel ============================== */
+.juegos-root.s5:not(.halloween) .plinko__panel {
+  position: relative;
+  border: 0;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.14) 1px, transparent 1.6px) 0 0 / 26px 26px,
+    linear-gradient(180deg, rgba(20, 40, 90, 0.9), rgba(10, 22, 52, 0.92));
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 207, 74, 0.35),
+    0 18px 44px rgba(0, 0, 0, 0.45);
+}
+.juegos-root.s5:not(.halloween) .plinko__group h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffe9a8;
+}
+.juegos-root.s5:not(.halloween) .plinko__group h2::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--dot, #ff4b5c) 55%);
+  box-shadow: 0 0 8px var(--dot, #ff4b5c);
+}
+.juegos-root.s5:not(.halloween) .plinko__group:has(.plinko__bets:not(.plinko__auto-counts)) h2 {
+  --dot: #3fe08a;
+}
+.juegos-root.s5:not(.halloween) .plinko__auto h2 {
+  --dot: #5ac2ff;
+}
+.juegos-root.s5:not(.halloween) .plinko__group:last-child h2 {
+  --dot: #ffcf4a;
+}
+.juegos-root.s5:not(.halloween) .plinko__hint,
+.juegos-root.s5:not(.halloween) .plinko__auto-stop {
+  color: #b9c9e6;
+}
+
+/* Última bola: una etiqueta de regalo con el color de su caja. */
+.juegos-root.s5:not(.halloween) .plinko__last {
+  --tone: #ffe9a8;
+  padding: 14px 12px 12px;
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--tone) 40%, transparent), transparent 75%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(0, 0, 0, 0.25));
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--tone) 60%, transparent),
+    0 0 24px color-mix(in srgb, var(--tone) 22%, transparent);
+}
+.juegos-root.s5:not(.halloween) .plinko__last small {
+  color: #ffe9a8;
+}
+.juegos-root.s5:not(.halloween) .plinko__last--hot {
+  --tone: #ff5a6a;
+}
+.juegos-root.s5:not(.halloween) .plinko__last--warm {
+  --tone: #ffaa4a;
+}
+.juegos-root.s5:not(.halloween) .plinko__last--gold {
+  --tone: #ffe36a;
+}
+.juegos-root.s5:not(.halloween) .plinko__last--even {
+  --tone: #5ff0a0;
+}
+.juegos-root.s5:not(.halloween) .plinko__last--cold {
+  --tone: #6cd0ff;
+}
+.juegos-root.s5:not(.halloween) .plinko__stats div {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.juegos-root.s5:not(.halloween) .plinko__stats dt {
+  color: #b9c9e6;
+}
+
+/* Riesgo: verde, dorado y rojo. */
+.juegos-root.s5:not(.halloween) .plinko__seg {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.3);
+}
+.juegos-root.s5:not(.halloween) .plinko__seg button[aria-pressed='true'] {
+  background: linear-gradient(180deg, var(--pn-green-hi), var(--pn-green));
+  color: #04210f;
+  box-shadow: 0 0 16px rgba(63, 224, 138, 0.5);
+}
+.juegos-root.s5:not(.halloween) .plinko__seg button:nth-child(2)[aria-pressed='true'] {
+  background: linear-gradient(180deg, #ffe48a, var(--pn-gold-lo));
+  color: #2a1a02;
+  box-shadow: 0 0 16px rgba(255, 207, 74, 0.5);
+}
+.juegos-root.s5:not(.halloween) .plinko__seg button:nth-child(3)[aria-pressed='true'] {
+  background: linear-gradient(180deg, var(--pn-red-hi), #a80f24);
+  color: #fff;
+  box-shadow: 0 0 16px rgba(255, 75, 92, 0.55);
+}
+
+/* Apuesta: cada importe, una bola de un color. */
+.juegos-root.s5:not(.halloween) .plinko__bets button {
+  --c: #5ac2ff;
+  border: 2px solid color-mix(in srgb, var(--c) 55%, transparent);
+  background: color-mix(in srgb, var(--c) 14%, rgba(0, 0, 0, 0.3));
+  color: #fff;
+}
+.juegos-root.s5:not(.halloween) .plinko__bets button:nth-child(2) {
+  --c: #3fe08a;
+}
+.juegos-root.s5:not(.halloween) .plinko__bets button:nth-child(3) {
+  --c: #ffcf4a;
+}
+.juegos-root.s5:not(.halloween) .plinko__bets button:nth-child(4) {
+  --c: #ff5a6a;
+}
+.juegos-root.s5:not(.halloween) .plinko__bets button:nth-child(5) {
+  --c: #c47bff;
+}
+.juegos-root.s5:not(.halloween) .plinko__bets button[aria-pressed='true'] {
+  border-color: #fff;
+  background: radial-gradient(circle at 35% 25%, color-mix(in srgb, var(--c) 40%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 60%, #000));
+  color: #0b1430;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--c) 70%, transparent);
+}
+.juegos-root.s5:not(.halloween) .plinko__auto-counts button {
+  --c: #ffe9a8;
+}
+
+/* Soltar bola: bastón de caramelo con borde dorado. */
+.juegos-root.s5:not(.halloween) .app.plinko-app .plinko__drop button.primary {
+  border: 2px solid #ffcf4a;
+  color: #fff;
+  text-shadow: 0 2px 0 rgba(90, 0, 10, 0.6);
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.16) 0 12px, transparent 12px 24px),
+    linear-gradient(180deg, #ff4b5c, #b8102a);
+  background-size: 34px 34px, auto;
+  box-shadow:
+    0 0 26px rgba(255, 75, 92, 0.45),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.25),
+    inset 0 2px 0 rgba(255, 255, 255, 0.25);
+  animation: pn-candy 1.2s linear infinite;
+}
+.juegos-root.s5:not(.halloween) .app.plinko-app .plinko__drop button.primary:not(:disabled):hover {
+  background:
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.22) 0 12px, transparent 12px 24px),
+    linear-gradient(180deg, #ff6a78, #cc1631);
+  background-size: 34px 34px, auto;
+}
+.juegos-root.s5:not(.halloween) .app.plinko-app .plinko__drop button.primary:disabled {
+  animation: none;
+}
+.juegos-root.s5:not(.halloween) .plinko__drop kbd {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.22);
+  font: inherit;
+  font-size: 0.6em;
+  font-weight: 700;
+  vertical-align: middle;
+  text-shadow: none;
+  color: #fff;
+}
+.juegos-root.s5:not(.halloween) :is(.plinko__turbo, .plinko__auto-stop) input {
+  accent-color: #ff4b5c;
+}
+
+.juegos-root.s5:not(.halloween) .plinko__auto-go {
+  border: 2px solid rgba(63, 224, 138, 0.7);
+  color: #eafff2;
+  background: linear-gradient(180deg, rgba(63, 224, 138, 0.3), rgba(24, 163, 92, 0.25));
+}
+.juegos-root.s5:not(.halloween) .plinko__auto-go:not(:disabled):hover {
+  background: linear-gradient(180deg, rgba(63, 224, 138, 0.45), rgba(24, 163, 92, 0.4));
+}
+.juegos-root.s5:not(.halloween) .plinko__auto-go.is-stop {
+  border-color: #ffcf4a;
+  background: linear-gradient(180deg, #ff4b5c, #b8102a);
+}
+
+/* Historial: bolitas del color de cada caja. */
+.juegos-root.s5:not(.halloween) .plinko__chip {
+  position: relative;
+  margin-top: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: radial-gradient(circle at 35% 25%, color-mix(in srgb, var(--tone) 45%, #fff), var(--tone) 60%, color-mix(in srgb, var(--tone) 70%, #000));
+  color: var(--ink, #0b1430);
+}
+.juegos-root.s5:not(.halloween) .plinko__chip::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 8px;
+  height: 4px;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(90deg, #a8761d, #fff0b0, #a8761d);
+  translate: -50% 0;
+}
+.juegos-root.s5:not(.halloween) .plinko__chip--hot {
+  --tone: #ff4b5c;
+  --ink: #fff;
+}
+.juegos-root.s5:not(.halloween) .plinko__chip--warm {
+  --tone: #ff9a3c;
+  --ink: #2a1202;
+}
+.juegos-root.s5:not(.halloween) .plinko__chip--gold {
+  --tone: #ffd54a;
+  --ink: #2a1a02;
+}
+.juegos-root.s5:not(.halloween) .plinko__chip--even {
+  --tone: #3fe08a;
+  --ink: #04210f;
+}
+.juegos-root.s5:not(.halloween) .plinko__chip--cold {
+  --tone: #4fb8ff;
+  --ink: #04192e;
+}
+
+@keyframes pn-garland {
+  50% {
+    filter: drop-shadow(0 0 7px rgba(255, 230, 150, 1)) brightness(1.35) saturate(1.2);
+  }
+}
+@keyframes pn-peg {
+  from {
+    fill: #fff;
+    r: 8.5px;
+  }
+}
+@keyframes pn-gift {
+  from {
+    translate: 0 -12px;
+    filter: brightness(1.8) drop-shadow(0 0 12px #fff6b0);
+  }
+}
+@keyframes pn-twinkle {
+  to {
+    opacity: 0.25;
+  }
+}
+@keyframes pn-aurora {
+  to {
+    opacity: 0.8;
+    translate: 30px 6px;
+  }
+}
+@keyframes pn-window {
+  0%,
+  70%,
+  100% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.35;
+  }
+}
+@keyframes pn-star {
+  to {
+    scale: 1.12;
+    rotate: 8deg;
+  }
+}
+@keyframes pn-snow {
+  to {
+    translate: var(--drift, 0) 960px;
+  }
+}
+@keyframes pn-candy {
+  to {
+    background-position: 34px 0, 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juegos-root.s5 .plinko__machine::before,
+  .juegos-root.s5 :is(.pn-star--tw, .pn-aurora, .pn-village rect, .pn-window--b, .pn-topstar, .pn-star-glow, .plinko__drop button.primary) {
+    animation: none;
+  }
+  .juegos-root.s5 .pn-snowfall {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .juegos-root.s5:not(.halloween) .plinko__machine {
+    border-width: 4px;
+    padding-top: 20px;
+  }
+  .juegos-root.s5:not(.halloween) .plinko__machine .status {
+    padding: 6px 14px;
+  }
+}
